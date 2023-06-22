@@ -192,7 +192,7 @@ public with sharing class InquiryManager {
                 /* Conversion value
                     1. Fixed value
                     2. Empty value
-                    3. Date format value
+                    3. Date format value test
                 */
 
                 String fixValue = inquiryFieldMap.get(fieldName).Fixed_Value__c;
