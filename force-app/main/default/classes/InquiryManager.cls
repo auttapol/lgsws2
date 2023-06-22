@@ -21,7 +21,6 @@ public with sharing class InquiryManager {
     public InquiryManager(String inquiryName, Map<String, Object> inquiryKeyMap) {
         this.inquiryName = inquiryName;
         this.inquiryKeyMap = inquiryKeyMap;
-        // isObject = true;
     }
 
 
