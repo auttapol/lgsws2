@@ -1,0 +1,302 @@
+<apex:page standardController="Visit_Report__c" sidebar="false" showHeader="false" extensions="VisitPlanControllerExtension"
+    action="{!checkrender}" standardstylesheets="true" doctype="html-5.0" lightningStylesheets="true">
+    <apex:includeScript value="/support/console/34.0/integration.js" />
+    <apex:includeScript value="{!$Resource.SFScript}" />
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <style>
+        .article {
+            float: left;
+            margin-top: 5px;
+            <!-- margin: 5px;
+            padding: 5px;
+            -->
+        }
+
+        .perf {
+            <!--margin-top: 30px;
+            -->
+        }
+
+        .image {
+            float: left;
+        }
+
+        .data {
+            float: left;
+            margin: 10px;
+            padding: 10px;
+        }
+
+        .article1 {
+            margin-top: 10px;
+            <!-- margin: 5px;
+            padding: 5px;
+            -->
+        }
+
+
+
+        .data1 {
+            margin: 5px;
+            padding: 5px;
+        }
+    </style>
+
+    <script>function setFocusOnLoad() { }</script>
+    <script type="text/javascript">
+
+        var $j = jQuery.noConflict();
+        var theme = '{!$User.UIThemeDisplayed}';
+        function checkIsSalesforceOne() {
+            if (theme == 'Theme4t') {
+
+                $j("#mobile-wrapper").css('display', 'block');
+            }
+            else {
+                $j("#main-wrapper").css('display', 'block');
+            }
+        }
+
+
+        $j(document).ready(function () {
+            // Use to redirect if user used salesforce in salesforce1 application 
+            //alert("Ready");  
+            checkIsSalesforceOne();
+
+        });
+
+    </script>
+    <style>
+        .invisible {
+            display: none !important;
+        }
+
+        .tmbperson {
+            cursor: default;
+            color: #333;
+            background-color: #e6e6e6;
+            border: 2px solid #e6e6e6;
+        }
+    </style>
+
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}" />
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:actionStatus onstart="startLoading();" onstop="endLoading();" id="loadStatus" />
+        <style>
+            .errorMsg {
+                display: none !important;
+            }
+
+            @font-face {
+                font-family: 'ProximaNovaSoft-Regular';
+                font-weight: normal;
+                font-style: normal;
+
+                src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}');
+                src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}?#iefix') format('embedded-opentype'),
+                url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.woff')}') format('woff'),
+                url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.ttf')}') format('truetype'),
+                url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.svg')}#proxima_nova_softregular') format('svg');
+            }
+
+            @font-face {
+                font-family: 'ProximaNovaSoft-Medium';
+                font-weight: normal;
+                font-style: normal;
+                src: url('../fonts/proximanovasoft-regular.eot');
+                src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}?#iefix') format('embedded-opentype'),
+                url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.woff')}') format('woff'),
+                url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.ttf')}') format('truetype'),
+                url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.svg')}#proxima_nova_softmedium') format('svg');
+            }
+
+            @font-face {
+                font-family: 'icomoon';
+                src: url('{!URLFOR($Resource.fonts, 'icon-utility.eot')}');
+            }
+
+            @font-face {
+                font-family: 'icomoon';
+                src: url("{!URLFOR($Resource.fonts, 'icon-utility.eot')}?#iefix") format("embedded-opentype"),
+                url("{!URLFOR($Resource.fonts, 'icon-utility.woff')}") format("woff"),
+                url("{!URLFOR($Resource.fonts, 'icon-utility.ttf')}") format("truetype"),
+                url("{!URLFOR($Resource.fonts, 'icon-utility.svg')}#icomoon") format("svg");
+                font-weight: normal;
+                font-style: normal;
+            }
+
+
+            .depend2 select {
+                display: block;
+                width: 50%;
+            }
+
+            .depend select {
+                display: block;
+                width: 100%;
+                height: 34px;
+                padding: 6px 14px;
+                font-size: 14px;
+                line-height: 1.42857143;
+                color: #000000;
+                background-color: #ffffff;
+                background-image: none;
+                border: 1px solid #cfd0d2;
+                border-radius: 4px;
+                -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+                box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+                -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+                -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+                transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            }
+
+            .depend select {
+                border-color: #bfc0c2;
+                outline: 0;
+                background-color: #fff;
+                -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(191, 192, 194, 0.6);
+                box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(191, 192, 194, 0.6);
+            }
+
+            @media (max-width: 500px) {
+
+                .bootstrap-sf1 .form-horizontal .form-group {
+                    margin-left: -10px;
+                    margin-right: -10px;
+                }
+                .bootstrap-sf1 {
+                    overflow: hidden;
+                }
+                .bootstrap-sf1 .container {
+                    padding-left: 0px;
+                    padding-right: 0px;
+                }
+                .bootstrap-sf1 {
+                    position: relative;
+                    padding-top: 14px; //margin: -15px -15px 10px -15px;
+                }
+                .bootstrap-sf1 {
+                    background-color: #FFF;
+                }
+
+            }
+
+            li {
+                text-align: left !important;
+            }
+        </style>
+
+        <!-- svg loader style -->
+        <style>
+            .Indicator {
+                /*position : relative;*/
+            }
+
+            .Indicator.hidden {
+                display: none;
+            }
+
+            .Indicator .modal-glass {
+                background-color: #000000;
+                bottom: 0;
+                display: block;
+                left: 0;
+                margin-left: 0px;
+                opacity: 0.3;
+                position: fixed;
+                right: 0;
+                top: 0;
+                height: 100%;
+                z-index: 1999;
+
+            }
+
+            .Indicator .hideEl {
+                display: none;
+            }
+
+            .Indicator .indicatorContainer {
+                background: none repeat scroll 0 0 #354452;
+                border-radius: 5px;
+                color: #FFFFFF;
+                display: block;
+                height: 82px;
+                left: 0;
+                margin: -65px auto;
+                opacity: 0.9;
+                padding-top: 22px;
+                position: fixed;
+                right: 0;
+                text-align: center;
+                top: 250px;
+                width: 110px;
+                z-index: 2000;
+            }
+
+            /*
+            Set the color of the icon
+            */
+
+            svg path,
+            svg rect {
+                fill: #2A94D6;
+            }
+        </style>
+
+        <style>
+            p {
+                font-family: "ProximaNovaSoft-Regular", Calibri,
+                "Gill Sans", "Gill Sans MT", Candara, Segoe, "Segoe UI",
+                Arial, sans-serif;
+                Color: #70819F;
+                font-size: 16px;
+            }
+        </style>
+
+    </head>
+
+
+    <div id="main-wrapper" style='display:none'>
+        <apex:pageBlock mode="maindetail">
+            <apex:PageBlockSection columns="1" id="theSection">
+                <apex:outputField value="{!Visit_Report__c.Business_Talk_Opportunity__c}" rendered="{!Showvalue}" />
+                <apex:outputField value="{!Visit_Report__c.Additional_Comments__c}" rendered="{!Showvalue}" />
+            </apex:PageBlockSection>
+        </apex:pageBlock>
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includeScript value="/support/console/22.0/integration.js" />
+    </div>
+
+
+    <div id="mobile-wrapper" style='display:none'>
+        <div>
+            <p>
+                <apex:outputLabel >
+                    <apex:outputPanel rendered="{!Showvalue}"> Business Talk Opportunity </apex:outputPanel>
+                </apex:outputLabel>
+            </p>
+            <span style="color:#16325C;">
+                <apex:outputField value="{!Visit_Report__c.Business_Talk_Opportunity__c}" rendered="{!Showvalue}" />
+            </span>
+            <div style="width:100%;height:2px;background-color:#F4F6F9;margin-top:10px;" />
+        </div>
+        <div>
+            <p>
+                <apex:outputLabel >
+                    <apex:outputPanel rendered="{!Showvalue}"> Additional Comments </apex:outputPanel>
+                </apex:outputLabel>
+            </p>
+            <span style="color:#16325C;">
+                <apex:outputField value="{!Visit_Report__c.Additional_Comments__c}" rendered="{!Showvalue}" />
+            </span>
+        </div>
+
+    </div>
+
+</apex:page>

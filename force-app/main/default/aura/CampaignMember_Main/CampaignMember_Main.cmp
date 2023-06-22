@@ -1,0 +1,86 @@
+<aura:component controller="CampaignMemberInfoController" implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+
+    <aura:attribute name="recordId" type="String"/>
+    <aura:attribute name="mcode" type="String" />
+    <aura:attribute name="tmbCustId" type="String" />
+    <aura:attribute name="isExpire" type="Boolean" default="false"/>
+    <aura:attribute name="mode" type="String" default="View"/>
+    <!-- <aura:attribute name="displayData" type="List" /> -->
+    <aura:attribute name="productNotMatch" type="Boolean" default="false" />
+    <aura:attribute name="productNotMatch_Msg" type="String"/>
+    <aura:attribute name="recordIsClosed" type="Boolean" default="false" />
+    <aura:attribute name="recordCanNotSell" type="Boolean" default="false" />
+    <aura:attribute name="showWarning" type="Boolean" default="false" />
+
+
+    <!-- CallBack Section -->
+    <aura:attribute name="task" type="Task" />
+    <aura:attribute name="callback_date" type="String" />
+    <aura:attribute name="callback_time" type="String" />
+    <aura:attribute name="callback_date_label" type="String" />
+    <aura:attribute name="callback_time_label" type="String" />
+    <aura:attribute name="isExpanded_CallBack" type="Boolean" default="false" />
+    <!-- CallBack Section -->
+
+    <lightning:workspaceAPI aura:id="workspace" />
+    <lightning:navigation aura:id="navigation"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <!-- <aura:handler event="force:navigateToComponent" action="{!c.refreshView}" /> -->
+    <aura:handler name="CampaignMember_InfoEvent" event="c:CampaignMember_InfoEvent"
+    action="{!c.handleInfoEvent}"/> 
+
+    <div class="slds-is-relative">
+            <aura:if isTrue="{! v.loaded }">
+                <lightning:spinner alternativeText="Loading" />   
+            </aura:if>
+        <aura:if isTrue="{!v.showWarning}">
+            <div style="margin-bottom: 10px;">
+                <lightning:card class="warning-card">
+                    <div class="slds-grid">
+                        <div class="slds-col slds-size_1-of-8" style="width: 10px;margin-left: 10px;">
+                            <lightning:icon class="some-indicator" variant="warning"  iconName="utility:warning" alternativeText="warning" title="warning" size="x-small" />
+                        </div>
+                        <div class="slds-col slds-size_7-of-8">
+                            <p class="slds-p-horizontal_small" style="font-weight: bold;">
+                                {!$Label.c.RTL_CampaignMember_Campaign_Expired_Title}
+                            </p>
+                            <aura:if isTrue="{!v.isExpire}">
+                                <p class="slds-p-horizontal_small">                 
+                                    {!$Label.c.RTL_CampaignMember_Campaign_Expired_ErrMsg}
+                                </p>
+                            </aura:if>
+                            <aura:if isTrue="{!v.productNotMatch}">
+                                <p class="slds-p-horizontal_small">    
+                                    {!v.productNotMatch_Msg}
+                                </p>
+                            </aura:if>
+                            <aura:if isTrue="{!v.recordIsClosed}">
+                                <p class="slds-p-horizontal_small">    
+                                    {!$Label.c.RTL_CampaignMember_CampaignMember_CanNotEdit}
+                                </p>
+                            </aura:if>
+                            <aura:if isTrue="{!v.recordCanNotSell}">
+                                <p class="slds-p-horizontal_small">    
+                                    {!$Label.c.RTL_CampaignMember_CampaignMember_CanNotSell}
+                                </p>
+                            </aura:if>
+                        </div>
+                    </div>
+                </lightning:card>
+            </div>
+        </aura:if>
+
+        <div class="slds-grid slds-gutters">
+            <div class="slds-col slds-size_5-of-7">
+                <c:CampaignMember_Infomation Mode="{!v.mode}" recordId="{!v.recordId}" mcode="{!v.mcode}" task="{!v.task}" tmbCustId="{!v.tmbCustId}" isExpire="{!v.isExpire}" 
+                recordIsClosed="{!v.recordIsClosed}" recordCanNotSell="{!v.recordCanNotSell}"/>
+            </div>
+            <div class="slds-col slds-size_2-of-7">
+                <c:CampaignMember_History recordId="{!v.recordId}"/>
+                <c:CampaignMember_CallBackHist recordId="{!v.recordId}" />
+                <c:CampaignMember_CallLog recordId="{!v.recordId}" />
+            </div>
+        </div>     
+    </div>
+</aura:component>

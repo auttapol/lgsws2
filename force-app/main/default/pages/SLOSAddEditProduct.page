@@ -1,0 +1,293 @@
+<apex:page docType="html-5.0" showChat="false" 
+           showHeader="false" sidebar="false" applyBodyTag="false" 
+           applyHtmlTag="true"  standardStylesheets="true" controller="SLOSPrescreenController2" action="{!checkProductGroup}"
+           lightningStylesheets="true">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w4.org/1999/xlink">
+        
+        <head>
+            <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+            <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+            
+            <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+            <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+            <apex:stylesheet value="{!URLFOR($Resource.AccountPlanEditTable)}"/>
+            <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+            <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+            <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+            <apex:includeScript value="/support/console/22.0/integration.js"/>
+             <apex:stylesheet value="{!URLFOR($Resource.SLOS)}"/>
+            <style>
+                
+                
+                 @media (max-width: 700px){
+                     .slds{
+                        margin-top: 25px;
+                     }
+                }
+                select:disabled{
+                        background-color: #fbe7e8 !important;
+                }
+            </style>
+        </head>
+        
+        <body class="bootstrap-sf1">
+            
+            <apex:form styleclass="slds-form--stacked" id="frm">
+                
+                <!-- Ajax  -->
+                <apex:actionStatus id="status" onstart="ShowSpin()" onstop="HideSpin()"> </apex:actionStatus>
+                <apex:actionFunction action="{!showProduct}" name="showProduct" rerender="sfproductPanel,messages" status="status">
+                    <apex:param name="opplineindex" assignTo="{!opplineindex}" value=""/>
+                </apex:actionFunction>
+                <apex:actionFunction name="loading" status="status" rerender="nothing"/>
+                <apex:outputPanel id="messages">
+                        
+                            <apex:pageMessages escape="false" ></apex:pageMessages>
+                        
+                    </apex:outputPanel>
+                <div class="slds"> 
+                    <!-- spin -->
+                    <div id="spin" style="display:none;" class="slds-spinner_container">
+                        <div class="slds-spinner--brand slds-spinner slds-spinner--large" aria-hidden="false" role="alert">
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div> 
+                    <!--HEADER-->
+                    
+                    <!--END HEADER-->
+                    <!--CONTAINER-->
+                    <div class="slds-grid slds-grid--align-center  slds-m-horizontal--small">
+
+                    
+                        <div class="slds-size--1-of-1">
+                            
+                            <div class="">
+                                <fieldset class="slds-theme--default ">
+                                    
+                                    <div class="" >
+                                        <div class="slds-form-element" >
+                                        <apex:outputPanel rendered="{!isHasProductGroup}">
+                                            
+                                            <apex:commandButton styleClass="slds-float--left slds-button slds-button--brand" value="Add New" action="{!addproduct}" oncomplete="addProductList();" status="status" rerender="childList,messages" />
+                                            <apex:commandButton value="Save" styleClass="slds-float--right slds-button slds-button--brand" style="" action="{!saveToList}" status="status" rerender="childList,messages" />
+                                           
+                                        </apex:outputPanel>
+                                            
+                                            <div id="SF1" style="display: none;" >
+                                            <apex:commandButton value="Close" onclick="cancel();" status="status" styleClass="slds-float--right slds-button slds-button--brand"/>
+                                             </div>
+                                        </div>
+                                    </div>
+                                      
+                                </fieldset></div>
+                        </div>
+                       
+                    </div>
+                    <!--END CONTAINER-->
+                     <apex:outputPanel id="childList">
+                    <div class="slds-form-element slds-m-around--small"  id="responsive">
+                        <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal">
+                            <thead>
+                                <tr class="slds-text-title--caps slds-section-title--divider" style="Background-color: #c9e4fc;">
+                                    <th scope="col" style="text-align: center;">
+                                        <div title="Program">Program                                             
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                  data-animation="false" data-placement="bottom" 
+                                                  title="{!$ObjectType.Opportunity.Fields.Product_Program__c.inlineHelpText}" />                                              
+                                        </div>
+                                    </th>
+                                    <th scope="col" style="text-align: center;">
+                                        <div title="Credit Facility">Credit Facility
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                  data-animation="false" data-placement="bottom" 
+                                                  title="{!$ObjectType.Host_Product_Mapping__c.Fields.Host_Prod_Name_Credit_Facility__c.inlineHelpText}" />
+                                        </div>
+                                    </th>
+                                    <th scope="col" style="text-align: center;">
+                                        <div title="SF Product Name">SF Product Name
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                  data-animation="false" data-placement="bottom" 
+                                                  title="{!$ObjectType.Host_Product_Mapping__c.Fields.Salesforce_Product__c.inlineHelpText}" />
+                                        </div>
+                                    </th>
+                                    <th scope="col" style="text-align: center;">
+                                        <div  title="Request Amount (THB)">Request Amt./Vol. (THB)
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                  data-animation="false" data-placement="bottom" 
+                                                  title="{!$ObjectType.OpportunityLineItem.Fields.UnitPrice.inlineHelpText}" />
+                                        </div>
+                                    </th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <apex:repeat value="{!listOpportunityProduct2}" var="p">
+                                    <tr>
+                                        <td data-label="Program">
+                                            <div style="display:none">
+                                                <apex:inputField value="{!p.hostMapTemp.Host_Name__c}" />
+                                                <apex:inputField value="{!p.hostMapTemp.Host_Product_Group__c}" />
+                                            </div>
+                                            <div class="requiredInput">
+                                                <div class="requiredBlock"></div>
+                                                <apex:inputField value="{!p.hostMapTemp.Product_Program__c}"  onchange="loading(); checkIshasValue(this,'{!p.Index}');"  styleClass="slds-select {!IF(p.hostMapTemp.Product_Program__c == '--None--' ,'requiredField','')}"/>
+                                            </div>
+                                        </td>
+                                        <td data-label="Credit Facility">
+                                            <div class="requiredInput">
+                                                <div class="requiredBlock"></div>
+                                                <apex:inputField value="{!p.hostMapTemp.Host_Prod_Name_Credit_Facility__c}"   onchange="showProduct('{!p.Index}'); checkIshasValue(this,'{!p.Index}');"  styleClass="{!IF(p.hostMapTemp.Host_Prod_Name_Credit_Facility__c == '--None--' ,'requiredField','')} slds-select program"/>
+                                            </div>
+                                        </td>
+                                        <td data-label="SF Product Name">
+                                            <apex:outputPanel id="sfproductPanel">
+                                                <!-- apex:outputPanel rendered="{!if(p.hostMapTemp.Salesforce_Product__c != '',true,false)}">{!mapProductName[p.hostMapTemp.Salesforce_Product__c]}</apex:outputPanel>
+                                                <apex:outputPanel rendered="{!if(p.hostMapTemp.Salesforce_Product__c != '',false,true)}">{!p.oppProd.product2.name}</apex:outputPanel -->
+                                                <apex:outputPanel >{!p.productName}</apex:outputPanel>
+                                                <!-- apex:outputField value="{!p.hostMapTemp.Salesforce_Product__c}" rendered="{!if(p.hostMapTemp.Salesforce_Product__c != '',true,false)}"/>
+                                                <apex:outputField value="{!p.oppProd.product2id}" rendered="{!if(p.hostMapTemp.Salesforce_Product__c != '',false,true)}"/ -->
+                                            </apex:outputPanel>
+                                        </td>
+                                        <td data-label="Request Amount (THB)">
+                                            <div class="requiredInput">
+                                                <div class="requiredBlock"></div>
+                                                <apex:inputField value="{!p.oppProd.unitprice}" onchange="checkIshasValue(this,'');" styleClass="{!IF(p.oppProd.unitprice == null || p.oppProd.unitprice <=0   ,'requiredField','')}  slds-input slds-text-align--right"  />
+                                            </div>
+                                        </td>
+                                        <td class=" slds-text-align--center">
+                                            <div class="slds-text-align--center" >
+                                                <div class="slds-form-element" >
+                                                    <apex:commandLink value="Delete" action="{!removeProduct}" styleClass="slds-button slds-button--brand btn-danger" status="status" rerender="childList,messages">
+                                                        <apex:param name="opplineindex" assignTo="{!opplineindex}" value="{!p.Index}"/>
+                                                    </apex:commandLink>
+                                                </div>
+                                            </div>
+                                        </td> 
+                                    </tr>   
+                                </apex:repeat>
+
+                                
+                                
+                            </tbody>
+                        </table>
+                        
+                    </div>
+                    </apex:outputPanel>
+                </div>
+            </apex:form>
+            
+            <apex:includeScript value="/support/console/36.0/integration.js"/>
+            <script>
+            var $j = jQuery.noConflict();
+            var _maintab;
+            function ShowSpin(){
+                $j('#spin').show();
+            }
+            function HideSpin(){
+                $j('#spin').hide();          
+            }     
+            //Sets the title of the current tab to "Case Transactions Detail"
+            /*window.onload = function setTitleConsole(){
+                setTitle();
+            }*/
+            //Sets the title of the current tab to "Case Transactions Detail"
+            function setTitle() {
+                sforce.console.setTabTitle('Submit For Approval');
+            }  
+            function closeTab() {
+                //First find the ID of the current tab to close it
+                sforce.console.getEnclosingTabId(closeSubtab);
+                return false;
+            }            
+            var closeSubtab = function closeSubtab(result) {
+                //Now that we have the tab ID, we can close it
+                var tabId = result.id;
+                sforce.console.closeTab(tabId);
+            };   
+            
+            
+            $j(document).ready(function () {
+                $j('[data-toggle="tooltip"]').tooltip();
+                $j('.tooltip-inner').css('background-color', '#fff1de !important');
+
+                 setTitle();
+                  $j('#frmModel').on('hidden.bs.modal', function (e) {
+                          // do something...
+                           clearIframe();
+                           rerenderforeign(); 
+                           rerenderQuestion();
+                           
+                                         
+                    });
+                  clearIframe();
+
+                  $j( "select" ).each(function() {
+                    //alert($j(this).val());
+                        if($j(this).val() == '--None--'){
+                          $j( this ).addClass( "requiredField" );
+                        }
+                    });
+
+                  if ((typeof sforce.one != 'undefined') && (sforce.one != null) ){
+                    $j('#SF1').show();
+                    }else{
+                        $j('#SF1').hide();
+                    }
+            });                
+            
+             function clearIframe(){
+                    $j("#modalIframe").attr('src','');
+                }
+
+            function checkIshasValue(item,id) {
+                    var msg = item.value;     
+                    if(id != ''){
+                        if(msg !='' && msg != null && msg != '--None--'){   
+                               $j(item).removeClass('requiredField');         
+                            
+                        }else{
+                            $j(item).addClass('requiredField'); 
+                        }
+                    }else{
+                       if(msg !='' && msg != null && msg !='0' && msg !=0){    
+                        $j(item).removeClass('requiredField');                   
+                           // $j(item).addClass('success');
+                       }else{
+                            $j(item).addClass('requiredField'); 
+                       }  
+                       if(msg=='#Too Big!'){
+                        alert(msg);
+                            $j(item).val('');
+                       }     
+                    }
+                                       
+                }  
+                function addProductList(){
+                     $j( "select" ).each(function() {
+                        if($j(this).val() == '_ _' ||  $j(this).val() == '--None--' || $j(this).val() == '' || $j(this).val() == null ){
+                          $j( this ).addClass( "requiredField" );
+                          
+                        }
+                    });
+                     if ((typeof sforce.one != 'undefined') && (sforce.one != null) ){
+                    $j('#SF1').show();
+                    }else{
+                        $j('#SF1').hide();
+                    }
+                    //addproduct();
+                }
+                function cancel() {
+                ShowSpin();
+                //First find the ID of the current tab to close it
+                // if ((typeof sforce.one != 'undefined') && (sforce.one != null) ){
+                    
+                //     sforce.one.navigateToURL('/apex/SLOSSelectProductGroup?id={!oppty.id}&host={!host}' );
+                // }
+                    sforce.one.navigateToURL('/apex/SLOSSelectProductGroup?id={!oppty.id}&host={!host}',true );
+            }    
+            
+            </script>
+        </body>
+    </html>
+</apex:page>

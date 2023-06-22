@@ -1,0 +1,284 @@
+<aura:component controller="QCA_SLSProductController" implements="force:appHostable,flexipage:availableForAllPageTypes"
+    access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <!-- <aura:handler name="render" value="{!this}" action="{!c.onRenderProductList}" /> -->
+    <aura:registerEvent name="varSimplifiedLeadProcessStatus" type="c:SimplifiedLeadProcessStatus" />
+    <aura:registerEvent name="varSimplifiedOpportunityProcessStatus" type="c:SimplifiedOpportunityProcessStatus" />
+
+    <aura:attribute name="flowType" type="String" />
+    <aura:attribute name="leadObjId" type="Id" />
+    <aura:attribute name="recommendedProductList" type="Product_Interest__c[]" />
+    <aura:attribute name="opptyObjId" type="Id" />
+    <aura:attribute name="opptyLineItemList" type="OpportunityLineItem[]" />
+
+    <aura:attribute name="productObj" type="Host_Product_Mapping__c" />
+    <aura:attribute name="productList" type="List" />
+    <aura:attribute name="productGroupName" type="String" />
+
+    <aura:attribute name="HostProductMappingList" type="Host_Product_Mapping__c[]" default="" />
+    <aura:attribute name="HostProductGroup" type="String[]" default="['--None--']" />
+    <aura:attribute name="ProductProgram" type="String[]" default="['--None--']" />
+    <aura:attribute name="HostProdNameCreditFacility" type="String[]" default="['--None--']" />
+    <aura:attribute name="SalesforceProduct" type="String[]" default="" />
+
+    <aura:attribute name="showModalProductItem" type="Boolean" default="false" />
+    <aura:attribute name="isEditSLSProduct" type="Boolean" default="false" />
+    <aura:attribute name="showOnInit" type="Boolean" default="false" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+    <div>
+        <aura:if isTrue="{! v.showModalProductItem }">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+                aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                            title="Close" onclick="{! c.closeModalProductItem }">
+                            <lightning:icon class="slds-icon icon_white" iconName="utility:close" size="small" />
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                        <h2 class="slds-text-heading_small slds-hyphenate">
+                            {! $Label.c.remove_product_item_modal_title }
+                        </h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <lightning:card variant="base" iconName="standard:product">
+                            <aura:set attribute="title">
+                                <div class="slds-text-title">
+                                    {! v.productObj.Product_Program__c }
+                                </div>
+                            </aura:set>
+                            <!-- Body -->
+                            <lightning:layout multipleRows="true" class="slds-p-top_small slds-p-horizontal_medium">
+                                <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                    largeDeviceSize="6">
+                                    <div class="slds-form-element">
+                                        <label class="slds-form-element__label">SF Product Name</label>
+                                        <div class="slds-form-element__control">
+                                            <ui:outputText class="slds-text-title"
+                                                value="{! v.productObj.Salesforce_Product__r.Name }" />
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                    largeDeviceSize="6">
+                                    <div class="slds-form-element">
+                                        <label class="slds-form-element__label">Credit Facility</label>
+                                        <div class="slds-form-element__control">
+                                            <ui:outputText class="slds-text-title"
+                                                value="{! v.productObj.Host_Prod_Name_Credit_Facility__c }" />
+                                        </div>
+
+                                    </div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                    largeDeviceSize="6">
+                                    <div class="slds-form-element">
+                                        <label class="slds-form-element__label">Request Amount (THB)</label>
+                                        <div class="slds-form-element__control">
+                                            <ui:outputCurrency class="slds-text-title" currencyCode="THB"
+                                                currencySymbol="฿" format="#,###,###,###.00"
+                                                value="{! v.productObj.Amount__c }" />
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </lightning:card>
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral"
+                            onclick="{! c.cancelModalProductItem }">Cancel</button>
+                        <button class="slds-button slds-button_destructive"
+                            onclick="{! c.removeSLSProduct }">Remove</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </aura:if>
+
+        <lightning:layout multipleRows="true" class="relative-full">
+            <aura:if isTrue="{! v.showSpinnerLoading }">
+                <lightning:spinner alternativeText="Loading" size="medium" />
+            </aura:if>
+            <lightning:layoutItem class="section addProduct" size="12" smallDeviceSize="6" mediumDeviceSize="5"
+                largeDeviceSize="5">
+
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small">
+                    <div class="slds-var-p-horizontal_xx-small slds-text-title_caps slds-m-top_xx-small">
+                        {! v.isEditSLSProduct ? 'Edit Product' : 'Add Product' }
+                    </div>
+
+                    <div class="slds-form_stacked slds-m-top_x-small slds-m-bottom_x-small">
+                        <div class="slds-form-element">
+                            <lightning:select aura:id="varSLSProductField" name="Host_Product_Group__c"
+                                label="Product Group" value="{! v.productObj.Host_Product_Group__c }" required="true"
+                                disabled="{! v.productList.length > 0 }" onchange="{! c.onChangeHostProductGroup }">
+                                <aura:iteration items="{! v.HostProductGroup }" var="item">
+                                    <option value="{!item != '--None--' ? item : ''}">{!item}</option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+
+                        <div class="slds-form-element">
+                            <lightning:select aura:id="varSLSProductField" name="Product_Program__c"
+                                label="Product Program" value="{! v.productObj.Product_Program__c }" required="true"
+                                onchange="{! c.onChangeProductProgram }">
+                                <aura:iteration items="{! v.ProductProgram }" var="item">
+                                    <option value="{!item != '--None--' ? item : ''}">{!item}</option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+
+                        <div class="slds-form-element">
+                            <lightning:select aura:id="varSLSProductField" name="Host_Prod_Name_Credit_Facility__c"
+                                label="Credit Facility" value="{! v.productObj.Host_Prod_Name_Credit_Facility__c }"
+                                required="true" onchange="{! c.onChangeHostProdNameCreditFacility }">
+                                <aura:iteration items="{! v.HostProdNameCreditFacility }" var="item">
+                                    <option value="{!item != '--None--' ? item : ''}">{!item}</option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+
+                        <div class="slds-form-element">
+                            <lightning:select aura:id="varSLSProductField" name="Salesforce_Product__c"
+                                label="SF Product Name" disabled="true" value="{! v.productObj.Salesforce_Product__c }">
+                                <aura:iteration items="{! v.SalesforceProduct }" var="item">
+                                    <option value="{!item.value}" selected="true">{!item.label}</option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+
+                        <div class="slds-form-element">
+                            <lightning:input type="number" aura:id="varSLSProductField" name="Amount__c"
+                                label="Request Amount (THB)" formatter="currency" step="0.01" min="1"
+                                max="9999999999999999" value="{! v.productObj.Amount__c }" required="true"
+                                onchange="{! c.onChnageAmount }" />
+                        </div>
+
+                        <div class="slds-form-element">
+                            <div class="slds-clearfix">
+                                <div class="slds-clearfix">
+                                    <aura:if isTrue="{! v.isEditSLSProduct }">
+
+                                        <div class="slds-grid slds-m-vertical_x-small">
+                                            <div class="slds-col slds-p-top_medium">
+                                                <lightning:button class="slds-float_left slds-button_stretch" label="Save"
+                                                    iconName="utility:edit" iconPosition="left" variant="brand"
+                                                    type="button" onclick="{! c.updateSLSProduct }" />
+                                            </div>
+                                        </div>
+                                        <div class="slds-grid slds-m-vertical_x-small">
+                                            <div class="slds-col slds-p-top_small">
+                                                <a class="slds-float_left" onclick="{! c.openModalProductItem }">
+                                                    Remove This Product
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <aura:set attribute="else">
+                                            <div class="slds-grid">
+                                                <div class="slds-col slds-p-top_medium">
+                                                    <lightning:button class="slds-float_left slds-button_stretch" label="Add New"
+                                                        iconName="utility:add" iconPosition="left" variant="brand"
+                                                        type="button" onclick="{! c.addSLSProdoct }" />
+                                                </div>
+                                            </div>
+                                        </aura:set>
+                                    </aura:if>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem class="itemProduct " size="12" smallDeviceSize="6" mediumDeviceSize="7" largeDeviceSize="7">
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small" style="padding-bottom: 4rem;">
+                    <div class="slds-var-p-horizontal_xx-small slds-text-title_caps slds-m-top_xx-small">
+                        Product Group : {! v.productList[0].Host_Product_Group__c }
+                    </div>
+
+                    <aura:iteration items="{! v.productList }" var="item" indexVar="idx">
+                        <!-- <c:QCA_SLSProductItem aura:id="varSLSProductItem" productObj="{! item }" index="{!idx}" /> -->
+
+                        <div id="{! 'varSLSProductItem' + idx }"
+                            class="slds-form_stacked slds-m-top_x-small slds-m-bottom_x-small">
+
+                            <lightning:card class="section" variant="base" iconName="standard:product">
+                                <aura:set attribute="title">
+                                    <div class="slds-text-title">
+                                        {! item.Product_Program__c }
+                                    </div>
+                                </aura:set>
+
+                                <aura:set attribute="actions">
+                                    <div onclick="{! c.selectSLSProduct }" data-idx="{! idx }">
+                                        <lightning:button label="Edit/Remove" variant="neutral" />
+                                    </div>
+                                </aura:set>
+
+                                <!-- <aura:set attribute="Card Footer">
+                                    </aura:set> -->
+
+                                <!-- Body -->
+                                <lightning:layout multipleRows="true" class="slds-p-top_small slds-p-horizontal_medium">
+                                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                        largeDeviceSize="6">
+                                        <div class="slds-form-element">
+                                            <label class="slds-form-element__label">SF Product Name</label>
+                                            <div class="slds-form-element__control">
+                                                <ui:outputText class="slds-text-body_small"
+                                                    value="{! item.Salesforce_Product__r.Name }" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                        largeDeviceSize="6">
+                                        <div class="slds-form-element">
+                                            <label class="slds-form-element__label">Credit Facility</label>
+                                            <div class="slds-form-element__control">
+                                                <ui:outputText class="slds-text-body_small"
+                                                    value="{! item.Host_Prod_Name_Credit_Facility__c }" />
+                                            </div>
+
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                        largeDeviceSize="6">
+                                        <div class="slds-form-element">
+                                            <label class="slds-form-element__label">Request Amount (THB)</label>
+                                            <div class="slds-form-element__control">
+                                                <ui:outputCurrency class="slds-text-body_small" currencyCode="THB"
+                                                    currencySymbol="฿" format="#,###,###,###.00"
+                                                    value="{! item.Amount__c }" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                            </lightning:card>
+
+                        </div>
+                    </aura:iteration>
+
+                </div>
+            </lightning:layoutItem>
+            <!-- <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small">
+                    <div class="slds-clearfix">
+                        <div class="slds-clearfix">
+                        </div>
+                    </div>
+                </div>
+            </lightning:layoutItem> -->
+            <!-- <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="12" largeDeviceSize="12"> -->
+            <div class="slds-p-horizontal_large slds-p-vertical_x-small"
+                style="position: absolute;bottom: 0;right: 0;padding-bottom: 1.5rem;">
+                <div class="slds-clearfix">
+                    <div class="slds-clearfix">
+                        <lightning:button class="slds-float_right" variant="brand" type="button" name="save"
+                            label="Next" onclick="{! c.onClickNextRecommendedProduct }" />
+                    </div>
+                </div>
+            </div>
+            <!-- </lightning:layoutItem> -->
+        </lightning:layout>
+    </div>
+</aura:component>

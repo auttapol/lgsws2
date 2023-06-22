@@ -1,0 +1,285 @@
+<aura:component controller="LoanProductDetailViewController" implements="lightning:isUrlAddressable" access="global">
+    <c:methodUtils aura:id="methodUtils" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="fields" type="Map" default="{}" />
+    <aura:attribute name="InterestPlan" type="Map" default="{}" />
+
+    <aura:attribute name="theme" type="String" default="{!$Browser.formFactor == 'PHONE' ? 'Theme4t' : 'Theme4u'}" />
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="tmbCustId" type="String" />
+    <aura:attribute name="RMID" type="String" />
+    <aura:attribute name="Fiident" type="String" />
+    <aura:attribute name="AccountNumber" type="String" />
+    <aura:attribute name="AccountType" type="String" />
+    <aura:attribute name="AcctType" type="String" description="for cyb product" />
+    <aura:attribute name="ProductType" type="String" />
+    <aura:attribute name="SeqGrp" type="String" />
+    <aura:attribute name="product" type="Object" />
+    <aura:attribute name="account" type="Object" />
+    <aura:attribute name="retrySetTimeOut" type="Integer" />
+    <aura:attribute name="numOfRetryTime" type="Integer" />
+    <aura:attribute name="fieldAccessMap" type="Map" default="{}"/>
+    <aura:attribute name="unmasked" type="Map"/>
+
+    <force:recordData aura:id="recordLoader" recordId="{!v.recordId ? v.recordId : v.pageReference.state.c__recordId}"
+        fields="Name, TMB_Customer_ID_PE__c, RTL_Is_Employee__c, RTL_Suitability__c" targetFields="{!v.account}" />
+
+
+    <aura:attribute name="error" type="Map" default="{'state':false,'message':'','retryMessage':'','herfLink':'','retry':[]}" />
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+    <!-- <c:LoanProductDetailsCYBEnhance aura:id="LoanProductDetailsCYBEnhance" recordId="{!v.recordId}" tmbCustId="{!v.tmbCustId}" AccountNumber="{!v.AccountNumber}" AcctType="{!v.AcctType}" /> -->
+    <aura:attribute name="result" type="Object" description="temporay keep value" />
+
+    <c:watermark aura:id="watermark" oninit="{!c.waterMark}" />
+    <aura:attribute name="waterMarkImage" type="String" />
+    <aura:html tag="style">
+        :root {
+        --backgroundImage: {!v.waterMarkImage};
+        }
+    </aura:html>
+    <ui:scrollerWrapper aura:id="scrollerWrapper"  class="{! 'slds-no-print ' + (v.isLoading ? 'no-scroll' : '')}">
+        <aura:if isTrue="{! v.isLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </aura:if>
+        <!-- Page Header -->
+        <lightning:layout class="slds-page-header slds-page-header_object-home">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:product" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 class="slds-text-heading_label">
+                        Loan Product
+                    </h1>
+                    <h2 class="slds-text-heading_medium">
+                        {!$Label.c.Loan_Product_Detail}
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+        <aura:if isTrue="{! v.error.state }">
+            <lightning:layout>
+                <lightning:layoutItem size="12" class="slds-is-relative slds-p-top_small">
+                    <lightning:card class="slds-theme_shade slds-theme_alert-texture">
+                        <aura:set attribute="title">
+                            <div class="slds-text-heading_medium slds-text-color_destructive">{!v.error.title}</div>
+                        </aura:set>
+                        <lightning:layoutItem class="slds-p-around_small">
+                            <div style="white-space: pre-wrap;">
+                                <aura:if isTrue="{!v.error.herfLink}">
+                                    <div>
+                                        {!v.error.herfLink}
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!v.error.retryMessage}">
+                                    <div>
+                                        {!v.error.retryMessage}
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!v.error.message}">
+                                    <div>
+                                        {!v.error.message}
+                                    </div>
+                                </aura:if>
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:card>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:if>
+        <lightning:layout multipleRows="true">
+            <!-- Loan Info -->
+            <lightning:layoutItem size="12" class="slds-p-top_small">
+                <div aura:id="LoanInfoHref"></div>
+                <lightning:card>
+                    <aura:set attribute="title">
+                        {! $Label.c.Loan_Info }
+                        <!-- <aura:if isTrue="{! v.error.messages.LoanInfo.isLoading }">
+                            <div class="slds-is-relative spinnerInline">
+                                <lightning:spinner alternativeText="Loading" size="small" variant="brand" />
+                            </div>
+                        </aura:if> -->
+                    </aura:set>
+
+                    <lightning:layout class="bg-layout" verticalAlign="stretch" multipleRows="true">
+                        <aura:iteration items="{!v.fields.LoanInformation}" var="field" indexVar="index">
+                            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                                padding="horizontal-small" class="{! 'slds-p-bottom_small ' + (field.fieldName != '' ? '' : 'hideMinWidth') }">
+                                <div
+                                    class="{!'slds-form-element slds-form-element_horizontal ' + (or(field.fieldName, field.label) ? 'slds-form-element_readonly ' : '') + (field.class ? field.class : '') }">
+                                    <span class="slds-form-element__label">
+                                        {!field.label}
+                                        <aura:if isTrue="{! field.inlineHelpText }">
+                                            <lightning:helptext class="helptext" content="{! field.inlineHelpText }" />
+                                        </aura:if>
+                                    </span>
+                                    <div class="slds-form-element__control customField">
+                                        <div aura:id="{!field.id}" class="slds-form-element__static">
+                                            <c:CallCenterCSV_PillOutput type="{!field.type}" value="{!field.value}" />
+                                        </div> 
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                        </aura:iteration>
+                    </lightning:layout>
+
+                </lightning:card>
+            </lightning:layoutItem>
+
+            <!-- Co-Borrower Info -->
+            <lightning:layoutItem size="12" class="slds-p-top_small">
+                <lightning:card>
+                    <aura:set attribute="title">
+                        <h1 class="textTitle">{! $Label.c.Co_Borrower_Info }</h1>
+                    </aura:set>
+
+                    <lightning:layout class="bg-layout" verticalAlign="stretch" multipleRows="true">
+                        <aura:iteration items="{!v.fields.CoBorrowerInformation}" var="field" indexVar="index">
+                            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                                padding="horizontal-small" class="{! 'slds-p-bottom_small ' + (field.fieldName != '' ? '' : 'hideMinWidth') }">
+                                <div
+                                    class="{!'slds-form-element slds-form-element_horizontal ' + (or(field.fieldName, field.label) ? 'slds-form-element_readonly ' : '') + (field.class ? field.class : '') }">
+                                    <span class="slds-form-element__label">
+                                        {!field.label}
+                                        <aura:if isTrue="{! field.inlineHelpText }">
+                                            <lightning:helptext class="helptext" content="{! field.inlineHelpText }" />
+                                        </aura:if>
+                                    </span>
+                                    <div class="slds-form-element__control customField">
+                                        <div aura:id="{!field.id}" class="slds-form-element__static">
+                                            <c:CallCenterCSV_PillOutput type="{!field.type}" value="{!field.value}" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                        </aura:iteration>
+                    </lightning:layout>
+                </lightning:card>
+            </lightning:layoutItem>
+
+            <!-- Loan Payment Info -->
+            <lightning:layoutItem size="12" class="slds-p-top_small">
+                <lightning:card>
+                    <aura:set attribute="title">
+                        <h1 class="textTitle">{! $Label.c.Loan_Payment_Info }</h1>
+                    </aura:set>
+
+                    <lightning:layout class="bg-layout" verticalAlign="stretch" multipleRows="true">
+                        <aura:iteration items="{!v.fields.LoanPaymentInformation}" var="field" indexVar="index">
+                            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                                padding="horizontal-small" class="{! 'slds-p-bottom_small ' + (field.fieldName != '' ? '' : 'hideMinWidth') }">
+                                <div
+                                    class="{!'slds-form-element slds-form-element_horizontal ' + (or(field.fieldName, field.label) ? 'slds-form-element_readonly ' : '') + (field.class ? field.class : '') }">
+                                    <span class="slds-form-element__label">
+                                        {!field.label}
+                                        <aura:if isTrue="{! field.inlineHelpText }">
+                                            <lightning:helptext class="helptext" content="{! field.inlineHelpText }" />
+                                        </aura:if>
+                                    </span>
+                                    <div class="slds-form-element__control customField">
+                                        <div aura:id="{!field.id}" class="slds-form-element__static">
+                                            <c:CallCenterCSV_PillOutput type="{!field.type}" value="{!field.value}" />
+                                        </div> 
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                        </aura:iteration>
+                    </lightning:layout>
+                </lightning:card>
+            </lightning:layoutItem>
+
+            <!-- Interest Plan -->
+            <lightning:layoutItem size="12" class="slds-p-top_small slds-p-bottom_small">
+                <lightning:card class="dataTable">
+                    <aura:set attribute="title">
+                        <h1 class="textTitle">{! $Label.c.Interest_Plan }</h1>
+                    </aura:set>
+                    <lightning:layout verticalAlign="stretch">
+                        <lightning:layoutItem flexibility="auto" size="12" padding="horizontal-small" class="slds-p-bottom_small">
+                            <lightning:datatable keyField="id" columns="{! v.InterestPlan.columns }" data="{! v.InterestPlan.datas }" hideCheckboxColumn="true"
+                                maxRowSelection="1" resizeColumnDisabled="true" />
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </lightning:card>
+            </lightning:layoutItem>
+
+            <aura:if isTrue="{! v.SeqGrp == '7' }">
+                <lightning:layoutItem size="12" class="slds-p-top_small">
+                    <div aura:id="CYBHref"></div>
+                    <lightning:card>
+                        <aura:set attribute="title">
+                            {! $Label.c.VehicleInformation }
+                            <aura:if isTrue="{! v.error.messages.CYB.isLoading }">
+                                <div class="slds-is-relative spinnerInline">
+                                    <lightning:spinner alternativeText="Loading" size="small" variant="brand" />
+                                </div>
+                            </aura:if>
+                        </aura:set>
+
+                        <div class="slds-form">
+                            <lightning:layout class="bg-layout" verticalAlign="stretch" multipleRows="true">
+                                <aura:iteration items="{!v.fields.VehicleInformation}" var="field" indexVar="index">
+                                    <lightning:layoutItem class="slds-form__item slds-p-bottom_small " padding="horizontal-small" size="12" smallDeviceSize="6"
+                                        mediumDeviceSize="6" largeDeviceSize="6">
+
+                                        <div
+                                            class="{! 'slds-form-element slds-form-element_horizontal slds-form-element_readonly ' + (field.class ? field.class : '') }">
+                                            <label class="slds-form-element__label">{!field.label}</label>
+                                            <aura:if isTrue="{! field.inlineHelpText }">
+                                                <lightning:helptext content="{! field.inlineHelpText }" />
+                                            </aura:if>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">
+                                                    <c:pillOutput type="{!field.type}" value="{!field.value}" />   
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </lightning:layoutItem>
+                                </aura:iteration>
+                            </lightning:layout>
+                        </div>
+                    </lightning:card>
+                </lightning:layoutItem>
+
+                <lightning:layoutItem size="12" class="slds-p-vertical_small">
+                    <div aura:id="GuarantorHref"></div>
+                    <lightning:card>
+                        <aura:set attribute="title">
+                            {! $Label.c.Guarantor }
+                            <aura:if isTrue="{! v.error.messages.Guarantor.isLoading }">
+                                <div class="slds-is-relative spinnerInline">
+                                    <lightning:spinner alternativeText="Loading" size="small" variant="brand" />
+                                </div>
+                            </aura:if>
+                        </aura:set>
+
+                        <div class="slds-form">
+                            <lightning:layout class="bg-layout" verticalAlign="stretch" multipleRows="true">
+                                <aura:iteration items="{!v.fields.Guarantor}" var="field" indexVar="index">
+                                    <lightning:layoutItem class="slds-form__item slds-p-bottom_small" padding="horizontal-small" size="12" smallDeviceSize="6"
+                                        mediumDeviceSize="6" largeDeviceSize="6">
+                                        <div class="{! 'slds-form-element slds-form-element_horizontal slds-form-element_readonly ' + (field.class ? field.class : '') }">
+                                            <label class="slds-form-element__label">{!field.label}</label>
+                                            <aura:if isTrue="{! field.inlineHelpText }">
+                                                <lightning:helptext content="{! field.inlineHelpText }" />
+                                            </aura:if>
+                                            <div class="slds-form-element__control">
+                                                <div class="slds-form-element__static">
+                                                    <c:pillOutput type="{!field.type}" value="{!field.value}" />     
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                    </lightning:layoutItem>
+                                </aura:iteration>
+                            </lightning:layout>
+                        </div>
+                    </lightning:card>
+                </lightning:layoutItem>
+            </aura:if> 
+        </lightning:layout>
+    </ui:scrollerWrapper>
+    
+</aura:component>

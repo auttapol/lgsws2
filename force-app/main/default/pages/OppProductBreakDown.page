@@ -1,0 +1,516 @@
+<apex:page docType="html-5.0"  showHeader="true" sidebar="false" applyBodyTag="false" applyHtmlTag="true" standardStylesheets="true"
+    controller="OpportunityLineItemBreakDownController">
+        <head>
+            <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+            <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+            <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+            <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+            <apex:stylesheet value="{!URLFOR($Resource.AccountPlanEditTable)}"/>
+            <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+            <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+            <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+            <apex:includeScript value="/support/console/22.0/integration.js"/>
+            <apex:stylesheet value="{!URLFOR($Resource.SLOS)}"/>
+            <style>
+                .slds .slds-box{
+                border: 1px solid #0070d2;
+                }
+                
+                @media (max-width: 750px){
+                    .desc{
+                    width: 100% !important;
+                    }
+                    
+                    .month{
+                    width: 47% !important;
+                    float:left;
+                    clear:both;
+                    }
+                    .year{
+                    width:47% !important;
+                    float: right
+                    }
+                    #body{
+                    padding: 0px !important;
+                    background-color: #fff !important;
+                    }
+                }
+                .customWidth{
+                    //width:90px !important;
+                    width:65px !important;
+                    padding:2px !important;
+                    font-size:12px !important;
+                }
+                .testwidth{
+                    width:10px !important;
+                }
+                
+                .font10 {
+                    font-size:10px !important;
+                }
+                .font12 {
+                    font-size:12px !important;
+                }
+                .font14 {
+                    font-size:14px !important;
+                }
+                
+            </style> 
+        </head>
+        
+        <body id="body">
+            
+            <apex:form id="frm">
+            
+                <apex:actionFunction name="validateExpected" action="{!validateExpected}" reRender="messages">
+                    <apex:param id="niNewValue" name="niNewValue" value=""/>
+                    <apex:param id="feeNewValue" name="feeNewValue" value=""/>
+                    <apex:param id="nloop" name="nloop" value=""/>
+                </apex:actionFunction>
+                <apex:actionFunction name="clearMessage" reRender="messages"/>
+            
+                <apex:outputPanel id="childList"> 
+                    <div class="slds" id="appearOnDesktop" >
+                    
+                        <div class="slds-page-header" role="banner">
+                            <div >
+                                    <div class="slds-media">
+                                        
+                                        <div class="slds-media__figure">
+                                            <span class="slds-icon__container slds-icon__container--circle slds-icon-standard-product">
+                                                <span class="bootstrap-sf1">
+                                                     <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                                                </span>
+                                            </span>
+                                        </div>
+                                         
+                                        <div class="slds-media__body">
+                                            <!-- p class="slds-text-heading--label">{!oppty.name}</p -->
+                                            <p class="slds-text-heading--label">{!if(listOppProd.size > 0,listOppProd[0].opportunity.name,'')}</p>
+                                            <h1 class="slds-text-heading--small">
+                                                Year : {!sysYear}
+                                            </h1>
+                                        </div>
+                                    </div>
+                            </div>
+                        </div>
+                    
+                        <apex:outputPanel id="messages">
+                            <apex:pageMessages escape="false" ></apex:pageMessages>
+                        </apex:outputPanel>
+                        
+                        <div class="">
+                        
+                            <div class="slds-size--1-of-1">
+                                <div class="slds-box--x-small slds-m-horizontal--x-small">
+                                    <fieldset class="slds-theme--default ">
+                                        <div class="slds-form-element slds-text-align--center "> 
+                                            <div class="slds-form-element__control  slds-m-top--medium" >
+                                                <apex:commandButton value="Save" status="status" action="{!save}" styleClass="slds-button slds-button--neutral" rendered="{!validateOpty}"/>&nbsp;
+                                                <apex:commandButton styleClass="slds-button slds-button--neutral" value="Cancel" action="{!cancel}" status="status"/>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+                            
+                            <apex:variable value="{!0}" var="ctrColor"/>
+                            <div class="slds-grid slds-grid--align-center slds-m-around--medium ">
+                                <div class="slds-size--1-of-1">
+                                    
+                                    <div  id="actFrm" aria-labelledby="newaccountform" >
+                                        <fieldset class="slds-box slds-theme--default " >
+                                            <legend id="Submit" class=" slds-p-vertical--small slds-text-heading--label">
+                                                &nbsp;<b><font class="font14">Distribute</font></b>&nbsp;
+                                            </legend>
+                                            
+                                            <div class="slds-form-element ">
+                                                <div class="slds-form-element " style="" >
+                                                <table  class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal">
+                                                    <thead >
+                                                    <!-- tr class="slds-text-title--caps slds-section-title--divider" style="Background-color: #d5d4d4;" -->
+                                                    <tr class="" style="Background-color: #d5d4d4;">
+                                                        <th scope="col" colspan="2" style="text-align:left;" class="font12">
+                                                            PRODUCT GROUP
+                                                        </th>
+                                                        <th scope="col" style="text-align:center;" class="font12">
+                                                            JAN
+                                                        </th>
+                                                        <!-- th scope="col" width="150px" style="text-align:center" -->
+                                                        <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                            FEB
+                                                        </th>
+                                                        <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                            MAR
+                                                        </th>
+                                                        <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                            APR
+                                                        </th>
+                                                        <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                            MAY
+                                                        </th>
+                                                        <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                            JUN
+                                                        </th>
+                                                        <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                            JUL
+                                                        </th>
+                                                        <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                            AUG
+                                                        </th>
+                                                        <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                            SEP
+                                                        </th>
+                                                        <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                            OCT
+                                                        </th>
+                                                        <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                            NOV
+                                                        </th>
+                                                        <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                            DEC
+                                                        </th>
+                                                        <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                            TOTAL
+                                                        </th>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <apex:variable value="{!0}" var="totalJan"/>
+                                                    <apex:variable value="{!0}" var="totalFeb"/>
+                                                    <apex:variable value="{!0}" var="totalMar"/>
+                                                    <apex:variable value="{!0}" var="totalApr"/>
+                                                    <apex:variable value="{!0}" var="totalMay"/>
+                                                    <apex:variable value="{!0}" var="totalJun"/>
+                                                    <apex:variable value="{!0}" var="totalJul"/>
+                                                    <apex:variable value="{!0}" var="totalAug"/>
+                                                    <apex:variable value="{!0}" var="totalSep"/>
+                                                    <apex:variable value="{!0}" var="totalOct"/>
+                                                    <apex:variable value="{!0}" var="totalNov"/>
+                                                    <apex:variable value="{!0}" var="totalDec"/>
+                                                    <apex:variable value="{!0}" var="totalVal"/>
+                                                    <apex:variable value="{!0}" var="noloop"/>
+                                                    <apex:repeat value="{!listOppProd}" var="op">
+                                                        <apex:outputPanel rendered="{!if(op.RevisedStartYear__c == sysYear,true,true)}">
+                                                        <tr>
+                                                            <td class="testwidth font12">
+                                                                <!-- apex:outputText value="{!op.PricebookEntry.Product2.Name}"/ -->
+                                                                <apex:outputText value="{!mapProductName[op.Id]}" escape="false"/>
+                                                            </td>
+                                                            <td class="testwidth font12">{!if (op.Type_Of_Reference__c != null,op.Type_Of_Reference__c,'NI')}</td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.NI_January__c}" id="nijan" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth nijan{!noloop}" rendered="{!mapProductRender[op.id].ni_jan}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.NI_February__c}" id="nifeb" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth nifeb{!noloop}" rendered="{!mapProductRender[op.id].ni_feb}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.NI_March__c}" id="nimar" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth nimar{!noloop}" rendered="{!mapProductRender[op.id].ni_mar}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.NI_April__c}" id="niapr" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth niapr{!noloop}" rendered="{!mapProductRender[op.id].ni_apr}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.NI_May__c}" id="nimay" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth nimay{!noloop}" rendered="{!mapProductRender[op.id].ni_may}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.NI_June__c}" id="nijun" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth nijun{!noloop}" rendered="{!mapProductRender[op.id].ni_jun}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.NI_July__c}" id="nijul" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth nijul{!noloop}" rendered="{!mapProductRender[op.id].ni_jul}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.NI_August__c}" id="niaug" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth niaug{!noloop}" rendered="{!mapProductRender[op.id].ni_aug}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.NI_September__c}" id="nisep" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth nisep{!noloop}" rendered="{!mapProductRender[op.id].ni_sep}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.NI_October__c}" id="nioct" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth nioct{!noloop}" rendered="{!mapProductRender[op.id].ni_oct}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.NI_November__c}" id="ninov" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth ninov{!noloop}" rendered="{!mapProductRender[op.id].ni_nov}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.NI_December__c}" id="nidec" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth nidec{!noloop}" rendered="{!mapProductRender[op.id].ni_dec}"/></td>
+                                                            <td style="text-align:right" class="customWidth">
+                                                                <apex:outputPanel rendered="{!if(op.RevisedStartYear__c == sysYear && op.This_Year_Expected_NI__c != null && op.isNiBreakdownCalculate__c,true,false)}">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!op.This_Year_Expected_NI__c}"/>
+                                                                    </apex:outputText>
+                                                                </apex:outputPanel>
+                                                                <apex:outputPanel rendered="{!if(op.RevisedStartYear__c == sysYear && op.This_Year_Expected_NI__c != null && op.isNiBreakdownCalculate__c,false,true)}">0</apex:outputPanel>
+                                                            </td>
+                                                        </tr>
+                                                        <apex:variable value="{!totalJan + if (op.NI_January__c!=null,op.NI_January__c,0)}" var="totalJan"/>
+                                                        <apex:variable value="{!totalFeb + if (op.NI_February__c!=null,op.NI_February__c,0)}" var="totalFeb"/>
+                                                        <apex:variable value="{!totalMar + if (op.NI_March__c!=null,op.NI_March__c,0)}" var="totalMar"/>
+                                                        <apex:variable value="{!totalApr + if (op.NI_April__c!=null,op.NI_April__c,0)}" var="totalApr"/>
+                                                        <apex:variable value="{!totalMay + if (op.NI_May__c!=null,op.NI_May__c,0)}" var="totalMay"/>
+                                                        <apex:variable value="{!totalJun + if (op.NI_June__c!=null,op.NI_June__c,0)}" var="totalJun"/>
+                                                        <apex:variable value="{!totalJul + if (op.NI_July__c!=null,op.NI_July__c,0)}" var="totalJul"/>
+                                                        <apex:variable value="{!totalAug + if (op.NI_August__c!=null,op.NI_August__c,0)}" var="totalAug"/>
+                                                        <apex:variable value="{!totalSep + if (op.NI_September__c!=null,op.NI_September__c,0)}" var="totalSep"/>
+                                                        <apex:variable value="{!totalOct + if (op.NI_October__c!=null,op.NI_October__c,0)}" var="totalOct"/>
+                                                        <apex:variable value="{!totalNov + if (op.NI_November__c!=null,op.NI_November__c,0)}" var="totalNov"/>
+                                                        <apex:variable value="{!totalDec + if (op.NI_December__c!=null,op.NI_December__c,0)}" var="totalDec"/>
+                                                        <apex:variable value="{!totalVal + if (op.This_Year_Expected_NI__c!=null && op.RevisedStartYear__c == sysYear && op.isNiBreakdownCalculate__c,op.This_Year_Expected_NI__c,0)}" var="totalVal"/>
+                                                        </apex:outputPanel>
+                                                        
+                                                        <apex:outputPanel rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,true)}">
+                                                        <tr>
+                                                            <td class="testwidth"><!-- apex:outputPanel rendered="{!if((op.RevisedStartYear__c != sysYear && op.RevisedStartYearFee__c == sysYear),true,false)}">{!op.PricebookEntry.Product2.Name}</apex:outputPanel --></td>
+                                                            <td class="testwidth font12">{!if (op.Type_Of_Reference_Fee__c != null,op.Type_Of_Reference_Fee__c,'Fee')}</td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.Fee_January__c}" id="feejan" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth feejan{!noloop}" rendered="{!mapProductRender[op.id].fee_jan}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.Fee_February__c}" id="feefeb" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth feefeb{!noloop}" rendered="{!mapProductRender[op.id].fee_feb}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.Fee_March__c}" id="feemar" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth feemar{!noloop}" rendered="{!mapProductRender[op.id].fee_mar}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.Fee_April__c}" id="feeapr" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth feeapr{!noloop}" rendered="{!mapProductRender[op.id].fee_apr}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.Fee_May__c}" id="feemay" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth feemay{!noloop}" rendered="{!mapProductRender[op.id].fee_may}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.Fee_June__c}" id="feejun" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth feejun{!noloop}" rendered="{!mapProductRender[op.id].fee_jun}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.Fee_July__c}" id="feejul" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth feejul{!noloop}" rendered="{!mapProductRender[op.id].fee_jul}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.Fee_August__c}" id="feeaug" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth feeaug{!noloop}" rendered="{!mapProductRender[op.id].fee_aug}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.Fee_September__c}" id="feesep" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth feesep{!noloop}" rendered="{!mapProductRender[op.id].fee_sep}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.Fee_October__c}" id="feeoct" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth feeoct{!noloop}" rendered="{!mapProductRender[op.id].fee_oct}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.Fee_November__c}" id="feenov" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth feenov{!noloop}" rendered="{!mapProductRender[op.id].fee_nov}"/></td>
+                                                            <td style="text-align:right"><apex:inputField value="{!op.Fee_December__c}" id="feedec" onkeyup="compareTotal()" styleClass="slds-input slds-text-align--right customWidth feedec{!noloop}" rendered="{!mapProductRender[op.id].fee_dec}"/></td>
+                                                            <td style="text-align:right" class="customWidth">
+                                                                <apex:outputPanel rendered="{!if(op.RevisedStartYearFee__c == sysYear && op.This_Year_Expected_Fee__c != null && op.isFeeBreakdownCalculate__c,true,false)}">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!op.This_Year_Expected_Fee__c}"/>
+                                                                    </apex:outputText>
+                                                                </apex:outputPanel>
+                                                                <apex:outputPanel rendered="{!if(op.RevisedStartYearFee__c == sysYear && op.This_Year_Expected_Fee__c != null && op.isFeeBreakdownCalculate__c,false,true)}">0</apex:outputPanel>
+                                                            </td>
+                                                        </tr>
+                                                        <apex:variable value="{!totalJan + if (op.Fee_January__c!=null,op.Fee_January__c,0)}" var="totalJan"/>
+                                                        <apex:variable value="{!totalFeb + if (op.Fee_February__c!=null,op.Fee_February__c,0)}" var="totalFeb"/>
+                                                        <apex:variable value="{!totalMar + if (op.Fee_March__c!=null,op.Fee_March__c,0)}" var="totalMar"/>
+                                                        <apex:variable value="{!totalApr + if (op.Fee_April__c!=null,op.Fee_April__c,0)}" var="totalApr"/>
+                                                        <apex:variable value="{!totalMay + if (op.Fee_May__c!=null,op.Fee_May__c,0)}" var="totalMay"/>
+                                                        <apex:variable value="{!totalJun + if (op.Fee_June__c!=null,op.Fee_June__c,0)}" var="totalJun"/>
+                                                        <apex:variable value="{!totalJul + if (op.Fee_July__c!=null,op.Fee_July__c,0)}" var="totalJul"/>
+                                                        <apex:variable value="{!totalAug + if (op.Fee_August__c!=null,op.Fee_August__c,0)}" var="totalAug"/>
+                                                        <apex:variable value="{!totalSep + if (op.Fee_September__c!=null,op.Fee_September__c,0)}" var="totalSep"/>
+                                                        <apex:variable value="{!totalOct + if (op.Fee_October__c!=null,op.Fee_October__c,0)}" var="totalOct"/>
+                                                        <apex:variable value="{!totalNov + if (op.Fee_November__c!=null,op.Fee_November__c,0)}" var="totalNov"/>
+                                                        <apex:variable value="{!totalDec + if (op.Fee_December__c!=null,op.Fee_December__c,0)}" var="totalDec"/>
+                                                        <apex:variable value="{!totalVal + if (op.This_Year_Expected_Fee__c!=null && op.RevisedStartYearFee__c == sysYear && op.isFeeBreakdownCalculate__c,op.This_Year_Expected_Fee__c,0)}" var="totalVal"/>
+                                                        </apex:outputPanel>
+                                                        
+                                                        <apex:variable value="{!noloop+1}" var="noloop"/>
+                                                    </apex:repeat>
+                                                    <tr style="Background-color: #d5d4d4;">
+                                                        <td style="Text-align:center" class="testwidth font12">
+                                                            TOTAL
+                                                        </td>
+                                                        <td class="testwidth"></td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalJan}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalFeb}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalMar}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalApr}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalMay}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalJun}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalJul}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalAug}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalSep}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalOct}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalNov}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalDec}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="text-align:right" class="customWidth">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!totalVal}"/>
+                                                            </apex:outputText>
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                                </div>
+                                            </div>
+                                            
+                                            
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                        
+                        </div>
+                    
+                    </div>
+                </apex:outputPanel>
+                
+                <apex:outputPanel id="panelOptLineSize">
+                    <apex:inputHidden value="{!optLineSize}" id="optLineSize"/>
+                </apex:outputPanel>
+            
+            
+            </apex:form>
+            
+        </body>    
+
+        <script>
+        var $j = jQuery.noConflict(); 
+        
+        $j(document).ready( function () {
+            
+                compareTotal();
+            
+        });
+        
+        function compareTotal(){
+
+            var nloop = $j('[id$=optLineSize]').val();
+            var allEqual = true;
+            var originNiTotalSum = '{!nitotalSum}'.replace(/{/g,'').replace(/}/g,'').split(',');
+            var originFeeTotalSum = '{!feetotalSum}'.replace(/{/g,'').replace(/}/g,'').split(',');
+            var inputni = 0;
+            var inputfee = 0;
+            var seq = 0;
+
+            
+            for (ii=0;ii<nloop;ii++)
+            {
+                var nitotalinput = 0;
+                var feetotalinput = 0;
+                
+                var nijan = 0;
+                var nifeb = 0;
+                var nimar = 0;
+                var niapr = 0;
+                var nimay = 0;
+                var nijun = 0;
+                var nijul = 0;
+                var niaug = 0;
+                var nisep = 0;
+                var nioct = 0;
+                var ninov = 0;
+                var nidec = 0;
+                var feejan = 0;
+                var feefeb = 0;
+                var feemar = 0;
+                var feeapr = 0;
+                var feemay = 0;
+                var feejun = 0;
+                var feejul = 0;
+                var feeaug = 0;
+                var feesep = 0;
+                var feeoct = 0;
+                var feenov = 0;
+                var feedec = 0;
+                        
+                if ($j('.nijan'+ii).length > 0) nijan = parseInt($j('.nijan'+ii).val().replace(/,/g,''));
+                if ($j('.nifeb'+ii).length > 0) nifeb = parseInt($j('.nifeb'+ii).val().replace(/,/g,''));
+                if ($j('.nimar'+ii).length > 0) nimar = parseInt($j('.nimar'+ii).val().replace(/,/g,''));
+                if ($j('.niapr'+ii).length > 0) niapr = parseInt($j('.niapr'+ii).val().replace(/,/g,''));
+                if ($j('.nimay'+ii).length > 0) nimay = parseInt($j('.nimay'+ii).val().replace(/,/g,''));
+                if ($j('.nijun'+ii).length > 0) nijun = parseInt($j('.nijun'+ii).val().replace(/,/g,''));
+                if ($j('.nijul'+ii).length > 0) nijul = parseInt($j('.nijul'+ii).val().replace(/,/g,''));
+                if ($j('.niaug'+ii).length > 0) niaug = parseInt($j('.niaug'+ii).val().replace(/,/g,''));
+                if ($j('.nisep'+ii).length > 0) nisep = parseInt($j('.nisep'+ii).val().replace(/,/g,''));
+                if ($j('.nioct'+ii).length > 0) nioct = parseInt($j('.nioct'+ii).val().replace(/,/g,''));
+                if ($j('.ninov'+ii).length > 0) ninov = parseInt($j('.ninov'+ii).val().replace(/,/g,''));
+                if ($j('.nidec'+ii).length > 0) nidec = parseInt($j('.nidec'+ii).val().replace(/,/g,''));
+                
+                if ($j('.feejan'+ii).length > 0) feejan = parseInt($j('.feejan'+ii).val().replace(/,/g,''));
+                if ($j('.feefeb'+ii).length > 0) feefeb = parseInt($j('.feefeb'+ii).val().replace(/,/g,''));
+                if ($j('.feemar'+ii).length > 0) feemar = parseInt($j('.feemar'+ii).val().replace(/,/g,''));
+                if ($j('.feeapr'+ii).length > 0) feeapr = parseInt($j('.feeapr'+ii).val().replace(/,/g,''));
+                if ($j('.feemay'+ii).length > 0) feemay = parseInt($j('.feemay'+ii).val().replace(/,/g,''));
+                if ($j('.feejun'+ii).length > 0) feejun = parseInt($j('.feejun'+ii).val().replace(/,/g,''));
+                if ($j('.feejul'+ii).length > 0) feejul = parseInt($j('.feejul'+ii).val().replace(/,/g,''));
+                if ($j('.feeaug'+ii).length > 0) feeaug = parseInt($j('.feeaug'+ii).val().replace(/,/g,''));
+                if ($j('.feesep'+ii).length > 0) feesep = parseInt($j('.feesep'+ii).val().replace(/,/g,''));
+                if ($j('.feeoct'+ii).length > 0) feeoct = parseInt($j('.feeoct'+ii).val().replace(/,/g,''));
+                if ($j('.feenov'+ii).length > 0) feenov = parseInt($j('.feenov'+ii).val().replace(/,/g,''));
+                if ($j('.feedec'+ii).length > 0) feedec = parseInt($j('.feedec'+ii).val().replace(/,/g,''));
+                
+                if (!isNaN(nijan)) nitotalinput += nijan;
+                if (!isNaN(nifeb)) nitotalinput += nifeb;
+                if (!isNaN(nimar)) nitotalinput += nimar;
+                if (!isNaN(niapr)) nitotalinput += niapr;
+                if (!isNaN(nimay)) nitotalinput += nimay;
+                if (!isNaN(nijun)) nitotalinput += nijun;
+                if (!isNaN(nijul)) nitotalinput += nijul;
+                if (!isNaN(niaug)) nitotalinput += niaug;
+                if (!isNaN(nisep)) nitotalinput += nisep;
+                if (!isNaN(nioct)) nitotalinput += nioct;
+                if (!isNaN(ninov)) nitotalinput += ninov;
+                if (!isNaN(nidec)) nitotalinput += nidec;
+                
+                if (!isNaN(feejan)) feetotalinput += feejan;
+                if (!isNaN(feefeb)) feetotalinput += feefeb;
+                if (!isNaN(feemar)) feetotalinput += feemar;
+                if (!isNaN(feeapr)) feetotalinput += feeapr;
+                if (!isNaN(feemay)) feetotalinput += feemay;
+                if (!isNaN(feejun)) feetotalinput += feejun;
+                if (!isNaN(feejul)) feetotalinput += feejul;
+                if (!isNaN(feeaug)) feetotalinput += feeaug;
+                if (!isNaN(feesep)) feetotalinput += feesep;
+                if (!isNaN(feeoct)) feetotalinput += feeoct;
+                if (!isNaN(feenov)) feetotalinput += feenov;
+                if (!isNaN(feedec)) feetotalinput += feedec;
+                
+                /*
+                if (nitotalinput == originNiTotalSum[nloop] && feetotalinput == originFeeTotalSum[nloop]){ 
+                    clearMessage();
+                }else{
+                    validateExpected(nitotalinput, feetotalinput, nloop);
+                }
+                */
+//alert(nitotalinput + ' = ' + originNiTotalSum[ii].substring(originNiTotalSum[ii].search('=')+1));
+//alert(feetotalinput + ' = ' + originFeeTotalSum[ii].substring(originFeeTotalSum[ii].search('=')+1));                    
+                //if (!isNaN(parseInt(originNiTotalSum[ii])) && !isNaN(parseInt(originFeeTotalSum[ii]))){  
+
+                    //if (nitotalinput != originNiTotalSum[ii] || feetotalinput != originFeeTotalSum[ii]){ 
+                    if (nitotalinput != originNiTotalSum[ii].substring(originNiTotalSum[ii].search('=')+1)
+                    || feetotalinput != originFeeTotalSum[ii].substring(originFeeTotalSum[ii].search('=')+1)){
+//alert(' nitotalinput = '+nitotalinput +' originNiTotalSum[ii] = '+originNiTotalSum[ii]);
+                        inputni = nitotalinput;
+                        inputfee = feetotalinput;
+                        seq = ii;
+                        allEqual = false;
+                    }
+                    
+                //}
+                
+                
+                
+            }
+
+//alert('inputni = '+ inputni + ' inputfee = '+inputfee+' seq = '+seq+' allequal = '+allEqual);
+        
+            if ('{!validateOpty}' == 'true'){
+                if (allEqual){
+                    clearMessage();
+                }else{
+                    validateExpected(inputni, inputfee, seq);
+                }
+            }
+        }
+        </script>
+            
+</apex:page>

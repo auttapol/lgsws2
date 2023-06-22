@@ -1,0 +1,732 @@
+<apex:page extensions="EditProductLineItemCtrlAll2" standardController="Opportunity" docType="html-5.0"  showHeader="true" sidebar="false"
+           applyBodyTag="false" applyHtmlTag="true" standardStylesheets="true" lightningStylesheets="true">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w4.org/1999/xlink">
+        
+        <head>
+            <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+            <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+            <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+            <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+            <apex:stylesheet value="{!URLFOR($Resource.AccountPlanEditTable)}"/>
+            <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+            <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+            <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+            <apex:includeScript value="/support/console/37.0/integration.js"/>
+            <apex:stylesheet value="{!URLFOR($Resource.SLOS)}"/>
+            <style>
+                 .slds .slds-box{
+                border: 1px solid #0070d2;
+                }
+                
+                @media (max-width: 750px){
+                    .desc{
+                    width: 100% !important;
+                    }
+                    
+                    .month{
+                    width: 47% !important;
+                    float:left;
+                    clear:both;
+                    }
+                    .year{
+                    width:47% !important;
+                    float: right
+                    }
+                    #body{
+                    padding: 0px !important;
+                    background-color: #fff !important;
+                    }
+                }  
+
+                               
+                .balloon-helptext-imgclass:hover{ 
+                    background-image: url(/img/help/helpOrbs.gif); 
+                    background-repeat: no-repeat; 
+                    width: 16px; 
+                    height: 15px; 
+                    background-position: right; 
+                } 
+                .balloon-helptext-imgclass{ 
+                    background-image: url(/img/help/helpOrbs.gif); 
+                    background-repeat: no-repeat; 
+                    width: 16px; 
+                    height: 15px; 
+                }    
+                .slds .slds-table th{                   
+                        
+                    }
+                .slds .slds-table th, .slds .slds-table td{
+                        white-space: normal !important;
+                        word-wrap: break-word !important;
+                        padding: 8px 2px !important;
+                    }
+                    .slds .slds-table tr > th:first-child, .slds .slds-table tr > td:first-child{
+                        padding-left: 10px !important;
+                    }
+                    .slds .slds-b{
+                    padding : 10px !important; 
+                    }
+                    #tenorsection{
+                        width: 70px;
+                    }    
+                
+            </style> 
+        </head>
+        <body id="body">
+            
+            <apex:form id="frm" styleclass="slds-form--stacked">
+
+             <apex:actionStatus id="status" onstart="ShowSpin()" onstop="HideSpin()"> </apex:actionStatus>
+                
+               
+                    
+                   <apex:outputPanel id="childList"> 
+                <div class="slds" id="appearOnDesktop" >
+                    <!-- spin -->
+                    <div id="spin" style="display:none;" class="slds-spinner_container">
+                        <div class="slds-spinner--brand slds-spinner slds-spinner--large" aria-hidden="false" role="alert">
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div> 
+                    <!--HEADER-->
+                    <div class="slds-page-header" role="banner">
+                        <div class="slds-grid">
+                            <div class="slds-col">
+                                <div class="slds-media">
+                                    
+                                    <div class="slds-media__figure">
+                                        <span class="slds-icon__container slds-icon__container--circle slds-icon-standard-product">
+                                            <span class="bootstrap-sf1">
+                                                     <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                                                </span>
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="slds-media__body">
+                                        <p class="slds-text-heading--label">Opportunity Product</p>
+                                        <h1 class="slds-text-heading--small">
+                                            Edit All
+                                        </h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!--END HEADER-->
+             
+                     <apex:outputPanel id="messages">
+                        
+                            <apex:pageMessages escape="false" ></apex:pageMessages>
+                        
+                    </apex:outputPanel>
+                     <apex:actionFunction name="redirectDeskTop" action="{!redirectDeskTop}"  /> 
+                     <apex:actionFunction name="validateYear" action="{!validateYear}" reRender="messages"/>
+                    <apex:actionFunction name="clearMessage" reRender="messages"/>        
+                     
+                    <div class="sldc-size-wrapper">
+                        
+                        <div class="slds-size--1-of-1">
+                            
+                            <div class="slds-box--x-small slds-m-horizontal--x-small">
+                                <fieldset class="slds-theme--default ">
+                                    <div class="slds-form-element slds-text-align--center ">
+                                        <div class="slds-form-element__control  slds-m-top--medium" >
+                                            
+                                            <!-- <apex:commandButton value="Save" action="{!dosave}" status="status" reRender="messages" oncomplete="if({!iscomplete}) cancel();else HideSpin();" styleClass="slds-button slds-button--brand"/> -->
+                                            <apex:commandButton value="Save" action="{!dosave}" status="status" reRender="messages,script_block" oncomplete="HideSpin();" styleClass="slds-button slds-button--brand"/>
+                                            &nbsp;
+                                            <apex:commandButton onclick="cancel();" oncomplete="HideSpin();" styleClass="slds-button slds-button--brand" status="status" value="Cancel" rerender="messages" />&nbsp;
+                                            <!-- <apex:commandButton value="Breakdown" action="{!openBreakdown}" status="status" styleClass="slds-button slds-button--neutral uiButton forceActionButton" oncomplete="showSpin()" reRender="messages"/> -->
+                                            
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                        
+                        
+                        <apex:variable value="{!0}" var="ctrColor"/>
+                        <apex:variable value="{!0}" var="cnt"/>
+                        
+                        <apex:repeat value="{!OptLine}" var="crc"> 
+                            <!--CONTAINER-->
+                            <div class=" slds-grid--align-center slds-m-around--medium ">
+                                <div class="slds-size--1-of-1">
+                                    
+                                    <div  id="actFrm" aria-labelledby="newaccountform" >
+                                        <fieldset class="slds-box slds-theme--default " >
+                                            <legend id="Submit" class=" slds-p-vertical--small slds-text-heading--label">
+                                                Product
+                                            </legend>
+                                            
+                                            
+                                            <div class="slds-form-element ">
+                                                <div class="slds-form-element "  >
+                                                    <table  class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal">
+                                                        <thead >
+                                                            <tr class="slds-text-title--caps slds-section-title--divider" style="Background-color: #d5d4d4;">
+                                                                <apex:outputPanel rendered="{!isSERecordType}">
+                                                                <th scope="col" width="100px" >
+                                                                    <div  title="Product Group">Product Group   </div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.Opportunity.Fields.Host_Product_Group__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                <th scope="col" width="100px" >
+                                                                    <div  title="Product Program">Product<br /> Program</div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.Opportunity.Fields.Product_Program__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                <th scope="col" width="100px" >
+                                                                    <div  title="Credit Facility">Credit<br /> Facility</div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.Host_Product_Mapping__c.Fields.Host_Prod_Name_Credit_Facility__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                </apex:outputPanel>
+                                                                <th scope="col" width="100px" >
+                                                                    <div  title="Product">Product </div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.Host_Product_Mapping__c.Fields.Salesforce_Product__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                <th scope="col" >
+                                                                    
+                                                                        <div  title="Vol./Limit (THB)">Request Amt./Vol.<br/>(THB) </div>
+                                                                        <div class=" bootstrap-sf1">  
+                                                                            <span class="glyphicon glyphicon-question-sign" 
+                                                                              data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                              data-animation="false" data-placement="bottom" 
+                                                                              title="{!$ObjectType.OpportunityLineItem.Fields.UnitPrice.inlineHelpText}" />
+                                                                        </div>
+                                                                    
+                                                                </th>
+                                                                <apex:outputPanel rendered="{! !isSERecordType}">
+                                                                    <th scope="col" >
+                                                                        
+                                                                            <div  title="Units of Acct./Limit">Units of<br /> Acct./Limit </div>
+                                                                            <div class=" bootstrap-sf1">  
+                                                                                <span class="glyphicon glyphicon-question-sign" 
+                                                                                  data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                                  data-animation="false" data-placement="bottom" 
+                                                                                  title="{!$ObjectType.OpportunityLineItem.Fields.Quantity.inlineHelpText}" />
+                                                                            </div>
+                                                                    </th>
+                                                                    <th scope="col" >
+                                                                        
+                                                                            <div  title="Total Vol./Limit Amount">Total <br />Vol./Limit<br /> Amount </div>
+                                                                            <div class=" bootstrap-sf1">  
+                                                                                <span class="glyphicon glyphicon-question-sign" 
+                                                                                  data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                                  data-animation="false" data-placement="bottom" 
+                                                                                  title="{!$ObjectType.OpportunityLineItem.Fields.Subtotal.inlineHelpText}" />
+                                                                            </div>
+                                                                     </th>
+                                                                    
+                                                                </apex:outputPanel>
+                                                                 <apex:outputPanel rendered="{! isSERecordType}">
+                                                                    
+                                                                    <th scope="col" >
+                                                                            <div  title="Vol./Limit (THB)">Approved Amount<br />(THB)</div>
+                                                                            <div class=" bootstrap-sf1">  
+                                                                                <span class="glyphicon glyphicon-question-sign" 
+                                                                                  data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                                  data-animation="false" data-placement="bottom" 
+                                                                                  title="{!$ObjectType.OpportunityLineItem.Fields.Approved_Amount__c.inlineHelpText}" />
+                                                                            </div>
+                                                                        
+                                                                    </th>
+                                                                     <th scope="col" >       
+                                                                            <div  title="Units of Acct./Limit">Actual Amount<br />(THB)</div>
+                                                                            <div class=" bootstrap-sf1">  
+                                                                                <span class="glyphicon glyphicon-question-sign" 
+                                                                                  data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                                  data-animation="false" data-placement="bottom" 
+                                                                                  title="{!$ObjectType.OpportunityLineItem.Fields.Actual_Amount__c.inlineHelpText}" />
+                                                                            </div>
+                                                                       
+                                                                    </th>
+                                                                </apex:outputPanel>
+                                                                <th scope="col">
+                                                                    <div class="text-center" title="Tenor (Years)">Tenor <br />(Years)  </div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.OpportunityLineItem.Fields.Tenor_Years__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                <th scope="col">
+                                                                    <div  title="Probability by RM (%)">Probability by<br /> RM (%) <span class="requiredStar">&nbsp;**</span></div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.OpportunityLineItem.Fields.Deal_Probability__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                 <apex:outputPanel rendered="{!isSERecordType}">
+                                                                <th scope="col" >
+                                                                    <div  title="TMB Account No">TMB Account ID</div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.OpportunityLineItem.Fields.TMB_Account_ID__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                </apex:outputPanel>
+              
+                                                                
+                                                                
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            
+                                                            
+                                                            <tr>
+                                                                <apex:outputPanel rendered="{!isSERecordType}">
+                                                                    <td data-label="Product Group"><apex:outputField value="{!crc.Host_Product_Mapping__r.Host_Product_Group__c}" /></td>
+                                                                    <td data-label="Product Program"><apex:outputField value="{!crc.Host_Product_Mapping__r.Product_Program__c}"/></td>
+                                                                    <td data-label="Credit Facility"><apex:outputField value="{!crc.Host_Product_Mapping__r.Host_Prod_Name_Credit_Facility__c}"/></td>
+                                                                    </apex:outputPanel>
+                                                                <td data-label="Product">
+                                                                    <apex:outputPanel rendered="{!contains(crc.opportunity.recordtype.name,'SE') && if(contains(lower(crc.Host_Product_Status__c),'approve'),true,false)}">
+                                                                            <div class=" bootstrap-sf1" style="display:inline-block;vertical-align:bottom">
+                                                                                <span class="glyphicon glyphicon-ok" style="color:green;font-size:16px" title="Approved by Host"></span>
+                                                                            </div>
+                                                                    </apex:outputPanel>
+                                                                    <apex:outputPanel rendered="{!contains(crc.opportunity.recordtype.name,'SE') && (if(contains(lower(crc.Host_Product_Status__c),'reject'),true,false) || if(contains(lower(crc.Host_Product_Status__c),'cancel'),true,false))}">
+                                                                            <div class=" bootstrap-sf1" style="display:inline-block;vertical-align:bottom">
+                                                                                <span class="glyphicon glyphicon-remove" style="color:red;font-size:16px" title="Rejected by Host"></span>
+                                                                            </div>
+                                                                    </apex:outputPanel>
+                                                                    {!crc.PricebookEntry.Product2.Name}
+                                                                </td>
+                                                                <td  data-label="Vol./Limit (THB)"><apex:inputField value="{!crc.UnitPrice}" style="" styleClass="slds-input slds-text-align--right"/></td>
+
+                                                                <apex:outputPanel rendered="{! !isSERecordType}">
+                                                                    <td data-label="Unit of Acct./Limit"><apex:inputField value="{!crc.Quantity}" style="" styleClass="slds-input slds-text-align--right"/></td>
+                                                                    
+                                                                    <td data-label="Total Vol./Limit Amount" Class="slds-text-align--right">
+                                                                        <apex:outputText value="{0, number, ###,##0.00}" styleClass="slds-text-align--right">
+                                                                            <apex:param value="{!crc.Unitprice * crc.Quantity}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                </apex:outputPanel>
+
+                                                                <apex:outputPanel rendered="{!isSERecordType}">
+                                                                    <td data-label="Approved Amount (THB)" Class="slds-text-align--right">
+                                                                    <apex:outputText value="{0, number, ###,##0.00}" styleClass="slds-text-align--right">
+                                                                            <apex:param value="{!crc.Approved_Amount__c}" />
+                                                                        </apex:outputText>
+
+                                                                    </td>
+                                                                    
+                                                                    <td data-label="Actual Amount (THB)" Class="slds-text-align--right">
+                                                                        <apex:outputText value="{0, number, ###,##0.00}" styleClass="slds-text-align--right">
+                                                                            <apex:param value="{!crc.Actual_Amount__c}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                </apex:outputPanel>
+
+                                                                <td data-label="Tenor (Years)"><apex:inputField value="{!crc.Tenor_Years__c}" style="" styleClass="slds-input slds-text-align--right"/></td>
+                                                                <td  data-label="Probability by RM (%)"><apex:inputField value="{!crc.Deal_Probability__c}" style=""  styleClass="slds-select"/></td>
+                                                                 <apex:outputPanel rendered="{!isSERecordType}">
+                                                                <td  data-label="TMB Account No">
+                                                                    <!--<apex:inputField value="{!crc.Notional_Amount__c}" style="" styleClass="slds-input slds-text-align--right" rendered="{! !if(contains(crc.opportunity.recordtype.name,'SE'),true,false)}"/>-->
+                                                                    <apex:inputField value="{!crc.TMB_Account_ID__c}" style="" styleClass="slds-input slds-text-align--right" />
+                                                                </td>
+                                                                </apex:outputPanel>
+                                   
+                                                            </tr>
+                                                            
+                                                            
+                                                        </tbody>
+                                                        
+                                                        
+                                                        <!-- <thead style="margin-top:60px;">
+                                                            <tr class="slds-text-title--caps slds-section-title--divider" style="Background-color: #d5d4d4;">
+                                                                <th scope="col">
+                                                                    <div  title="">&nbsp; </div>
+                                                                </th>
+                                                                <th scope="col" >
+                                                                    <div  title="Type of Income">Type of <br /> Income<span class="requiredStar">&nbsp;**</span></div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.OpportunityLineItem.Fields.Type_of_Reference__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                <th scope="col" >
+                                                                    <div  title="Recurring or One-off">Recurring or<br /> One-off<span class="requiredStar">&nbsp;**</span></div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.OpportunityLineItem.Fields.Recurring_Type__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                <th scope="col" >
+                                                                    <div  title="Frequency ">Frequency<span class="requiredStar">&nbsp;**</span></div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.OpportunityLineItem.Fields.Frequency__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                <th scope="col">
+                                                                    <div  title="Expected Start Month/Year ">Expected Start<br /> Month/ Year<span class="requiredStar">&nbsp;**</span></div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.OpportunityLineItem.Fields.RevisedStartMonth__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                <th scope="col" >
+                                                                    <div  title="% Expected Utz./ Year">% Expected <br />Utz./ Year </div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.OpportunityLineItem.Fields.Expected_Util_Year_NI__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                <th scope="col" >
+                                                                    <div  title="Expected Utz. (Outs. Vol) ">Expected<br /> Utz. (Outs. Vol)  </div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.OpportunityLineItem.Fields.Expected_Utilization_Vol_NI__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                <th scope="col" >
+                                                                    <div  title="Expected Margin (%)">Expected<br /> Margin (%)  </div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.OpportunityLineItem.Fields.Expected_NIM__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                <th scope="col" >
+                                                                    <div  title="This Year Expected Revenue">This Year<br /> Expected <br />Revenue<span class="requiredStar">&nbsp;**</span></div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.OpportunityLineItem.Fields.This_Year_Expected_NI__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                                <th scope="col" >
+                                                                    <div  title="Full Deal Expected Revenue">Full Deal <br />Expected <br />Revenue </div>
+                                                                    <div class=" bootstrap-sf1">  
+                                                                        <span class="glyphicon glyphicon-question-sign" 
+                                                                          data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                          data-animation="false" data-placement="bottom" 
+                                                                          title="{!$ObjectType.OpportunityLineItem.Fields.Expected_Revenue__c.inlineHelpText}" />
+                                                                    </div>
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            
+                                                            
+                                                            <tr>
+                                                                <td data-label="Product">
+                                                                    <div><strong>NI</strong></div>
+                                                                    
+                                                                </td>
+                                                                <td  data-label="NI-Type of Income"><apex:inputField value="{!crc.Type_Of_Reference__c}" style=""  styleClass="slds-select"/></td>
+                                                                <td  data-label="NI-Recurring or one-off">
+                                                                    <apex:inputField value="{!crc.Recurring_Type__c}" style=""  styleClass="slds-select" onchange="changeRecurring('ni',this.value,'{!cnt}');"/>
+                                                                </td>
+                                                                <td data-label="NI-Frequency">
+                                                                    <apex:inputField value="{!crc.Frequency__c}" style=""  styleClass="slds-select nifrequency{!cnt}"/>
+                                                                </td>
+                                                                
+                                                                <td  data-label="NI-Expected Start Month/Year">
+                                                                    
+                                                                    <apex:inputfield value="{!crc.RevisedStartMonth__c}" style=""  styleClass="month slds-select"/><br/> 
+                                                                    
+                                                                    <apex:inputfield value="{!crc.RevisedStartYear__c}" style=""  styleClass="year slds-select nistartyear{!cnt}" onchange="changeYear()"/>
+                                                                    
+                                                                </td>
+                                                                <td data-label="NI-% Expected Utz./ Year">
+                                                                    <apex:inputField value="{!crc.Expected_Util_Year_NI__c}" style="" styleClass="slds-input slds-text-align--right"/>
+                                                                </td>
+                                                                <td data-label="NI-Expected Utz. (Outs. Vol)" Class="slds-text-align--right">
+                                                                    <apex:outputText value="{0, number, ###,##0.00}" styleClass="slds-text-align--right">
+                                                                        <apex:param value="{!crc.Unitprice * crc.Quantity * (crc.Expected_Util_Year_NI__c/100)}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td data-label="NI-Expected Margin (%)">
+                                                                    <apex:inputField value="{!crc.Expected_NIM__c}" style="" styleClass="slds-input slds-text-align--right"/>
+                                                                </td>
+                                                                <td data-label="NI-This Year Expected Revenue">
+                                                                    <apex:inputField value="{!crc.This_Year_Expected_NI__c}" style="" styleClass="slds-input slds-text-align--right"/>
+                                                                </td>
+                                                                <td  data-label="NI-Full Deal Expected Revene">
+                                                                    <apex:inputField value="{!crc.Expected_Revenue__c}" style="" styleClass="slds-input slds-text-align--right"/>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td data-label="Fee-Product"><strong>Fee</strong></td>
+                                                                <td data-label="Fee-Type of Income"><apex:inputField value="{!crc.Type_Of_Reference_Fee__c}" style=""  styleClass="slds-select"/></td>
+                                                                <td data-label="Fee-Recurring or one-off"><apex:inputField value="{!crc.Recurring_Type_Fee__c}" style=""  styleClass="slds-select" onchange="changeRecurring('fee',this.value,'{!cnt}');"/></td>
+                                                                <td  data-label="Fee-Frequency"><apex:inputField value="{!crc.FrequencyFee__c}" style=""  styleClass="slds-select feefrequency{!cnt}"/></td>
+                                                                <td data-label="Fee-Expected Start Month/Year">
+                                                                    <apex:inputfield value="{!crc.RevisedStartMonthFee__c}" style=""  styleClass="month slds-select"/><br/> 
+                                                                    
+                                                                    <apex:inputfield value="{!crc.RevisedStartYearFee__c}" style=""  styleClass="year slds-select feestartyear{!cnt}" onchange="changeYear()"/>
+                                                                </td >
+                                                                <td data-label="Fee-% Expected Utz./ Year" ><apex:inputField value="{!crc.Expected_Util_Year_Fee__c}" style="" styleClass="slds-input slds-text-align--right"/></td>
+                                                                <td data-label="Fee-Expected Utz. (Outs. Vol)" Class="slds-text-align--right">
+                                                                    <apex:outputText value="{0, number, ###,##0.00}" styleClass="slds-text-align--right">
+                                                                        <apex:param value="{!crc.Unitprice * crc.Quantity * (crc.Expected_Util_Year_Fee__c/100)}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td data-label="Fee-Expected Margin (%)"><apex:inputField value="{!crc.Expected_Fee_Rate__c}" style="" styleClass="slds-input slds-text-align--right"/></td>
+                                                                <td data-label="Fee-This Year Expected Revenue"><apex:inputField value="{!crc.This_Year_Expected_Fee__c}" style="" styleClass="slds-input slds-text-align--right"/></td>
+                                                                <td data-label="Fee-Full Deal Expected Revene"><apex:inputField value="{!crc.Expected_Revenue_Fee__c}" style="" styleClass="slds-input slds-text-align--right"/></td>
+                                                            </tr>
+                                                            
+                                                            
+                                                        </tbody> -->
+                                                        
+                                                        
+                                                        
+                                                    </table>
+                                                    
+                                                    
+                                                </div>
+                                                
+                                                
+                                            </div>  
+                                            <div class="slds-form-element slds-m-vertical--small">
+                                                <label style="float:left;" class="slds-p-around--small slds-form-element__label slds-text-title--caps" for="accountName">Description</label>
+                                                <div class="slds-form-element__control">
+                                                    <apex:inputField value="{!crc.Description}" style="width: 50%;height:60px"  styleClass="slds-input desc"/>
+                                                </div>
+                                                <br/><font color="red">{!remark}</font>
+                                            </div>
+                                            
+                                        </fieldset>
+                                    </div>
+                                    
+                                </div>
+                                
+                            </div>
+                            <!--END CONTAINER-->
+                            
+                            <apex:variable value="{!cnt+1}" var="cnt"/>                         
+                        </apex:repeat>
+                    </div>
+                    
+                    <apex:outputPanel id="panelOptLineSize">
+                         <apex:inputHidden value="{!optLineSize}" id="optLineSize"/>
+                    </apex:outputPanel>
+                     
+                    <div class="slds-size--1-of-1">
+                            
+                            <div class="slds-box--x-small slds-m-horizontal--x-small">
+                                <fieldset class="slds-theme--default ">
+                                    <div class="slds-form-element slds-text-align--center ">
+                                        <div class="slds-form-element__control  slds-m-bottom--medium" >
+                                            <apex:commandButton value="Save" action="{!dosave}" status="status" reRender="messages,script_block" oncomplete="HideSpin();" styleClass="slds-button slds-button--brand"/>
+                                            &nbsp; <apex:commandButton onclick="cancel();" oncomplete="HideSpin();" styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Cancel" status="status" rerender="messages" />&nbsp;
+                                            <!-- <apex:commandButton id="breakdownButton" value="Breakdown" action="{!openBreakdown}" status="status" styleClass="slds-button slds-button--neutral uiButton forceActionButton" oncomplete="showSpin()" reRender="messages" rendered="{!isNotSF1}"/> -->
+                                            
+                                        </div>
+                                    </div>
+                                </fieldset>
+                            </div>
+                        </div>
+                </div>
+
+                
+                </apex:outputPanel>
+            </apex:form>
+            
+            
+            
+        </body>
+    </html>
+    
+    
+    
+            <apex:outPutPanel layout="block" id="script_block" >
+         <script>
+           var toggle = "{!toggleScript}";
+           var _maintab;
+           var _subtab;
+           var isComplete = "{!iscomplete}";
+           var inconsole = sforce.console.isInConsole();
+
+           var $j = jQuery.noConflict();
+
+           $j(document).ready(function(){  
+
+            if(inconsole){
+                _maintab = sforce.console.getEnclosingPrimaryTabId(mainTab);
+
+            }
+            
+            });
+
+            if(inconsole== true && isComplete=='true' && toggle=='true' ){
+                sforce.console.getFocusedPrimaryTabId(showTabId);
+               
+            }else if(inconsole== false && isComplete=='true' && toggle=='true' ){
+                cancel();
+            }
+
+           var showTabId = function showTabId(result)
+            {
+                var tabId = result.id;
+                ShowSpin();
+                sforce.console.refreshPrimaryTabById(tabId, true, refreshSuccess);
+    
+            }; 
+             var refreshSuccess = function refreshSuccess(result) {
+                //console.log('refresh');
+                 
+                if (result.success == true) {
+                    setTimeout(function() {
+                      sforce.console.getEnclosingTabId(closeSubtab);
+                    }, 1500);
+                    
+                }
+            };
+            var closeSubtab = function closeSubtab(result) {
+                //Now that we have the tab ID, we can close it
+                var tabId = result.id;
+                sforce.console.closeTab(tabId);
+            };
+            
+            var subtab = function subtab(result) {
+                //Now that we have the primary tab ID, we can close it
+                _subtab = result.id;                               
+            };
+            var mainTab = function mainTab(result) {
+                //Now that we have the primary tab ID, we can close it
+                _maintab = result.id;                               
+            };
+
+         </script>
+        </apex:outPutPanel>
+    
+    
+    
+ <apex:includeScript value="/support/console/48.0/integration.js"/>
+            <script>
+            var _maintab;
+            var $j = jQuery.noConflict();  
+            function ShowSpin(){
+                $j('#spin').show();
+            }
+            function HideSpin(){
+                $j('#spin').hide();          
+            }     
+            //Sets the title of the current tab to "Case Transactions Detail"
+            /*window.onload = function setTitleConsole(){
+                setTitle();
+            }*/
+            //Sets the title of the current tab to "Case Transactions Detail"
+            function setTitle() {
+                sforce.console.setTabTitle('Edit All Product');
+            }  
+            function closeTab() {
+                //First find the ID of the current tab to close it
+                sforce.console.getEnclosingTabId(closeSubtab);
+                return false;
+            }            
+            var closeSubtab = function closeSubtab(result) {
+                //Now that we have the tab ID, we can close it
+                var tabId = result.id;
+                sforce.console.closeTab(tabId);
+            };   
+            
+            
+            $j(document).ready( function () {
+                
+                var theme = '{!$User.UIThemeDisplayed}';
+                $j('[data-toggle="tooltip"]').tooltip();
+                $j('.tooltip-inner').css('background-color', '#fff1de !important');
+                setTitle();
+                
+                
+                // if (sforce.console.isInConsole()){
+                //     $j('#breakdownButton').css('display','');
+                // }else if (theme == 'Theme4t') {
+                //     $j('#breakdownButton').css('display','none');
+                // }else{
+                //     $j('#breakdownButton').css('display','');
+                // }
+                
+            });
+            
+             function cancel() {
+                ShowSpin();
+                //First find the ID of the current tab to close it
+                if ((typeof sforce.one != 'undefined') && (sforce.one != null) ){
+                    sforce.one.navigateToSObject('{!opty.Id}' );
+                    closeTab();
+                }else{
+                 
+                     if(sforce.console.isInConsole()){
+                        // sforce.console.setTabTitle("{!opty.name}");
+                        closeTab();
+                    }
+                    redirectDeskTop();
+                }
+                
+            }  
+            
+            function changeRecurring(type,value,cnt){
+                if (type=='ni' && value=='One-Off'){
+                    $j('.nifrequency'+cnt).val('');
+                }else if (type=='fee' && value=='One-Off'){
+                    $j('.feefrequency'+cnt).val('');
+                }
+            }
+            
+            function changeYear()
+            {
+                var allEqual = true;
+                var q = $j('[id$=optLineSize]').val();
+                for (p = 0; p < q; p++)
+                {
+                    var cnt = p;
+                    if (($j('.nistartyear'+cnt).val() != '{!thisYear}') || ($j('.feestartyear'+cnt).val() != '{!thisYear}')){
+                        allEqual = false;
+                    }
+                }
+                
+                if (!allEqual){
+                    validateYear();
+                }else{
+                    clearMessage();
+                }
+            }
+
+            </script>
+</apex:page>

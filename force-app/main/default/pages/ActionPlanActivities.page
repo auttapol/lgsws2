@@ -1,0 +1,1085 @@
+<apex:page controller="AccountPlanActionPlanController" action="{!planSelection}" docType="html-5.0" showChat="false" showHeader="false" sidebar="false"
+    applyBodyTag="false" applyHtmlTag="true" standardStylesheets="true">
+    <head>
+<title>Action Plan - Activities</title>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+<meta name="author" content="Keattisak Chinburarat" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+<!-- Static Resource -->
+<!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <!--<apex:includeScript value="/support/console/34.0/integration.js"/>
+<apex:includeScript value="{!$Resource.SFScript}"  />   -->
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+<apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+<![endif]-->
+    <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+        .bootstrap-sf1 .table tbody tr td.forceBackgroundPink {
+            background-color: #FFCCCC;
+            color: black;
+        }
+
+        .bootstrap-sf1 .table tbody tr td.forceBackgroundGreen {
+            background-color: #E5FFCC;
+            color: black;
+        }
+        
+        .bootstrap-sf1 .table tbody tr td.forceBackgroundBlue {
+            background-color: #CCFFFF;
+            color: black;
+        }
+        
+        .bootstrap-sf1 {
+            padding: 5px;
+            background-color: white !important;
+        }
+        
+        .bootstrap-sf1 .table > thead > tr > th {
+            vertical-align: bottom;
+            border-bottom: none;
+        }
+.forceBackground.desc{
+    width: auto;
+    float: left;
+    padding: 5px;
+    margin-right: 10px;
+    font-size: 13px;
+}
+.overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 0 0;
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+        }
+</style>
+<!--  <apex:actionFunction action="{!save}" Rerender="statusMessage" status="Status1" name="doSave"  />   -->
+
+<apex:remoteObjects jsNamespace="JSObjects"> 
+    
+      <!--      <apex:remoteObjectModel name="AcctPlanWalletByDomain__c" fields="Id" jsShorthand="walletbydomain">
+                <apex:remoteObjectField name="Domain__c" jsShorthand="domain" />
+                <apex:remoteObjectField name="SubDomain__c" jsShorthand="subdomain" />                
+                <apex:remoteObjectField name="TypeOfNI__c" jsShorthand="typeofni" />                         
+              <apex:remoteObjectField name="Opportunity__c" jsShorthand="opportunity" /> 
+            </apex:remoteObjectModel>   -->
+
+            <apex:remoteObjectModel name="AcctPlanActionPlan__c" fields="Id" jsShorthand="actionplan">
+                <apex:remoteObjectField name="AcctPlanWalletByDomain__c" jsShorthand="walletid" />
+                <apex:remoteObjectField name="Objective__c" jsShorthand="objective" />
+                <apex:remoteObjectField name="Status__c" jsShorthand="status" />                
+                <apex:remoteObjectField name="WinningPropostion__c" jsShorthand="winning" />                         
+                    
+            </apex:remoteObjectModel>
+            
+            <apex:remoteObjectModel name="AcctPlanActivity__c" fields="Id" jsShorthand="activity">
+            <apex:remoteObjectField name="AccountPlanActionPlanID__c" jsShorthand="actionplan" />
+            </apex:remoteObjectModel>
+            
+     <!--           <apex:remoteObjectModel name="AcctPlanCompanyProfile__c" fields="Id,isHasActionPlan__c" jsShorthand="comprofile">
+            </apex:remoteObjectModel>
+                
+                <apex:remoteObjectModel name="AcctPlanNIProject__c" fields="Id" jsShorthand="niprojection"> 
+                 <apex:remoteObjectField name="AcctPlanActionPlanID__c" jsShorthand="actionplan" />
+                <apex:remoteObjectField name="PropsProductOrServices__c" jsShorthand="productname" />
+                <apex:remoteObjectField name="NIRecuringType__c" jsShorthand="nirecurring" />
+                <apex:remoteObjectField name="NIStartMonth__c" jsShorthand="nistartmonth" />
+                <apex:remoteObjectField name="NIStartYear__c" jsShorthand="nistartyear" />
+                <apex:remoteObjectField name="DealProbability__c" jsShorthand="dealprob" />
+                <apex:remoteObjectField name="TypeOfNI__c" jsShorthand="typeOfNI" />
+                <apex:remoteObjectField name="TypeOfFee__c" jsShorthand="typeOfFee" />
+                <apex:remoteObjectField name="ExpectedNimRate__c" jsShorthand="nimrate" />                    
+                <apex:remoteObjectField name="ExpectedFeeRate__c" jsShorthand="feerate" />  
+                <apex:remoteObjectField name="ExpectedIncrementalNIPerYear2Year__c" jsShorthand="ni2ndyear" />
+                <apex:remoteObjectField name="ExpectedIncrementalNIPerYear1Year__c" jsShorthand="ni1styear" />
+                <apex:remoteObjectField name="ExpectedIncremental__c" jsShorthand="expectin" />
+                <apex:remoteObjectField name="StandardInitiative__c" jsShorthand="standardin" />
+                <apex:remoteObjectField name="NonStandardInitiative__c" jsShorthand="nonstandardin" />
+                <apex:remoteObjectField name="ExpectedIncrementalFeePerYear1Year__c" jsShorthand="fee1styear" />
+                <apex:remoteObjectField name="ExpectedIncrementalFeePerYear2Year__c" jsShorthand="fee2ndyear" />
+               
+            </apex:remoteObjectModel>    
+
+                <apex:remoteObjectModel name="AcctPlanActivity__c" fields="Id" jsShorthand="activity">
+                <apex:remoteObjectField name="AccountPlanActionPlanID__c" jsShorthand="actionplan" />
+                <apex:remoteObjectField name="Group__c" jsShorthand="group" />
+                <apex:remoteObjectField name="Activities__c" jsShorthand="activities" />                
+                <apex:remoteObjectField name="Date__c" jsShorthand="date" />                         
+              <apex:remoteObjectField name="CustomerCounterparties__c" jsShorthand="contact" /> 
+              
+             <apex:remoteObjectField name="Visit_Plan_Report__c" jsShorthand="visit" />
+            </apex:remoteObjectModel>
+                
+                
+               <apex:remoteObjectModel name="AcctPlanStakeholder__c" fields="Id" jsShorthand="stakeholder">
+                 <apex:remoteObjectField name="AcctPlanActivity__c" jsShorthand="activity" /> 
+             <apex:remoteObjectField name="User__c" jsShorthand="tmbcounterparties" />
+            </apex:remoteObjectModel>
+           
+           
+             <apex:remoteObjectModel name="Call_Report__c" fields="Id" jsShorthand="visit">
+              <apex:remoteObjectField name="Name" jsShorthand="visitplanname" />
+              <apex:remoteObjectField name="Status__c" jsShorthand="visitstatus" />  
+            </apex:remoteObjectModel>
+            
+            <apex:remoteObjectModel name="Contact" fields="Id" jsShorthand="contact">
+              <apex:remoteObjectField name="Name" jsShorthand="contactname" />
+              <apex:remoteObjectField name="Salutation__c" jsShorthand="contacttitle" />
+              <apex:remoteObjectField name="title" jsShorthand="contact2" />   
+            </apex:remoteObjectModel>
+            
+            <apex:remoteObjectModel name="User" fields="Id" jsShorthand="user">
+              <apex:remoteObjectField name="Name" jsShorthand="username" />
+            </apex:remoteObjectModel> -->
+                
+        </apex:remoteObjects>
+    </head>
+  <body>   
+  <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+     <div class="bootstrap-sf1" >
+            <div id="responseErrors"></div>
+              
+            <apex:form styleClass="form-horizontal" id="frm">
+             <apex:actionFunction action="{!UpdateComprofile}" name="UpdateComprofile" rerender="fakeresults" />
+             <apex:pageMessages id="messages"/>                          
+               <!--             <apex:pageBlock id="childList">  
+                            
+                     
+                                 <apex:actionstatus id="status">
+                                                    <apex:facet name="start">
+                                                        <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                                                            &nbsp;
+                                                        </div>
+                                                        <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                                                            <img src="/img/loading32.gif" />
+                                                        </div>
+                                                    </apex:facet>
+                          </apex:actionstatus>           
+                           </apex:pageBlock>    -->               
+        
+       <apex:actionFunction name="reqField" action="{!RequiredField}" rerender="messages"   />  
+           <apex:actionFunction name="UpdateCompletion" action="{!UpdateCompletion}" rerender="" oncomplete="endLoading()"/>
+     <div >     
+                                     
+                                            <div style="text-align: center; padding-bottom:3px;padding-bottom: 2%;">
+                                               <!-- <a href="#" class="btn btn-success" >Save</a> 
+                                                 <a href="#" class="btn btn-success">Cancel</a> -->
+                                              
+                                                 <!-- <div id="editbutton" style="display:inline;"> -->
+                                                 <apex:commandButton value="Save" styleClass="btn btn-success" onclick="hardsave();return false;" tabindex="370" rerender="messages" status="status" oncomplete="endLoading()"  /><td >&nbsp;</td> 
+                                             <!--    </div> -->
+                                                 <div id="closebutton" style="display:inline;">
+                                                 <apex:commandButton value="Close" styleClass="btn btn-success" onclick="closepopup();" tabindex="380"  />
+                                                  </div> 
+                                            </div>
+                                         
+                                  <div>
+                                                                                        
+                                <table class="table table-striped table-hover" style="width:30%;" id="objectivetable"  >         
+                                    <thead></thead>
+                                    <tbody>
+                                     
+                          <tr><td class="forceBackground text-left" >Domain
+                          <c:II_Helptext SobjectName="AcctPlanWalletByDomain__c" FieldApiName="WalletDomain__c" />              
+                          </td>
+                            <td style="text-align:left;">
+                            <!-- <apex:outputText value="{!DomainName1}" rendered="{!if(Domain=='1',true,false)}"/>
+                            <apex:outputText value="{!DomainName2}" rendered="{!if(Domain=='2',true,false)}"/>
+                            <apex:outputText value="{!DomainName3}" rendered="{!if(Domain=='3',true,false)}"/>
+                            <apex:outputText value="{!DomainName4}" rendered="{!if(Domain=='4',true,false)}"/> -->
+                        <!--    <apex:repeat value="{!DomainMap}" var="key">
+                               <apex:outputField value="{!DomainMap[Domain].DomainName__c}" rendered="{!if(Domain==key,true,false)}" /><br/>
+                                <apex:outputField value="{!crc.WalletDomain__c}" rendered="{!if(TEXT(crc.WalletDomain__c)!=key,true,false)}" />
+                                </apex:repeat> 
+                                <apex:outputText value="{!DomainMap2[Domain]}"  /> -->
+                                 {!Domain}
+                            </td>
+                            </tr><tr>
+                            <td class="forceBackground text-left">Sub Domain
+                            <c:II_Helptext SobjectName="AcctPlanWalletByDomain__c" FieldApiName="SubDomain__c" />
+                            </td>
+                            <td style="text-align:left;">{!Sub}</td>
+                            </tr><tr>
+                            <td class="forceBackground text-left">Type of NI
+                            <c:II_Helptext SobjectName="AcctPlanWalletByDomain__c" FieldApiName="TypeOfNI__c" />
+                            </td>
+                            <td style="text-align:left;">{!Type}</td>
+                            </tr>
+                                     <tr>
+                                        <td class="forceBackground text-left">Objective
+                                        <c:II_Helptext SobjectName="AcctPlanActionPlan__c" FieldApiName="Objective__c" />
+                                        </td>
+                                        <td style="text-align:left;" >
+                                   <!-- <select id="objective" size="1">    
+                                        <option id="objective1" value="Acquire New customer">Acquire New customer</option>
+                                        <option id="objective2" value="Cross-Sell (New to products)">Cross-Sell (New to products)</option>
+                                        <option id="objective3" value="Increase Utilization">Increase Utilization</option>
+                                        <option id="objective4" value="Maintain">Maintain</option>
+                                        </select> --> 
+                                           <div id="Objectiveinput" style="display:none">
+                                           <apex:inputField value="{!actionplan.Objective__c}" id="objective" styleClass="form-control"   />
+                                           </div>
+                                           <div id="Objectiveoutput" style="display:none">
+                                           <apex:outputField value="{!actionplan.Objective__c}" styleClass="form-control"   />
+                                           </div>
+                                         <!--   <apex:selectList value="{!Objective__c}" size="1" required="true">
+                                              <apex:selectOptions value="{!Objective}"/>
+                                            </apex:selectList>   -->                                                
+                                                            </td>
+                                               
+                                        </tr> 
+                                                           <tr>
+                                        <td class="forceBackground text-left">Status
+                                        <c:II_Helptext SobjectName="AcctPlanActionPlan__c" FieldApiName="Status__c" />
+                                        </td>
+                                        <td style="text-align:left;" >
+                                       <!-- <select id="status" size="1">  
+                                        <option id="status1" value="Pre-Board">Pre-Board</option>
+                                        <option id="status2" value="On-Board">On-Board</option>
+                                        <option id="status3" value="Post-Board">Post-Board</option>
+                                        </select> -->
+                                        <div id="selectList" style="display:none">
+                                      <apex:inputField value="{!actionplan.Status__c}" id="status" styleClass="form-control dependentElement"  />
+                                        </div>   
+                                        <div id="selectListoutput" style="display:none">
+                                      <apex:outputField value="{!actionplan.Status__c}" styleClass="form-control dependentElement"  />
+                                        </div>   
+                                        <!--    <apex:selectList value="{!Status__c}" size="1" required="true">
+                                              <apex:selectOptions value="{!Status}"/>   
+                                            </apex:selectList>       -->        
+                                                            </td>
+                                               
+                                        </tr>  
+                                      
+                                       <tr >
+                                        <td class="forceBackground text-left" >Winning Propostion
+                                        <c:II_Helptext SobjectName="AcctPlanActionPlan__c" FieldApiName="WinningPropostion__c" />
+                                        </td>
+                                        <td style="text-align:left;" >
+                                         <input id="winning" value="{!Winning}" styleClass="form-control" />
+                                                       
+                                                            </td>
+                                               
+                                        </tr>
+                                                 
+                       
+                           </tbody>
+                                    
+                                </table>
+                            </div>  
+                                        
+                            
+                             <div>
+                       <!--      <apex:outputpanel id="activityblock"> -->
+                                <table class="table table-striped table-hover" style="width:100%;" id="actionplantable">
+                                    <thead>
+                                       <tr>
+                                                <th  colspan="2">Selection Activities       
+                                                   </th>
+                                                <th style="border:none;background-color:white;">
+                                                                <div class="row"> 
+                                        <div class="col-sm-12 col-md-6  col-lg-6" style="width:100%;">                                            
+                                              <button id="actionplanUI" class="btn btn-success">Add / Edit</button>
+                                        </div>                                        
+                                    </div>
+                                              </th>
+                                              
+                                               <th style="border:none;background-color:white;">
+                                           <!--                     <div class="row"> 
+                                        <div class="col-sm-12 col-md-6  col-lg-6" style="width:100%;">                                            
+                                              <button id="bookingUI" class="btn btn-success">Book activity to calendar</button>
+                                        </div>                                        
+                                    </div>  -->
+                                              </th>
+                                        </tr>
+                                                
+                                        <tr>
+
+                                            <th>Group
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Group__c" />
+                                            </th>
+                                            <th style="width: 30%;">Activity
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Activities__c" />
+                                            </th>
+                                            <th>Date
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Date__c" />
+                                            </th>
+                                            <th>Customer Counterparty
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="CustomerCounterparties__c" />
+                                            </th>
+                                            <th>TMB Counterparties
+                                            <c:II_Helptext SobjectName="AcctPlanStakeholder__c" FieldApiName="User__c" />
+                                            </th>
+                                            <th>Visit / Task
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="TaskId__c" />
+                                            </th>
+                                            <th>Visit / Task Status
+                                            <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="Task/Visit Report Status after user has converted the selected activity" />       
+                                            </th>
+                                        </tr>
+                                        
+                                    </thead>
+                                     
+                                    <tbody>
+                                                                    <apex:repeat value="{!actionactivityList}" var="crc" >
+                                           
+                                            <tr>
+                                                <td style="text-align:left;"><apex:outputField value="{!crc.Group__c}" /></td>
+                                                <td style="text-align:left;">
+                                                    <apex:outputField value="{!crc.Activities__c}" /> 
+                                                    <apex:outputpanel rendered="{!crc.CheckOther__c=='Y'}">
+                                                        <span> : </span>
+                                                      <apex:outputField value="{!crc.Other__c}"/>
+                                                    </apex:outputpanel>
+                                                </td>
+                                                <td><apex:outputField value="{!crc.Date__c}" /></td>
+                                                <td><apex:outputField value="{!crc.CustomerCounterparties__c}" /></td>
+                                                <td style="text-align:left;">
+                                                    <apex:repeat value="{!StakeHolderMap[crc.id]}" var="stakeholder" >
+                                                       <apex:outputfield value="{!stakeholder.User__r.Name}"/><br/>
+                                                        </apex:repeat>
+                                                    
+                                                    </td>
+                                                <td><apex:outputField value="{!crc.Visit_Plan_Report__c}" rendered="{!IF(crc.Visit_Plan_Report__c != null,true,false)}" />
+                                                <apex:repeat value="{!TaskMap[crc.TaskId__c]}" var="t"  rendered="{!IF(crc.TaskId__c != null,true,false)}"> 
+                                                    <a href="{!Url}/{!t.Id}" >
+                                                     <apex:outputfield value="{!t.Subject}"/>
+                                                     </a>
+                                                        </apex:repeat> 
+                                                        </td>
+                                                
+                                                <td><apex:outputField value="{!crc.Visit_Plan_Report__r.Status__c }" rendered="{!IF(crc.Visit_Plan_Report__c != null,true,false)}"/>
+                                                 <apex:repeat value="{!TaskMap[crc.TaskId__c]}" var="t" rendered="{!IF(crc.TaskId__c != null,true,false)}" >
+                                                       <apex:outputfield value="{!t.Status}"/>
+                                                        </apex:repeat> 
+                                                        </td>
+                                                
+                                                
+                                            </tr>
+                                        </apex:repeat>                                
+                                    </tbody>
+                                    
+                                </table>
+                      <!--         </apex:outputpanel> -->
+                            </div>               
+                              <br />
+                              
+                              
+                              
+                                                  <div id="menu-wrapper" style='display:block;'>    
+                
+                    <table class="table table-striped table-hover" style="width: 50%">
+                                    <thead>
+                                       <tr>
+                                         <th><select id="selectNI" onchange="enableNI(value);" class="form-control">
+                                      <option value="N">No</option>
+                                      <option value="Y">Yes</option>
+                                    </select></th>
+                                         <td><!--Do these activities generate NI?-->{!msgActivitiesQuestion}
+                                             </td>
+                                        </tr>
+                                      
+                                    </thead>
+                                </table>
+                              
+                    </div>
+                    <br />
+                    
+                              
+                                                
+                                                  <div  id="ni-wrapper" style='display:none;'>
+                                <table class="table " style="width:100%;" id="niprojectiontable">
+                                    <thead>
+                                        <tr>
+                                    <th style="border:none;background-color:white;">
+                                        &nbsp;</th>
+                                               <th style="border:none;background-color:white;">
+                                            <!--                    <div class="row"> 
+                                        <div class="col-sm-12 col-md-6  col-lg-6" style="width:100%;">                                            
+                                              <button id="convertUI" class="btn btn-success">Convert to Opportunity</button>
+                                        </div>                                        
+                                    </div>   -->
+                                              </th>
+                                        </tr>
+                                       <tr>
+                                                <th colspan="3">NI projection      
+                                                   </th>
+                                                
+                                                     <th style="border:none ;background-color:white;">
+                                                                <div class="row"> 
+                                        <div class="col-sm-12 col-md-6  col-lg-6" style="width:100%;">                                            
+                                              <button id="addproductUI" class="btn btn-success">Add Products</button>
+                                        </div>                                        
+                                    </div>
+                                              </th>
+                                              
+                                              
+                                              
+                                         
+                                         
+                                              <th style="border:none ;background-color:white;">
+                                                                <div class="row"> 
+                                        <div class="col-sm-12 col-md-6  col-lg-6" style="width:100%;">                                            
+                                              <button id="editNIProjectionUI" class="btn btn-success">Edit NI Projection</button>
+                                        </div>                                        
+                                    </div>
+                                              </th>
+                                              
+                                         <!--<td style="border-top:none;">
+                                             <apex:outputPanel rendered="{!isHasNiProjection}">
+                                                 <p id='ActionPlanMandatory' class='bg-danger' style=' float: left;padding: 5px;border: 1px solid #E28888;margin-left:10px;'>
+                                                     There must be at least 1 NI projection created for an Account Plan
+                                                 </p>
+                                             </apex:outputPanel>
+                                         </td>-->
+                                              
+                                        </tr>
+                                      <!--   <tr>
+                                                  <th colspan="8" style="border:none;background-color:white;">&nbsp;</th>        
+                                                 <th colspan="5">Expected Incremental</th> 
+                                        </tr>          -->
+                                       <tr>
+                                                  <th>Group
+                                                  <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="Group__c" />      
+                                                   </th>
+                                                <th>Proposed<br /> product<br /> or service     
+                                                   <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="PropsProductOrServices__c" />  
+                                                   </th>
+                                                   <th>Expected Incremental<br />Vol. (THB)/year  
+                                                   <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="ExpectedIncremental__c" /> 
+                                                   </th>
+                                                   <th> </th>
+                                                   <th>Type<br /> of NI/Fee    
+                                                   <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="TypeOfNI__c" /> 
+                                                   </th>
+                                                    <th >NI/Fee-Recurring<br /> or One-off    
+                                                   <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="NIRecuringType__c" /> 
+                                                   </th>
+                                                   
+                                                   <th>Expected<br /> NIM/Fee rate<br /> (%)    
+                                                   <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="ExpectedNimRate__c" /> 
+                                                   </th>
+                                                   <th>Expected Incremental<br />NI/Fee per year <br />(first year)
+                                                  <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="ExpectedIncrementalNIPerYear1Year__c" /> 
+                                                </th>
+                                                <th>Expected Incremental<br />NI/Fee – Full Deal
+                                                <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="ExpectedIncrementalNIPerYear2Year__c" />
+                                                </th>
+                                                <th>NI/Fee <br />-Start<br /> month
+                                                <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="NIStartMonth__c" />
+                                                </th>
+                                                <th>Deal <br />Probability(%)
+                                                <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="DealProbability__c" />
+                                                </th>                   
+                                                <th>
+                                                Opportunity      
+                                                <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="Opportunity__c" />
+                                                </th>   
+                                                <th>
+                                                Stage
+                                                <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="Opportunity Stage (e.g. Open, CA Prep, Approval Process, and so on)" />             
+                                                </th>      
+                                                
+                                        </tr>
+                                        
+                                    </thead>
+                                    <tbody>
+                                   
+                    
+                            <apex:repeat value="{!NIProjectList}" var="crc" > 
+                            
+                                              <tr>
+                                                <td ><apex:outputField value="{!crc.GroupCount__c}" /></td>
+                                                <td ><apex:outputfield value="{!crc.PropsProductOrServices__c}" /></td>
+                                                <td class="text-right" ><apex:outputfield value="{!crc.ExpectedIncremental__c }" /></td>
+                                                <td><strong>NI</strong></td>
+                                                <td><apex:outputfield value="{!crc.TypeOfNI__c}" /></td>
+                                                <td ><apex:outputfield value="{!crc.NIRecuringType__c}" /></td>
+                                                <td><apex:outputfield value="{!crc.ExpectedNimRate__c}" /></td>
+                                                <td  class="text-right" ><apex:outputfield value="{!crc.ExpectedIncrementalNIPerYear1Year__c }"  /></td>
+                                                <td  class="text-right" ><apex:outputfield value="{!crc.ExpectedIncrementalNIPerYear2Year__c  }" /></td>                        
+                                                <td><apex:outputfield value="{!crc.NIStartMonth__c}"/> <apex:outputfield value="{!crc.NIStartYear__c}"/></td>
+                                                
+                                                           <td rowspan="2"><apex:outputfield value="{!crc.DealProbability__c}" /></td>
+                                                <td rowspan="2"><apex:outputField value="{!crc.Opportunity__c}" /></td>
+                                                <td rowspan="2"><apex:outputField value="{!crc.Opportunity__r.StageName}" /></td>
+                                            </tr>
+                                            
+                                        <tr>
+                                            <td colspan="3" style="border:none; width:30%;text-align:left;">
+                                               </td>
+                                            <td><strong>Fee</strong></td>
+                                            <td><apex:outputfield value="{!crc.TypeOfFee__c}"  /></td>
+                                            <td ><apex:outputfield value="{!crc.FeeRecuringType__c}" /></td>
+                                            <td><apex:outputfield value="{!crc.ExpectedFeeRate__c}"  /></td>
+                                            <td  class="text-right" ><apex:outputfield value="{!crc.ExpectedIncrementalFeePerYear1Year__c}"  /></td>
+                                            <td  class="text-right" ><apex:outputfield value="{!crc.ExpectedIncrementalFeePerYear2Year__c }"  /></td>
+                                            <td><apex:outputfield value="{!crc.FeeStartMonth__c}"/> <apex:outputfield value="{!crc.FeeStartYear__c}"/></td>
+                                            
+                                            </tr>
+                                             <tr>
+                                             <td colspan="1" style="border:none;text-align:left;min-width: 115px;">
+                                                <div class="forceBackground desc float-left"><span><b>Strategy :</b>
+                                                <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip"
+                                              data-toggle="tooltip"
+                                              data-delay='{"show":"0", "hide":"100"}'
+                                              data-animation="false"
+                                              data-placement="bottom"
+                                              title="{!$ObjectType.AcctPlanNIProject__c.Fields.Description__c.inlineHelpText}" />
+                                                  
+                                              </span></div>
+                      </td> 
+                                            <td colspan="10" style="border:none;text-align:left;">
+                                                <span style="float:left;display: block;word-wrap: break-word;text-align:left;max-width:1000px;"><apex:outputText label="Description" value="{!crc.Description__c}" /></span>
+                                            </td> 
+                                        </tr>
+               
+                                            
+                                            <script>
+                                                document.getElementById("ni-wrapper").style.display = 'block';
+                                                document.getElementById("menu-wrapper").style.display = 'none';
+
+                                      </script>
+                                            
+                                        </apex:repeat>
+                                    
+                                                                   
+                                    </tbody>
+                                    
+                                </table>
+                            </div>                     
+                 
+                      </div>    <br/>                                                                         
+           </apex:form>
+           </div>
+                 <div class="bootstrap-sf1">                                  
+          <!-- Modal -->
+                <div  class="modal fade modal-fullscreen force-fullscreen"  id="frmModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-bottom: 30px;margin-top: 45px;">
+                  <div class="modal-dialog" style="width:100%;height:95%;" >
+                    <div class="modal-content" style="width:100%;height:95%;" >
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Action Plan</h4>
+                      </div>
+                      <div class="modal-body">
+                          <iframe id="modalIframe" src="/user/dashboard" width="100%" height="350px" frameborder="0" allowtransparency="true"></iframe>  
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>                       
+                      </div>
+                    </div>
+                    <!-- /.modal-content -->
+                  </div>  <!-- /.modal-dialog -->
+                </div>
+              </div>                                                                                                             
+         
+
+      <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+      <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+        <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+
+          </body> 
+<script>
+           
+        // Prevent Config
+        var $j = jQuery.noConflict();
+        // Ready Event
+        var actionplanobj = new JSObjects.actionplan();
+        var Activityobj = new JSObjects.activity();
+        //var Comprofileobj = new JSObjects.comprofile();
+        var walletid = '';
+        var actionID = '';
+        var CompanyID = '{!CompanyID}';
+        var searchWallet = '{!WalletID}';
+        var IsNotNull = false;
+        //var IsNew = true;
+        var objparam={};
+        var statusparam={};
+        var param1,param2,param3,param4 = '';
+        var redirect=true;
+        var errorupdate=false;
+        var IsNI= {!isHasNiProjection};
+        var record;
+        var OpenPopup = "";
+
+
+        actionplanobj.getData = function (callback) {
+            if (walletid != null) {
+                actionplanobj.retrieve({
+
+                    where: {
+
+                        AcctPlanWalletByDomain__c: { eq: walletid }
+                    },
+
+                    limit: 100
+                }
+                , function (err, records) {
+                    if (err) alert(err.message);
+                    else {
+                        IsNew=false;
+                        callback(records);
+                    };
+                });
+            }
+        }
+        
+                Activityobj.getData = function (callback) {
+                    
+            if (actionID.length > 5) {
+                Activityobj.retrieve({
+
+                    where: {
+
+
+                        AccountPlanActionPlanID__c: { eq: actionID  }
+                    },
+
+                    limit: 100
+                }
+                , function (err, records) {
+                    if (err) {alert(err.message);
+                    
+                    }
+                    else {
+
+                        
+                        callback(records);
+                    };
+                });
+            }
+        }
+        
+        
+  /*              Comprofileobj.getData = function (callback) {
+                
+            if (CompanyID != null) {
+            
+                Comprofileobj.retrieve({
+
+                    where: {
+
+                        Id: { eq: CompanyID }
+                    },
+
+                    limit: 1
+                }
+                , function (err, records) {
+                    if (err) {
+                    alert(err.message);
+                    
+                    }
+                    else {
+
+                        callback(records);
+                    };
+                });
+            }
+        }  */
+        
+             
+        //var objectivetable = $j('#objectivetable tbody');
+        var objectiveCallback = function (result) {
+                var obj = {};
+            for (index = 0; index < result.length; ++index) {
+                var record = result[index];
+                obj = {
+                    Id: record.get("Id"),
+                    status: record.get("status"),
+                    objective: record.get("objective"),
+                    winning: record.get("winning")
+
+                };
+
+            }
+
+                if(IsNotNull){
+                document.getElementById('{!$Component.frm:objective}').disabled=true;
+                document.getElementById('{!$Component.frm:status}').disabled=true;
+                    //document.getElementById("editbutton").style.display = "none";
+                document.getElementById("Objectiveoutput").style.display = "block";
+                document.getElementById("selectListoutput").style.display = "block";
+                
+                }else{
+                
+                document.getElementById("Objectiveinput").style.display = "block";
+                document.getElementById("selectList").style.display = "block";
+                }
+                document.getElementById("{!$Component.frm.objective}").className = "form-control";
+                    document.getElementById("{!$Component.frm.status}").className = "form-control";
+                    document.getElementById("winning").className = "form-control";
+                    
+
+        }
+        
+        var activityCallback = function (result) {
+            for (index = 0; index < result.length; ++index) {
+                var record = result[index];
+                var obj = {
+                    activity: record.get("Id")
+                };
+                
+                    IsNotNull = true;
+            }
+        }
+        
+  /*              var ComprofileCallback = function (result) {
+                
+            for (index = 0; index < result.length; ++index) {
+                var record = result[index];
+                var obj = {
+                    comprofile: record.get("Id")
+                    
+                };
+                    
+        }
+            } */
+        
+
+                    var QueryString = function () {
+                      // This function is anonymous, is executed immediately and 
+                      // the return value is assigned to QueryString!
+                      var query_string = {};
+                      var query = window.location.search.substring(1);
+                      var vars = query.split("&");
+                      for (var i=0;i<vars.length;i++) {
+                        var pair = vars[i].split("=");
+                            // If first entry with this name
+                        if (typeof query_string[pair[0]] === "undefined") {
+                          query_string[pair[0]] = decodeURIComponent(pair[1]);
+                            // If second entry with this name
+                        } else if (typeof query_string[pair[0]] === "string") {
+                          var arr = [ query_string[pair[0]],decodeURIComponent(pair[1]) ];
+                          query_string[pair[0]] = arr;
+                            // If third or later entry with this name
+                        } else {
+                          query_string[pair[0]].push(decodeURIComponent(pair[1]));
+                        }
+                      } 
+                        return query_string;
+                    }();
+
+              
+                $j(document).ready( function () { 
+                
+                        $j('[data-toggle="tooltip"]').tooltip(); 
+                        
+                        clearIframe();
+                        param1= QueryString.WalletDomainID;
+                        /*param2= QueryString.Domain;
+                        param3= QueryString.Sub;
+                        param4= QueryString.Type;*/
+                        walletid = param1;
+                        actionID = "{!ActionPlanID}";
+                         //actionID=actionID.substring(0, actionID.length-3);
+                        objparam =  document.getElementById("{!$Component.frm.objective}").value;
+                        statusparam = document.getElementById("{!$Component.frm.status}").value;
+                        if(actionID.length > 5){
+                        Activityobj.getData(activityCallback);
+                        }
+                        actionplanobj.getData(objectiveCallback);
+                        //Comprofileobj.getData(ComprofileCallback);
+                        
+         
+                        
+                        if(IsNI){
+                          document.getElementById("editNIProjectionUI").style.display = 'none';
+                        }
+
+             $j("#actionplanUI").on('click',function(event){
+                        softsave();
+                        event.preventDefault();
+                        if(document.getElementById("{!$Component.frm.objective}").value!=""){
+                        objparam =  document.getElementById("{!$Component.frm.objective}").value;
+                        statusparam = document.getElementById("{!$Component.frm.status}").value;
+                        if(actionID != ''){
+                        $j('#modalIframe').attr("src","/apex/EdittableActionPlan?CompanyID={!CompanyID}&ActionPlanId="+actionID+"&AccountId={!AccountID}&Objective="+objparam+"&Status="+statusparam); 
+                        $j('#frmModel').modal({show:true});
+                        }else{
+                        OpenPopup ="actionplanUI";
+                        }
+                        }
+                    }); 
+                    
+               $j("#bookingUI").on('click',function(event){
+                        
+                        event.preventDefault();
+                        $j('#modalIframe').attr("src",'/apex/ActivitiesToVisitReport');                 
+                        
+                        $j('#frmModel').modal({show:true});
+                    }); 
+     
+                    
+                    $j("#addproductUI").on('click',function(event){
+                        softsave();
+                        event.preventDefault();
+                        if(document.getElementById("{!$Component.frm.objective}").value!=""){
+                        if(actionID != ''){
+                        $j('#modalIframe').attr("src","/apex/NIProjectionProduct?CompanyID={!CompanyID}&ActionPlanId="+actionID+"&Domain={!DomainCode}");                 
+                        $j('#frmModel').modal({show:true});
+                        }else{
+                        OpenPopup = "addproductUI";
+                        }
+                        }
+                    });
+                    
+                    $j("#convertUI").on('click',function(event){
+                        
+                        event.preventDefault();
+                        $j('#modalIframe').attr("src",'/apex/ConvertToOpportunity');                 
+                        
+                        $j('#frmModel').modal({show:true});
+                    });
+                    
+                    $j("#editNIProjectionUI").on('click',function(event){
+                        softsave();
+                        event.preventDefault();
+                        
+                        if(document.getElementById("{!$Component.frm.objective}").value!=""){
+                        if(!IsNI){
+                        if(actionID != ''){
+                        $j('#modalIframe').attr("src",'/apex/EditNIProjection?CompanyID={!CompanyID}&ActionPlanId='+actionID);                                 
+                        $j('#frmModel').modal({show:true});
+                        }else{
+                        OpenPopup ="editNIProjectionUI";
+                        }
+                        }else{
+                        alert("There is no NI Projection record.");
+                        }
+                        }
+                    });
+                    
+                    
+                    $j('#frmModel').on('show.bs.modal', function () {
+                        $j(this).find('.modal-body').css({                        
+                            // 'max-height':'800px'
+                        });
+                    });
+        
+                    $j('#frmModel').on('hidden.bs.modal', function (e) {
+                          // do something...
+                            clearIframe();
+                           location.reload();         
+                    });
+                    
+                    window.closeModal = function(){
+                        $j('#frmModel').modal('hide');
+                    };
+                    
+                    
+                    window.resfreshActivity = function(){
+
+                            var target = $j('#modalIframe').attr("src","/apex/EdittableActionPlan?CompanyID={!CompanyID}&ActionPlanId="+actionID+"&AccountId={!AccountID}&Objective="+objparam+"&Status="+statusparam); 
+                       
+                            // load the url and show modal on success
+                            $j("#frmModel .modal-body").load(target, function() { 
+                                $j('#frmModel').modal({show:true});
+                            });
+                        
+                    };
+                    
+                    
+                    
+                });   
+                
+
+                                // Mutation object
+                    var MutationObserver = window.MutationObserver || window.WebKitMutationObserver || window.MozMutationObserver;
+                    
+                    // Defining observer 
+                    var observer = new MutationObserver(function(mutations) { 
+                        // If the myListClass was removed from the list - re-assign it
+                        if(!$j('#selectList select').first().hasClass('form-control')){
+                            $j('#selectList select').first().addClass('form-control');
+                        }
+
+                    });
+                    
+                    // A target object fot the observer
+                    var myNode = document.querySelector('#selectList'); 
+                    
+                    // Assigning observer to the dependent picklist
+                    observer.observe(myNode, {
+                        childList: true,
+                        subtree: true,
+                        attributes: true
+                    });
+                
+
+                function startLoading(text){
+            //$j('#load_scrl').css('top', $j(document).scrollTop() + 200).html(text);
+            $j('.loadingBox').show();
+        }
+        function endLoading(){
+            $j('.loadingBox').hide();
+        }
+
+
+           function softsave(){
+           redirect = false;
+           save();
+                UpdateCompletion();
+           }
+           
+           function hardsave(){
+
+           redirect = true;
+           save();
+                UpdateCompletion();
+                 //endLoading();
+           }
+               UpdateCompletion
+           var IsRecord = 'N';
+           var HasActPlan = true;     
+            function save(){
+              startLoading('');
+              if(document.getElementById("{!$Component.frm.objective}").value != "" && document.getElementById("{!$Component.frm.status}").value != ""){
+           if(IsNotNull&&actionID != ''){
+            record = new JSObjects.actionplan({
+            Id: actionID,
+            winning : document.getElementById("winning").value
+            });
+            record.update(updateCallback);
+               UpdateCompletion();  
+            }else if(actionID != ''){
+            record = new JSObjects.actionplan({
+            Id: actionID,
+            objective : document.getElementById("{!$Component.frm.objective}").value,
+            status : document.getElementById("{!$Component.frm.status}").value,
+            winning : document.getElementById("winning").value
+            });
+            record.update(updateCallback);
+            UpdateCompletion();    
+            }else if(actionID == ''){
+            
+            record = new JSObjects.actionplan({
+            walletid : walletid,
+            objective : document.getElementById("{!$Component.frm.objective}").value,
+            status : document.getElementById("{!$Component.frm.status}").value,
+            winning : document.getElementById("winning").value
+            });   
+            record.create(updateCallback);
+            UpdateCompletion();
+            
+            /*
+            record = new JSObjects.comprofile({
+            
+            });   
+            record.update(updateCallback); 
+            */
+            
+            
+           }
+           }// if check field value
+           else{
+           reqField();
+           }
+
+        }
+        
+         function callActivitiesView(){
+            //window.setTimeout(viewAccount,4000);
+            //alert("/apex/ActionPlanActivitiesView?CompanyID={!CompanyID}&WalletDomainID="+param1+"&Domain="+param2+"&Sub="+param3+"&Type="+param4);
+            //window.location = "/apex/ActionPlanActivitiesView?CompanyID={!CompanyID}&WalletDomainID="+param1+"&Domain="+param2+"&Sub="+param3+"&Type="+param4;
+            window.location = "/apex/ActionPlanActivitiesView?CompanyID={!CompanyID}&WalletDomainID="+param1;
+         } 
+
+        // Callback to handle DML Remote Objects calls
+  function updateCallback(err, ids){
+            if (err) { 
+                displayError(err);
+                alert(err); 
+            } else {
+             // Reload the contacts with current list
+             if(actionID == ''){
+             actionID = record.get('Id');
+             
+             if(OpenPopup=='actionplanUI'){
+             $j('#modalIframe').attr("src","/apex/EdittableActionPlan?CompanyID={!CompanyID}&ActionPlanId="+actionID+"&AccountId={!AccountID}&Objective="+objparam+"&Status="+statusparam); 
+             $j('#frmModel').modal({show:true});
+             
+             }else if(OpenPopup=='addproductUI'){
+             
+             $j('#modalIframe').attr("src","/apex/NIProjectionProduct?CompanyID={!CompanyID}&ActionPlanId="+actionID+"&Domain={!DomainCode}");                 
+             $j('#frmModel').modal({show:true});
+             }else if(OpenPopup=='editNIProjectionUI'){
+             
+             $j('#modalIframe').attr("src",'/apex/EditNIProjection?CompanyID={!CompanyID}&ActionPlanId='+actionID);                                 
+             $j('#frmModel').modal({show:true});
+             }
+             
+             
+             
+             UpdateComprofile();
+             
+             }
+             
+             if(redirect){
+             callActivitiesView();
+             }
+             //alert(" Saved ");
+            //$jQuery.mobile.changePage('#listpage', {changeHash: true});
+            }
+        }
+
+          function enableNI($i){
+        if($i=="Y"){
+        $j("#ni-wrapper").css('display','block');
+        $j("#menu-wrapper").css('display','none');     
+        }
+      else{
+           $j("#ni-wrapper").css('display','none');
+          }
+        
+        }
+        function clearIframe(){
+            $j("#modalIframe").attr('src','');
+        }   
+        
+        function closepopup(){
+             UpdateCompletion();
+       window.opener.location.reload();
+       window.close();
+       }
+               
+            </script>
+</apex:page>

@@ -1,0 +1,91 @@
+<apex:page showHeader="true" sidebar="true" standardController="Case" extensions="caseSMSButtonCtl" action="{!validateSendSMS}"
+    lightningStylesheets="true">
+
+    <!-- Includes Js -->
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+    <!-- Salesconsole JS API -->
+    <apex:includescript value="/support/console/36.0/integration.js" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+
+    <!-- Style for Ajax Request -->
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+            /* width: 32px;*/
+            height: 32px;
+            position: absolute;
+            left: 48%;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+
+        .textWrap .bPageBlock .pbTitle {
+            width: 100%
+        }
+
+        @media only screen and (max-width: 415px) {
+            .bPageBlock {
+                width: 1000px;
+            }
+        }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+    <!-- // End Ajax Request -->
+    <script>
+        function startLoading(text) {
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading() {
+            $('.loadingBox').hide();
+        }
+
+        $(document).ready(function () {
+            $('.normallink').hide();
+            $('.console').hide();
+            // On Pageload send ajax request
+            if ({!stopPolling        
+} != true)
+        startLoading("SendingRequest ...");
+        });
+
+    </script>
+
+    <apex:form id="smsForm">
+        <apex:sectionHeader title="Send SMS" subtitle="{!caseObj.CaseNumber }" />
+        <apex:outputText rendered="{!stopPolling}">
+            <script>           
+                endLoading();
+            </script>
+        </apex:outputText>
+        <apex:pageBlock title=" " mode="edit" id="smsblock">
+            <apex:pageBlockButtons location="bottom">
+                <apex:commandbutton value="OK" action="{!cancel}" />
+            </apex:pageBlockButtons>
+            <apex:pageMessages />
+        </apex:pageBlock>
+        <apex:actionPoller action="{!getSMSStatus}" interval="5" reRender="sendstatus,smsForm" enabled="{!if(stopPolling == true, false,isEnabled)}"
+        />
+    </apex:form>
+</apex:page>

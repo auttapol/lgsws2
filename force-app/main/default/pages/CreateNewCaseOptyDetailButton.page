@@ -1,0 +1,108 @@
+<apex:page standardController="Opportunity" showChat="false" showHeader="false">
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionStatus onstart="startLoading('Inserting ...');" id="InsertStatus" onstop="endLoading();" />
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 0 0;
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            left: 50%;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+
+    <div class="loadingBox overlay"> </div>
+    <script type="text/javascript">
+        function startLoading(text) {
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading() {
+            $('.loadingBox').hide();
+        }
+
+
+        $(document).ready(function () {
+            startLoading('Loading....');
+        });
+    </script>
+
+    <apex:form >
+        <apex:inputHidden value="{!Opportunity.AccountId}" />
+        <apex:actionFunction name="page" action="{! URLFOR($Action.Case.NewCase, null, [def_opportunity_id=Opportunity.Id ,def_account_id=Opportunity.AccountId] )}"
+        />
+    </apex:form>
+    <apex:includeScript value="/support/console/34.0/integration.js" />
+    <!-- <script type="text/javascript">
+
+        if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+            // ----------------------- this block is add for test desktop mode ----------------------- 
+            if (theme == 'Theme4u' || isLightningMode) {
+                $j("#main-wrapper").css('display', 'block');
+            }
+            // ---------------------------------------------------------------------------------------
+            else if ('{!MobileVisitPlanID}' != '') {
+                //sforce.one.navigateToURL('/apex/VisitPlanProxy?id={!MobileVisitPlanID}' );
+                sforce.one.navigateToURL('/apex/VisitPlanCreateMobileLayout?id={!MobileVisitPlanID}');
+            } else {
+                //sforce.one.navigateToURL('/apex/VisitPlanProxy?RecordType={!MobileRecordType}' );
+                sforce.one.navigateToURL('/apex/VisitPlanCreateMobileLayout?OppID={!OppID}&sObjectID={!SobjectId}&RecordType={!MobileRecordType}&CF00N9000000DneE6_lkid={!MobileRetUrl}');
+            }
+        }
+        else {
+            $j("#main-wrapper").css('display', 'block');
+        }
+    </script> -->
+
+    <script type="text/javascript">
+        // console.log('{!Opportunity.Id}');
+        var theme = '{!$User.UIThemeDisplayed}';
+        var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+        // console.log(theme);
+        if (theme == 'Theme4t') {
+            mobile();
+        } else if (theme == 'Theme4u' || isLightningMode){
+            var link = "{! URLFOR($Action.Case.NewCase, null, [def_opportunity_id=Opportunity.Id ,def_account_id=Opportunity.AccountId] )}";
+            // console.log(link);
+            // page();
+            
+            sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                    "componentDef": "c:fetchRecordTypeLightning",
+                    "attributes": {
+                        "theme": theme,
+                        "sObjectName": "Case",
+                        "url" : "/apex/CaseUpdateStd?def_opportunity_id={!Opportunity.Id}&def_account_id={!Opportunity.AccountId}",
+                        "isCustom" : true
+                    }
+            })), true);
+        }
+        else if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+            mobile();
+        } else {
+            page();
+        }
+    </script>
+
+</apex:page>

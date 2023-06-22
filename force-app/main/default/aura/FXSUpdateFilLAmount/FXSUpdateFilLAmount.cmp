@@ -1,0 +1,176 @@
+<aura:component controller="FX_Order_Summary_Controller" implements="force:lightningQuickAction,flexipage:availableForRecordHome,force:hasRecordId,lightning:actionOverride">
+    
+    <ltng:require styles="{!$Resource.ToastMessage}" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="fxsObject" type="FX_Order_Summary__c" default="{ 'sobjectType': 'FX_Order_Summary__c' }" />
+
+    <aura:attribute name="shortTotalRequestAmount" type="Integer" />
+
+    <aura:attribute name="CurrencyExchange" type="String" />
+    <aura:attribute name="RateExchange" type="String" />
+    <aura:attribute name="shortfillAmount" type="Integer" />
+    <aura:attribute name="fillAllocateAmount" type="Integer" />
+
+    <aura:attribute name="fillamountDialogValidateShow" type="Boolean" default="false" />
+    <aura:attribute name="fillamountDialogShow" type="Boolean" default="false" />
+    <aura:attribute name="processSave" type="Boolean" default="false" />
+    <aura:attribute name="userAdjustFillAmount" type="Boolean" default="true" />
+
+    <aura:attribute name="confirmDialogText" type="String" />
+    <aura:attribute name="confirmDialogShow" type="Boolean" default="false" />
+    <aura:attribute name="blotterProfile" type="FX_Blotter_Profile_Manager__mdt" />
+
+    <!-- Display an editing form -->
+    <div class="Record Details">
+        <lightning:card iconName="action:edit" title="{!$Label.c.FXS_Form_Edit_Fill_amount}">
+
+            <aura:if isTrue="{! v.fillamountDialogValidateShow }">
+                <div class="slds-p-horizontal--small">
+                    <div class="slds-card slds-has-bottom-magnet">
+                        <div class="slds-p-around_medium">
+                            <div class="slds-grid slds-wrap">
+                                <div class="slds-col slds-size_1-of-1">
+                                    <div class="slds-text-color_error">
+                                        <lightning:icon iconName="utility:info" size="small" />
+                                        {!$Label.c.FXS_Fill_Amount_Message_Validation}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aura:if>
+
+            <aura:if isTrue="{! (!v.userAdjustFillAmount) }">
+                <div class="slds-p-horizontal--small">
+                    <div class="slds-card slds-has-bottom-magnet">
+                        <div class="slds-p-around_medium">
+                            <div class="slds-grid slds-wrap">
+                                <div class="slds-col slds-size_1-of-1">
+                                    <div class="slds-text-color_error">
+                                        <lightning:icon iconName="utility:info" size="small" />
+                                        {!$Label.c.FXS_Fill_Amount_Message_Allow_edit}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aura:if>
+
+            <aura:if isTrue="{! and(v.fillamountDialogShow, v.userAdjustFillAmount) }">
+                <div class="slds-p-horizontal--small">
+
+                    <!-- Fill Amount -->
+                    <!-- <force:inputField aura:id="inputAmount" value="{!v.fxsObject.FXS_TotalAllocateAmount__c}"/> -->
+                    <!-- <ui:inputCurrency aura:id="inputAmount" label="Fill Amount" class="field" value="{!v.fxsObject.FXS_TotalAllocateAmount__c}" /> -->
+
+                    <div class="slds-card slds-has-bottom-magnet">
+                        <div class="slds-p-around_medium">
+                            <div class="slds-grid slds-wrap">
+                                <div class="slds-col slds-size_1-of-1">
+                                    <label>{!$Label.c.FXS_Short_Total_Request_Amount}</label>
+                                    <br/>
+                                    <ui:outputNumber value="{! v.shortTotalRequestAmount }" format="0.00" />
+                                </div>
+                                <div class="slds-col slds-size_1-of-1">
+                                    <ui:inputCurrency aura:id="inputAmount" label="{! $Label.c.FXS_Fill_Total_Allocate_Amount }" class="field" value="{! v.shortfillAmount }"
+                                        format="0.00" disabled="{!v.blotterProfile? !v.blotterProfile.FX_Dashboard_Allow_Edit__c:false}"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="slds-card slds-has-top-magnet">
+                            <div class="slds-p-around_medium">
+                                <div class="slds-col slds-size_1-of-1">
+                                    <lightning:button label="{! $Label.c.FXS_Fill_Amount_Save }" variant="brand" onclick="{!c.save}" disabled="{!v.blotterProfile? !v.blotterProfile.FX_Dashboard_Allow_Edit__c:false}"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </aura:if>
+
+
+            <aura:if isTrue="{!v.confirmDialogShow}">
+                <div class="slds-p-horizontal--small">
+
+                    <div class="slds-card slds-has-bottom-magnet">
+                        <div class="slds-p-around_medium">
+                            <div class="slds-grid slds-wrap">
+
+                                <div class="slds-col slds-size_6-of-12 ">
+                                    <span>{!$Label.c.FX_Dashboard_Cuureny_Exchange_Header}</span>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12">
+                                    <span>{! v.fxsObject.FXS_CurrencyPair__c }</span>
+                                </div>
+
+                                <div class="slds-col slds-size_6-of-12">
+                                    <span>{!$Label.c.FX_Dashboard_Exchange_Rate_Header}</span>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12">
+                                    <span>
+                                        <ui:outputNumber value="{! v.fxsObject.FXS_CustomerRate__c }" format="0.00000" />
+                                    </span>
+                                </div>
+
+                                <div class="slds-col slds-size_6-of-12">
+                                    <span>{! v.confirmDialogText } :</span>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12">
+                                    <span>
+                                        <ui:outputNumber value="{! v.fxsObject.FXS_TotalAllocateAmount__c }" />
+                                    </span>
+                                </div>
+
+                            </div>
+
+                            <!-- <dl class="slds-list_horizontal slds-wrap">
+                                    <dt class="slds-item_label slds-text-color_weak slds-truncate" title="{!$Label.c.FX_Dashboard_Cuureny_Exchange_Header}">{!$Label.c.FX_Dashboard_Cuureny_Exchange_Header} :</dt>
+                                    <dd class="slds-item_detail slds-truncate"> {! v.fxsObject.FXS_CurrencyPair__c } </dd>
+
+                                    <dt class="slds-item_label slds-text-color_weak slds-truncate" title="{!$Label.c.FX_Dashboard_Exchange_Rate_Header}">{!$Label.c.FX_Dashboard_Exchange_Rate_Header} :</dt>
+                                    <dd class="slds-item_detail slds-truncate">
+                                        <ui:outputNumber value="{! v.fxsObject.FXS_CustomerRate__c }" format="0.0000" />
+                                    </dd>
+
+                                    <dt class="slds-item_label slds-text-color_weak slds-truncate" title="{! v.confirmDialogText }">{! v.confirmDialogText } :</dt>
+                                    <dd class="slds-item_detail slds-truncate">
+                                        <ui:outputNumber value="{! v.fxsObject.FXS_TotalAllocateAmount__c }" />
+                                    </dd>
+                                </dl> -->
+
+                        </div>
+                    </div>
+                    <div class="slds-card slds-has-top-magnet">
+                        <div class="slds-p-around_medium">
+                            <div class="slds-grid slds-wrap">
+                                <div class="slds-col slds-size_1-of-1 ">
+
+                                    <lightning:button label="{!$Label.c.FXS_Fill_Amount_Confirm}" variant="brand" onclick="{!c.confirmFill}" disabled="{!v.blotterProfile? !v.blotterProfile.FX_Dashboard_Allow_Edit__c:false}"
+                                    />
+
+                                    <lightning:button label="{!$Label.c.FXS_Fill_Amount_Back}" onclick="{!c.backFill}" />
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <aura:if isTrue="{!v.processSave}">
+                        <lightning:spinner alternativeText="Loading" size="large" />
+                    </aura:if>
+
+                </div>
+            </aura:if>
+
+
+        </lightning:card>
+    </div>
+
+</aura:component>

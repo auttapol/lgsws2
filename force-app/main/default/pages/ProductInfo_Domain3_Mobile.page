@@ -1,0 +1,141 @@
+<apex:page standardController="Account" extensions="ReportMobileExtension" action="{!report3}" readOnly="true" sidebar="false" showHeader="false" standardStylesheets="true">
+<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+<apex:includeScript value="/support/console/34.0/integration.js"/>
+<apex:includeScript value="{!$Resource.SFScript}"  /> 
+<apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+
+<h1 class="pageType">Product Information Report:</h1>
+<h2 class="pageDescription"> Domain 3</h2>
+
+
+
+
+
+<apex:outputPanel rendered="{!DataExist}">
+ <div class="bootstrap-sf1">
+            <div id="responseErrors"></div>
+    <div class="row" style="overflow-y: hidden;margin:5px;">
+    
+    <table class="table table-striped table-hover" >
+    <thead>
+         <tr >        
+         <th class="forceBackground text-left" >TMB Account ID</th>
+         <th class="forceBackground text-left" >Account Name</th>
+         <th class="forceBackground text-left" >TMB Suffix</th>
+         <th class="forceBackground text-left" >TMB Ref</th>
+         <th class="forceBackground text-left" >Performance Product Name</th>
+         <th class="forceBackground text-left" >Product Description</th>
+         <th class="forceBackground text-left" >Limit</th>
+         <th class="forceBackground text-left" >Ending O/S</th>
+         <th class="forceBackground text-left" >Average</th>
+         <th class="forceBackground text-left" >Issue Date</th>
+         <th class="forceBackground text-left" >Maturity Date</th>      
+         <th class="forceBackground text-left" >DPD Date</th>
+         <th class="forceBackground text-left" >Loan Status</th> 
+         </tr>
+           </thead>
+               <tbody id="childlistbody">
+      
+                                 <apex:variable var="fam" value="null" />
+                                 <apex:variable var="hierar" value="null" />
+                                    <apex:repeat value="{!detail}" var="c" > 
+                                           
+                                           <apex:outputPanel id="ProdFamPanel" rendered="{!if(fam==c.Product_Family__c,false,true)}" >
+                                                <tr class='info'>   
+                                                <td colspan='6' class='text-left' ><b>Product Family:  </b><apex:outputText value="{!if(c.Product_Family__c==null,"-",c.Product_Family__c)}"/> &nbsp;<b>(<apex:outputText value="{!if(c.Product_Family__c==null,FamCountMap["-"],FamCountMap[c.Product_Family__c])}"/> &nbsp;<apex:outputText value="Record" rendered="{!If(c.Product_Family__c!=null&&FamCountMap[c.Product_Family__c]<=1 || c.Product_Family__c==null&&FamCountMap["-"]<=1,true,false)}"/> <apex:outputText value="Records" rendered="{!If(c.Product_Family__c!=null&&FamCountMap[c.Product_Family__c]>1 || c.Product_Family__c==null&&FamCountMap["-"]>1,true,false)}"/>)</b></td>
+                                                <td class='text-left' style="font-size:90%">
+                                                <apex:outputText value="฿{0, number, ###,##0.00}">
+                                                <apex:param value="{!If(c.Product_Family__c==null,FamSumLimitMap["-"],FamSumLimitMap[c.Product_Family__c])}"/>
+                                                </apex:outputText>
+                                                </td>
+                                                <td class='text-left' style="font-size:90%">
+                                                <apex:outputText value="฿{0, number, ###,##0.00}">
+                                                <apex:param value="{!If(c.Product_Family__c==null,FamSumOSMap["-"],FamSumOSMap[c.Product_Family__c])}"/>
+                                                </apex:outputText>
+                                                </td>
+                                                <td class='text-left' style="font-size:90%">
+                                                <apex:outputText value="฿{0, number, ###,##0.00}">
+                                                <apex:param value="{!If(c.Product_Family__c==null,FamSumAVGMap["-"],FamSumAVGMap[c.Product_Family__c])}"/>
+                                                </apex:outputText>
+                                                </td>
+                                                <td colspan='4' class='text-left'></td>
+                                                </tr>
+                                                </apex:outputPanel>
+                                                
+                                                <apex:outputPanel id="ProdPanel" rendered="{!if(hierar==c.Product_Information__r.Product_Hierachy_Code__c,false,true)}" >
+                                                <tr class='info'>   
+                                                <td></td>
+                                                <td colspan='5' class='text-left' ><b> Product Hierarchy Name:   </b><apex:outputText value="{!if(c.Product_Information__r.Product_Hierachy_Code__c==null,"-",PRDNameMap[c.Product_Information__r.Product_Hierachy_Code__c])}" /> &nbsp;<b>(<apex:outputText value="{!if(c.Product_Information__r.Product_Hierachy_Code__c==null,PRDCountMap["-"],PRDCountMap[c.Product_Information__r.Product_Hierachy_Code__c])}"/> &nbsp;<apex:outputText value="Record" rendered="{!If(c.Product_Information__r.Product_Hierachy_Code__c!=null&&PRDCountMap[c.Product_Information__r.Product_Hierachy_Code__c]<=1 || c.Product_Information__r.Product_Hierachy_Code__c==null&&PRDCountMap["-"]<=1,true,false)}"/> <apex:outputText value="Records"  rendered="{!If(c.Product_Information__r.Product_Hierachy_Code__c!=null&&PRDCountMap[c.Product_Information__r.Product_Hierachy_Code__c]>1 || c.Product_Information__r.Product_Hierachy_Code__c==null&&PRDCountMap["-"]>1,true,false)}" /> )</b></td>
+                                                <td class='text-left' style="font-size:90%">
+                                                <apex:outputText value="฿{0, number, ###,##0.00}">
+                                                <apex:param value="{!If(c.Product_Information__r.Product_Hierachy_Code__c==null,PRDSumLimitMap["-"],PRDSumLimitMap[c.Product_Information__r.Product_Hierachy_Code__c])}"/>
+                                                </apex:outputText>
+                                                </td>
+                                                <td class='text-left' style="font-size:90%">
+                                                <apex:outputText value="฿{0, number, ###,##0.00}">
+                                                <apex:param value="{!If(c.Product_Information__r.Product_Hierachy_Code__c==null,PRDSumOSMap["-"],PRDSumOSMap[c.Product_Information__r.Product_Hierachy_Code__c])}"/>
+                                                </apex:outputText>
+                                                </td>
+                                                <td class='text-left' style="font-size:90%">
+                                                <apex:outputText value="฿{0, number, ###,##0.00}">
+                                                <apex:param value="{!If(c.Product_Information__r.Product_Hierachy_Code__c==null,PRDSumAVGMap["-"],PRDSumAVGMap[c.Product_Information__r.Product_Hierachy_Code__c])}"/>
+                                                </apex:outputText>
+                                                </td>
+                                                <td colspan='4' class='text-left'></td>
+                                                </tr>
+                                                </apex:outputPanel>
+                                                <apex:variable var="fam" value="{!c.Product_Family__c}" />
+                                                <apex:variable var="hierar" value="{!c.Product_Information__r.Product_Hierachy_Code__c}" />
+                                            <!--    <apex:repeat value="{!detail}" var="c" > -->
+                                            <tr>
+                                                <td style="text-align:left"><A HREF="#" onClick="NavigateTo('{!c.Id}','{!c.TMB_Account_ID__c}');return false">{!c.TMB_Account_ID__c} </A></td>
+                                                <td style="text-align:left">{!c.Account_Name__c}</td>
+                                                <td style="text-align:left">{!c.TMB_Suffix__c}</td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.TMB_Ref__c}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.Product_Performance_Name__c}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.Product_Description__c}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.Limit_Balance__c}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.Ending_out_Ending_Balance__c}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.Avg_out__c}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.Issue_Date__c}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.Maturity_Date__c}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.DPD_Date__c}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.Loan_Status__c}" /></td>
+                                                
+                                                
+                                            </tr>
+                                        </apex:repeat>
+                                     <!--    </apex:repeat>              -->                       
+                                         <apex:outputPanel id="Summary" style="" >
+                                                <tr class='info'>   
+                                                <td colspan='6' class='text-left' ><b>Grand Totals &nbsp; ({!RecordCount} &nbsp; <apex:outputText value="Record" rendered="{!If(RecordCount<=1,true,false)}"/> <apex:outputText value="Records" rendered="{!If(RecordCount>1,true,false)}"/>)</b></td>
+                                                <td class='text-left' style="font-size:90%"><b>
+                                                <apex:outputText value="฿{0, number, ###,##0.00}">
+                                                <apex:param value="{!SumLimit}"/>
+                                                </apex:outputText></b>
+                                                </td>
+                                                <td class='text-left' style="font-size:90%"><b>
+                                                <apex:outputText value="฿{0, number, ###,##0.00}">
+                                                <apex:param value="{!SumOS}"/>
+                                                </apex:outputText></b>
+                                                </td>
+                                                <td class='text-left' style="font-size:90%"><b>
+                                                <apex:outputText value="฿{0, number, ###,##0.00}">
+                                                <apex:param value="{!SumAVG}"/>
+                                                </apex:outputText></b></td>
+                                                <td colspan='4' class='text-left'></td>
+                                                </tr>
+                                                </apex:outputPanel>               
+                                    </tbody>
+                                    
+           
+          </table> 
+                                      
+
+    
+    </div>
+</div>
+
+</apex:outputPanel>
+
+</apex:page>

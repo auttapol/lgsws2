@@ -1,0 +1,89 @@
+<aura:component>
+    <aura:attribute name="choiceSelect" type="Object" />
+    <aura:attribute name="surveyManager" type="Object" />
+    <aura:attribute name="surveyAwnser" type="Object" />
+
+    <aura:attribute name="isChecked" type="Boolean" />
+    <aura:attribute name="isValue" type="String" />
+    <aura:attribute name="isInput" type="String" />
+    <aura:attribute name="options" type="List" default="[]" />
+    <aura:attribute name="selectType" type="String" />
+
+    <aura:attribute name="choiceVerified" type="Boolean" />
+
+    <aura:attribute name="AnswerValue" type="String" />
+
+    <aura:attribute name="answerObj" type="Object"/> 
+
+    <aura:handler name="init" value="{!this }" action="{! c.init }" />
+    
+    <aura:registerEvent name="choiceUpdate" type="c:SurveyChoiceSelectionEvent" />
+	
+
+    <lightning:layout>
+        <lightning:layoutItem>
+
+            <aura:if isTrue="{!v.choiceSelect.choice.Input_Text_Type__c == 'text'}">
+                <lightning:input type="text" name="isValue" label="{!v.choiceSelect.choice.Label__c}" value="{!v.isValue}"
+                    onchange="{!c.updateinputChoice}" variant="label-hidden" />
+            </aura:if>
+
+            <aura:if isTrue="{!v.choiceSelect.choice.Input_Text_Type__c == 'date'}">
+                <lightning:input type="date" name="isValue" label="{!v.choiceSelect.choice.Label__c}" value="{!v.isValue}"
+                    onchange="{!c.updateinputChoice}" variant="label-hidden" />
+            </aura:if>
+
+            <aura:if isTrue="{!v.choiceSelect.choice.Input_Text_Type__c == 'number'}">
+                <lightning:input type="number" name="isValue" label="{!v.choiceSelect.choice.Label__c}" value="{!v.isValue}" step="0.01"
+                    onchange="{!c.updateinputChoice}" variant="label-hidden" />
+            </aura:if>
+
+            <aura:if isTrue="{!v.choiceSelect.choice.Input_Text_Type__c == 'currency'}">
+                <lightning:layout>
+                    <lightning:layoutItem >
+                        <div class="slds-m-right_medium">
+
+                            <lightning:input type="text" name="isInput" value="{!v.isInput}" onchange="{! c.updateCurrencyNumberChoice }"
+                                variant="label-hidden" class="input-currency" />
+                        </div>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem >
+                        <div class="slds-m-right_medium" >
+                            <lightning:combobox name="inputbox" value="{!v.selectType}" placeholder="Select Answer"
+                                options="{! v.options }" onchange="{! c.updateCurrencyChoice }" variant="label-hidden" 
+                                class="select-currency"  />
+
+                        </div>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem >
+                        <div class="slds-m-right_medium">
+                            <aura:if isTrue="{!v.selectType == 'Other'}">
+                                <lightning:input type="text" name="isValue" value="{!v.isValue}" onchange="{! c.updateCurrencyinputChoice }"
+                                    variant="label-hidden" class="input-currency-other" />
+                            </aura:if>
+                        </div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+
+            <aura:if isTrue="{!v.choiceSelect.choice.Input_Text_Type__c == 'select box'}">
+                <lightning:combobox name="inputbox_choice" value="{!v.AnswerValue}" placeholder="Select Answer" options="{! v.options }"
+                    onchange="{! c.updateSelectboxChoice }" variant="label-hidden" />
+            </aura:if>
+
+            <aura:if isTrue="{!v.choiceSelect.choice.Input_Text_Type__c == 'telephone'}">
+                <lightning:input type="tel" aura:id="tel_input" name="isValue" label="{!v.choiceSelect.choice.Label__c}" value="{!v.isValue}"
+                    onchange="{!c.updateTelephoneChoice}" variant="label-hidden" pattern="([0-9]{10})" messageWhenPatternMismatch="{!$Label.c.SurveyChoiceInputComponent_WhenPatternMismatch_Type_Telephone_Msg}" />
+            </aura:if>
+
+            <aura:if isTrue="{!v.choiceSelect.choice.Input_Text_Type__c == 'email'}">
+                <lightning:input type="text" aura:id="email_input" name="isValue" label="{!v.choiceSelect.choice.Label__c}" value="{!v.isValue}"
+                    onchange="{!c.updateEmaiChoice}" variant="label-hidden" 
+                    pattern="(^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$)" messageWhenPatternMismatch="{!$Label.c.SurveyChoiceInputComponent_WhenPatternMismatch_Type_Email_Msg}" messageWhenTypeMismatch="{!$Label.c.SurveyChoiceInputComponent_WhenTypeMismatch_Type_Email_Msg}" />
+            </aura:if>
+
+        </lightning:layoutItem>
+    </lightning:layout>
+</aura:component>

@@ -1,0 +1,80 @@
+<apex:page showHeader="false" sidebar="false" standardController="E_Client_Suitability__c" extensions="CS_E_ClientChangeRMSaleExtension" recordSetVar="eClientSelected" lightningStylesheets="true" >
+	<apex:messages />
+	    <apex:form >
+	    	<apex:actionFunction name="cancel" action="{!cancel}" />
+			<apex:actionFunction name="errorMsg" action="{!errorMsg}" />
+	    	<apex:actionFunction name="navigateToEclientPage" action="{!navigateToEclientPage}" />
+
+		<apex:pageBlock title="{!$Label.E_Client_CS_Change_RM_Sales_Title_Text}">
+
+				<div class="lightning-section">
+
+								<apex:includeLightning />
+
+								<div id="lightning" style="width: 550px; margin: 0 auto;" />
+								<script>
+
+								           $Lightning.use("c:CSChangeRMSaleEclientApp", function() {               
+								              $Lightning.createComponent("c:CSChangeRMSale", 
+									              {
+
+                                                       "recordIdList" : "{!recordIdList}"
+									              },             
+									              "lightning",
+									              function(component) {
+									                
+									                $A.eventService.addHandler({ 
+									                	"event": "c:CSReviewEClientEvent", 
+									                	"handler" : evenHandler
+									                });     
+
+								              });              
+								            });            
+
+
+									    </script>
+
+								    <script>
+
+								        function evenHandler (event){
+
+											var action = event.getParam("action");
+											var isConfirm = event.getParam("confirmSuccess");
+
+								        	if( action == "cancel" )
+								        	{
+								        		cancel();
+								        	}
+								        	else if ( action == "verifyYes" )
+								        	{
+								        		navigateToEclientPage();
+								        	}
+								        	else if (action == "confirm")
+								        	{
+												if(isConfirm == true)
+												{
+					        						navigateToEclientPage();
+												}
+												else if(isConfirm == false)
+												{
+													errorMsg();
+												}
+			
+								        	}
+								        }
+
+									</script>
+
+			</div>
+
+
+			<apex:pageBlockButtons location="bottom" >
+	            <apex:commandButton action="{!cancel}" value="{!$Label.E_Client_CS_Change_RM_Sales_Cancel_Button_Text}" />
+	        </apex:pageBlockButtons>
+
+		</apex:pageBlock>
+	</apex:form>
+	
+
+
+</apex:page>

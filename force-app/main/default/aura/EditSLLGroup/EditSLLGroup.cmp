@@ -1,0 +1,101 @@
+<aura:component implements="lightning:actionOverride,force:hasRecordId,force:lightningQuickActionWithoutHeader"
+    controller="EditSLLGroupController" access="global">
+    <!-- get record Id -->
+    <aura:attribute name="recordId" type="Id" />
+    <!-- สั่งทำงาน fuction แบบอัตโนมัติ -->
+    <aura:handler name="change" value="{!v.sllGroupRec}" action="{!c.onChangeSllRec}" />
+    <!-- refreshFocusedTab -->
+    <lightning:workspaceAPI aura:id="workspace" />
+    <!-- Load record value -->
+    <force:recordData aura:id="recordLoader" recordId="{!v.recordId}"
+        fields="Name, Primary_Customer__c, PAM__c, Remark__c, Is_Active__c, RecordType.Name"
+        targetFields="{!v.sllGroupRec}" />
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+    <aura:attribute name="sllGroupRec" type="SLL_Group__c" />
+
+    <aura:attribute name="GroupName" type="String" default="" />
+    <aura:attribute name="primCust" type="String" default="" />
+    <aura:attribute name="pam" type="String" default="" />
+    <aura:attribute name="remark" type="String" default="" />
+    <aura:attribute name="errMsg" type="String" default="{!$Label.c.SLLGroupMessage15}" />
+
+    <aura:html tag="style">
+        .cuf-content {
+        padding: 0 0rem !important;
+        }
+        .slds-modal__content{
+        overflow-y:hidden !important;
+        height:unset !important;
+        max-height:unset !important;
+        }
+        .modal-body .slds-modal__content {
+            padding: 0 !important;
+        }
+    </aura:html>
+
+    <lightning:layout>
+        <div class="edit-box-content cuf-content">
+            <div class="edit-content">
+                <aura:if isTrue="{! v.isLoading }">
+                    <div class="slds-is-relative">
+                        <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+                    </div>
+                </aura:if>
+                <div class="slds-modal__header">
+                    <h1 class="name-header slds-hyphenate slds-text-heading_medium">Edit SLL Group</h1>
+                </div>
+                <div class="content-form" id="modal-content-id-1">
+                    
+                    <lightning:recordEditForm objectApiName="SLL_Group__c">
+                        <aura:if isTrue="{! and(not(v.sllGroupRec.Is_Active__c), v.sllGroupRec.RecordType.Name=='Available') }">
+                                <div class="slds-notify slds-notify_alert slds-alert_error notify-margin" role="alert">
+                                    <span class="slds-assistive-text">error</span>
+                                    <span class="slds-icon_container slds-icon-utility-error slds-m-right_small slds-no-flex slds-align-top">
+                                        <lightning:icon iconName="utility:error" alternativeText="Error" title="Error" class="icon-style" />
+                                    </span>
+                                    <div class="slds-notify__content">
+                                        <h2 class="slds-text-heading_small ">{! v.errMsg }</h2>
+                                    </div>
+                                </div>
+                        </aura:if>
+
+                        <lightning:messages />
+                        <lightning:layout>
+                            <lightning:layoutItem size="12">
+                                <lightning:inputField fieldName="Name" aura:id="sgName" value="{!v.GroupName}"
+                                    required="true" variant="label-stacked"
+                                    disabled="{! and(not(v.sllGroupRec.Is_Active__c), v.sllGroupRec.RecordType.Name=='Available') }" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <lightning:layout>
+                            <lightning:layoutItem size="12">
+                                <lightning:inputField fieldName="Primary_Customer__c" aura:id="sgPrimCus"
+                                    value="{!v.primCust}" required="true" variant="label-stacked"
+                                    disabled="{! and(not(v.sllGroupRec.Is_Active__c), v.sllGroupRec.RecordType.Name=='Available') }" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <lightning:layout>
+                            <lightning:layoutItem size="12">
+                                <lightning:inputField fieldName="PAM__c" aura:id="sgPAM" value="{!v.pam}"
+                                    required="true" variant="label-stacked"
+                                    disabled="{! and(not(v.sllGroupRec.Is_Active__c), v.sllGroupRec.RecordType.Name=='Available') }" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <lightning:layout>
+                            <lightning:layoutItem size="12">
+                                <lightning:inputField fieldName="Remark__c" aura:id="sgRemark" value="{!v.remark}"
+                                    required="true" variant="label-stacked"
+                                    disabled="{! and(not(v.sllGroupRec.Is_Active__c), v.sllGroupRec.RecordType.Name=='Available') }" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:recordEditForm>
+                </div>
+                <div class="slds-modal__footer slds-text-align_center">
+                    <button class="slds-button slds-button_neutral" onclick="{!c.clickCancel}">Cancel</button>
+                    <button class="slds-button slds-button_brand" onclick="{!c.clickSave}"
+                        disabled="{! and(not(v.sllGroupRec.Is_Active__c), v.sllGroupRec.RecordType.Name=='Available') }">Save</button>
+                </div>
+            </div>
+        </div>
+    </lightning:layout>
+</aura:component>

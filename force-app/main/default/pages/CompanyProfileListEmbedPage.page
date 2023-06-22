@@ -1,0 +1,329 @@
+<apex:page standardController="Account" extensions="CompanyProfileEmbedEx" lightningStylesheets="true">
+    <apex:includeScript value="/support/console/34.0/integration.js" />
+    <apex:includeScript value="{!$Resource.SFScript}" />
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <style>
+        .sameline img {
+            /* margin-top: 4px; */
+            float: left;
+        }
+
+        .sameline h3 {
+            position: relative;
+            /* top: 8px;
+            left: 8px; */
+        }
+
+        .relatedListIcon {
+            background-image: url("/img/icon/t4v35/standard/lead_60.png");
+            content: url("/img/icon/t4v35/standard/lead_60.png");
+            background-size: contain;
+            background-color:#f88962;
+            background-position: 0 0;
+        }
+
+        .pbTitle {
+            position: absolute !important;
+        }
+
+        .mainTitle {
+            color: #080707 !important;
+            font-weight: bold !important;
+            font-size: 1.1em;
+        }
+        
+        .pbButton{
+            background-color:#f3f2f2 !important;
+        }
+        .bPageBlock, .slds-vf-scope .bPageBlock{
+            background-color:#f3f2f2 !important;
+        }
+
+
+        .secondaryPalette {
+            border-top: 3px solid #236fbd !important;
+        }
+
+        body input.btn,
+        body input.btnDisabled,
+        body input.btnCancel {
+            padding: 2px 2px 2px 2px;
+        }
+
+        .pbSubsection {
+            padding-left: 0 !important;
+        }
+
+        .dataCell {
+            background-color: #F8F8F8 !important;
+            border-color: black !important;
+            border-width: 0px !important;
+        }
+
+        .headerRow {
+
+            border-bottom: 0.5px solid #e0e3e5 !important;
+        }
+
+        .header {
+            border-color: #8a9ebe;
+            border-width: 2px 0 0;
+            border-style: solid;
+            color: #27282e !important;
+            padding: 4px 3px;
+            background-color: #fff;
+        }
+
+        .warningMsg {
+
+            color: red;
+            font-weight: bold;
+        }
+
+        .padding {
+            padding: 0 13px;
+        }
+
+        .pbBody {
+            padding-left: 10px !important;
+        }
+
+        .data2Col {
+            width: 100%;
+        }
+    </style>
+
+
+    <apex:form >
+
+        <apex:actionFunction name="loadDataAccountPlan" action="{!loadData}" rerender="accountPlan, resultblock, NewAccountPlanBtn,theBlock">
+            <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Executive Summary/Account Plan" />
+            <apex:param name="sectionNameLeadList" assignTo="{!sectionNameLeadList}" value="ComCust:Campaign Lead History" />
+            <apex:param name="checkIsAccessible" assignTo="{!checkIsAccessible}" value="1" />
+        </apex:actionFunction>
+
+        <apex:outputPanel >
+
+            <apex:PageBlock mode="edit" id="accountPlan">
+                <apex:outputPanel rendered="{! !isVisible || !isAccessible}">
+                    <div id="statusMessage" class="padding">
+                        <Apex:pageMessages />
+                    </div>
+                </apex:outputPanel>
+
+                <div class="form-group">
+                    <apex:pageBlockButtons location="top">
+                        <div class="sameline">
+                            <img src="/img/icon/t4v35/standard/lead_60.png" class="relatedListIcon" style="width:24px; display:block; margin-left:0;"
+                            />
+                            <h3 class="mainTitle" style="float:left;padding-right:12%;">&nbsp;Account Plan Company Profile</h3>
+
+                        </div>
+                        <apex:commandButton id="NewAccountPlanBtn" value="New Account Plan Company Profile" onClick="openNewTab('{!Acct.id}');" rendered="{!isVisible}"
+                        />
+                    </apex:pageBlockButtons>
+
+                </div>
+
+                <apex:PageBlockSection columns="1" collapsible="false" id="resultblock" rendered="{!isVisible}">
+                    <apex:outputPanel rendered="{!isAccessible && companyList.size==0}">
+                        <tbody id="">
+                            <tr>
+                                <td class="dataCell lb-center" colspan="6">
+                                    No records to display
+                                </td>
+                            </tr>
+                        </tbody>
+                    </apex:outputPanel>
+                    <apex:outputPanel id="result" rendered="{!isAccessible && companyList.size>0}">
+                        <table class="list " border="0" cellpadding="0" cellspacing="0">
+                            <thead class="">
+                                <tr class="headerRow">
+                                    <th class="headerRow"> Account Plan Company Profile Name </th>
+                                    <th class="headerRow"> Account Plan Group </th>
+                                    <th class="headerRow"> Year </th>
+                                    <th class="headerRow"> Status</th>
+                                    <th class="headerRow"> Owner Name</th>
+                                    <th class="headerRow"> Last modified by </th>
+                                </tr>
+                            </thead>
+
+                            <apex:repeat value="{!companyList}" var="compro" rendered="{!companyList.size>0}">
+                                <tbody id="">
+                                    <tr>
+                                        <td class="dataCell lb-center">
+                                            <apex:outputPanel rendered="{!CheckAuthorize}">
+                                                <apex:outputLink target="_parent" onClick="openTab('{!compro.id}','Customer Profile');return false">
+                                                    <apex:outputText value="{!compro.AccountName__c}" />
+                                                </apex:outputLink>
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{! !CheckAuthorize}">
+                                                <apex:outputText value="{!compro.AccountName__c}" />
+                                            </apex:outputPanel>
+                                        </td>
+                                        <td class="dataCell lb-center">
+                                            <apex:outputPanel rendered="{!compro.AcctPlanGroup__c !=null}">
+                                                <apex:outputPanel rendered="{!CheckAuthorize}">
+                                                    <apex:outputLink target="_parent" onClick="openTab('{!compro.AcctPlanGroup__c}','Group Master');return false">
+                                                        <apex:outputText value="{!compro.AcctPlanGroup__r.Name}" />
+                                                    </apex:outputLink>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel rendered="{! !CheckAuthorize}">
+                                                    <apex:outputText value="{!compro.AcctPlanGroup__r.Name}" />
+                                                </apex:outputPanel>
+                                            </apex:outputPanel>
+                                        </td>
+                                        <td class="dataCell lb-center">
+                                            <apex:outputfield value="{!compro.Year__c}" />
+                                        </td>
+                                        <td class="dataCell lb-center">
+                                            <apex:outputfield value="{!compro.Status__c}" />
+                                        </td>
+                                        <td class="dataCell lb-center">
+                                            <apex:outputLink target="_parent" onClick="openTab('{!compro.OwnerID}','{!compro.Owner.Name}');return false">
+                                                <apex:outputText value="{!compro.Owner.Name}" />
+                                            </apex:outputLink>
+                                        </td>
+                                        <td class="dataCell lb-center">
+                                            <apex:outputLink target="_parent" onClick="openTab('{!compro.LastModifiedByID}','{!compro.LastModifiedBy.name}');return false">
+                                                <apex:outputText value="{!compro.LastModifiedBy.name}" />,
+                                                <apex:outputField value="{!compro.LastModifiedDate}" />
+                                            </apex:outputLink>
+                                        </td>
+
+                                    </tr>
+                                </tbody>
+                            </apex:repeat>
+
+
+
+                        </table>
+                    </apex:outputPanel>
+                </apex:PageBlockSection>
+
+                <div style="height:10px"></div>
+                <apex:outputPanel rendered="{!isVisible}">
+                    <div style="width:100%;text-align:right">
+                        <apex:commandLink reRender="accountPlan" value="Previous" action="{!previousPageCompro}" /> &nbsp;&nbsp;
+                        <apex:commandLink reRender="accountPlan" value="Next" action="{!nextPageCompro}" /> &nbsp;&nbsp; {!currentPageCompro} / {!totalPageCompro}
+                    </div>
+                </apex:outputPanel>
+            </apex:pageBlock>
+        </apex:outputPanel>
+    </apex:form>
+
+    <!-- Seperate To CompanyProfileLeadHistory -->
+    <!-- <apex:form >
+
+        <apex:pageBlock id="theBlock">
+
+            <apex:outputPanel rendered="{!!isVisibleLeadList}">
+                <Apex:pageMessages />
+            </apex:outputPanel>
+
+            <div class="form-group">
+                <apex:pageBlockButtons location="top">
+                    <div class="sameline">
+                        <h3 class="mainTitle" style="float:left;padding-right:20%;">&nbsp;Campaign Lead History</h3>
+                    </div>
+                    <apex:commandButton value="{! $Label.RTL_Campaign_History_Btn }" onClick="openNewTab2('{!accid}');return false;" />
+                </apex:pageBlockButtons>
+            </div>
+
+            <apex:pageblockTable value="{!listLead }" var="t" rendered="{!isVisibleLeadList}">
+                <apex:column headerValue="Lead Contact Person">
+                    <apex:outputPanel onclick="go_campaign('{!t.id}','{!t.name}')" style="cursor:pointer;text-decoration:underline;">
+                        <apex:outputText >{!t.name}</apex:outputText>
+                    </apex:outputPanel>
+                </apex:column>
+                <apex:column headerValue="Campaign">
+                    <apex:outputPanel onclick="go_campaign('{!t.Primary_Campaign__c}','{!t.Primary_Campaign__r.name}')" style="cursor:pointer;text-decoration:underline;">
+                        <apex:outputText value="{!t.Primary_Campaign__r.name}" />
+                    </apex:outputPanel>
+                </apex:column>
+                <apex:column headerValue="Start Date">
+                    <apex:outputField value="{!t.Pri_Campaign_Start_Date__c}" />
+                </apex:column>
+                <apex:column headerValue="End Date">
+                    <apex:outputField value="{!t.Pri_Campaign_End_Date__c}" />
+                </apex:column>
+                <apex:column headerValue="Active">
+                    <apex:outputField value="{!t.Pri_Campaign_Active__c}" />
+                </apex:column>
+                <apex:column headerValue="Lead Status">
+                    <apex:outputText >{!t.Status}</apex:outputText>
+                </apex:column>
+                <apex:column headerValue="Last Update Date">
+                    <apex:outputField value="{!t.lastmodifieddate}" />
+                </apex:column>
+
+            </apex:pageblockTable>
+
+            <div style="height:10px"></div>
+            <apex:outputPanel rendered="{!isVisibleLeadList}">
+                <div style="width:100%;text-align:right">
+                    <apex:commandLink reRender="theBlock" value="Previous" action="{!previousPage}" /> &nbsp;&nbsp;
+                    <apex:commandLink reRender="theBlock" value="Next" action="{!nextPage}" /> &nbsp;&nbsp; {!currentPage} / {!totalPage}
+                </div>
+            </apex:outputPanel>
+
+        </apex:pageBlock>
+    </apex:form> -->
+    <script type="text/javascript">
+        $(document).ready(function () {
+            loadDataAccountPlan();
+            // loadDataCampaignLeadHistory();
+        });
+
+        function openTab(recid, recname) {
+            if (!sforce.console.isInConsole())
+                window.parent.location.replace('/' + recid);
+            else
+                sforce.console.getEnclosingPrimaryTabId(function (result) {
+                    sforce.console.openSubtab(result.id, '/' + recid, true, recname, null);
+                });
+        }
+
+        function openNewTab(recid) {
+            var URL = '/apex/AccountPlanClone?AccountID=';
+            var theme = '{!$User.UIThemeDisplayed}';
+            // console.log(theme);
+            if (theme == 'Theme4u' || theme == 'Theme4d') {
+                sforce.one.navigateToURL(URL + '' + recid);
+            }
+            else if (!sforce.console.isInConsole()) {
+                window.parent.location.replace(URL + '' + recid);
+            } else {
+                sforce.console.getEnclosingPrimaryTabId(function (result) {
+                    sforce.console.openSubtab(result.id, URL + '' + recid + '&mode=console', true, 'Customer Profile', null);
+                });
+            }
+
+        }
+
+        function go_campaign(a, b) {
+            //alert(a);
+            if (sforce.console.isInConsole()) {
+                sforce.console.openPrimaryTab(null, '../' + a, true, b, null, a);
+            } else {
+                window.parent.location.href = '../' + a;
+            }
+        }
+        function openNewTab2(recid) {
+            var URL = '/apex/RTL_CampaignHistory?id=';
+            var theme = '{!$User.UIThemeDisplayed}';
+            // console.log(theme);
+            if (theme == 'Theme4u') {
+                sforce.one.navigateToURL(URL + '' + recid);
+            }
+            else if (!sforce.console.isInConsole()) {
+                window.parent.location.replace(URL + '' + recid);
+            } else {
+                sforce.console.getEnclosingPrimaryTabId(function (result) {
+                    sforce.console.openSubtab(result.id, URL + '' + recid + '&mode=console', true, '{! account.Name}', null);
+                });
+            }
+        }
+
+    </script>
+</apex:page>

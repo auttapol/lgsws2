@@ -1,0 +1,383 @@
+<apex:page docType="html-5.0" showChat="false" 
+showHeader="false" sidebar="false" applyBodyTag="false" 
+applyHtmlTag="true"  standardStylesheets="true"
+extensions="EdittableActionPlanModel" standardController="AcctPlanActivity__c" >
+<!-- Header --> 
+<head>
+        <title></title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+        
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->        
+        
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.AccountPlanEditTable)}"/>
+        <style>
+        
+.dateOnlyInput .dateFormat {
+    display: none;
+    position: absolute;
+    top: 25px;
+    right: 39px;
+}
+.customPopup{
+            background-color: white;
+            border-style: solid;
+            border-width: 2px;
+            left: 50%;
+            padding:10px;
+            position: absolute;
+            z-index: 9999;
+            width: 500px;
+            margin-left: -50px;
+            top:100px;
+        }
+.bootstrap-sf1 button, .bootstrap-sf1 select{
+    width: 250px;  
+}
+
+select:focus {
+    width: auto;
+    position: relative;
+}
+    
+        </style>
+        
+        
+    </head>
+
+    <body>  
+        <div class="bootstrap-sf1" >
+            <div class="row" >
+                <div class="col-sm-12 col-md-12 col-lg-12">
+                    <apex:form id="frm">       
+                         
+                            
+                        <apex:pageMessages id="messages"/>                      
+                            <apex:pageBlock title="Action Plan Activity" id="childList">   
+                            <apex:outputPanel rendered="{!isSuccess}">
+                                 <apex:outputText escape="false" value="{!jsScriptPopup}"> </apex:outputText>
+                             </apex:outputPanel>
+                            
+                            <apex:actionFunction name="dosave" action="{!dosave}" status="status"  />
+                             <apex:actionFunction name="softsave" action="{!softsave}" status="status" rerender="messages,childList" >
+                             <apex:param name="StakeActId" assignTo="{!StakeActId}" value=""/>
+                            </apex:actionFunction>
+                                 <apex:actionstatus id="status">
+                                                    <apex:facet name="start">
+                                                        <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                                                            &nbsp;
+                                                        </div>
+                                                        <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                                                            <img src="/img/loading32.gif" />
+                                                        </div>
+                                                    </apex:facet>
+                          </apex:actionstatus>       
+                 
+    
+                    
+                            <div>
+                                <table class="tableButton">
+                                        
+                                </table>
+                                <apex:outputpanel id="childlistpanel" >
+                                    <apex:outputText escape="false" value="{!jsScript}"> </apex:outputText>
+                                <table class="table table-striped table-hover">
+                                    <thead class="headerEditable">
+                                        <tr>
+                                            <td style="border:none;" colspan="6" >
+                                                <apex:commandButton styleClass="btn  btn-success" value="Add New" action="{!addToList}" status="status" style="float:left;"
+                                                    rerender="messages,childlistpanel"  />
+                                            <!--  </td>
+                                           <td colspan="4"> -->
+                                            <!--<div class="alert alert-info text-center" role="alert"
+                                                                         style="text-align:left;display:inline;width:550px;float:right;margin-right:25px;"><!--(New Activity record must be saved before adding/editing TMB Counterparties.)
+                                                                           {!msgTMBCounterparties}
+                                                                         </div> -->
+
+                                                                         <div class="alert alert-info text-left" role="alert"
+                                                                         style="float:left;margin-left:25px;margin-right:25px;background-color: #FFFFCC;color:#000000;border-color:#3399FF;padding: 8px 20px 8px 20px;width:80%;">
+                                                                         <i class="glyphicon glyphicon-info-sign" 
+                                                                         style="float:left;color: #006DCC;font-size: 24px;margin-right: 10px;
+    top: 5px;"></i>
+                                                                          <span>
+                                                                         {!msgTMBCounterparties}</span>
+                                                                         </div>
+
+                                        <!--   </td>
+                                                <td  class="text-right bs-component" style="border:none;"> -->
+                                                <apex:commandButton value="Save" styleClass="btn  btn-primary" style="" onclick="dosave();"  status="status" rerender="messages,childList"  />
+                                                
+                                            </td>                           
+                                        </tr>
+                                        <tr>
+                                           
+                                            <td class="forceBackground" >Group
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Group__c" />
+                                            </td>
+                                            <td class="forceBackground" >Activity
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Activities__c" />
+                                            </td>
+                                            <!--<td class="forceBackground" >Other Activity
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Other__c" />
+                                            </td>-->
+                                            <td class="forceBackground" >Date
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Date__c" />
+                                            </td>
+                                            <td class="forceBackground" >Customer<br/>Counterparty
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="CustomerCounterparties__c" />
+                                            </td>
+                                            <td class="forceBackground" >TMB counterpaties
+                                            <c:II_Helptext SobjectName="AcctPlanStakeholder__c" FieldApiName="User__c" />
+                                            </td>
+                                            <td  class="forceBackground"> &nbsp; </td>
+                                        </tr>
+                                    </thead>
+                                            
+                                    <tbody id="childlistbody">
+                                               
+                                        <apex:variable var="rowNum" value="{!0}" id="rowNum" />
+                                        <apex:repeat value="{!children}" var="crc" id="crc">
+                                           
+                                            <tr>
+
+                                                <td style="display:none;">
+                                                <apex:inputField value="{!crc.Objective__c}"/>
+                                                </td>
+                                                <td style="display:none;">
+                                                <apex:inputField value="{!crc.Status__c}"/>
+                                                </td> 
+                                               <td style="display:none;">
+                                               <apex:inputField value="{!crc.Id}"/>
+                                               </td>
+                                               <td style="display:none;"><apex:inputField value="{!crc.Account__c}"  /></td>
+                                                <td>
+                                                <span class="requiredLabel" style="height:21px;position:absolute; "></span> 
+                                                <apex:inputField value="{!crc.Group__c}"  id="group" onchange="checkOther();"/>
+                                                </td>
+                                                <td>
+                                                <span class="requiredLabel" style="height:21px;position:absolute;"></span> 
+                                                    <apex:inputField value="{!crc.Activities__c}" id="activity" onchange="checkOther();" />
+                                                
+                                                 <div style="display:none;">
+                                                     <apex:inputField value="{!crc.CheckOther__c}" id="chkotheractivity" />
+                                                 </div>
+                                                 
+                                                     <apex:inputTextarea value="{!crc.Other__c}" rows="5" style="width: 250px; height: 60px;margin-top:10px;display:{!if(crc.Activities__c=='Others','block','none')};" id="otheractivity" />
+                                                 </td>
+                                                
+                                                 <td>
+                                                 <span class="requiredLabel" style="margin-left:-3px;position:absolute;height: 24px;"></span> 
+                                                 <apex:inputField value="{!crc.Date__c}" />
+                                                 </td> 
+                                             
+                                                <td><apex:inputField value="{!crc.CustomerCounterparties__c}"  /></td>
+                                                
+                                                <td>
+
+                                                     <apex:repeat value="{!if(crc.id!=null,StakeHolderMap[crc.id],null)}" var="stakeholder" >
+                                                       <apex:outputfield value="{!stakeholder.User__r.Name}"/><br/>
+                                                        </apex:repeat> 
+                                                 
+
+                                                      <!--  <apex:outputLink rendered="{!if(crc.id==null,true,false)}" onclick="if(confirm('Please save a new Activity before adding/editing TMB Counterparties. Do you want to save now?')) { softsave(); return false; } else { return false;} " >Add/Edit</apex:outputLink>
+                                                        <apex:outputLink rendered="{!if(crc.id!=null,true,false)}" html-data-toggle="modal" html-data-target="#stakeModel"  onclick="openStake('{!crc.id}'); return false;" >Add/Edit</apex:outputLink>  -->
+                                                        <!--<apex:outputLink rendered="{!if(crc.id!=null,true,false)}" onclick="if(confirm('Please save a new Activity before adding/editing TMB Counterparties. Do you want to save now?')) {callsoftsave('{!crc.id}'); return false;} else { return false;} " >Add/Edit</apex:outputLink> -->
+
+                                                          <apex:outputLink rendered="{!if(crc.id!=null,true,false)}" onclick="if(confirm('{!alertTMBCounterparties}')) {callsoftsave('{!crc.id}'); return false;} else { return false;} " >Add/Edit</apex:outputLink>                        
+                                                       </td>   
+                                                <td>
+                                                    
+                                           
+                                                    <apex:variable var="rowNum" value="{!rowNum + 1}" />  
+                                                    <apex:commandLink value="Delete" action="{!removeFromList}" onclick="if(!confirm('Are you sure you want to delete this item?')) return false;" status="status" styleClass="btn btn-danger" rerender="childList, messages"  rendered="{!if(crc.Visit_Plan_Report__c==''&&crc.TaskId__c=='',true,false)}">
+                                                      <apex:param name="removeIndex" assignTo="{!removeIndex}" value="{!rowNum}" />
+                                                    </apex:commandLink>
+
+
+                                                    
+                                                    
+                                                </td>
+                                                
+                                     
+                                            </tr>
+                                        </apex:repeat>
+                                    
+                                    </tbody>
+                                </table>
+                             </apex:outputpanel>
+                            </div>
+                                                      
+                      
+                        </apex:pageBlock>  
+                                               
+                         </apex:form>            
+                </div>              
+            </div>
+        </div>
+        
+        
+                        <div class="bootstrap-sf1">                                  
+          <!-- Modal -->
+                <div  class="modal fade modal-fullscreen force-fullscreen"  id="stakeModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="z-index: 1400;">
+                  <div class="modal-dialog" style="width:100%;height:95%;" >
+                    <div class="modal-content" style="width:100%;height:95%;" >
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" style="text-align: right;">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">TMB counterpaties</h4>
+                      </div>
+                      <div class="modal-body">
+                          <iframe id="modalIframe" src="#" width="100%" height="210px" frameborder="0" allowtransparency="true"></iframe>  
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal" style="width:80px;">Close</button>                       
+                      </div>
+                    </div>
+                    <!-- /.modal-content -->
+                  </div>  <!-- /.modal-dialog -->
+                </div>
+              </div>              
+        
+        
+        
+ </body> 
+    <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+        <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+
+       <apex:includeScript value="/support/console/22.0/integration.js"/>
+
+        <script type="text/javascript">
+        
+        
+                var $j = jQuery.noConflict();
+                
+               function callclose(){
+            
+                        window.parent.closeModal();
+                     
+                }
+                
+                function callsoftsave(ActivityId) {
+                        softsave(ActivityId);
+                        
+                   } 
+                
+                function openStake(ActivityId) {
+  
+                        
+                        if(ActivityId!=null){
+                        $j('#stakeModel').modal('toggle');
+                        $j('#modalIframe').attr("src","/apex/EdittableStakeHolder?ActivityId="+ActivityId); 
+                        $j('#stakeModel').modal({show:true});
+                          }
+                   } 
+                    
+                
+                 $j(document).ready( function () { 
+                    clearIframe();
+
+                    $j('[data-toggle="tooltip"]').tooltip(); 
+                    $j('#stakeModel').on('show.bs.modal', function () {
+                        $j(this).find('.modal-body').css({  
+                                         
+                            // 'max-height':'800px'
+                        });
+                    });
+        
+                    $j('#stakeModel').on('hidden.bs.modal', function (e) {
+                          // do something...
+                           clearIframe();
+                           //location.reload();
+                            window.parent.resfreshActivity();
+                     });
+                    
+                    window.closeModal = function(){
+                        $j('#stakeModel').modal('hide');
+                    };
+                    
+                    
+                    
+                    
+                });   
+
+        
+        var actbox="";
+        var otherbox="";
+        var chkotherbox="";
+        var groupbox="";
+        var group="";
+        
+
+        var objectName="";
+  
+       function checkOther(){
+      
+               for (i = 0; i <= listSize; i++) {
+                       actbox="{!$Component.frm}"+":childList:crc:" + i + ":activity";
+                       otherbox="{!$Component.frm}"+":childList:crc:" + i + ":otheractivity";
+                       chkotherbox="{!$Component.frm}"+":childList:crc:" + i + ":chkotheractivity";
+                       
+                       groupbox = "{!$Component.frm}"+":childList:crc:" + i + ":group";
+
+                           //alert(actbox);
+                           //alert(otherbox);
+                       if(document.getElementById(groupbox) !=null){
+                              group = document.getElementById(groupbox).value;
+
+                             var grouplast6 = group.slice(-6);
+                                 //alert(grouplast6);
+                             if(grouplast6=="Others"){
+                             document.getElementById(otherbox).style.display = "block";
+                             document.getElementById(otherbox).required=true;
+                             ObjectName=otherbox;
+                             
+                             document.getElementById(chkotherbox).value="Y";
+                             }else if(group==""||group==null){
+                            document.getElementById(otherbox).style.display = "none";
+                            document.getElementById(otherbox).required=false;
+                            
+                            document.getElementById(chkotherbox).value="N";
+                            }else if(document.getElementById(actbox).value=="Others"){
+                                
+                            document.getElementById(otherbox).style.display = "block";
+                            document.getElementById(otherbox).required=true;
+                            ObjectName=otherbox;
+                            
+                            document.getElementById(chkotherbox).value="Y";
+                            }else{
+                            document.getElementById(otherbox).style.display = "none";
+                            document.getElementById(otherbox).required=false;
+                           
+                            document.getElementById(chkotherbox).value="N";
+                            }
+                       }
+              
+              }
+        }
+
+
+        
+        function clearIframe(){
+            $j("#modalIframe").attr('src','');
+        } 
+      
+        
+</script>
+
+</apex:page>

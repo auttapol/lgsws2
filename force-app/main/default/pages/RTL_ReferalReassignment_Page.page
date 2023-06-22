@@ -1,0 +1,262 @@
+<apex:page doctype="html-5.0"  
+            title="Referral Reassignment"
+            standardstylesheets="true"
+            lightningStylesheets="true"
+            docType="html-5.0"  
+            standardcontroller="RTL_Referral__c"
+            extensions="RTL_ReferralAssignUtility">
+
+            <head>
+                <script src="/soap/ajax/48.0/connection.js" type="text/javascript"/>
+                <apex:includeScript value="/support/console/48.0/integration.js"/>    
+                        <apex:slds />
+        <!--
+    <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system.css')}" />-->
+
+        <!-- <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/> -->
+        <!-- <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/> -->
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}" />
+
+        <script type="text/javascript">
+            sforce.connection.sessionId = '{!$Api.Session_ID}';
+        </script>
+        <style>
+            .overlay {
+                display: none;
+                height: 100%;
+                left: 0;
+                position: fixed;
+                top: 0;
+                opacity: 0.3;
+                -moz-opacity: 0.3;
+                width: 100%;
+                -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+                filter: alpha(opacity=30);
+                background: #000;
+                -khtml-opacity: 0.3;
+                z-index: 1000;
+            }
+
+            .loader {
+                background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+                width: 32px;
+                height: 32px;
+                position: absolute;
+                left: 48%;
+            }
+        </style>
+        <script>
+            var errorMainMessage = '<div class="message errorM3" role="alert"><table border="0" cellpadding="0" cellspacing="0" class="messageTable" style="padding:0px;margin:0px;"><tbody><tr valign="top"><td><img alt="ERROR" class="msgIcon" src="/s.gif" title="ERROR"></td><td class="messageCell"><div class="messageText"><span style="color:#cc0000"><h4>Error:</h4></span>%s<br></div></td></tr><tr><td></td><td></td></tr></tbody></table></div>';
+
+            $(function () {
+                //to check current user must be owner of referral in order to do reassign
+                if ('{!$User.Id}' != '{!RTL_Referral__c.OwnerId}') {
+                    $('#div_confirm').css('display', 'none');
+                    $('#div_invalid_statet_reassign').css('display', 'block');
+                    //$('#user_reassign_to').html('{!$Label.RTL_Referral_NO_AUTHORIZED}');
+                    var errorMsg = errorMainMessage.replace(/%s/g, '{!$Label.RTL_Referral_NO_AUTHORIZED}');
+                    document.getElementById("{!$Component.error_page_message}").innerHTML = errorMsg;
+                    return;
+                }
+
+                if (('{!RTL_Referral__c.RTL_Sales_Amount_Per_Year__c}' == null
+                    || '{!RTL_Referral__c.RTL_Sales_Amount_Per_Year__c}'.length == 0)
+                    && ('{!RTL_Referral__c.RTL_RecordType_Name__c}' == 'Refer to Commercial') // CR MF By Phone
+                ) {
+                    $('#div_confirm').css('display', 'none');
+                    $('#div_invalid_statet_reassign').css('display', 'block');
+                    //$('#user_reassign_to').html('{!$Label.RTL_Referral_SALES_AMT_REQUIRED}');
+                    var errorMsg = errorMainMessage.replace(/%s/g, '{!$Label.RTL_Referral_SALES_AMT_REQUIRED}');
+                    document.getElementById("{!$Component.error_page_message}").innerHTML = errorMsg;
+                    return;
+                }
+
+                startLoading('');
+
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.RTL_ReferralAssignUtility.getReferralReassign}',
+                    '{!RTL_Referral__c.id}',
+                    function (result, event) {
+                        if (event.status) {
+                            if (result != null
+                                && result.length > 0) {
+                                $('#assign_to_whom').html('{!$Label.RTL_Referral_REASSIGN_TO}  '
+                                    + '<p style="font-size:14px"><b>' + result + '<b/><p>');
+                            } else {
+                                $('#div_confirm').css('display', 'none');
+                                $('#div_invalid_statet_reassign').css('display', 'block');
+                                //$('#user_reassign_to').html('{!$Label.RTL_Referral_NO_REASSIGN}');
+                                var errorMsg = errorMainMessage.replace(/%s/g, '{!$Label.RTL_Referral_NO_REASSIGN}');
+                                document.getElementById("{!$Component.error_page_message}").innerHTML = errorMsg;
+                            }
+                        } else {
+                            alert(event.message);
+                        }
+                        endLoading();
+                    },
+                    { escape: true }
+                );
+            });
+
+
+            function do_reassign() {
+                startLoading('');
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.RTL_ReferralAssignUtility.doReferralReassign}',
+                    '{!RTL_Referral__c.id}',
+                    function (result, event) {
+                        // console.log(event.status);
+                        if (event.status) {
+                            $('#div_confirm').css('display', 'none');
+                            $('#div_reassign_result').css('display', 'block');
+                            $('#user_reassign').html('<p style="font-size:14px"><b>' + result.Owner.Name + '<b/><p>');
+                        } else {
+                            alert(event.message);
+                        }
+                        endLoading();
+                    },
+                    { escape: true }
+                );
+            }
+
+            function refresh_page() {
+                startLoading('');
+                var theme = '{!$User.UIThemeDisplayed}';
+            if (theme == 'Theme4u') {
+                sforce.console.getEnclosingPrimaryTabId(function (praimatyTab) {
+                    sforce.console.getEnclosingTabId(function (result) {
+                        sforce.console.refreshPrimaryTabById(praimatyTab.id, false, function (resultRefresh) {
+                            // sforce.console.focusPrimaryTabById(praimatyTab);
+                        });
+                        sforce.console.closeTab(result.id);
+                    });
+                });
+            } else if (theme == 'Theme4t' || theme == 'Theme4d') {                    
+                sforce.one.navigateToURL("/{!RTL_Referral__c.id}", true);
+                } else {
+                    window.location.href = "/{!RTL_Referral__c.id}";
+                }
+            }
+            function startLoading(text) {
+                $('#load_scrl').css('top', 200).html(text);
+                $('.loadingBox').show();
+            }
+
+            function endLoading() {
+                $('.loadingBox').hide();
+            }
+        </script>
+    </head>
+    <div id="load_scrl" class="loadingBox" style="display:none">
+    </div>
+    <div class="loadingBox overlay">
+        <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+            <div id="spinner" role="status" class="slds-spinner slds-spinner_medium">
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div>
+    </div>
+    
+
+    <div id="div_confirm">
+        <apex:pageMessage severity="info" strength="2">
+            <apex:outputText style="font-size:12px" value="{!$Label.RTL_Referral_REASSIGN_CONFIRM}">
+                <apex:param value="{!RTL_Referral__c.Name}" />
+            </apex:outputText>
+            <br/>
+            <p id="assign_to_whom" style="font-size:12px" />
+
+        </apex:pageMessage>
+
+        <div style="text-align: center;">
+            <input type="button" 
+                onclick="javascript:do_reassign();"
+                class="slds-button slds-button_neutral" value="{!$Label.RTL_Referral_REASSIGN_YES}" />
+            <input type="button" 
+                onclick="javascript:refresh_page();"
+                class="slds-button slds-button_neutral" value="{!$Label.RTL_Referral_REASSIGN_NO}" />
+</div>
+
+    </div>
+
+
+    <!--
+        <div class="bootstrap-sf1" id="div_confirm">
+        
+
+            <div class="alert alert-info">
+                <p id="reassign_confirmation"/>
+                <p id="main_message" style="font-size:14px">
+                    <span class="glyphicon glyphicon-info-sign" /> &nbsp;&nbsp;
+                    <apex:outputText value="{!$Label.RTL_Referral_REASSIGN_CONFIRM}">
+                        <apex:param value="{!RTL_Referral__c.Name}"/>
+                    </apex:outputText>
+                </p>
+                <br/>
+                <p id="assign_to_whom" style="font-size:14px" />
+            </div>
+            <div class='text-left'>
+                        <input type="button" 
+                            onclick="javascript:do_reassign();"
+                            class="btn btn-default" value="{!$Label.RTL_Referral_REASSIGN_YES}" />
+                        <input type="button" 
+                            onclick="javascript:refresh_page();"
+                            class="btn btn-default" value="{!$Label.RTL_Referral_REASSIGN_NO}" />
+            </div>
+        </div>-->
+    <!--
+        <div class="bootstrap-sf1" id="div_invalid_statet_reassign" style="display:none">
+            <div class="alert alert-danger">
+                <span class="glyphicon glyphicon-warning-sign" /> Error
+                <p id="user_reassign_to" style="font-size:14px" />
+            </div>
+            <div class='text-left'>
+                    <input type="button" 
+                            onclick="javascript:refresh_page();"
+                            class="btn btn-default" value="{!$Label.RTL_Referral_REASSIGN_BACK}" />
+            </div>
+        </div>-->
+    <div id="div_invalid_statet_reassign" style="display:none">
+        <apex:pageMessage id="error_page_message" severity="error" strength="1">
+        </apex:pageMessage>
+        <!-- <p id="user_reassign_to" style="font-size:14px"/>-->
+        <div style="text-align: center;">
+            <input type="button" 
+                            onclick="javascript:refresh_page();"
+                            class="slds-button slds-button_neutral" value="{!$Label.RTL_Referral_REASSIGN_BACK}" />
+        </div>
+    </div>
+    <!--
+        <div id="div_reassign_result" class="bootstrap-sf1" style="display:none">
+            
+            <div class="alert alert-info">
+                <p style="font-size:14px">
+                <span class="glyphicon glyphicon-info-sign" /> &nbsp;&nbsp;
+                <apex:outputText value="{!$Label.RTL_Referral_REASSIGN_DONE_Message}">
+                    <apex:param value="{!RTL_Referral__c.Name}"/>
+                </apex:outputText>
+                </p>
+                <p id="user_reassign" style="font-size:14px" />
+            </div>
+            <input type="button" 
+                            onclick="javascript:refresh_page();"
+                            class="btn btn-default" value="{!$Label.RTL_Referral_REASSIGN_BACK}" />
+        </div>-->
+
+    <div id="div_reassign_result" class="" style="display:none">
+        <apex:pageMessage severity="info" strength="2">
+            <p style="font-size:12px" align="left">
+                <apex:outputText value="{!$Label.RTL_Referral_REASSIGN_DONE_Message}">
+                    <apex:param value="{!RTL_Referral__c.Name}" />
+                </apex:outputText>
+            </p>
+            <p id="user_reassign" style="font-size:12px" align="left" />
+        </apex:pageMessage>
+        <div style="text-align: center;">
+            <input type="button" onclick="javascript:refresh_page();" class="slds-button slds-button_neutral" value="{!$Label.RTL_Referral_REASSIGN_BACK}"
+            />
+        </div>
+    </div>
+
+</apex:page>

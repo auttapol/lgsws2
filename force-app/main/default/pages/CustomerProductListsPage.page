@@ -1,0 +1,481 @@
+<apex:page controller="CustomerProductLists" lightningStylesheets="true"  showHeader="false">
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <title>Select Product Number</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <!-- Import the Design System style sheet -->
+  <apex:slds />
+  <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}"  />
+  <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+  <apex:includeScript value="/support/console/39.0/integration.js"/>
+
+
+  <style>
+      /*remove space error message*/
+      .slds-scope table{
+        width: auto;
+      }
+  </style>
+
+</head>
+<body style="background-color: #FFF">
+<div class="slds-scope">
+        <div class="slds-page-header">
+          <div class="slds-grid">
+            <div class="slds-col slds-has-flexi-truncate">
+                <div class="slds-media slds-no-space slds-grow">
+                  <div class="slds-media__figure">
+                    <span class="slds-icon_container slds-icon-standard-case" style="width:32px;height:32px;" >
+                         <span aria-hidden="true" class="slds-icon slds-icon_medium">
+                            <img src="/apexpages/slds/latest/assets/icons/standard/case.svg"
+                                style="width:100%;"
+                                class="pageTitleIcon" title="Case" />
+                        </span>
+                    </span>
+                </div>
+                  <div class="slds-media__body">
+                     <nav>
+                        <ol class="slds-breadcrumb slds-line-height_reset">
+                          <li class="slds-breadcrumb__item">
+                            <span>Case</span>
+                          </li>
+                        </ol>
+                      </nav> 
+                    <h1 class="slds-page-header__title slds-m-right_small slds-align-middle slds-wrapper" title="Case">
+                        <apex:outputPanel id="header_title" >
+                            {!$Label.Case_Select_Product_Number}
+                        </apex:outputPanel>
+                    </h1>
+                  </div>
+                </div>
+            </div>
+
+          </div>
+        </div>
+        <!-- / PAGE HEADER -->
+        <div id="statusMessage1-tab" class="slds-tabs_default__content slds-show" style="padding: 0">
+          <apex:outputPanel id="statusMessage1">
+            <apex:pageMessage title="{!$Label.Warnig_Message}:" escape="false" summary="{!pageMessage1}" rendered="{!if(pageMessage1!='',true,false)}" severity="warning" strength="3" />
+          </apex:outputPanel>
+        </div>
+        <div id="statusMessage2-tab" class="slds-tabs_default__content slds-hide" style="padding: 0">
+          <apex:outputPanel id="statusMessage2">
+            <apex:pageMessage title="{!$Label.Warnig_Message}:" escape="false" summary="{!pageMessage2}" rendered="{!if(pageMessage2!='',true,false)}" severity="warning" strength="3" />
+          </apex:outputPanel>
+        </div>
+        <div id="statusMessage3-tab" class="slds-tabs_default__content slds-hide" style="padding: 0">
+          <apex:outputPanel id="statusMessage3">
+            <apex:pageMessage title="{!$Label.Warnig_Message}:" escape="false" summary="{!pageMessage3}" rendered="{!if(pageMessage3!='',true,false)}" severity="warning" strength="3" />
+          </apex:outputPanel>
+        </div>
+        
+
+    <!-- <apex:outputPanel id="statusMessage">
+        <apex:pageMessages escape="false"></apex:pageMessages>
+    </apex:outputPanel>  -->
+
+    <!-- <div class="slds-scope slds-p-left_medium slds-p-right_medium">
+        <apex:outputPanel id="alertbox" style="display:{!IF((pageMessage == null || pageMessage == 'Success'),'none','')}">
+            <div class="bootstrap-sf1">
+                <div class="alert alert-dismissible alert-danger" style="margin-bottom: 0px;">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <h4>Warning!</h4>
+                    <p>                     
+                        <apex:outputText value="{!pageMessage}" escape="false" />
+                    </p>
+                </div>
+            </div>
+        </apex:outputPanel>
+    </div> -->
+
+    <apex:form id="frm"> 
+
+        <apex:actionFunction name="setPaginationObj" action="{!setPaginationObj}" rerender="statusMessage,section01,section02,section03,pagination01,pagination02,pagination03,alertbox">      
+             <apex:param id="tabindex" name="tabindex" value="" />
+        </apex:actionFunction> 
+
+        <apex:actionFunction action="{!startCallCaseProductDeposit2}" name="requestWsOSC14" reRender="section01,pagination01,dataTable01,statusMessage,statusMessage1,scriptTab,alertbox" status="loadRequestStatus" oncomplete="flagRequested();" />
+
+        <apex:actionFunction action="{!startCallCaseProductInvestment2}" name="requestWsOSC15" reRender="section03,pagination03,dataTable03,statusMessage,statusMessage3,scriptTab,alertbox" status="loadRequestStatus" oncomplete="flagRequested();" />
+
+        <apex:actionFunction action="{!startCallCaseProductBA2}" name="requestWsOSC16" reRender="section02,pagination02,dataTable02,statusMessage,statusMessage2,scriptTab,alertbox" status="loadRequestStatus" oncomplete="flagRequested();"  />
+
+
+
+        <div class="slds-form-element" id="Content">
+            <div class="slds-tabs_default">
+                <ul class="slds-tabs_default__nav" role="tablist">
+                  <li class="slds-tabs_default__item slds-is-active" title="Item One" role="presentation">
+                    <a class="slds-tabs_default__link mainview" href="javascript:void(0);" role="tab" tabindex="0" aria-selected="true" aria-controls="tab-default-1 statusMessage1-tab" id="tab-default-1__item">{!$Label.Case_Tab_Deposit}</a>
+                  </li>
+                  <li class="slds-tabs_default__item" title="Item Two" role="presentation">
+                    <a class="slds-tabs_default__link logview" href="javascript:void(0);" role="tab" tabindex="-1" aria-selected="false" aria-controls="tab-default-2 statusMessage2-tab" id="tab-default-2__item">{!$Label.Case_Tab_Bancassurance}</a>
+                  </li>
+                  <li class="slds-tabs_default__item" title="Item Three" role="presentation">
+                    <a class="slds-tabs_default__link logview" href="javascript:void(0);" role="tab" tabindex="-2" aria-selected="false" aria-controls="tab-default-3 statusMessage3-tab" id="tab-default-3__item">{!$Label.Case_Tab_Investment}</a>
+                  </li>
+                </ul>
+
+            <apex:outputPanel rendered="{!if(tmbCustomerID!=null,true,false)}">
+                <!--Deposit/Loan-->
+                <div id="tab-default-1" class="slds-tabs_default__content slds-show" role="tabpanel" aria-labelledby="tab-default-1__item">
+                  <!-- <apex:outputPanel class="slds-tabs_default__content slds-show" id="statusMessage1">
+                    <apex:pageMessage summary="{!pageMessage1}" rendered="{!if(pageMessage1!='',true,false)}" severity="warning" />
+                  </apex:outputPanel> -->
+                      <div class="slds-form-element slds-m-around--medium slds-m-top--large" id="responsive" >
+                      <div class="slds-form--inline" style="display: inherit;">
+                          <div class="slds-form-element">
+                              <div class="slds-form-element__control">
+                                  <apex:inputText styleClass="slds-lookup__search-input slds-input" id="searchText01" value="{!searchProduct1}"/>
+                              </div>
+                          </div>
+                          <div class="slds-form-element">
+                              <div class="slds-form-element__control" style="display: flex;">
+                                 <apex:commandButton styleClass="slds-button slds-button_brand" value="Search" action="{!searchProductNumber}" rerender="section01,searchText01,pagination01">
+                                   <apex:param name="productType" value="DepositLoan" />
+                                 </apex:commandButton>
+                                 <apex:commandButton styleClass="slds-button slds-button_neutral" value="Clear" action="{!clearSearch}" rerender="section01,searchText01,pagination01"/>
+                              </div>
+                          </div>
+                      </div>
+                    <br/>
+                    <apex:outputPanel id="section01" >
+                        <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal" style="text-align: center;font-size: 12px; width: 100%;">
+                            <thead>
+                            <tr class="slds-text-title--caps section-header-title slds-p-horizontal--small slds-wrapper"> 
+                                <th scope="col">{!$Label.Case_Table_Header_Account_Number}</th>
+                                <th scope="col">{!$Label.Case_Table_Header_Suffix}</th>
+                                <th scope="col">{!$Label.Case_Table_Header_Product_Sub}</th>
+                                <th scope="col">{!$Label.Case_Table_Header_Product_Name}</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                             <apex:repeat value="{!caseProductDepositAndLoan}" var="each" id="dataTable01">
+                                <tr class="dataRow productLine">
+                                    <td data-label="{!$Label.Case_Table_Header_Account_Number}"> 
+                                          <a href="#" onclick="retriveproductNumber('{!each.apiAccountNumber}','{!each.apiAccountNumberMarking}','{!each.apiSuffix}','{!each.apiProductType}'); closePopUpPage();"> 
+                                            <apex:outputtext value="{!each.apiAccountNumberMarking}"/> 
+                                          </a>
+                                    </td>
+                                    <td data-label="{!$Label.Case_Table_Header_Suffix}"> 
+                                         <apex:outputtext value="{!each.apiSuffix}"  />   
+                                    </td>
+                                    <td data-label="{!$Label.Case_Table_Header_Product_Sub}"> 
+                                         <apex:outputtext value="{!each.apiProductSubGroup}"  />   
+                                    </td>
+                                    <td data-label="{!$Label.Case_Table_Header_Product_Name}"> 
+                                         <apex:outputtext value="{!each.apiProductName}"  />     
+                                    </td>
+                                </tr>
+                             </apex:repeat>
+                            </tbody>
+                        </table>
+
+                    </apex:outputPanel>
+
+                        <br/>
+                        <apex:outputPanel id="pagination01">
+                           <apex:commandButton styleClass="slds-button slds-button_neutral" value="<<Previous" action="{!previousDepositAndLoan}" rendered="{!hasPrevious}" reRender="section01,pagination01" />
+                           <apex:commandButton styleClass="slds-button slds-button_neutral" value="Next >>" action="{!nextDepositAndLoan}" rendered="{!hasNext}" reRender="section01,pagination01" />
+                          
+                           ( 
+                           <apex:outputPanel rendered="{!if(hasPrevious || hasNext,true,false)}">
+                           <apex:outputtext value="{!pageNoFrom}"  /> - <apex:outputtext value="{!pageNoTo}"  /> / </apex:outputPanel><apex:outputtext value="{!allPageNo}" /> Results) 
+                            
+                        </apex:outputPanel>  
+
+                    </div>
+
+                </div>
+
+                <!--Bancassurance-->
+                <div id="tab-default-2" class="slds-tabs_default__content slds-hide" role="tabpanel" aria-labelledby="tab-default-2__item">
+                  <!-- <apex:outputPanel id="statusMessage2">
+                    <apex:pageMessage summary="{!pageMessage2}" rendered="{!if(pageMessage2!='',true,false)}" severity="warning" />
+                  </apex:outputPanel> -->
+                   <div class="slds-form-element slds-m-around--medium slds-m-top--large" id="responsive" >
+                      <div class="slds-form--inline" style="display: inherit;">
+                          <div class="slds-form-element">
+                              <div class="slds-form-element__control">
+                                  <apex:inputText styleClass="slds-lookup__search-input slds-input" id="searchText02" value="{!searchProduct2}"/>
+                              </div>
+                          </div>
+                          <div class="slds-form-element">
+                              <div class="slds-form-element__control" style="display: flex;">
+                                 <apex:commandButton styleClass="slds-button slds-button_brand" value="Search" action="{!searchProductNumber}" rerender="section02,searchText02,pagination02">
+                                   <apex:param name="productType" value="Bancassurance" />
+                                 </apex:commandButton>
+                                 <apex:commandButton styleClass="slds-button slds-button_neutral" value="Clear" action="{!clearSearch}" rerender="section02,searchText02,pagination02"/>
+                              </div>
+                          </div>
+                      </div>
+                    <br/>
+                    <apex:outputPanel id="section02" >
+                      <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal" style="text-align: center;font-size: 12px; width: 100%;">
+                            <thead>
+                            <tr class="slds-text-title--caps section-header-title slds-p-horizontal--small slds-wrapper"> 
+                                <th scope="col">{!$Label.Case_Table_Header_Account_Number}</th>
+                                <th scope="col">{!$Label.Case_Table_Header_Product_Sub}</th>
+                                <th scope="col">{!$Label.Case_Table_Header_Product_Name}</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                             <apex:repeat value="{!caseProductBancassurance}" var="each" id="dataTable02">
+                               <apex:outputLabel value="pageMessage2" />
+                              <tr class="dataRow productLine">
+                                    <td data-label="{!$Label.Case_Table_Header_Account_Number}"> 
+                                          <a href="#" onclick="retriveproductNumber('{!each.apiAccountNumber}','{!each.apiAccountNumberMarking}','{!each.apiSuffix}','{!each.apiProductType}'); closePopUpPage();"> 
+                                            <apex:outputtext value="{!each.apiAccountNumber}"/> 
+                                          </a>
+                                    </td>
+                                    <td data-label="{!$Label.Case_Table_Header_Product_Sub}"> 
+                                         <apex:outputtext value="{!each.apiProductSubGroup}"  />   
+                                    </td>
+                                    <td data-label="{!$Label.Case_Table_Header_Product_Name}"> 
+                                         <apex:outputtext value="{!each.apiProductName}"  />     
+                                    </td>
+                                </tr>
+                             </apex:repeat>
+                            </tbody>
+                        </table>
+
+                    </apex:outputPanel>
+
+                        <br/>
+                        <apex:outputPanel id="pagination02">
+                           <apex:commandButton styleClass="slds-button slds-button_neutral" value="<<Previous" action="{!previousBA}" rendered="{!hasPrevious}" reRender="section02,pagination02" />
+                           <apex:commandButton styleClass="slds-button slds-button_neutral" value="Next >>" action="{!nextBA}" rendered="{!hasNext}" reRender="section02,pagination02" />
+                          
+                           ( 
+                           <apex:outputPanel rendered="{!if(hasPrevious || hasNext,true,false)}">
+                           <apex:outputtext value="{!pageNoFrom}"  /> - <apex:outputtext value="{!pageNoTo}"  /> / </apex:outputPanel><apex:outputtext value="{!allPageNo}" /> Results) 
+                            
+                        </apex:outputPanel>  
+
+                    </div>
+                </div>
+
+                <!--Investment-->
+                <div id="tab-default-3" class="slds-tabs_default__content slds-hide" role="tabpanel" aria-labelledby="tab-default-3__item">
+                  <!-- <apex:outputPanel id="statusMessage3">
+                    <apex:pageMessage summary="{!pageMessage3}" rendered="{!if(pageMessage3!='',true,false)}" severity="warning" />
+                  </apex:outputPanel> -->
+                     <div class="slds-form-element slds-m-around--medium slds-m-top--large" id="responsive" >
+                      <div class="slds-form--inline" style="display: inherit;">
+                          <div class="slds-form-element">
+                              <div class="slds-form-element__control">
+                                  <apex:inputText styleClass="slds-lookup__search-input slds-input" id="searchText03" value="{!searchProduct3}"/>
+                              </div>
+                          </div>
+                          <div class="slds-form-element">
+                              <div class="slds-form-element__control" style="display: flex;">
+                                 <apex:commandButton styleClass="slds-button slds-button_brand" value="Search" action="{!searchProductNumber}" rerender="section03,searchText03,pagination03">
+                                   <apex:param name="productType" value="Investment" />
+                                 </apex:commandButton>
+                                 <apex:commandButton styleClass="slds-button slds-button_neutral" value="Clear" action="{!clearSearch}" rerender="section03,searchText03,pagination03"/>
+                              </div>
+                          </div>
+                      </div>
+                    <br/>
+                    <apex:outputPanel id="section03" >
+                      <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal" style="text-align: center;font-size: 12px; width: 100%;">
+                            <thead>
+                            <tr class="slds-text-title--caps section-header-title slds-p-horizontal--small slds-wrapper"> 
+                                <th scope="col">{!$Label.Case_Table_Header_Account_Number}</th>
+                                <th scope="col">{!$Label.Case_Table_Header_Product_Sub}</th>
+                                <th scope="col">{!$Label.Case_Table_Header_Product_Name}</th>
+                            </tr>
+                            </thead>
+
+                            <tbody>
+                             <apex:repeat value="{!caseProductInvestment}" var="each" id="dataTable03">
+                              <tr class="dataRow productLine">
+                                <td data-label="{!$Label.Case_Table_Header_Account_Number}"> 
+                                  <apex:outputPanel rendered="{!each.apiSuffix == ''}">
+                                    <a style="color: red" href="#" onclick="retriveproductNumber('{!each.apiAccountNumber}','{!each.apiAccountNumberMarking}','{!each.apiSuffix}','{!each.apiProductType}'); closePopUpPage();"> 
+                                      <apex:outputtext style="color: red" value="{!each.apiAccountNumber}"/> 
+                                    </a>
+                                  </apex:outputPanel>
+                                  <apex:outputPanel rendered="{!each.apiSuffix != ''}">
+                                    <a href="#" onclick="retriveproductNumber('{!each.apiAccountNumber}','{!each.apiAccountNumberMarking}','{!each.apiSuffix}','{!each.apiProductType}'); closePopUpPage();"> 
+                                      <apex:outputtext value="{!each.apiAccountNumber}"/> 
+                                    </a>
+                                  </apex:outputPanel>  
+                                </td>
+                                    <td data-label="{!$Label.Case_Table_Header_Product_Sub}"> 
+                                      <apex:outputPanel rendered="{!each.apiSuffix == ''}">
+                                        <apex:outputtext style="color: red" value="{!each.apiProductSubGroup}"  /> 
+                                      </apex:outputPanel>
+                                      <apex:outputPanel rendered="{!each.apiSuffix != ''}">
+                                        <apex:outputtext value="{!each.apiProductSubGroup}"  /> 
+                                      </apex:outputPanel>
+                                    </td>
+                                    <td data-label="{!$Label.Case_Table_Header_Product_Name}"> 
+                                         <apex:outputtext value="{!each.apiProductName}" escape="false"  />     
+                                    </td>
+                                </tr>
+                             </apex:repeat>
+                            </tbody>
+                        </table>
+
+                    </apex:outputPanel>
+
+                        <br/>
+                        <apex:outputPanel id="pagination03">
+                           <apex:commandButton styleClass="slds-button slds-button_neutral" value="<<Previous" action="{!previousInvestment}" rendered="{!hasPrevious}" reRender="section03,pagination03" />
+                           <apex:commandButton styleClass="slds-button slds-button_neutral" value="Next >>" action="{!nextInvestment}" rendered="{!hasNext}" reRender="section03,pagination03" />
+                          
+                           ( 
+                           <apex:outputPanel rendered="{!if(hasPrevious || hasNext,true,false)}">
+                           <apex:outputtext value="{!pageNoFrom}"  /> - <apex:outputtext value="{!pageNoTo}"  /> / </apex:outputPanel><apex:outputtext value="{!allPageNo}" /> Results) 
+                            
+                        </apex:outputPanel>  
+
+                    </div>
+                </div>
+
+              </apex:outputPanel>
+           </div>   
+        </div>
+
+      <apex:actionstatus id="loadRequestStatus">
+          <apex:facet name="start">
+              <div class="demo-only demo--inverse">
+                <div class="slds-spinner_container slds-is-fixed">
+                  <div role="status" class="slds-spinner slds-spinner_medium">
+                    <span class="slds-assistive-text">{$Label.RTL_Campaign_Reassign_Loading}</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                  </div>
+                </div>
+              </div>
+          </apex:facet>
+      </apex:actionstatus>
+      
+    </apex:form>
+</div>
+
+<apex:outputpanel id="scriptTab">   
+ 
+<script type="text/javascript">
+
+      var requestOSC014;
+      var requestOSC015;
+      var requestOSC016;
+
+      function flagRequested(){
+          requestOSC014 = '{!requestOSC014}';
+          requestOSC015 = '{!requestOSC015}';
+          requestOSC016 = '{!requestOSC016}';
+      }
+
+      function setPagination(){
+          $('.slds-tabs_default ul li a').on('click',function(){
+            
+            var tabindex = $(this).attr('tabindex');
+            var tmbCustomerID = '{!tmbCustomerID}';
+            if(tmbCustomerID!=null && tmbCustomerID!=''){
+              setPaginationObj(tabindex);
+              //console.log(requestOSC014+requestOSC015+requestOSC016);
+
+              if(tabindex=='0' ){
+                if(requestOSC014!= 'true'){
+                  requestWsOSC14();
+                }
+
+              }else if(tabindex=='-1' ){
+
+              if(requestOSC016!= 'true'){
+                  requestWsOSC16();
+                }
+
+              }else if(tabindex=='-2' ){
+                if(requestOSC015!= 'true'){
+                  requestWsOSC15();
+                }
+              }
+            }
+
+            setActiveTab($(this));
+            
+        });
+      }
+
+      function setActiveTab(tabElement)
+      {
+          $('.slds-tabs_default__item').removeClass('slds-is-active');
+          tabElement.parent().addClass('slds-is-active');
+
+
+          var target = tabElement.attr('aria-controls')
+          var listOfTarget = target.split(" ");
+
+          $('.slds-tabs_default__content').each(function(e){
+
+            var element = $(this);
+            if(jQuery.inArray( this.id, listOfTarget) >= 0)
+            {
+              console.log("element", element);
+                  element.addClass('slds-show');
+                  element.removeClass('slds-hide');
+              }
+              else
+              {
+                  element.addClass('slds-hide');
+                  element.removeClass('slds-show');
+              }
+          });
+
+          
+      }
+
+</script>
+</apex:outputpanel>
+
+<script type="text/javascript">
+        $(document).ready(function () {
+
+            var tmbCustomerID = '{!tmbCustomerID}';
+            if(tmbCustomerID!=null && tmbCustomerID!=''){
+              requestWsOSC14();
+            }
+
+            var url = window.location.href;
+            if(  url.indexOf("#") > 0 )
+            {
+                var activeTab = url.substring(url.indexOf("#") + 1);
+
+                var target = $('.'+activeTab);
+                if( target )
+                {
+                    setActiveTab(target);
+                }
+            }
+
+            setPagination();
+            flagRequested();
+
+        });
+
+        function closePopUpPage(){
+          var item = {!itemNumber}; 
+          window.close();
+          window.opener.showSelectProductNext(item);
+        }
+
+        function retriveproductNumber(pNumber,pNumberMark,pSuffix,pType){
+          
+          var item = {!itemNumber}; //get item number from case page
+          window.opener.setProductNumberMainPage(pNumber,pNumberMark,pSuffix,pType,item);
+
+        }
+
+
+</script>
+</body>
+</apex:page>

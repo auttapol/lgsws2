@@ -1,0 +1,152 @@
+<apex:page standardController="Account" extensions="ChangeOwnerApproverController" title="Change Owner" lightningStylesheets="true">
+    <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+
+    <style type="text/css">
+        .buttonMargin {
+            margin: 0px 0px 1px 0px !important;
+        }
+
+        .pageTitleIcon {
+            border-radius: 5px;
+            background-position: initial;
+            display: block !important;
+            background-image: url(/apexpages/slds/latest/assets/icons/custom/custom23.svg);
+            background-color: #b070e6;
+            background-size: contain;
+            background-position: 0 0;
+        }
+
+        @media (max-width: 1208px) {
+            .buttonMargin {
+                margin: 0px 0px 0px 0px !important;
+            }
+            .pageTitleIcon {
+                border-radius: 5px;
+                background-position: initial;
+                display: block !important;
+                background-image: url(/apexpages/slds/latest/assets/icons/custom/custom23.svg);
+                background-color: #b070e6;
+                background-size: contain;
+                background-position: 0 0;
+            }
+        }
+
+        .colHeadr {
+            text-align: center;
+        }
+    </style>
+
+    <apex:sectionHeader title="Customer" subtitle="Change Owner" />
+
+    <apex:form id="allpage">
+        <apex:actionFunction name="confirmApprover" action="{!confirmApprover}" status="loading" reRender="allpage" />
+
+        <apex:actionstatus id="loading">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div class="slds" style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <div id="spin" class="slds-spinner_container">
+                        <div class="slds-spinner slds-spinner--medium" aria-hidden="false" role="alert">
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div>
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+
+        <apex:pageBlock >
+            <apex:outputPanel id="statusMessage">
+                <apex:pageMessages ></apex:pageMessages>
+            </apex:outputPanel>
+
+            <!-- <div style="text-align: center; margin-top: 20px;">
+                <apex:commandButton style="margin: 10px 10px 5px 0px;" value="Confirm request" onclick="confirmApprover();return false;" rendered="{! $ObjectType.Account.Fields.Change_Owner_Remark__c.Updateable && checkList}"/>
+                <apex:commandButton value="Cancel" action="{!cancelAction}" rendered="{!checkList}"/>
+                <apex:commandButton value="Cancel" action="{!cancelAction}" rendered="{!!checkList}"/>
+            </div> -->
+
+            <apex:outputPanel rendered="{!!checkApprove}">
+                <apex:outputPanel rendered="{!checkList}">
+                    <!--can be more than one messages-->
+                    <div style="text-align: center;margin-top: 20px;">
+                        <apex:outputText value="{!$Label.RequestChangeOwnerMessage1}" escape="false" />
+                    </div>
+
+                    <!-- <div style="text-align: left;margin-left: 20%;margin-right: 20%;margin-top: 20px;">
+                        <apex:pageBlockTable value="{!approverWraperlst}" var="appver">
+                            <apex:column headerClass="colHeadr">
+                                <apex:facet name="header">
+                                    <apex:outputPanel >Approver</apex:outputPanel>
+                                </apex:facet>
+
+                                <apex:outputText >{!appver.RowNumber}</apex:outputText>     
+                            </apex:column>
+
+                            <apex:column headerClass="colHeadr">
+                                <apex:facet name="header">
+                                    <apex:outputPanel >{!$ObjectType.User.fields.Name.Label}</apex:outputPanel>
+                                </apex:facet>
+
+                                <apex:outputText >{!appver.Approver.Name}</apex:outputText>     
+                            </apex:column>
+
+                            <apex:column headerClass="colHeadr">
+                                <apex:facet name="header">
+                                    <apex:outputPanel >{!$ObjectType.User.fields.Title.Label}</apex:outputPanel>
+                                </apex:facet>
+
+                                <apex:outputText >{!appver.Approver.Title}</apex:outputText>     
+                            </apex:column>
+
+                            <apex:column headerClass="colHeadr">
+                                <apex:facet name="header">
+                                    <apex:outputPanel >{!$ObjectType.User.fields.Zone__c.Label}</apex:outputPanel>
+                                </apex:facet>
+
+                                <apex:outputText >{!appver.Approver.Zone__c}</apex:outputText>     
+                            </apex:column>
+
+                        </apex:pageBlockTable>
+                    </div> -->
+
+                    <c:approverTableComponent approvers="{!Approverlst}" />
+
+                    <div style="margin-left: 20%; margin-top: 20px; margin-right: 20%;">
+                        <apex:outputLabel value="Comment :" style="padding-right: 20px;font-weight: bold;" />
+                        <br/>
+                        <apex:inputtextarea style="width: 100%;margin-top: 5px;" cols="75" rows="10" id="Remark" value="{!remark}" html-maxLength="100000"
+                        />
+                    </div>
+                </apex:outputPanel>
+
+                <apex:outputPanel rendered="{!!checkList}">
+                    <!--can be more than one messages-->
+                    <div style="text-align: center; margin-top: 20px;">
+                        <apex:outputText value="{!errMsg}" escape="false" />
+                    </div>
+                </apex:outputPanel>
+
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!checkApprove}">
+                <div style="text-align: center;margin-top: 20px;">
+                    <apex:outputText value="{!$Label.RequestChangeOwnerMessage2}" escape="false" />
+                </div>
+            </apex:outputPanel>
+
+            <div style="text-align: center; margin-top: 20px;">
+                <apex:commandButton styleClass="buttonMargin" value="Confirm request" onclick="confirmApprover();return false;" rendered="{!checkList}"
+                />
+                <apex:commandButton value="Cancel" action="{!cancelAction}" rendered="{!checkList}" />
+
+                <apex:commandButton value="Cancel" action="{!cancelAction}" rendered="{!!checkList}" />
+            </div>
+
+        </apex:pageBlock>
+
+    </apex:form>
+
+</apex:page>

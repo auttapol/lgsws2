@@ -1,0 +1,422 @@
+<template>
+       <div style="width: auto;">
+
+        <template if:true={LoadingState}>
+            <lightning-spinner alternative-text="Loading" size="medium" variant="brand"></lightning-spinner>    
+        </template>
+
+
+        <div class="demo-only" style="height: 640px;" if:true={showPopup}>  
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open"> 
+                <div class="slds-modal__container">
+                    <div if:true={isError}>    
+                        <header class="slds-modal__header popupColorError">     
+                            <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closedPopup}> 
+                                <lightning-icon icon-name="utility:close" size="medium"> 
+                                </lightning-icon> 
+                                <span class="slds-assistive-text">Close</span> 
+                            </button> 
+                            <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate"><b>{popupHeader}</b></h2> 
+                        </header> 
+                    </div>
+                    <div if:false={isError}>    
+                        <header class="slds-modal__header popupColorSuccess">     
+                            <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={closedPopup}> 
+                                <lightning-icon icon-name="utility:close" size="medium"> 
+                                </lightning-icon> 
+                                <span class="slds-assistive-text">Close</span> 
+                            </button> 
+                            <h2 id="modal-heading-02" class="slds-text-heading_medium slds-hyphenate"><b>{popupHeader}</b></h2> 
+                        </header> 
+                    </div>
+                    <div class="slds-modal__content slds-p-around_medium show-wrap" id="modal-id-1">                              
+    
+                            {popupMessege}
+                             
+                    </div>    
+                </div> 
+            </section> 
+            <div class="slds-backdrop slds-backdrop_open"></div> 
+        </div> 
+
+
+        <div class="topColor">
+            <table class="" border="0" style="width:100%">
+                <tr height="7px"> </tr>
+                <tr>
+                <td style="width:15%">
+                    <span><p style="margin-left: 5%"><b>Selected Records: </b><b style="color:rgb(0, 0, 0);">{recordsCount}</b></p></span>
+                </td>
+
+                <td style="width:30%">
+                    <div if:true={showSearchBox}> <!--Search BRC user BOX--> 
+                        <div class="slds-p-horizontal_x-small slds-p-bottom_xx-small">
+                            <lightning-input label="" type="search" placeholder="Search key" variant="label-hidden" onkeypress={searchData} onchange={searchData}></lightning-input> <!--onchange={handleKeyChange}-->
+                        </div>
+                    </div>
+
+                    <table if:true={showAssignBRCBox}>
+
+                        <tr>
+                            <td style="width:30%">
+                                <span><p style="margin-left: 5%"><b>Assign to User:</b></p></span>
+                            </td>
+                            <td style="width:70%">
+                                <!--Search BRC lookup BOX--> 
+                                <div class="slds-combobox_container">  
+                                    <div class="slds-combobox slds-dropdown-trigger slds-dropdown-trigger_click slds-is-open" aria-expanded="true" aria-haspopup="listbox" role="combobox">  
+                                      <template if:true={selectedValue}>  
+                                      <div data-key="pilldiv" class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_left-right" role="none">  
+                                        <span class="slds-icon_container slds-icon-standard-account slds-combobox__input-entity-icon" title="object">  
+                                         <div class="slds-icon slds-icon_small" aria-hidden="true">  
+                                          <lightning-icon icon-name={iconName} size="small"></lightning-icon>  
+                                         </div>  
+                                         <span class="slds-assistive-text">Record</span>  
+                                        </span>  
+                                        <input type="text" class="slds-input slds-combobox__input slds-combobox__input-value" id="combobox-id-5" aria-controls="listbox-id-5" role="textbox" placeholder="Select an Option" readonly value={selectedValue} />  
+                                        <button class="slds-button slds-button_icon slds-input__icon slds-input__icon_right" onclick={removeRecordOnLookup}  
+                                        title="Remove selected option">  
+                                         <span class="slds-button__icon" aria-hidden="true" >  
+                                          <lightning-icon icon-name="utility:close"   
+                                           size="xx-Small" class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true"></lightning-icon>  
+                                         </span>  
+                                         <span class="slds-assistive-text">Remove selected record</span>  
+                                        </button>  
+                                       </div>  
+                                      </template>  
+                              
+                                      <template if:false={selectedValue}>  
+                                      <div data-key="searchdiv" class="slds-combobox__form-element slds-input-has-icon slds-input-has-icon_right" role="none">  
+                                        <input type="text" onfocusout={onLeave} value={searchBRCKey} onkeyup={handleFindBRC} onchange={handleFindBRC} class="slds-input slds-combobox__input slds-has-focus" id="combobox-id-2" aria-autocomplete="list" aria-controls="listbox-id-2" role="textbox" placeholder="Search..." />  
+                                        <span class="slds-icon_container slds-icon-utility-search slds-input__icon slds-input__icon_right">  
+                                          <lightning-icon icon-name="utility:search" size="xx-Small" class="slds-icon slds-icon slds-icon_x-small slds-icon-text-default" aria-hidden="true"></lightning-icon>  
+                                        </span>  
+                                      </div>  
+                              
+                                      <template if:true={recordsList}>  
+                                      <div id="listbox-id-2-venu" data-key="dropdownresult" class="slds-show slds-dropdown slds-dropdown_length-with-icon-7 slds-dropdown_fluid" role="listbox">  
+                                        <ul class="slds-listbox slds-listbox_vertical" role="presentation" >  
+                                          <template if:true={messageSearch}>  
+                                          <center> {messageSearch}</center>  
+                                          </template>  
+                                          <template for:each={recordsList} for:item="record">  
+                                            <li id={record.Id} key={record.Id} onclick={onRecordSelection} role="presentation" class="slds-listbox__item">  
+                                            <div data-key={record.Id} data-name={record.Name} class="slds-media slds-listbox__option slds-listbox__option_entity slds-listbox__option_has-meta" role="option">  
+                                              <span class="slds-media__figure slds-listbox__option-icon">  
+                                                <span class="slds-icon_container">  
+                                                  <lightning-icon icon-name={iconName} size="small"></lightning-icon>  
+                                                </span>  
+                                              </span>  
+                                              <span class="slds-media__body">  
+                                                <span data-key={record.Id} data-name={record.Name} class="slds-listbox__option-text slds-listbox__option-text_entity">{record.Name}</span>  
+                                              </span>  
+                                            </div>  
+                                          </li>  
+                                          </template>  
+                                        </ul>  
+                                      </div>  
+                                      </template>  
+                                      </template>  
+                                    </div>  
+                                  </div>  
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+
+                <td style="width:20%">
+                    <div if:true={showReassignBox}>  
+                       <!--Select BOX-->   
+                        <span>                                   
+                        <lightning-button label={selectData}
+                                            icon-name="utility:adduser"                                                
+                                            variant="brand" 
+                                            onclick={selectDataForAssign}     
+                                            style="margin-left: 40%">
+                                        </lightning-button>  <!-- onclick={selectAccount} -->
+                        </span>
+                    </div>                     
+
+                    <table if:true={showAssignBRCBox}>
+                        <tr>
+                            <td>
+                                 <!--Assign BRC BOX-->
+                                <span> 
+                                    <lightning-button label={asignBRC}                                                                                              
+                                                    variant="brand" 
+                                                    onclick={reassignBRCuser}
+                                                    style="margin-left: 20%"></lightning-button>  
+                                </span> 
+                                
+                            </td>
+                            <td>
+                                 <!--Cancel BOX-->
+                                <apan>
+                                    <lightning-button label="Cancel"                                                                                              
+                                                variant="brand-outline" 
+                                                onclick={cancelSelection}
+                                                style="margin-left: 40%"></lightning-button>
+                                </apan>
+
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+
+                <td style="width:25%">
+                    <div if:true={controlPagination}>
+                        <!--Paginator BOX-->                    
+                        <div class="slds-col slds-p-bottom_xx-small" >
+                            <span if:true={controlPrevious}>
+                                <lightning-button-icon icon-name="utility:left" variant="bare" size="medium" alternative-text="Previous Page" onclick={previousPage}></lightning-button-icon>
+                            </span>
+                            <label class="slds-text-color_weak slds-p-horizontal_x-small" for="pageNum"><b style="color:rgb(0, 0, 0);">Page:</b></label> 
+                            <input type="number" id="pageNum" value={pageNumber} maxlength="3" onkeypress={handlePageNumberChange} class="customInput" title="Go to a Page" style="width: 50px"></input>
+                            <span><b id="totalPages" style="color:rgb(0, 0, 0);">&nbsp;of&nbsp;{totalPages}</b></span>
+                            <span if:true={controlNext}>
+                                <lightning-button-icon icon-name="utility:right" variant="bare" size="medium" alternative-text="Next Page" onclick={nextPage} class="slds-p-horizontal_x-small"></lightning-button-icon>
+                            </span>
+                            <br/>
+                            <span>
+                                <label class="slds-text-color_weak slds-p-horizontal_x-small"><b style="color:rgb(0, 0, 0);">Display: {numberRecordDisplay} Records</b></label>
+                            </span>
+                            <span>
+                                <label class="slds-text-color_weak slds-p-horizontal_x-small"><b style="color:rgb(0, 0, 0);">Total: {totalRecords} Records</b></label>
+                            </span>
+                        </div>
+                    </div>
+
+                </td>
+
+                </tr>
+                <tr height="7px"> </tr>
+            </table>
+        </div>
+          
+           <!--Standard LWC datatable code-->
+            <!-- Table display all records -->
+            <!--
+            <div class="tableFixHead">
+            <template if:true={recordsToDisplay}>
+                <div if:true={showTableData}>
+                   <lightning-datatable data={recordsToDisplay}
+                                    class="table-header"
+                                    columns={columns}
+                                    key-field="id"
+                                    onrowselection={getSelectedRecords}
+                                    show-row-number-column
+                                    row-number-offset={rowNumberOffset}>
+                                </lightning-datatable>
+                </div>              
+           </template>
+           </div>
+            -->
+
+          <!--  Selected table  -->
+           <!-- <template if:true={showSelectData}>
+                <lightning-datatable data={selectRecordsDisplay}
+                    hide-checkbox-column
+                    columns={columns}
+                    key-field="id"
+                    show-row-number-column
+                    row-number-offset={selectRowNumberOffset}>          
+                </lightning-datatable>
+           </template>
+            -->
+
+           <!--Data table display all record-->
+           <template if:true={showTableData}>
+                    <div class="tableFixHead">
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th scope="col" >
+                                        <div >
+                                            <lightning-input onchange={selectedAllRecords} type="checkbox" data-id="maincheckbox"></lightning-input>
+                                        </div>
+                                    </th>
+                                    <th scope="col" >
+                                        {Col_TMB_Customer_ID}
+                                    </th>
+                                    <th scope="col">
+                                        {Col_Customer_Title}
+                                    </th>
+                                    <th scope="col">
+                                        {Col_Customer_Name}
+                                    </th>
+                                    <th scope="col">
+                                        {Col_Segment}
+                                    </th>
+                                    <th scope="col">
+                                        {Col_Sub_Segment}
+                                    </th>
+                                    <th scope="col">
+                                        {Col_Suitability}
+                                    </th>
+                                    <th scope="col">
+                                        {Col_aum}
+                                    </th>
+                                    <th scope="col">
+                                        {Col_Last_Cal_AUM}
+                                    </th>
+                                    <th scope="col">
+                                        {Col_Most_Oper_Branch}
+                                    </th>
+                                    <th scope="col">
+                                        {Col_Assign_BRC_User}
+                                    </th>
+                                    <th scope="col">
+                                        {Col_Wealth_RM_BM}
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                
+                                <template iterator:it={recordsToDisplay} if:true={recordsToDisplay}>
+                                    <tr key={it.value.Id}>
+                                        <td data-label="Select">
+                                            <div>
+                                                <lightning-input type="checkbox" value={it.value.checked} data-id={it.value.Id} onchange={selectRecord}></lightning-input>
+                                            </div> 
+                                        </td>
+                                        <td data-label="TMB_Customer_ID_PE" class="td-min-max-width">
+                                            <div class="">{it.value.TMB_Customer_ID_PE__c}</div>
+                                        </td>
+                                        <td data-label="RTL_Customer_Title" class="td-min-max-width">
+                                            <div class="">{it.value.RTL_Customer_Title__c}</div>
+                                        </td>
+                                        <td data-label="CustomerNameLink" class="td-min-max-width">
+                                            <div class=""><a href={it.value.CustomerNameLink}>{it.value.Name}</a></div>
+                                        </td>
+                                        <td data-label="Core_Banking_Suggested_Segment" class="td-min-max-width">
+                                            <div class="">{it.value.Core_Banking_Suggested_Segment__c}</div>
+                                        </td>
+                                        <td data-label="Sub_segment" class="td-min-max-width">
+                                            <div class="">{it.value.Sub_segment__c}</div>
+                                        </td>
+                                        <td data-label="RTL_Suitability" class="td-min-max-width">  <!--  class="slds-cell-wrap" for wrap text-->
+                                            <div class="">{it.value.RTL_Suitability__c}</div>
+                                        </td>
+                                        <td data-label="RTL_AUM" class="td-min-max-width">
+                                            <div class="">{it.value.RTL_AUM__c}</div>
+                                        </td>
+                                        <td data-label="RTL_AUM_Last_Calculated_Date" class="td-min-max-width">
+                                            <div class="">{it.value.RTL_AUM_Last_Calculated_Date__c}</div>
+                                        </td>
+                                        <td data-label="BranchBRCLink" class="td-min-max-width">
+                                            <div class=""><a href={it.value.BranchBRCLink}>{it.value.Most_Operating_Branch_Name__c}</a></div>
+                                        </td>
+                                        <td data-label="BRCuserLink" class="td-min-max-width">
+                                            <div class=""><a href={it.value.BRCuserLink}>{it.value.Assigned_BRC_User_Name__c}</a></div>
+                                        </td>
+                                        <td data-label="WealthUserLink" class="td-min-max-width">
+                                            <div class=""><a href={it.value.WealthUserLink}>{it.value.Wealth_RM_BM_Name__c}</a></div>
+                                        </td>
+                                    </tr>
+                                   
+                                </template>
+                                <template if:true={isNoData}> 
+                                    <tr>    
+                                        <td colspan="12">                  
+                                        <center>
+                                        <p><b>No record for display</b></p>
+                                        </center> 
+                                        </td> 
+                                    </tr>                              
+                            </template>
+                            </tbody>
+                        </table>
+                </div>
+        </template>
+         
+
+        <!--Data table display selected record-->
+        <template if:true={showSelectData}>
+            <div class="tableFixHead">
+                <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                    <thead>
+                        <tr class="cellHeaderColor">                            
+                            <th scope="col">
+                                {Col_TMB_Customer_ID}
+                            </th>
+                            <th scope="col">
+                                {Col_Customer_Title}
+                            </th>
+                            <th scope="col">
+                                {Col_Customer_Name}
+                            </th>
+                            <th scope="col">
+                                {Col_Segment}
+                            </th>
+                            <th scope="col">
+                                {Col_Sub_Segment}
+                            </th>
+                            <th scope="col">
+                                {Col_Suitability}
+                            </th>
+                            <th scope="col">
+                                {Col_aum}
+                            </th>
+                            <th scope="col">
+                                {Col_Last_Cal_AUM}
+                            </th>
+                            <th scope="col">
+                                {Col_Most_Oper_Branch}
+                            </th>
+                            <th scope="col">
+                                {Col_Assign_BRC_User}
+                            </th>
+                            <th scope="col">
+                                {Col_Wealth_RM_BM}
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <template iterator:it={selectRecordsDisplay} if:true={selectRecordsDisplay}>
+                            <tr key={it.value.Id}>                               
+                                <td data-label="TMB_Customer_ID_PE" class="td-min-max-width">
+                                    <div class="">{it.value.TMB_Customer_ID_PE__c}</div>
+                                </td>
+                                <td data-label="RTL_Customer_Title" class="td-min-max-width">
+                                    <div class="">{it.value.RTL_Customer_Title__c}</div>
+                                </td>
+                                <td data-label="CustomerNameLink" class="td-min-max-width">
+                                    <div class=""><a href={it.value.CustomerNameLink}>{it.value.Name}</a></div>
+                                </td>
+                                <td data-label="Core_Banking_Suggested_Segment" class="td-min-max-width">
+                                    <div class="">{it.value.Core_Banking_Suggested_Segment__c}</div>
+                                </td>
+                                <td data-label="Sub_segment" class="td-min-max-width">
+                                    <div class="">{it.value.Sub_segment__c}</div>
+                                </td>
+                                <td data-label="RTL_Suitability" class="td-min-max-width">
+                                    <div class="">{it.value.RTL_Suitability__c}</div>
+                                </td>
+                                <td data-label="RTL_AUM" class="td-min-max-width">
+                                    <div class="">{it.value.RTL_AUM__c}</div>
+                                </td>
+                                <td data-label="RTL_AUM_Last_Calculated_Date" class="td-min-max-width">
+                                    <div class="">{it.value.RTL_AUM_Last_Calculated_Date__c}</div>
+                                </td>
+                                <td data-label="BranchBRCLink" class="td-min-max-width">
+                                    <div class=""><a href={it.value.BranchBRCLink}>{it.value.Most_Operating_Branch_Name__c}</a></div>
+                                </td>
+                                <td data-label="BRCuserLink" class="td-min-max-width">
+                                    <div class=""><a href={it.value.BRCuserLink}>{it.value.Assigned_BRC_User_Name__c}</a></div>
+                                </td>
+                                <td data-label="WealthUserLink" class="td-min-max-width">
+                                    <div class=""><a href={it.value.WealthUserLink}>{it.value.Wealth_RM_BM_Name__c}</a></div>
+                                </td>
+                            </tr>
+                           
+                        </template>                        
+                    </tbody>
+                </table>
+            </div>
+         
+    </template>
+ 
+       </div>
+
+</template>

@@ -1,0 +1,67 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global" controller="AdvisoryPlanningItemServices" >
+    <aura:attribute name="recordId" type="Id" />    
+    <aura:attribute name="layoutTitle" type="String"/>  
+    <aura:attribute name="itemType" type="String"/>
+    <aura:attribute name="criteria" type="String"/>  
+    <aura:attribute name="fieldSet" type="String"/>
+    <aura:attribute name="iconName" type="String" default="custom:custom13"/>  
+    <aura:attribute name="sortDirection" type="String" default="asc" />
+    <aura:attribute name="sortedBy" type="String" />
+    <aura:attribute name="recordSize" type="Integer"/>
+    <aura:attribute name="layoutTitleDisplay" type="String"/>
+    <aura:attribute name="canEditAllocation" type="Boolean" default="false"/> 
+
+    <aura:handler name="close_loading_evt" event="c:AdvisoryPlanning_Event" action="{!c.handleCloseModal}"/>
+    
+    <!-- init table information -->
+    <aura:attribute name="data" type="Object"/>
+    <aura:attribute name="columns" type="List"/>
+    <aura:attribute name="displayModal" type="Boolean" default="false" />
+
+
+    <aura:attribute name="planningRecord" type="Object"/>
+    <aura:attribute name="recordLoadError" type="String"/>
+    <aura:attribute name="displayPlanningSummary" type="Boolean" default="false" />
+    <force:recordData aura:id="recordLoader"
+        recordId="{!v.recordId}"
+        fields="Name,Customer__c,ttb_Customer_ID__c,Is_Sync_Product_Holding__c,Last_Sync_Date_Time__c,Status__c"
+        targetFields="{!v.planningRecord}"
+        targetError="{!v.recordLoadError}"
+    />
+
+    <aura:handler name="change" value="{!v.planningRecord}" action="{!c.doInit}" />
+    
+    <!-- <aura:handler name="init" value="{!this}" action="{!c.doInit}"/> -->
+    
+    
+    <lightning:card iconName="{!v.iconName}" title="{!v.layoutTitleDisplay}" class="slds-no-print slds-card_boundary">
+        <aura:set attribute="actions">
+            <aura:if isTrue="{!v.canEditAllocation}">
+                <lightning:button variant="brand"  iconName="utility:edit" label="{!$Label.c.RMC_Edit_Allocation}" onclick="{!c.goToEditAllocation}"/>
+            </aura:if>
+        </aura:set>
+        <div aura:id="list-view-table">
+            <lightning:datatable
+                class="slds-table_bordered slds-table_striped"
+                keyField="id"
+                columns="{!v.columns}"
+                data="{!v.data}"
+                hideCheckboxColumn="true"
+                defaultSortDirection="acs"
+                sortedDirection="{!v.sortDirection}"
+                sortedBy="{!v.sortedBy}"
+                onsort="{!c.handleSort}"
+                >
+            </lightning:datatable>
+        </div>
+    </lightning:card>
+
+    
+    <div class="slds-form slds-form_compound">
+        <!--modal popup for the cancel button-->
+        <aura:if isTrue="{!v.displayModal}">
+            <c:AdvisoryPlanningEditAllocation itemType="{!v.itemType}"  advisoryId="{!v.recordId}" allocatedData="{!v.data}" allocatedColumn="{!v.columns}"/>
+        </aura:if>
+    </div>
+
+</aura:component>

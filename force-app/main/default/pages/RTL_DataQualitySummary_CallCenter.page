@@ -1,0 +1,150 @@
+<apex:page standardController="Account" sidebar="false" showHeader="false" docType="html-5.0"
+           tabStyle="Account" rendered="true" standardStylesheets="true"
+           extensions="RTL_DataQualitySummaryExtension" action="{!updateAccount}">
+    <!-- Includes Js -->
+    <style>        
+       
+    </style>
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+    <!-- Salesconsole JS API -->
+    <apex:includescript value="/support/console/36.0/integration.js" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    <apex:outputpanel rendered="{!!isSF1}">
+        <div align="center" style="background-color:#4f81bd;">
+            <table style="font-weight:bold;font-size:91%;">            
+                <tr align="center">
+                    <td width="15%" align="right">{!$Label.RTL_Data_Quality_Marketing} :</td>
+                    <td width="18%" align="left">
+                        <apex:outputText rendered="{!qtymktRerender}" style="font-weight:bold;color:{!qtymktColor};" value="{!qualityStatus}">
+                        </apex:outputText>
+                    </td>
+                    
+                    <td width="15%" align="right">{!$Label.RTL_Data_Age} :</td>
+                    <td width="18%" align="left">
+                        <apex:outputText rendered="{!ageRerender}"  style="font-weight:bold;color:{!ageColor};" value="{!dataAgeStatus}">
+                        </apex:outputText>
+                    </td>
+                    
+                    <td width="15%" align="right">For More Details :</td>
+                    <td width="18%" align="left"><apex:outputLink onclick="redirectURL('/apex/RTL_DataQualityDetails?Id={!account.id}&isdtp=vw','{!$Label.Data_Quality_Details}');return false;">Click Here</apex:outputLink></td>
+                </tr>
+            </table>
+        </div>
+    </apex:outputpanel>
+    <apex:outputpanel rendered="{!isSF1}">        
+        <div class="bootstrap-sf1">
+            <div class="blockDisplay">
+                <span>{!$Label.RTL_Data_Quality_Marketing}</span>&nbsp;    
+                <span style="font-weight:bold;color:{!qtymktColor};">{!qualityStatus}</span>
+            </div>   
+            <div class="blockDisplay left-block">
+                <span>{!$Label.RTL_Data_Age}</span>&nbsp;    
+                <span style="font-weight:bold;color:{!ageColor};">{!dataAgeStatus}</span> 
+            </div>
+        </div>
+    </apex:outputpanel>
+    <script>
+    
+    $(document).ready(function () {
+        IsInConsole();
+    });
+    
+    function myFunction() {
+        var popup = document.getElementById("myPopup");
+        popup.classList.toggle("show");
+    }
+    
+    // Global variable
+    var _isInConsole = false;
+    var _isInSF1 = false;
+    var _primaryTabId ='';
+    var _tabid;
+    var _subTabId;
+    var _customername = 'account';
+    
+    function startLoading(text){
+        $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+        $('.loadingBox').show();
+    }
+    function endLoading(){
+        $('.loadingBox').hide();
+        hideNormalLink();
+    }
+    function redirectURL(url,pageName){
+        if(_isInConsole){
+            // In Sales Console
+            OpenTabPage(url,pageName);
+            
+        }else if(_isInSF1){
+            //In Salesforce1
+            sforce.one.navigateToURL(url);
+        }else{
+            //Desktop Version
+            window.open(url,'_blank');
+        }
+        //endLoading();
+    }
+    /*-------------------------------------------------------------------------
+            Salesforce :  Sale Console Js
+        ---------------------------------------------------------------------------*/
+    function IsInConsole() {
+        if (sforce.console.isInConsole()) {
+            _isInConsole = true;
+            _isInSF1 = false;
+            // Then get primary tab id
+            sforce.console.getFocusedPrimaryTabId (MainTabId);
+            sforce.console.getFocusedSubtabId(callCloseTab);
+            //sforce.console.setTabTitle(_customername);
+            sforce.console.getEnclosingTabId(callCloseTab);
+            
+        }
+        // Ref. https://developer.salesforce.com/docs/atlas.en-us.salesforce1.meta/salesforce1/vf_dev_best_practices_pages_multipurpose.htm
+        else if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+            _isInConsole = false;
+            _isInSF1 = true;
+            
+        }
+            else {
+                _isInConsole = false;
+                _isInSF1 = false;
+            }
+        
+        console.log('_isInConsole = ' +  _isInConsole);
+        console.log('_isInSF1 = ' +  _isInSF1);
+        
+        
+    }
+    function OpenTabPage(url,pagename){
+        // Open new sub tab
+        sforce.console.openSubtab(_primaryTabId , url, true, pagename,null,openSuccess);
+    }
+    
+    
+    var MainTabId = function getMainTabId(result  /* primary tab info */) {
+        //Now that we have the primary tab ID, we can open a new subtab in it
+        _primaryTabId = result.id;
+        console.log(_primaryTabId);
+    };
+    
+    
+    var openSuccess = function openSuccess(result) {
+        //Report whether we succeeded in opening the subtab
+        if (result.success == true) {
+            
+        } else {
+            
+        }
+    };
+    
+    //The callback function that closeTab will call once it has the ID for its tab
+    var callCloseTab= function callCloseTab(result) {
+        console.log('subtabid  ' + result.id);
+        
+        _subTabId = result.id;
+    };
+    
+    
+    
+    </script>
+</apex:page>

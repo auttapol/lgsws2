@@ -1,0 +1,180 @@
+<apex:page extensions="EditProductLineItemCtrlAll" standardController="opportunity" docType="html-5.0" showChat="true" showHeader="true" sidebar="false"
+    applyBodyTag="false" applyHtmlTag="true" standardStylesheets="true">
+<head>
+<title></title> 
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="" />
+    <meta name="keywords" content="" />
+    <meta name="author" content="Keattisak Chinburarat" />
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+    <style>pre code { background: transparent; }</style>    
+    
+    <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.AccountPlanEditTable)}"/>
+<style>
+.dateOnlyInput .dateFormat {
+    display: none;
+    position: absolute;
+    top: 25px;
+    right: 39px;
+}
+  
+</style>
+</head>
+<div id="main-wrapper" style='display:none;'>
+    <body>  
+        <div class="bootstrap-sf1" >
+            <div class="row" >
+                <div class="col-sm-12 col-md-12 col-lg-12">
+                    <apex:form id="frm">        
+
+                        <apex:pageMessages escape="false" id="messages"/>                          
+                        <apex:pageBlock title="Opportunity Product - Edit All" id="childList">  
+                    
+                            <apex:actionFunction name="dosave" action="{!dosave}" status="status" />
+                            <apex:actionstatus id="status">
+                                <apex:facet name="start">
+                                    <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                                        &nbsp;
+                                    </div>
+                                    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                                        <img src="/img/loading32.gif" />
+                                    </div>
+                                </apex:facet>
+                            </apex:actionstatus>           
+                      
+                            <div style="width:100%;overflow:auto">
+                                <table class="table table-striped table-hover">
+                                    <thead>
+                                    <tr>
+                                        <th colspan="10" class="text-right bs-component" style="border:none;background-color:white;">
+                                            <apex:commandButton value="Save" styleClass="btn  btn-primary" style="margin-right:45px;"  onclick="dosave();"  rerender="messages,childList" status="status"   />
+                                            <apex:commandButton value="Cancel" styleClass="btn  btn-primary" style="margin-right:45px;"  action="{!Back}"  rerender="messages,childList" status="status"   />
+                                        </th>                           
+                                    </tr>
+                                    </thead> 
+                                    <apex:repeat value="{!OptLine}" var="crc"> 
+                                    <thead>
+                                    <tr>
+                                        <th>Product <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="PropsProductOrServices__c" /></th>
+                                        <th>Vol./Limit<br/>(THB)<c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="ExpectedIncremental__c" /></th>
+                                        <th>Units of Acct./Limit</th>
+                                        <th>Total Vol./Limit Amount</th>
+                                        <th>Tenor (Years)<c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="ExpectedIncremental__c" /></th>
+                                        <th>Probability by<br />RM (%)</th>    
+                                        <th>All Bank <br/>(Limit) for only<br/>syndicate loan</th>
+                                        <th>Description</th>
+                                    </tr>
+                                    </thead>
+                                    <tr>
+                                        <td>{!crc.PricebookEntry.Product2.Name}</td>
+                                        <td><apex:inputField value="{!crc.UnitPrice}" style="width: 90px;height:20px"/></td>
+                                        <td><apex:inputField value="{!crc.Quantity}" style="width: 90px;height:20px"/></td>
+                                        <!-- td><apex:outputField value="{!crc.Subtotal}" style="width: 90px;height:20px"/></td -->
+                                        <td>
+                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                <apex:param value="{!crc.Unitprice * crc.Quantity}" />
+                                            </apex:outputText>
+                                        </td>
+                                        <td><apex:inputField value="{!crc.Tenor_Years__c}" style="width: 90px;height:20px"/></td>
+                                        <td><apex:inputField value="{!crc.Deal_Probability__c}" style="width: 90px;height:20px"/></td>
+                                        <td><apex:inputField value="{!crc.Notional_Amount__c}" style="width: 90px;height:20px"/></td>
+                                        <td><apex:inputField value="{!crc.Description}" style="width: 150px;height:20px"/></td>
+                                    </tr>
+                                    <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Type of Income</th>
+                                        <th>Recurring or One-off <c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="NIRecuringType__c" /></th>
+                                        <th>Frequency<c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="ExpectedNimRate__c" /></th>
+                                        <th>Expected Start<br />Month/Year<c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="ExpectedNimRate__c" /></th>
+                                        <th>% Expected <br />Utz./ Year<c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="ExpectedNimRate__c" /></th>
+                                        <th>Expected Utz. <br />(Outs. Vol)<c:II_Helptext SobjectName="AcctPlanNIProject__c" FieldApiName="NIStartMonth__c" /></th>
+                                        <th>Expected Margin (%)</th>
+                                        <th>This Year Expected <br/>Revenue</th>
+                                        <th>Full Deal Expected <br/>Revenue</th>
+                                    </tr>
+                                    </thead>
+                                    <tr>
+                                        <td><strong>NI</strong></td>
+                                        <td><apex:inputField value="{!crc.Type_Of_Reference__c}" style="width: 90px;height:20px"/></td>
+                                        <td><apex:inputField value="{!crc.Recurring_Type__c}" style="width: 90px;height:20px"/></td>
+                                        <td><apex:inputField value="{!crc.Frequency__c}" style="width: 120px;height:20px"/></td>
+                                        <td>
+                                            <apex:inputfield value="{!crc.RevisedStartMonth__c}" style="width: 80px;"/><br/> 
+                                            <!-- apex:selectList value="{!crc.RevisedStartYear__c}" multiselect="false" size="1" style="width: 80px;">
+                                                <apex:selectOptions value="{!fiscalYear}" />
+                                            </apex:selectList -->
+                                            <apex:inputfield value="{!crc.RevisedStartYear__c}" style="width: 80px;"/>
+                                        </td>
+                                        <td><apex:inputField value="{!crc.Expected_Util_Year_NI__c}" style="width: 90px;height:20px"/></td>
+                                        <td>
+                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                <apex:param value="{!crc.Unitprice * crc.Quantity * (crc.Expected_Util_Year_NI__c/100)}" />
+                                            </apex:outputText>
+                                        </td>
+                                        <td><apex:inputField value="{!crc.Expected_NIM__c}" style="width: 150px;height:20px"/></td>
+                                        <td><apex:inputField value="{!crc.This_Year_Expected_NI__c}" style="width: 90px;height:20px"/></td>
+                                        <td><apex:inputField value="{!crc.Expected_Revenue__c}" style="width: 90px;height:20px"/></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Fee</strong></td>
+                                        <td><apex:inputField value="{!crc.Type_Of_Reference_Fee__c}" style="width: 90px;height:20px"/></td>
+                                        <td><apex:inputField value="{!crc.Recurring_Type_Fee__c}" style="width: 90px;height:20px"/></td>
+                                        <td><apex:inputField value="{!crc.FrequencyFee__c}" style="width: 120px;height:20px"/></td>
+                                        <td>
+                                            <apex:inputfield value="{!crc.RevisedStartMonthFee__c}" style="width: 80px;"/><br/> 
+                                            <!-- apex:selectList value="{!crc.RevisedStartYearFee__c}" multiselect="false" size="1" style="width: 80px;">
+                                                <apex:selectOptions value="{!fiscalYear}" />
+                                            </apex:selectList -->
+                                            <apex:inputfield value="{!crc.RevisedStartYearFee__c}" style="width: 80px;"/>
+                                        </td>
+                                        <td><apex:inputField value="{!crc.Expected_Util_Year_Fee__c}" style="width: 90px;height:20px"/></td>
+                                        <td>
+                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                <apex:param value="{!crc.Unitprice * crc.Quantity * (crc.Expected_Util_Year_Fee__c/100)}" />
+                                            </apex:outputText>
+                                        </td>
+                                        <td><apex:inputField value="{!crc.Expected_Fee_Rate__c}" style="width: 150px;height:20px"/></td>
+                                        <td><apex:inputField value="{!crc.This_Year_Expected_Fee__c}" style="width: 90px;height:20px"/></td>
+                                        <td><apex:inputField value="{!crc.Expected_Revenue_Fee__c}" style="width: 90px;height:20px"/></td>
+                                    </tr>
+                                    </apex:repeat>
+                                </table>
+                            </div>                       
+                        </apex:pageBlock>
+                    </apex:form>            
+                </div>              
+            </div>
+        </div>
+    </body> 
+</div>
+ 
+<apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+<apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+<apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+<apex:includeScript value="/support/console/22.0/integration.js"/>
+
+    <script>
+    // Prevent Config
+        var $j = jQuery.noConflict();
+        
+        function checkIsSalesforceOne()
+        {
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null) ) 
+                sforce.one.navigateToURL('/apex/EditOppProductAllMobile?id={!opty.Id}' );
+            else
+                $j("#main-wrapper").css('display','block');
+        } 
+        
+        $j(document).ready( function () { 
+            checkIsSalesforceOne();
+        });
+
+                
+    </script>
+</apex:page>

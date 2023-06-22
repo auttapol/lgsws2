@@ -1,0 +1,775 @@
+<apex:page controller="SmartBDM_NewMiniCSV" doctype="html-5.0" title="Smart BDM" lightningStyleSheets="true">
+
+    <head>
+        <apex:includeScript value="/support/console/44.0/integration.js" />
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+        <apex:slds />
+        <style type="text/css">
+            html {
+                background-color: white;
+            }
+
+            body label {
+                margin: unset;
+            }
+
+            .tableClass {
+                border-style: hidden;
+                width: 100%;
+            }
+
+            .headerTable>tr>th {
+                /* background-color: #ccc; */
+                padding: 5px;
+                margin: 1px;
+                text-align: center;
+                /* border: 1px solid #FFF; */
+            }
+
+            .slds-context-bar {
+                width: 100%;
+            }
+
+            .fontsizeColumn {
+                font-size: 13px;
+            }
+
+            .headerTable>table>thead>tr>th>div>label {
+                font-size: .8125rem;
+            }
+
+            table>tbody>tr>td>div {
+                font-size: 13px;
+            }
+
+            form {
+                width: 100%;
+            }
+
+            .code-red {
+                background-color: red !important;
+                color: white;
+            }
+
+            .code-green {
+                background-color: green !important;
+                color: white;
+            }
+
+            .warning-message {
+                padding: 10px 40px;
+                /* border: 2px solid #ffa021; */
+                background-color: #dc4f4f;
+                border-radius: 5px;
+                /* margin-top: 10px; */
+                color: white;
+                margin-bottom: 5px;
+                display: flex;
+                align-items: center;
+            }
+
+            .success-message {
+                padding: 10px 40px;
+                /* border: 2px solid #ffa021; */
+                background-color: rgb(4, 132, 75);
+                border-radius: 5px;
+                /* margin-top: 10px; */
+                color: white;
+                margin-bottom: 5px;
+                display: flex;
+                align-items: center;
+            }
+
+            .dot-status-top {
+                width: 15px;
+                height: 15px;
+                display: inline-block;
+                border-radius: 50%;
+            }
+
+            .header-name {
+                margin-top: 1em;
+                margin-bottom: 1em;
+            }
+
+            .title-name-header-top {
+                margin-top: 0px !important;
+            }
+
+            .slds-item {
+                border: none !important;
+            }
+
+            .card-box {
+                background-color: #F4F6F9 !important;
+                border: 1px solid #D8DDE6 !important;
+                padding: 10px !important;
+                border-radius: 5px !important;
+                /* align-items: normal; */
+                height: 100% !important;
+            }
+
+            .flex-center-item {
+                align-items: center !important;
+                color: #16325C;
+            }
+
+            .none-line-height {
+                line-height: 0!important;
+            }
+
+            .line-height-1 {
+                line-height: 1!important;
+            }
+
+            .align-items-stretch {
+                align-items: stretch !important;
+            }
+
+            .slds-form-element__label label {
+                color: #54698D !important;
+            }
+
+            .slds-form-element__static {
+                color: #16325C !important;
+                line-height: normal;
+                /* min-height: 0; */
+            }
+
+            .circle-span {
+                width: 25px !important;
+                height: 25px !important;
+                border-radius: 50% !important;
+            }
+
+            .circle-span.white {
+                background-color: transparent !important;
+            }
+
+            .circle-span.red {
+                background-color: #dc4f4f !important;
+            }
+
+            .circle-span.green {
+                background-color: rgb(4, 132, 75) !important;
+            }
+
+            .slds-scope .slds-table_col-bordered td+td,
+            .slds-scope .slds-table_col-bordered th+th,
+            .slds-scope .slds-table_col-bordered th+td,
+            .slds-scope .slds-table_col-bordered td+th,
+            .slds-scope .slds-table--col-bordered td+td,
+            .slds-scope .slds-table--col-bordered th+th,
+            .slds-scope .slds-table--col-bordered th+td,
+            .slds-scope .slds-table--col-bordered td+th {
+                border: none !important;
+            }
+
+            .slds-scope .slds-table_striped tbody tr:nth-of-type(even)>td,
+            .slds-scope .slds-table_striped tbody tr:nth-of-type(even)>th,
+            .slds-scope .slds-table--striped tbody tr:nth-of-type(even)>td,
+            .slds-scope .slds-table--striped tbody tr:nth-of-type(even)>th {
+                background-color: #F4F6F9 !important;
+            }
+
+            .slds-section__title.slds-theme_shade {
+                background-color: transparent !important;
+                color: #16325C !important;
+            }
+
+            .card-box-table {
+                background-color: transparent !important;
+                border-top: 1px solid #D8DDE6 !important;
+                padding: 10px !important;
+                /* border-radius: 5px !important; */
+                /* align-items: normal; */
+                height: 100% !important;
+            }
+
+            table.slds-table {
+                border: 1px solid #D8DDE6 !important;
+                /* border-right: 1px solid #D8DDE6 !important; */
+                color: #16325C !important;
+            }
+
+            .slds-scope .slds-table thead th {
+            /*background-color: transparent !important;*/
+                color: #16325C !important;
+                font-weight: 400;
+            }
+
+            table th label {
+                font-size: .7rem !important;
+                color: #16325C !important;
+            }
+
+            .table-deposit-info thead {
+                border-bottom: 1px solid #D8DDE6 !important;
+            }
+
+            .table-credit-info tbody tr {
+                border-bottom: 1px solid #D8DDE6 !important;
+            }
+
+            .wrap-icon-info {
+                width: 1.25rem !important;
+                height: 1.25rem !important;
+                position: relative;
+            }
+
+            .wrap-icon-info svg {
+                position: absolute;
+            }
+
+            .wrap-icon-info svg path {
+                fill: #16325C;
+
+            }
+
+            .comma-list {
+                /* display: flex;
+                    list-style: none; */
+                padding-left: 20px !important;
+                font-size: 1.125rem !important;
+            }
+
+            .comma-list span::after {
+                content: ", ";
+            }
+
+            .comma-list span:last-child:after {
+                content: "";
+            }
+
+            .slds-scope .slds-table tbody tr {
+                border: 1px solid #D8DDE6 !important;
+            }
+
+            div[id*="customer_info"].bPageBlock {
+                border: none;
+                box-shadow: none;
+                background-color: transparent;
+            }
+
+            .slds-scope .slds-icon-standard-home {
+                background-color: #088276;
+            }
+
+            .slds-scope .slds-icon-standard-metrics {
+                background-color: #56656f;
+            }
+
+            .slds-scope .slds-icon-standard-account.bussiness-info {
+                background-color: #1b85d0;
+            }
+
+            .header-name span[id*="header_title"] {
+                color: #54698D;
+            }
+
+            .slds-form-element__control {
+                margin-bottom: 10px;
+            }
+
+            .slds-form-element__control .slds-form-element__static {
+                min-height: 0 !important;
+            }
+
+            /* .table-credit-info tbody tr:last-child {
+                border-bottom: 1px solid #D8DDE6 !important;
+            }
+
+            .table-credit-info tbody tr:last-child {
+                border-bottom: 1px solid #D8DDE6 !important;
+
+            } */
+            .slds-notify_toast{
+            	margin: .5rem 0 !important;
+            	width: 100% !important;
+            }
+        </style>
+        <script type="text/javascript">
+
+            function getMobileOperatingSystem() {
+                var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+                if (userAgent.match(/iPad/i) || userAgent.match(/iPhone/i) || userAgent.match(/iPod/i)) {
+                    return 'iOS';
+                } else if (userAgent.match(/Android/i)) {
+                    return 'Android';
+                } else {
+                    return 'unknown';
+                }
+            }
+
+            function goToOutside() {
+                switch (getMobileOperatingSystem()) {
+                    case 'Android':
+                        sforce.one.navigateToURL('{!deeplinkToKony}');
+                        break;
+                    case 'iOS':
+                        sforce.one.navigateToURL('{!deeplinkToKony}');
+                        break;
+                    default:
+                        console.log('Unknown');
+                        break;
+                }
+            }
+
+            function goToKnowledgeCenter() {
+                // sforce.one.navigateToURL('');
+            }
+
+            function redirectBack() {
+                sforce.one.navigateToURL('{!retURL}');
+            }
+
+            $(document).ready(function () {
+                calloutStartCompanyListAndDetail();
+            });
+
+        </script>
+
+    </head>
+    <div class="slds-m-around_small">
+        <apex:outputPanel id="newMiniCSV_EnliteData">
+            <apex:form >
+                <apex:actionFunction name="calloutStartCompanyListAndDetail" action="{!calloutGetCompanyListService}" rerender="customer_info, result"
+                    status="loadingStatus" />
+                <apex:outputText id="result" value="{!result}" rendered="false" />
+                <apex:pageBlock id="customer_info">
+
+                    <!-- <apex:outputPanel id="statusMessage">
+                        <apex:pageMessages escape="false"></apex:pageMessages>
+                    </apex:outputPanel> -->
+
+                    <nav role="navigation" aria-label="Breadcrumbs" style="color:rgb(0, 109, 204);">
+                        <ul class="slds-breadcrumb slds-list_horizontal slds-wrap">
+                            <li class="slds-breadcrumb__item">
+                                <a href="javascript:void(0);" onclick="goToOutside(); " class="slds-breadcrumb__item" title="{!$Label.TMB_Smart_title}">
+                                    <span class="slds-truncate" title="{!$Label.TMB_Smart_title}">{!$Label.TMB_Smart_title}</span>
+                                </a>
+                            </li>
+                            <li class="slds-breadcrumb__item">
+                                <apex:commandLink value="{!$Label.Search_Company_Label}" styleClass="slds-breadcrumb__item" onclick="redirectBack(); return false;"
+                                />
+                            </li>
+                            <li class="slds-breadcrumb__item">
+                                <a href="javascript:void(0);" class="slds-breadcrumb__item" title="{!$Label.Customer_Information_navigator}">
+                                    <span class="slds-truncate" style="border-bottom: 1px solid;" title="{!$Label.Customer_Information_navigator}">{!$Label.Customer_Information_navigator}</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+
+                    <div class="slds-col slds-has-flexi-truncate header-name">
+                        <div class="slds-media slds-no-space slds-grow flex-center-item slds-p-around_xx-small">
+                            <div class="slds-media__figure none-line-height">
+                                <span class="slds-icon_container slds-icon-standard-account" style="width:48px;height:48px;background-color:#A8B7C7;">
+                                    <span aria-hidden="true" class="slds-icon slds-icon_medium">
+                                        <img src="/apexpages/slds/latest/assets/icons/standard/avatar.svg" style="width:100%;" class="pageTitleIcon" title="Account"
+                                        />
+                                    </span>
+                                </span>
+                            </div>
+                            <div class="slds-media__body ">
+                                <h1 class="title-name-header-top slds-page-header__title slds-text-heading_medium slds-m-right_small slds-align-middle slds-wrapper slds-m-top_x-small"
+                                    title="Account">
+                                    <apex:outputPanel id="header_title">
+                                        <apex:outputText value="{! IF(companyInfo.account.Name == null, AccountName, companyInfo.account.Name) }" />
+                                    </apex:outputPanel>
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+
+                    <apex:outputPanel rendered="{! !companyInfo.isSuccess }">
+                        <div class="slds-notify_container slds-is-relative" style="z-index: 0;">
+                            <div role="alert" class="slds-notify slds-notify_toast slds-theme_error fixed-minWidth">
+                                <span class="slds-icon_container slds-icon-utility-error slds-m-right_small slds-no-flex slds-align-top">
+                                    <span aria-hidden="true" class="slds-icon slds-icon_medium">
+                                        <img src="/apexpages/slds/latest/assets/icons/utility/ban.svg" style="width:36px; height:36px;" />
+                                    </span>
+                                </span>
+                                <div class="slds-notify__content">
+                                    <!-- <h2 class="slds-text-heading_small"></h2> -->
+                                    <div class="slds-text-body_regular">
+                                        <apex:outputPanel rendered="{! IF(refreshClickHereFlag, true, false) }">
+                                            Sorry, some error occurred while getting information. Please <apex:commandLink value=" Click Here" onclick="calloutStartCompanyListAndDetail(); return false;"></apex:commandLink> for refresh page again.
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{! IF(NOT(refreshClickHereFlag), true, false) }">
+                                            {! companyInfo.errorMessage }
+                                        </apex:outputPanel>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+
+                    <div class="slds-grid slds-wrap slds-grid_vertical-stretch">
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-p-around_xx-small">
+                            <div class="card-box">
+
+                                <div class="slds-col slds-has-flexi-truncate ">
+                                    <div class="slds-media slds-no-space slds-grow flex-center-item">
+                                        <div class="slds-media__figure none-line-height">
+                                            <span class="slds-icon_container slds-icon-standard-contact" style="width:30px;height:30px;">
+                                                <span aria-hidden="true" class="slds-icon slds-icon_medium">
+                                                    <img src="/apexpages/slds/latest/assets/icons/standard/contact.svg" style="width:100%;" class="pageTitleIcon" title="Account"
+                                                    />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="slds-media__body none-line-height">
+                                            <span class="slds-truncate" title="{!$Label.Customer_information_title_Mini_CSV}">{!$Label.Customer_information_title_Mini_CSV}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div aria-hidden="false">
+                                    <ul class="slds-m-around_xxx-small slds-m-top_x-small slds-p-around_xxx-small slds-has-dividers_bottom slds-list_vertical-space">
+                                        <li class="slds-item">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="{!$ObjectType.Account.Fields.Name.label}" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputText value="{!companyInfo.account.Name}" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="slds-item">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="{!$ObjectType.Account.Fields.TMB_Customer_ID_PE__c.label}" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputText value="{!companyInfo.account.TMB_Customer_ID_PE__c}" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="slds-item">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="{!$ObjectType.Account.Fields.ID_Number_PE__c.label}" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputText value="{!IF(companyInfo.account.ID_Number_PE__c != null, companyInfo.account.ID_Number_PE__c, ResgiterID)}" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-p-around_xx-small">
+                            <div class="card-box">
+                                <div class="slds-media slds-no-space slds-grow flex-center-item">
+                                    <div class="slds-media__figure none-line-height">
+                                        <span class="slds-icon_container slds-icon-standard-home" style="width:30px;height:30px;">
+                                            <span aria-hidden="true" class="slds-icon slds-icon_medium">
+                                                <img src="/apexpages/slds/latest/assets/icons/standard/home.svg" style="width:100%;" class="pageTitleIcon" title="Home" />
+                                            </span>
+                                        </span>
+                                    </div>
+                                    <div class="slds-media__body none-line-height">
+                                        <span class="slds-truncate" title="{!$Label.Contact_information_title_Mini_CSV}">{!$Label.Contact_information_title_Mini_CSV}</span>
+                                    </div>
+                                </div>
+
+                                <div aria-hidden="false">
+                                    <ul class="slds-m-around_xxx-small slds-m-top_x-small slds-p-around_xxx-small slds-has-dividers_bottom slds-list_vertical-space">
+                                        <li class="slds-item">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="{!$ObjectType.Lead.Fields.Name.label}" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputText value="" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="slds-item">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Registered_Address__c.label}" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputText value="{! companyInfo.account.Registered_Address_Line_1_PE__c + ' ' + companyInfo.account.Registered_Address_Line_2_PE__c + ' ' + companyInfo.account.Registered_Address_Line_3_PE__c + ' ' + companyInfo.account.Province_Registered_PE__c + ' ' + companyInfo.account.Zip_Code_Registered_PE__c }"
+                                                        />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="slds-item">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="{!$ObjectType.Account.Fields.Mobile_Number_PE__c.label}" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputText value="{! companyInfo.account.Mobile_Number_PE__c }" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                        <li class="slds-item">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Office_Phone_Number__c.label}" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputText value="{! companyInfo.account.RTL_Office_Phone_Number__c }" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-p-around_xx-small">
+                            <div class="card-box">
+                                <div class="slds-col slds-has-flexi-truncate ">
+                                    <div class="slds-media slds-no-space slds-grow flex-center-item">
+                                        <div class="slds-media__figure none-line-height">
+                                            <span class="slds-icon_container slds-icon-standard-metrics" style="width:30px;height:30px;">
+                                                <span aria-hidden="true" class="slds-icon slds-icon_medium sl">
+                                                    <img src="/apexpages/slds/latest/assets/icons/standard/metrics.svg" style="width:100%;" class="pageTitleIcon" title="Metrics"
+                                                    />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="slds-media__body none-line-height">
+                                            <span class="slds-truncate" title="{!$Label.Risk_information_title_Mini_CSV}">{!$Label.Risk_information_title_Mini_CSV}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div aria-hidden="false">
+                                    <div class="slds-m-around_xxx-small slds-m-top_x-small slds-p-around_xxx-small slds-has-dividers_bottom slds-list_vertical-space slds-grid slds-wrap">
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="{!$ObjectType.Account.Fields.NAMBRL__c.label}" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputText value="" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_12-of-12 slds-large-size_6-of-12">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="{!$ObjectType.Account.Fields.Warning_Code__c.label}" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static" style="margin-bottom: 15px;">
+                                                        <apex:outputText value="" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_12-of-12 slds-large-size_12of-12">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="{!$ObjectType.Account.Fields.CSI_Waring_Message__c.label}" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputText value="" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-p-around_xx-small">
+                            <div class="card-box">
+                                <div class="slds-col slds-has-flexi-truncate ">
+                                    <div class="slds-media slds-no-space slds-grow flex-center-item">
+                                        <div class="slds-media__figure none-line-height">
+                                            <span class="slds-icon_container slds-icon-standard-account bussiness-info" style="width:30px;height:30px;">
+                                                <span aria-hidden="true" class="slds-icon slds-icon_medium sl">
+                                                    <img src="/apexpages/slds/latest/assets/icons/standard/account.svg" style="width:100%;" class="pageTitleIcon" title="Account"
+                                                    />
+                                                </span>
+                                            </span>
+                                        </div>
+                                        <div class="slds-media__body none-line-height">
+                                            <span class="slds-truncate" title="{!$Label.Business_information_title_Mini_CSV}">{!$Label.Business_information_title_Mini_CSV}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div aria-hidden="false">
+                                    <div class="slds-m-around_xxx-small slds-m-top_x-small slds-p-around_xxx-small slds-has-dividers_bottom slds-list_vertical-space slds-grid slds-wrap">
+
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_12-of-12 slds-large-size_12-of-12">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="{!$ObjectType.Account.Fields.Core_Banking_Suggested_Segment__c.label}" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputText value="" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="{!$ObjectType.IndustryMaster__c.Fields.ISICCode__c.label}" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputText value="{! companyInfo.companyProfile.isicCode }" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-1 slds-large-size_1-of-1">
+                                            <div class="slds-form-element slds-p-left_xx-small  ">
+                                                <span class="slds-form-element__label">
+                                                    <apex:outputLabel value="ISIC Description" />
+                                                </span>
+                                                <div class="slds-form-element__control">
+                                                    <span class="slds-form-element__static">
+                                                        <apex:outputText value="{! companyInfo.companyProfile.isicDescription }" />
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <!-- <apex:outputPanel rendered="{! companyInfo.isJuristicType }"> -->
+                    <div class="slds-section slds-is-open slds-m-top_large card-box-table">
+                        <h3 class="slds-section__title slds-theme_shade">
+                            <span aria-hidden="true" class="slds-icon slds-icon_medium wrap-icon-info">
+
+                                <svg xmlns="http://www.w3.org/2000/svg" width="100%" height="100%" viewBox="0 0 11.2 14">
+                                    <path id="custom24custom" d="M35.823,20H27.377A1.379,1.379,0,0,0,26,21.377V21.4a.468.468,0,0,0,.467.467H36.733A.468.468,0,0,0,37.2,21.4v-.023A1.4,1.4,0,0,0,35.823,20ZM35.8,23.267H27.4a.468.468,0,0,0-.467.467v9.8A.468.468,0,0,0,27.4,34h2.59a.449.449,0,0,0,.443-.467V31.667a.489.489,0,0,1,.49-.467h1.353a.489.489,0,0,1,.49.467v1.867A.449.449,0,0,0,33.21,34H35.8a.468.468,0,0,0,.467-.467v-9.8A.468.468,0,0,0,35.8,23.267Zm-4.9,6.3a.468.468,0,0,1-.467.467H29.5a.468.468,0,0,1-.467-.467v-.933a.468.468,0,0,1,.467-.467h.933a.468.468,0,0,1,.467.467Zm0-3.267a.468.468,0,0,1-.467.467H29.5a.468.468,0,0,1-.467-.467v-.933A.468.468,0,0,1,29.5,24.9h.933a.468.468,0,0,1,.467.467Zm3.267,3.267a.468.468,0,0,1-.467.467h-.933a.468.468,0,0,1-.467-.467v-.933a.468.468,0,0,1,.467-.467H33.7a.468.468,0,0,1,.467.467Zm0-3.267a.468.468,0,0,1-.467.467h-.933A.468.468,0,0,1,32.3,26.3v-.933a.468.468,0,0,1,.467-.467H33.7a.468.468,0,0,1,.467.467Z"
+                                        transform="translate(-26 -20)" fill="#54698d" />
+                                </svg>
+
+                            </span>
+                            <span class="slds-truncate slds-p-horizontal_small" title="{!$Label.Company_information_title_Mini_CSV}">{!$Label.Company_information_title_Mini_CSV}</span>
+                        </h3>
+                        <div aria-hidden="false">
+                            <div class="card-box">
+                                <div class="slds-m-around_xxx-small slds-m-top_x-small slds-p-around_xxx-small slds-has-dividers_bottom slds-list_vertical-space slds-grid slds-wrap">
+                                    <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-4 slds-large-size_1-of-4">
+                                        <div class="slds-form-element slds-p-left_xx-small">
+                                            <span class="slds-form-element__label">
+                                                <apex:outputLabel value="{!$Label.Net_worth_label}" />
+                                            </span>
+                                            <div class="slds-form-element__control">
+                                                <span class="slds-form-element__static">
+                                                    <apex:outputtext value="{0, number, ###,###,###,##0.00}">
+                                                        <apex:param value="{! companyInfo.netWorth }" />
+                                                    </apex:outputtext>
+                                                    <apex:outputText value="{! IF(fiscalYear != null, ' (FY ' + fiscalYear + ')', '') }" />
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-4 slds-large-size_1-of-4">
+                                        <div class="slds-form-element slds-p-left_xx-small">
+                                            <span class="slds-form-element__label">
+                                                <apex:outputLabel value="{!$Label.Total_revenue_label}" />
+                                            </span>
+                                            <div class="slds-form-element__control">
+                                                <span class="slds-form-element__static">
+                                                    <apex:outputtext value="{0, number, ###,###,###,##0.00}">
+                                                        <apex:param value="{! companyInfo.totalRevenue }" />
+                                                    </apex:outputtext>
+                                                    <apex:outputText value="{! IF(fiscalYear != null, ' (FY ' + fiscalYear + ')', '') }" />
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-1 slds-medium-size_2-of-4 slds-large-size_2-of-4">
+                                        <div class="slds-form-element slds-p-left_xx-small">
+                                            <span class="slds-form-element__label">
+                                                <apex:outputLabel value="{!$Label.Remark_label}" />
+                                            </span>
+                                            <div class="slds-form-element__control">
+                                                <span class="slds-form-element__static">
+                                                    <apex:outputText value="{!$Label.Remark_Income_from_Enlite_system}" />
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="slds-m-top_small slds-has-dividers_bottom slds-list_vertical-space">
+                                <apex:dataTable value="{! companyInfo.shareHolders }" var="s" styleClass="slds-table slds-no-row-hover slds-table_col-bordered slds-table_striped slds-table_fixed-layout table-credit-info"
+                                    headerClass="slds-text-title_caps slds-cell-wrap" columnClasses="slds-cell-wrap fontsizeColumn"
+                                    columnsWidth="80%, 20%">
+
+                                    <apex:column styleClass="slds-text-align_left" headerClass="slds-text-align_left">
+                                        <apex:facet name="header">
+                                            <apex:outputLabel value="SHAREHOLDER NAME / COMPANY" />
+                                        </apex:facet>
+                                        <apex:outputtext value="{! s.shareholderName }" />
+                                    </apex:column>
+
+                                    <apex:column styleClass="slds-text-align_right" headerClass="slds-text-align_right">
+                                        <apex:facet name="header">
+                                            <apex:outputLabel value="% SHARE" />
+                                        </apex:facet>
+                                        <apex:outputtext value="{0, number, 0.00}%">
+                                            <apex:param value="{! s.sharePercent }" />
+                                        </apex:outputtext>
+                                    </apex:column>
+
+                                </apex:dataTable>
+                            </div>
+
+                        </div>
+                    </div>
+                    <!-- </apex:outputPanel> -->
+
+                </apex:pageBlock>
+
+                <!-- For Spinner -->
+                <apex:actionStatus id="loadingStatus">
+                    <apex:facet name="start">
+                        <div class="slds-spinner_container slds-is-fixed">
+                            <div role="status" class="slds-spinner_brand slds-spinner slds-spinner_large">
+                                <span class="slds-assistive-text">Loading</span>
+                                <div class="slds-spinner__dot-a"></div>
+                                <div class="slds-spinner__dot-b"></div>
+                            </div>
+                        </div>
+                    </apex:facet>
+                </apex:actionStatus>
+
+            </apex:form>
+        </apex:outputPanel>
+    </div>
+</apex:page>

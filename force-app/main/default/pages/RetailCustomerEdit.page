@@ -1,0 +1,390 @@
+<apex:page standardcontroller="Account" standardstylesheets="true" extensions="RetailCustomerExtension" tabstyle="Account">
+    <apex:sectionheader title="{!$Label.Account_Edit}" subtitle="{!Account.Name}" />
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+     <style type="text/css">
+
+         .fontstyle
+         {
+            font-size: 10.35px;
+            font-weight: bold;
+            font-family: Arial,Helvetica,sans-serif;
+         }
+
+      </style>
+    <script>
+
+                    function toAcctPage() {
+                        if(typeof sforce !== "undefined" && sforce !== null) {
+                            // Salesforce1 navigation
+                            var acctID = '{!Account.id}';
+                            var retURL = '/001/o';
+                            if(acctID != null && acctID !='') {
+                                retURL = '/'+acctID;
+                            }   
+                            sforce.one.navigateToURL(retURL);
+                            
+                        } else {
+                            // Desktop navigation
+                            cancelAcct();
+                        }
+                    }
+
+    $(document).ready( function(){
+        loadDataPerInfo();
+        loadDataContNum();
+        loadDataAltContInfo();
+    });
+    </script>
+    <apex:form >
+        <apex:actionFunction name="cancelAcct" action="{!cancel}"/>
+
+        <apex:actionFunction name="loadDataPerInfo" action="{!loadData}" rerender="PersonalizedInformation,preloadSectionPerInfo,displaySectionPerInfo" >
+            <apex:param assignTo="{!sectionName}" name="sectionName" value="RtlCust:Customer Insight - Personalized Information"/>
+        </apex:actionFunction>
+
+        <apex:actionFunction name="loadDataContNum" action="{!loadData}" rerender="ContactNumberAndEmailAddress,preloadSectionContNum,displaySectionContNum" >
+            <apex:param assignTo="{!sectionName}" name="sectionName" value="RtlCust:Contact Number and Email Address"/>
+        </apex:actionFunction>
+
+        <apex:actionFunction name="loadDataAltContInfo" action="{!loadData}" rerender="AlternateContactInformation,preloadSectionAltContInfo,displaySectionAltContInfo" >
+            <apex:param assignTo="{!sectionName}" name="sectionName" value="RtlCust:Alternative Contact Information"/>
+        </apex:actionFunction>
+
+
+        <apex:pageblock title="{!$Label.Customer_Edit}" mode="edit">
+             <apex:pageblockbuttons >
+                <apex:commandbutton action="{!save}" value="{!$Label.Save}" />
+                <apex:commandbutton onclick="toAcctPage();return false;" value="{!$Label.Cancel}" />
+            </apex:pageblockbuttons>
+            <apex:outputPanel id="PersonalizedInformation">
+                <apex:outputPanel rendered="{!isVisiblePerInfo}" >
+                    <apex:outputpanel id="statusMessage">
+                <apex:pagemessages escape="false"></apex:pagemessages>
+            </apex:outputpanel>
+            
+                <apex:pageblocksection title="{!$Label.Sales_Support_Information}" columns="{!displayS1}" rendered="{!displayS1 != 1}">
+                        <apex:inputField value="{!Account.FATCA_Form_Completed__c}" tabOrderHint="1" id="fatcaFrom"/>
+                        <apex:inputField value="{!Account.KYC_CCI1_Completed__c}" tabOrderHint="2" id="kyccci"/>
+                        <!-- Add Space -->
+                        <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                        <!-- <apex:outputField value="" /> -->
+                        <!-- Lookup BRC -->
+                        <apex:inputField value="{!Account.RTL_Assigned_BRC__c}" tabOrderHint="1" id="assignedBRC"/>
+                        <apex:inputField value="{!Account.RTL_OnSite_Service__c}"/>
+                 </apex:pageblocksection>
+                <apex:pageblocksection title="{!$Label.Personalized_Information}" columns="{!displayS1}" rendered="{!displayS1 != 1}">
+                <apex:inputField value="{!Account.Hobbies__c}" tabOrderHint="1" id="tabIndex1"/>
+                <apex:inputField value="{!Account.RTL_Special_Pref__c}" tabOrderHint="6" id="tabIndex2"/>
+                <apex:inputField value="{!Account.Favorite_Sport__c}" tabOrderHint="2"/>
+                <apex:inputField value="{!Account.RTL_Life_Objective_1__c}" tabOrderHint="7"/>
+                <apex:inputField value="{!Account.RTL_Lifestyle__c}" tabOrderHint="3"/>
+                <apex:inputField value="{!Account.RTL_Life_Objective_2__c}" tabOrderHint="8"/>
+                <apex:inputField value="{!Account.RTL_Preferred_Activity__c}" tabOrderHint="4"/>
+                <apex:inputField value="{!Account.RTL_Life_Objective_3__c}" tabOrderHint="9"/>
+                <apex:inputField value="{!Account.RTL_Other1__c}" tabOrderHint="5"/>
+                <apex:inputField value="{!Account.RTL_Other2__c}" tabOrderHint="10"/>
+            </apex:pageblocksection>
+            <apex:pageblocksection title="{!$Label.Personalized_Information}" columns="{!displayS1}" rendered="{!displayS1 == 1}">
+                <apex:inputField value="{!Account.Hobbies__c}"/>
+                <apex:inputField value="{!Account.Favorite_Sport__c}"/>
+                <apex:inputField value="{!Account.RTL_Lifestyle__c}"/>
+                <apex:inputField value="{!Account.RTL_Preferred_Activity__c}"/>
+                <apex:inputField value="{!Account.RTL_Other1__c}"/>
+                <apex:inputField value="{!Account.RTL_Special_Pref__c}"/>
+                <apex:inputField value="{!Account.RTL_Life_Objective_1__c}"/>
+                <apex:inputField value="{!Account.RTL_Life_Objective_2__c}"/>
+                <apex:inputField value="{!Account.RTL_Life_Objective_3__c}"/>                                              
+                <apex:inputField value="{!Account.RTL_Other2__c}"/>
+            </apex:pageblocksection>            
+                 </apex:outputPanel>
+                <apex:outputPanel rendered="{!!isVisiblePerInfo}" >
+                    <apex:pageblocksection title="{!$Label.Personalized_Information}" columns="{!displayS1}" rendered="{!displayS1 != 1}">
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.Hobbies__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Special_Pref__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.Favorite_Sport__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Life_Objective_1__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+               <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Lifestyle__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Life_Objective_2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Preferred_Activity__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Life_Objective_3__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Other1__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Other2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageblocksection>
+                    <apex:pageblocksection title="{!$Label.Personalized_Information}" columns="{!displayS1}" rendered="{!displayS1 == 1}">
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.Hobbies__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+               <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.Favorite_Sport__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Lifestyle__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Preferred_Activity__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Other1__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+               <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Special_Pref__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Life_Objective_1__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Life_Objective_2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Life_Objective_3__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                 <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Other2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageblocksection>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:outputPanel id="ContactNumberAndEmailAddress">
+                <apex:outputPanel rendered="{!isVisibleContNum}" >
+                    <apex:pageblocksection title="{!$Label.Contact_Number_and_Email_Address}" columns="{!displayS1}" rendered="{!displayS1 != 1}">
+                <apex:inputField value="{!Account.RTL_Preferred_Contact_Channel__c }" tabOrderHint="11"/>
+                <apex:inputField value="{!Account.RTL_Alternative_Contact_Channel__c }" tabOrderHint="12"/>
+                <apex:outputField value="{!Account.C_Home_phone_PE__c }"/>
+                <apex:inputField value="{!Account.RTL_Alternative_Number__c }" tabOrderHint="13"/>
+                <apex:outputField value="{!Account.Mobile_Number_PE__c }"/>
+                <apex:outputField value="{!Account.Email_Address_PE__c }"/>
+                <apex:outputField value="{!Account.RTL_Office_Phone_Number__c }"/>
+                <apex:outputField value="{!Account.RTL_Email_2__c }"/>
+                <apex:outputField value="{!Account.Fax}"/>
+            </apex:pageblocksection>
+            <apex:pageblocksection title="{!$Label.Contact_Number_and_Email_Address}" columns="{!displayS1}" rendered="{!displayS1 == 1}">
+                <apex:inputField value="{!Account.RTL_Preferred_Contact_Channel__c }"/>
+                <apex:outputField value="{!Account.C_Home_phone_PE__c }"/>
+                <apex:outputField value="{!Account.Mobile_Number_PE__c }"/>
+                <apex:outputField value="{!Account.RTL_Office_Phone_Number__c }"/>
+                <apex:outputField value="{!Account.Fax}"/>
+                <apex:inputField value="{!Account.RTL_Alternative_Contact_Channel__c }"/>  
+                <apex:inputField value="{!Account.RTL_Alternative_Number__c }"/> 
+                <apex:outputField value="{!Account.Email_Address_PE__c }"/>             
+                <apex:outputField value="{!Account.RTL_Email_2__c }"/>
+            </apex:pageblocksection>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!!isVisibleContNum}" >
+                    <apex:pageblocksection title="{!$Label.Contact_Number_and_Email_Address}" columns="{!displayS1}" rendered="{!displayS1 != 1}">
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Preferred_Contact_Channel__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Alternative_Contact_Channel__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.C_Home_phone_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Alternative_Number__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.Mobile_Number_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                 <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.Email_Address_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Office_Phone_Number__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Email_2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.Fax.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageblocksection>
+                    <apex:pageblocksection title="{!$Label.Contact_Number_and_Email_Address}" columns="{!displayS1}" rendered="{!displayS1 == 1}">
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Preferred_Contact_Channel__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.C_Home_phone_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.Mobile_Number_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Office_Phone_Number__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                 <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.Fax.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Alternative_Contact_Channel__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Alternative_Number__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.Email_Address_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+               <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Email_2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageblocksection>
+                </apex:outputPanel>
+            </apex:outputPanel>
+            
+            <apex:outputPanel id="AlternateContactInformation">
+                <apex:outputPanel rendered="{!isVisibleAltContInfo}" >
+                    <apex:pageblocksection title="{!$Label.Alternate_Contact_Information}" columns="{!displayS1}" rendered="{!displayS1 != 1}">
+                <apex:inputField value="{!Account.RTL_Contact_Person_Name_1__c }" tabOrderHint="14"/>
+                <apex:inputField value="{!Account.RTL_Contact_Person_Name_2__c }" tabOrderHint="18"/>                
+                <apex:inputField value="{!Account.RTL_Contact_Person_Number_1__c }" tabOrderHint="15"/> 
+                <apex:inputField value="{!Account.RTL_Contact_Person_Number_2__c }" tabOrderHint="19"/>            
+                <apex:inputField value="{!Account.RTL_Purpose_for_Contact1__c }" tabOrderHint="16"/>
+                <apex:inputField value="{!Account.RTL_Purpose_of_Contact2__c }" tabOrderHint="20"/>                
+                <apex:inputField value="{!Account.RTL_Relationship_Contact_1__c }" tabOrderHint="17"/>
+                <apex:inputField value="{!Account.RTL_Relationship_Contact_2__c }" tabOrderHint="21"/>
+            </apex:pageblocksection>            
+            <apex:pageblocksection title="{!$Label.Alternate_Contact_Information}" columns="{!displayS1}" rendered="{!displayS1 == 1}">
+                <apex:inputField value="{!Account.RTL_Contact_Person_Name_1__c }"/>
+                <apex:inputField value="{!Account.RTL_Contact_Person_Number_1__c }"/>              
+                <apex:inputField value="{!Account.RTL_Purpose_for_Contact1__c }"/>
+                <apex:inputField value="{!Account.RTL_Relationship_Contact_1__c }"/>
+                <apex:inputField value="{!Account.RTL_Contact_Person_Name_2__c }"/>
+                <apex:inputField value="{!Account.RTL_Contact_Person_Number_2__c }"/>
+                <apex:inputField value="{!Account.RTL_Purpose_of_Contact2__c }"/>
+                <apex:inputField value="{!Account.RTL_Relationship_Contact_2__c }"/>
+            </apex:pageblocksection>
+                </apex:outputPanel>
+                <apex:outputPanel rendered="{!!isVisibleAltContInfo}" >
+                    <apex:pageblocksection title="{!$Label.Alternate_Contact_Information}" columns="{!displayS1}" rendered="{!displayS1 != 1}">
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Contact_Person_Name_1__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Contact_Person_Name_2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Contact_Person_Number_1__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Contact_Person_Number_2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Purpose_for_Contact1__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Purpose_of_Contact2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Relationship_Contact_1__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Relationship_Contact_2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageblocksection>
+                    <apex:pageblocksection title="{!$Label.Alternate_Contact_Information}" columns="{!displayS1}" rendered="{!displayS1 == 1}">
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Contact_Person_Name_1__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Contact_Person_Number_1__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Purpose_for_Contact1__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Relationship_Contact_1__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                 <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Contact_Person_Name_2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Contact_Person_Number_2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+               <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Purpose_of_Contact2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Account.Fields.RTL_Relationship_Contact_2__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageblocksection>
+                </apex:outputPanel>
+            </apex:outputPanel>
+       
+        </apex:pageblock>
+    </apex:form>
+</apex:page>

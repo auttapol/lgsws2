@@ -1,0 +1,898 @@
+<aura:component controller="T_Performance_P3Controller"
+    implements="force:hasRecordId,lightning:utilityItem,flexipage:availableForAllPageTypes,lightning:isUrlAddressable,force:appHostable">
+    <!-- Section A -->
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="currentYear" type="String" />
+    <aura:attribute name="previousYear" type="String" />
+    <aura:attribute name="selectedYear" type="String" />
+    <aura:attribute name="yearList" type="List" />
+    <aura:attribute name="monthLst" type="List" />
+    <aura:attribute name="loaded" type="Boolean" default="false" />
+    <aura:attribute name="branchInfo" type="Map" default="{}" />
+    <aura:attribute name="sectionAData" type="Map" default="{}" />
+    <aura:attribute name="branchSectionC" type="Map" default="{}" />
+    <aura:attribute name="empId" type="String" />
+    <aura:attribute name="userType" type="String" default="Branch" />
+    <aura:attribute name="branchCode" type="String" default="" />
+    <aura:attribute name="channel" type="String" default="Branch" />
+    <aura:attribute name="region" type="String" default="" />
+    <aura:attribute name="zone" type="String" default="" />
+    <aura:attribute name="branchData" type="Object" />
+    <aura:attribute name="currentMonthKPI" type="Object" />
+    <aura:attribute name="lastSaleInfo" type="Object" />
+    <aura:attribute name="offset" type="Integer" default="0" />
+    <aura:attribute name="offsetDisplay" type="Integer" default="0" />
+    <aura:attribute name="offsetTime" type="Integer" default="0" />
+    <aura:attribute name="titleMonth" type="String" />
+    <aura:attribute name="monthGap" type="Integer" default="1" />
+    <aura:attribute name="loading" type="Boolean" />
+    <aura:attribute name="dataLastMonth" type="Integer" />
+    <aura:attribute name="targetLastMonth" type="Integer" />
+    <!-- Section c prev year-->
+    <aura:attribute name="branchSectionCPrev" type="Map" default="{}" />
+    <!-- Water Mark -->
+    <aura:attribute name="waterMarkImage" type="String" />
+    <aura:attribute name="arrowDirection" type="string" default="arrowup" />
+    <aura:attribute name="sortAsc" type="boolean" default="true" />
+    <aura:attribute name="sortField" type="String" />
+    <lightning:navigation aura:id="navService" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <aura:attribute name="sumTransactionBankWide" type="List" />
+    <aura:attribute name="loadingBankwide" type="Boolean" />
+    <aura:attribute name="saleInGraph" type="Object" default="{ avgIndividual:null, avgBankWide:null }" />
+    <aura:attribute name="saleOutGraph" type="Object" default="{ avgIndividual:null, avgBankWide:null }" />
+    <aura:attribute name="rascGraph" type="Map" default="{ avgIndividual:null, avgBankWide:null }" />
+    <aura:attribute name="saleInLoading" type="Boolean" />
+    <aura:attribute name="saleOutLoading" type="Boolean" />
+    <aura:attribute name="rascLoading" type="Boolean" />
+    <aura:attribute name="lastPerfInDB" type="Sale_Info__c" />
+    <aura:attribute name="helpLink" type="String" />
+    <aura:attribute name="summaryLink" type="String" />
+    <aura:attribute name="lastSaleInfoInDB" type="Sale_Info__c" />
+
+    <div class="page-container" style="position: relative;">
+
+        
+        <!-- Branch -->
+        <aura:if isTrue="{!v.userType == 'Branch'}">
+            <div class="slds-no-print">
+                <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-card"
+                        style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                        <aura:if isTrue="{!or(v.loading, v.loadingBankwide)}">
+                            <div class="exampleHolder">
+                                <lightning:spinner style="z-index: 1" alternativeText="Loading" size="medium" />
+                            </div>
+                        </aura:if>
+                        <div class="slds-card__body slds-card__body_inner padding-card"
+                            style="flex-direction: row; display: flex;">
+                            <div class="slds-col">
+                                <div class="section-row">
+                                    <span class="f_title">Manager Name: {!v.sectionAData.managerName}</span>
+                                    <span></span>
+                                </div>
+                                <div class="section-row">
+                                    <span class="f_title">Branch: {!v.sectionAData.Team_Name_TH__c}</span>
+                                    <span></span>
+                                </div>
+                                <div class="section-row">
+                                    <span class="f_title">Branch Tier: {!v.sectionAData.Branch_Tier__c}</span>
+                                    <span></span>
+                                </div>
+                            </div>
+                            <div class="slds-col">
+                                <div class="section-row">
+                                    <span class="f_title">Branch Type: {!v.sectionAData.Branch_Type__c}</span>
+                                    <span></span>
+                                </div>
+                                <div class="section-row">
+                                    <span class="f_title">Working Day: {!v.sectionAData.Working_Day__c}</span>
+                                    <span></span>
+                                </div>
+                                <div class="section-row">
+                                    <span class="f_title">Office Hours: {!v.sectionAData.Office_Hour__c}</span>
+                                    <span></span>
+                                </div>
+                            </div>
+                            <div class="slds-col">
+                                <div class="section-row">
+                                    <span class="f_title">Address: {!v.sectionAData.Address__c}</span>
+                                    <span></span>
+                                </div>
+                                <div class="section-row">
+                                    <span class="f_title">Phone: {!v.sectionAData.Phone__c}</span>
+                                    <span></span>
+                                </div>
+                            </div>
+                            <div class="btn-section"  style="min-width: 290px;">
+                                <lightning:button label="Help &amp; คู่มือ" iconName="utility:help"
+                                    onclick="{!c.onClickHelp}"></lightning:button>
+                                <lightning:button label="Branch Summary" iconName="standard:document"
+                                    onclick="{!c.onClickSummary}" class="summary-button"></lightning:button>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <!-- Section B -->
+                <!-- Section B Head -->
+                <div class="slds-col slds-size_1-of-1" style="margin-top:1em">
+                    <article class="slds-card"
+                        style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                        <div class="slds-card__body slds-card__body_inner padding-card"
+                            style="flex-direction: row; display: flex;">
+                            <div class="slds-col slds-size_2-of-3">
+                                <div class="section-row">
+                                    <span class="f_title" style="line-height: 35px;">Customer / Average Transaction per day
+                                        as
+                                        of
+                                        {!v.titleMonth} (Official)</span>
+                                    <span></span>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-3">
+                                <div class="section-row">
+                                    <fieldset class="slds-form-element">
+                                        <div style="display: flex; justify-content: flex-end;">
+                                            <div class="sub-select-title">
+                                                <span style="font-size: 11px;line-height: 35px;margin-right: 10px;">Select
+                                                    Year</span>
+                                            </div>
+                                            <div>
+                                                <lightning:select name="select" value="{!v.selectedYear}"
+                                                    variant="label-hidden" class="label-hidden"
+                                                    onchange="{!c.handleChangeYear}" disabled="{!or(v.saleOutLoading, v.saleInLoading)}">
+                                                    <aura:iteration items="{!v.yearList}" var="year">
+                                                        <option text="{!year}" value="{!year}"
+                                                            selected="{!year == v.selectedYear}" />
+                                                    </aura:iteration>
+                                                </lightning:select>
+                                            </div>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <!-- Section B Body -->
+                <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-card"
+                        style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                        
+                        <aura:if isTrue="{!or(v.saleOutLoading, v.saleInLoading)}">
+                            <div class="exampleHolder">
+                                <lightning:spinner style="z-index: 1" alternativeText="Loading" size="medium" />
+                            </div>
+                        </aura:if>
+                        <div class="slds-card__body slds-card__body_inner padding-card"
+                            style="flex-direction: row; display: flex;">
+                            <div class="slds-col slds-size_1-of-3">
+                                <div class="section-row">
+                                    <div style="display:flex;justify-content:space-around;">
+                                        <!-- Left -->
+                                        <div class="border-rounded" style="width:50%; height:350px; padding-left: 10px;">
+                                            <b style="text-decoration: underline;">Customer</b>
+                                            <div style="margin: 10px; display:flex;">
+                                                <div class="license-circle">
+                                                    <span class="license">C</span>
+                                                </div>
+                                                <span style="line-height:15px;">{!v.sectionAData.totalCustomers} <br />
+                                                    <span class="text-ghost">Total Customer (BRC) </span>
+                                                </span>
+                                            </div>
+
+                                            <div style="margin: 10px; display:flex;">
+                                                <div class="license-circle">
+                                                    <span class="license">A</span>
+                                                </div>
+                                                <span style="line-height:15px;">{!v.sectionAData.totalActiveCustomers}
+                                                    <br />
+                                                    <span class="text-ghost">Total Active Customer (BRC)</span> </span>
+                                            </div>
+                                            <div style="margin: 10px; display:flex;">
+                                                <div class="license-circle">
+                                                    <span class="license">M</span>
+                                                </div>
+                                                <span
+                                                    style="line-height:15px;">{!v.sectionAData.totalMainBankCustomers}<br />
+                                                    <span class="text-ghost">Main Bank Customer (BRC)</span></span>
+                                            </div>
+
+                                            <div style="margin: 10px; display:flex;">
+                                                <div class="license-circle">
+                                                    <span class="license">N</span>
+                                                </div>
+                                                <span style="line-height:15px;">
+                                                    {!v.sectionAData.netPromoterScore}<br />
+                                                    <span class="text-ghost">Net Promoter Score (NPS)</span>
+                                                </span>
+                                            </div>
+
+                                        </div>
+                                        <!-- Right -->
+                                        <div class="border-rounded" style="width:50%; height:350px; padding-left: 10px;">
+                                            <b style="text-decoration: underline;">Avg. Transaction per day</b>
+                                            <div style="margin: 10px; display:flex;">
+                                                <div class="license-circle">
+                                                    <span class="license">B</span>
+                                                </div>
+                                                <span style="line-height:15px;">
+                                                    {!v.sectionAData.branchTransactions}<br />
+                                                    <span class="text-ghost">Branch Transaction</span>
+                                                </span>
+                                            </div>
+
+                                            <div style="margin: 10px; display:flex;">
+                                                <div class="license-circle">
+                                                    <span class="license">A</span>
+                                                </div>
+                                                <span style="line-height:15px;">
+                                                    {!v.sectionAData.atmTransactions}<br />
+                                                    <span class="text-ghost">ATM Transaction</span>
+                                                </span>
+                                            </div>
+                                            <div style="margin: 10px; display:flex;">
+                                                <div class="license-circle">
+                                                    <span class="license">D</span>
+                                                </div>
+                                                <span style="line-height:15px;">
+                                                    {!v.sectionAData.digitalTransactions}<br />
+                                                    <span class="text-ghost">Digital Transaction</span>
+                                                </span>
+                                            </div>
+
+                                            <div style="margin: 10px; display:flex;">
+                                                <div class="license-circle">
+                                                    <span class="license">T</span>
+                                                </div>
+                                                <span style="line-height:15px;">
+                                                    {!v.sectionAData.totalTransactions}<br />
+                                                    <span class="text-ghost">Total Transaction</span>
+                                                </span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Section C -->
+                            <div class="slds-col slds-size_2-of-3 border-rounded" style="padding: 15px;">
+                                <div class="section-row" style="display: flex;justify-content:space-around;">
+                                    <c:T_Performance_P3_SectionC chartID="chartSaleOut" branchName="Outside branch"
+                                        isLoadData="{!v.saleOutLoading}" individual="{!v.saleOutGraph.avgIndividual}"
+                                        bankwide="{!v.saleOutGraph.avgBankWide}" />
+                                    <c:T_Performance_P3_SectionC chartID="chartSaleIn" branchName="Inside branch"
+                                        isLoadData="{!v.saleInLoading}" individual="{!v.saleInGraph.avgIndividual}"
+                                        bankwide="{!v.saleInGraph.avgBankWide}" />
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <!-- Section D -->
+                <div class="slds-col slds-size_1-of-1" style="margin-top: 10px;">
+                    <article class="slds-card">
+                        <aura:if isTrue="{!or(v.loading, v.loadingBankwide)}">
+                            <div class="exampleHolder">
+                                <lightning:spinner style="z-index: 1" alternativeText="Loading" size="medium" />
+                            </div>
+                        </aura:if>
+                        <div class="slds-card__body slds-card__body_inner padding-card">
+                            <div class="slds-scrollable--x">
+                                <table class="slds-table slds-table_cell-buffer slds-table_bordered"
+                                    style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                                    <thead>
+                                        <tr class="slds-line-height_reset">
+                                            <th class="slds-text-title_caps" colspan="17">
+                                                <div class="slds-truncate flex justify-end">
+                                                    <div class="flex">
+                                                        <lightning:button label="Previous" disabled="{!v.offsetTime == 0}"
+                                                            onclick="{!c.handlePrevious}" />
+                                                        <span class="offset-text">{!v.offsetDisplay}</span>
+                                                        <!-- <lightning:button label="Next" disabled="{!v.offsetDisplay >= v.branchData.totalElements}" onclick="{!c.handleNext}" /> -->
+                                                    </div>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                        <tr class="slds-line-height_reset">
+                                            <th class="slds-text-title_caps header-sort table-head" scope="col" rowspan="3"
+                                                onclick="{!c.sortBy}" data-value="position">
+                                                <div class="slds-truncate" title="Position" data-value="position"
+                                                    style="text-align:center">Position
+                                                    <span data-value="position"
+                                                        class="{!v.sortField == 'position' ? '' : 'unsort'}">
+                                                        <aura:if isTrue="{!v.sortField !='position'}">
+                                                            &#8597;
+                                                            <aura:set attribute="else">
+                                                                <aura:if isTrue="{!v.sortAsc}">
+                                                                    &#8593;
+                                                                    <aura:set attribute="else">
+                                                                        &#8595;
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="slds-text-title_caps header-sort table-head"  scope="col" rowspan="3"
+                                                onclick="{!c.sortBy}" data-value="name" style="text-align:center">
+                                                <div class="slds-truncate" title="Sales Staff" data-value="name"
+                                                    style="text-align:center;">Sales Staff
+                                                    <span data-value="name"
+                                                        class="{!v.sortField == 'name' ? '' : 'unsort'}">
+                                                        <aura:if isTrue="{!v.sortField !='name'}">
+                                                            &#8597;
+                                                            <aura:set attribute="else">
+                                                                <aura:if isTrue="{!v.sortAsc}">
+                                                                    &#8593;
+                                                                    <aura:set attribute="else">
+                                                                        &#8595;
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="slds-text-title_caps header-sort table-head" scope="col" rowspan="3"
+                                                onclick="{!c.sortBy}" data-value="yearMonthOnService">
+                                                <div class="slds-truncate" title="Year on Service"
+                                                    data-value="yearMonthOnService" style="text-align:center; margin-left: 20px;" >Year on Service
+                                                    <span data-value="yearMonthOnService"
+                                                        class="{!v.sortField == 'yearMonthOnService' ? '' : 'unsort'}">
+                                                        <aura:if isTrue="{!v.sortField !='yearMonthOnService'}">
+                                                            &#8597;
+                                                            <aura:set attribute="else">
+                                                                <aura:if isTrue="{!v.sortAsc}">
+                                                                    &#8593;
+                                                                    <aura:set attribute="else">
+                                                                        &#8595;
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th class="slds-text-title_caps" scope="col" colspan="15"
+                                                style="text-align: center;">
+                                                Financial Pillar Success (Unit: %)
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th class="slds-text-title_caps header-sort table-head" scope="col" onclick="{!c.sortBy}"
+                                                data-value="yearKPI">
+                                                <div class="slds-truncate" title="Year" data-value="yearKPI"
+                                                    style="text-align:center; margin-right: 10px;">Year
+                                                    <span data-value="yearKPI"
+                                                        class="{!v.sortField == 'yearKPI' ? '' : 'unsort'}">
+                                                        <aura:if isTrue="{!v.sortField !='yearKPI'}">
+                                                            &#8597;
+                                                            <aura:set attribute="else">
+                                                                <aura:if isTrue="{!v.sortAsc}">
+                                                                    &#8593;
+                                                                    <aura:set attribute="else">
+                                                                        &#8595;
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="slds-text-title_caps header-sort table-head" scope="col" onclick="{!c.sortBy}"
+                                                data-value="currentKPI">
+                                                <div class="slds-truncate" title="Current Month" data-value="currentKPI"
+                                                    style="text-align:center">Current Month
+                                                    <span data-value="currentKPI"
+                                                        class="{!v.sortField == 'currentKPI' ? '' : 'unsort'}">
+                                                        <aura:if isTrue="{!v.sortField !='currentKPI'}">
+                                                            &#8597;
+                                                            <aura:set attribute="else">
+                                                                <aura:if isTrue="{!v.sortAsc}">
+                                                                    &#8593;
+                                                                    <aura:set attribute="else">
+                                                                        &#8595;
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <aura:iteration items="{!v.monthLst}" var="month" indexVar="index">
+                                                <th class="slds-text-title_caps header-sort table-head" onclick="{!c.sortBy}"
+                                                    data-value="{!month.field}">
+                                                    <div class="slds-truncate" title="" data-value="{!month.field}"
+                                                        style="text-align: center;">
+                                                        {!month.init}
+                                                        <span data-value="{!month.field}"
+                                                            class="{!v.sortField == month.field ? '' : 'unsort'}">
+                                                            <aura:if isTrue="{!v.sortField != month.field}">
+                                                                &#8597;
+                                                                <aura:set attribute="else">
+                                                                    <aura:if isTrue="{!v.sortAsc}">
+                                                                        &#8593;
+                                                                        <aura:set attribute="else">
+                                                                            &#8595;
+                                                                        </aura:set>
+                                                                    </aura:if>
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </span>
+                                                    </div>
+                                                </th>
+                                            </aura:iteration>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <aura:iteration items="{!v.branchData}" var="sale" indexVar="index">
+                                            <tr class="slds-hint-parent">
+                                                <td class="slds-text-title_caps" align="center">
+                                                    <div class="slds-truncate" title="">{!sale.position}</div>
+                                                </td>
+                                                <td class="slds-text-title_caps" align="center">
+                                                    <a id="{!sale.saleInfo.Employee_ID__c}" onclick="{!c.navigate}">
+                                                        {!sale.name}
+                                                    </a>
+                                                </td>
+                                                <td align="center" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="" style="text-align:center">
+                                                        {!sale.durationJoin}</div>
+                                                </td>
+                                                <td align="center" bgcolor="{!sale.yearKPIColor}" style="text-align:center"
+                                                    class="slds-text-title_caps">
+                                                    {!sale.yearKPILabel}
+                                                </td>
+                                                <td align="center" bgcolor="{!sale.currentKPIColor}"
+                                                    style="text-align:center" class="slds-text-title_caps">
+                                                    {!sale.currentKPILabel}
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.janKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.febKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.marKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.aprKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.mayKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.junKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.julKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.augKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.sepKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.octKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.novKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.decKPILabel}</div>
+                                                </td>
+                                            </tr>
+                                        </aura:iteration>
+                                    </tbody>
+                                </table>
+                                <div class="slds-align_absolute-center slds-no-flex" style="margin-top:10px">
+
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </aura:if>
+
+        <!-- RASC -->
+        <aura:if isTrue="{!v.userType == 'RASC'}">
+            <div class="slds-no-print">
+                <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-card"
+                        style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                        <aura:if isTrue="{!or(v.loading, v.loadingBankwide)}">
+                            <div class="exampleHolder">
+                                <lightning:spinner style="z-index: 1" alternativeText="Loading" size="medium" />
+                            </div>
+                        </aura:if>
+                        <div class="slds-card__body slds-card__body_inner padding-card"
+                            style="flex-direction: row; display: flex;">
+                            <div class="slds-col">
+                                <div class="section-row">
+                                    <span class="f_title">Manager :
+                                        {!v.sectionAData.T_Performance_Team__r.Branch_Team_Manager__c}</span>
+                                    <span></span>
+                                </div>
+                                <div class="section-row">
+                                    <span class="f_title">Team: {!v.sectionAData.Team_Name_TH__c}</span>
+                                    <span></span>
+                                </div>
+                                <div class="section-row">
+                                    <span class="f_title">Team Head: {!v.sectionAData.Branch_Tier__c}</span>
+                                    <span></span>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="section-row">
+                                    <span class="f_title">Branch Type: {!v.sectionAData.Branch_Type__c}</span>
+                                    <span></span>
+                                </div>
+                                <div class="section-row">
+                                    <span class="f_title">Working Day: {!v.sectionAData.Working_Day__c}</span>
+                                    <span></span>
+                                </div>
+                            </div>
+                            <div class="slds-col">
+                                <div class="section-row">
+                                    <span class="f_title">Address: {!v.sectionAData.Address__c}</span>
+                                    <span></span>
+                                </div>
+                                <div class="section-row">
+                                    <span class="f_title">Phone: {!v.sectionAData.Phone__c}</span>
+                                    <span></span>
+                                </div>
+                            </div>
+                            <div class="btn-section " >
+                                <lightning:button label="Help &amp; คู่มือ" iconName="utility:help"
+                                    onclick="{!c.onClickHelp}"></lightning:button>
+                                <!-- <lightning:button label="Branch Summary" iconName="standard:document"
+                                    onclick="{!c.onClickSummary}" class="summary-button"></lightning:button> -->
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <!-- Section B -->
+                <!-- Section B Head -->
+                <div class="slds-col slds-size_1-of-1" style="margin-top:1em">
+                    <article class="slds-card"
+                        style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                        <div class="slds-card__body slds-card__body_inner padding-card"
+                            style="flex-direction: row; display: flex;">
+                            <div class="slds-col slds-size_2-of-3">
+                                <div class="section-row">
+                                    <span class="f_title" style="line-height: 35px;">Customer / Average Transaction per day
+                                        as
+                                        of
+                                        {!v.titleMonth} (Official)</span>
+                                    <span></span>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-3">
+                                <div class="section-row">
+                                    <fieldset class="slds-form-element">
+                                        <div style="display: flex; justify-content: flex-end;">
+                                            <div class="sub-select-title">
+                                                <span style="font-size: 11px;line-height: 35px;margin-right: 10px;">Select
+                                                    Year</span>
+                                            </div>
+                                            <lightning:select name="select" value="{!v.selectedYear}" variant="label-hidden"
+                                                class="label-hidden" onchange="{!c.handleChangeYear}" disabled="{! v.rascLoading}">
+                                                <aura:iteration items="{!v.yearList}" var="year">
+                                                    <option text="{!year}" value="{!year}"
+                                                        selected="{!year == v.selectedYear}" />
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </div>
+                                    </fieldset>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <!-- Section B Body -->
+                <div class="slds-col slds-size_1-of-1">
+                    <article class="slds-card"
+                        style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                        <aura:if isTrue="{!(v.rascLoading)}">
+                            <div class="exampleHolder">
+                                <lightning:spinner style="z-index: 1" alternativeText="Loading" size="medium" />
+                            </div>
+                        </aura:if>
+                        <div class="slds-card__body slds-card__body_inner padding-card"
+                            style="flex-direction: row; display: flex;">
+                            <div class="slds-col slds-size_1-of-3 border-rounded" style="padding: 15px;">
+                                <div class="section-row">
+                                    <div style="display:flex;justify-content:center;">
+                                        <div style="">
+                                            <b style="text-decoration: underline;">Customer</b>
+                                            <div style="margin: 10px; display:flex;">
+                                                <div class="license-circle">
+                                                    <span class="license">C</span>
+                                                </div>
+                                                <span style="line-height:15px;">{!v.sectionAData.totalCustomers} <br />
+                                                    <span class="text-ghost">Total Customer (BRC) </span>
+                                                </span>
+                                            </div>
+
+                                            <div style="margin: 10px; display:flex;">
+                                                <div class="license-circle">
+                                                    <span class="license">A</span>
+                                                </div>
+                                                <span style="line-height:15px;">{!v.sectionAData.totalActiveCustomers}
+                                                    <br />
+                                                    <span class="text-ghost">Total Active Customer (BRC)</span> </span>
+                                            </div>
+                                            <div style="margin: 10px; display:flex;">
+                                                <div class="license-circle">
+                                                    <span class="license">M</span>
+                                                </div>
+                                                <span
+                                                    style="line-height:15px;">{!v.sectionAData.totalMainBankCustomers}<br />
+                                                    <span class="text-ghost">Main Bank Customer (BRC)</span></span>
+                                            </div>
+
+                                            <div style="margin: 10px; display:flex;">
+                                                <div class="license-circle">
+                                                    <span class="license">N</span>
+                                                </div>
+                                                <span style="line-height:15px;">
+                                                    {!v.sectionAData.netPromoterScore}<br />
+                                                    <span class="text-ghost">Net Promoter Score (NPS)</span>
+                                                </span>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- Section C -->
+                            <div class="slds-col slds-size_2-of-3 border-rounded" style="padding: 15px;">
+                                <div class="section-row" style="display: flex;justify-content:space-around;">
+                                    <c:T_Performance_P3_SectionC chartID="chartRASC" branchName="{!v.channel}"
+                                        isLoadData="{!v.rascLoading}" individual="{!v.rascGraph.avgIndividual}"
+                                        bankwide="{!v.rascGraph.avgBankWide}" />
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+                <!-- Section D -->
+                <div class="slds-col slds-size_1-of-1" style="margin-top: 10px;">
+                    <article class="slds-card">
+                        <aura:if isTrue="{!or(v.loading, v.loadingBankwide)}">
+                            <div class="exampleHolder">
+                                <lightning:spinner style="z-index: 1" alternativeText="Loading" size="medium" />
+                            </div>
+                        </aura:if>
+                        <div class="slds-card__body slds-card__body_inner padding-card">
+                            <div class="slds-scrollable--x">
+                                <table class="slds-table slds-table_cell-buffer slds-table_bordered"
+                                    style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                                    <thead>
+                                        <tr class="slds-line-height_reset">
+                                            <th class="slds-text-title_caps" colspan="17">
+                                                <div class="slds-truncate flex justify-end">
+                                                    <div class="flex">
+                                                        <lightning:button label="Previous" disabled="{!v.offsetTime == 0}"
+                                                            onclick="{!c.handlePrevious}" />
+                                                        <span class="offset-text">{!v.offsetDisplay}</span>
+                                                        <!-- <lightning:button label="Next" disabled="{!v.offsetDisplay >= v.branchData.totalElements}" onclick="{!c.handleNext}" /> -->
+                                                    </div>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                        <tr class="slds-line-height_reset">
+                                            <th class="slds-text-title_caps header-sort table-head" scope="col" rowspan="3"
+                                                onclick="{!c.sortBy}" data-value="position">
+                                                <div class="slds-truncate" title="Position" data-value="position"
+                                                    style="text-align:center">Position
+                                                    <span data-value="position"
+                                                        class="{!v.sortField == 'position' ? '' : 'unsort'}">
+                                                        <aura:if isTrue="{!v.sortField !='position'}">
+                                                            &#8597;
+                                                            <aura:set attribute="else">
+                                                                <aura:if isTrue="{!v.sortAsc}">
+                                                                    &#8593;
+                                                                    <aura:set attribute="else">
+                                                                        &#8595;
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="slds-text-title_caps header-sort table-head" scope="col" rowspan="3"
+                                                onclick="{!c.sortBy}" data-value="name">
+                                                <div class="slds-truncate" title="Sales Staff" data-value="name"
+                                                    style="text-align:center">Sales Staff
+                                                    <span data-value="name"
+                                                        class="{!v.sortField == 'name' ? '' : 'unsort'}">
+                                                        <aura:if isTrue="{!v.sortField !='name'}">
+                                                            &#8597;
+                                                            <aura:set attribute="else">
+                                                                <aura:if isTrue="{!v.sortAsc}">
+                                                                    &#8593;
+                                                                    <aura:set attribute="else">
+                                                                        &#8595;
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="slds-text-title_caps header-sort table-head" scope="col" rowspan="3"
+                                                onclick="{!c.sortBy}" data-value="yearMonthOnService">
+                                                <div class="slds-truncate" title="Year on Service"
+                                                    data-value="yearMonthOnService" style="text-align:center; margin-left: 20px;" >Year on Service
+                                                    <span data-value="yearMonthOnService"
+                                                        class="{!v.sortField == 'yearMonthOnService' ? '' : 'unsort'}">
+                                                        <aura:if isTrue="{!v.sortField !='yearMonthOnService'}">
+                                                            &#8597;
+                                                            <aura:set attribute="else">
+                                                                <aura:if isTrue="{!v.sortAsc}">
+                                                                    &#8593;
+                                                                    <aura:set attribute="else">
+                                                                        &#8595;
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th class="slds-text-title_caps" scope="col" colspan="15"
+                                                style="text-align: center;">
+                                                Financial Pillar Success (Unit: %)
+                                            </th>
+                                        </tr>
+                                        <tr>
+                                            <th class="slds-text-title_caps header-sort table-head" scope="col" onclick="{!c.sortBy}"
+                                                data-value="yearKPI">
+                                                <div class="slds-truncate" title="Year" data-value="yearKPI"
+                                                    style="text-align:center ; margin-right: 10px;">Year
+                                                    <span data-value="yearKPI"
+                                                        class="{!v.sortField == 'yearKPI' ? '' : 'unsort'}">
+                                                        <aura:if isTrue="{!v.sortField !='yearKPI'}">
+                                                            &#8597;
+                                                            <aura:set attribute="else">
+                                                                <aura:if isTrue="{!v.sortAsc}">
+                                                                    &#8593;
+                                                                    <aura:set attribute="else">
+                                                                        &#8595;
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <th class="slds-text-title_caps header-sort table-head" scope="col" onclick="{!c.sortBy}"
+                                                data-value="currentKPI">
+                                                <div class="slds-truncate" title="Current Month" data-value="currentKPI"
+                                                    style="text-align:center">Current Month
+                                                    <span data-value="currentKPI"
+                                                        class="{!v.sortField == 'currentKPI' ? '' : 'unsort'}">
+                                                        <aura:if isTrue="{!v.sortField !='currentKPI'}">
+                                                            &#8597;
+                                                            <aura:set attribute="else">
+                                                                <aura:if isTrue="{!v.sortAsc}">
+                                                                    &#8593;
+                                                                    <aura:set attribute="else">
+                                                                        &#8595;
+                                                                    </aura:set>
+                                                                </aura:if>
+                                                            </aura:set>
+                                                        </aura:if>
+                                                    </span>
+                                                </div>
+                                            </th>
+                                            <aura:iteration items="{!v.monthLst}" var="month" indexVar="index">
+                                                <th class="slds-text-title_caps header-sort table-head" style="text-align: center;"
+                                                    onclick="{!c.sortBy}" data-value="{!month.field}">
+                                                    <div class="slds-truncate" title="" data-value="{!month.field}"
+                                                        style="text-align: center;">
+                                                        {!month.init}
+                                                        <span data-value="{!month.field}"
+                                                            class="{!v.sortField == month.field ? '' : 'unsort'}">
+                                                            <aura:if isTrue="{!v.sortField != month.field}">
+                                                                &#8597;
+                                                                <aura:set attribute="else">
+                                                                    <aura:if isTrue="{!v.sortAsc}">
+                                                                        &#8593;
+                                                                        <aura:set attribute="else">
+                                                                            &#8595;
+                                                                        </aura:set>
+                                                                    </aura:if>
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </span>
+                                                    </div>
+                                                </th>
+                                            </aura:iteration>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <aura:iteration items="{!v.branchData}" var="sale" indexVar="index">
+                                            <tr class="slds-hint-parent">
+                                                <td align="center" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.position}</div>
+                                                </td>
+                                                <td align="center" class="slds-text-title_caps">
+                                                    <a id="{!sale.saleInfo.Employee_ID__c}" onclick="{!c.navigate}">
+                                                        {!sale.name}
+                                                    </a>
+                                                </td>
+                                                <td align="center" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="" style="text-align:center">
+                                                        {!sale.durationJoin}</div>
+                                                </td>
+                                                <td align="center" bgcolor="{!sale.yearKPIColor}" style="text-align:center"
+                                                    class="slds-text-title_caps">
+                                                    {!sale.yearKPILabel}
+                                                </td>
+                                                <td align="center" bgcolor="{!sale.currentKPIColor}"
+                                                    style="text-align:center" class="slds-text-title_caps">
+                                                    {!sale.currentKPILabel}
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.janKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.febKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.marKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.aprKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.mayKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.junKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.julKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.augKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.sepKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.octKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.novKPILabel}</div>
+                                                </td>
+                                                <td align="center" style="text-align: center;" class="slds-text-title_caps">
+                                                    <div class="slds-truncate" title="">{!sale.decKPILabel}</div>
+                                                </td>
+                                            </tr>
+                                        </aura:iteration>
+                                    </tbody>
+                                </table>
+                                <div class="slds-align_absolute-center slds-no-flex" style="margin-top:10px">
+
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </aura:if>
+    </div>
+</aura:component>

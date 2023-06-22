@@ -1,0 +1,87 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,force:lightningQuickAction,force:hasRecordId" access="global" controller="VisitReportProxyCtrl">
+    <aura:attribute name ="titleText" type="String" default =""/> 
+    <aura:attribute name ="subtitleText" type="String" default =""/> 
+    <aura:attribute name="activeSections" type="List" default="['A']" />
+    <aura:attribute name ="isEdit" type="boolean" default="false"/>
+    <aura:attribute name="planId" type="Id" default =""/>
+    <aura:attribute name="editId" type="Id" default =""/>
+    <aura:attribute name="visitReport" type="Visit_Report__c" default ="{ 'sobjectType': 'Visit_Report__c' }"/>
+    <aura:attribute name="CheckAuthorize" type="boolean" default ="false"/>
+    <aura:attribute name="theme" type="String" default =""/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+    
+    <lightning:workspaceAPI aura:id="workspace"/>
+
+    <aura:if isTrue="{!v.spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container">
+                <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                    <span class="slds-assistive-text">Loading...</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+    </aura:if>
+
+    <ui:scrollerWrapper> 
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:contact" alternativeText="VisitReport" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 class="slds-text-heading_label">
+                        {!v.titleText}
+                    </h1>
+                    <h2 class="slds-text-heading_medium">
+                        {!v.subtitleText} Visit Report
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+        
+        
+        
+    <aura:if isTrue="{!v.CheckAuthorize}">
+        <lightning:recordEditForm objectApiName="Visit_Report__c" recordId="{!v.editId}" aura:id="recordCreateForm"  onsubmit="{!c.handleSubmit}" onsuccess="{!c.handleSuccess}">
+            <lightning:messages aura:id="VisitReportMessage"/>
+            <lightning:card>
+
+            <aura:set attribute="actions">
+                <lightning:button type="submit" label="Save" />
+                <lightning:button label="Cancel" title="Cancel" onclick="{!c.handleCancel}" />
+            </aura:set>
+            <aura:set attribute="footer">
+                <lightning:button type="submit" label="Save" />
+                <lightning:button label="Cancel" title="Cancel" onclick="{!c.handleCancel}" />
+            </aura:set>
+
+            <lightning:accordion
+            allowMultipleSectionsOpen="true"
+            activeSectionName="{! v.activeSections }">
+                <lightning:accordionSection name="A" label="Visit Report Informations ">
+                    <lightning:inputField fieldName="Visit_Plan_Report__c" value="{!v.planId}" />
+                    <lightning:inputField fieldName="Business_Talk_Opportunity__c" value="{!v.visitReport.Business_Talk_Opportunity__c}"/>
+                    <lightning:inputField fieldName="Additional_Comments__c" value="{!v.visitReport.Additional_Comments__c}" />
+                </lightning:accordionSection>
+            </lightning:accordion>
+        </lightning:card>
+        </lightning:recordEditForm>
+    
+        <aura:set attribute="else">
+            <lightning:card>
+                <ui:message title="Error" severity="error" closable="true">
+                    Insufficient Privileges
+	            </ui:message>
+                <lightning:button label="Cancel" title="Cancel" onclick="{!c.handleCancel}" />
+            </lightning:card>
+            
+            
+          </aura:set>
+
+
+    </aura:if>
+    </ui:scrollerWrapper>
+</aura:component>

@@ -1,0 +1,127 @@
+<aura:component implements="force:hasRecordId,force:lightningQuickActionWithoutHeader" access="global"
+    controller="ChangeSegmentController">
+
+    <aura:attribute name="accountId" type="Id" />
+    <aura:attribute name="acctRec" type="Account" />
+    <aura:attribute name="remark" type="String" />
+    <aura:attribute name="Approver" type="String" />
+    <aura:attribute name="errMsg" type="String" />
+    <aura:attribute name="ThrowErrorMessage" type="String" />
+    <aura:attribute name="segmentType" type="String[]" default="['SE','BB','MB','CB']" />
+    <aura:attribute name="checkApprove" type="boolean" />
+    <aura:attribute name="requestPermission" type="Boolean" default="true" />
+    <aura:attribute name="onInit" type="boolean" default="true" />
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+    <aura:attribute name="isAccess" type="boolean" />
+    <aura:attribute name="isError" type="boolean" />
+    <aura:attribute name="isThrowError" type="boolean" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <aura:if isTrue="{! v.isLoading }">
+        <div class="slds-is-relative">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+
+    <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+        <lightning:layoutItem>
+            <div class="slds-is-relative">
+                <lightning:icon size="large" iconName="standard:account" alternativeText="Account" />
+            </div>
+        </lightning:layoutItem>
+        <lightning:layoutItem padding="horizontal-small">
+            <div class="page-section page-header">
+                <h1 class="slds-text-heading_label">
+                    Reqest Change Segment
+                </h1>
+                <h2 class="slds-text-heading_medium">
+                    {!v.acctRec.Name}
+                </h2>
+            </div>
+        </lightning:layoutItem>
+    </lightning:layout>
+
+
+    <lightning:card>
+        <h3 style="text-align: center;">{!$Label.c.RequestChangeSegment}</h3>
+
+        <div class="{! !v.isError ? 'slds-hide' : 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error' }"
+            role="alert">
+            <span class="slds-assistive-text">error</span>
+            <span class="slds-icon_container slds-icon-utility-error slds-m-right_x-small">
+                <lightning:icon iconName="utility:error" variant="inverse" size="x-small" />
+            </span>
+            <h2>{!v.errMsg}</h2>
+        </div>
+
+        <aura:if isTrue="{!not(v.onInit)}">
+            <aura:if isTrue="{!not(v.isThrowError)}">
+
+                <div class="slds-form_horizontal slds-form slds-grid slds-wrap" style="margin: 10px 10%;">
+                    <lightning:input name="Approver" readonly="true"
+                        value="{!v.acctRec.Core_Banking_Suggested_Segment__c}" label="Current Segement" />
+                </div>
+                <div class="slds-form_horizontal slds-form slds-grid slds-wrap" style="margin: 10px 10%;">
+                    <lightning:select name="select" label="Change To" required="true" aura:id="toBeSegment"
+                        class="customPosition">
+                        <option value="">-- None --</option>
+                        <aura:iteration items="{!v.segmentType}" var="segment">
+                            <option value="{!segment}" text="{!segment}"></option>
+                        </aura:iteration>
+                    </lightning:select>
+                </div>
+
+                <div class="slds-form_horizontal slds-form slds-grid slds-wrap" style="margin: 10px 10%;">
+                    <lightning:input name="Approver" readonly="true" value="BI Team" label="Approver" />
+                </div>
+
+                <div style="margin: 10px 10%;">
+                    <lightning:textarea name="Comment" label="Comment" value="{!v.remark}" aura:id="remark"
+                        maxlength="100001" />
+                </div>
+            </aura:if>
+
+            <aura:if isTrue="{!v.checkApprove}">
+                <div class="{! !v.checkApprove ? 'slds-hide' : 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error' }"
+                    role="alert">
+                    <span class="slds-assistive-text">error</span>
+                    <span class="slds-icon_container slds-icon-utility-error slds-m-right_x-small">
+                        <lightning:icon iconName="utility:error" variant="inverse" size="x-small" />
+                    </span>
+                    <h2>{!$Label.c.RequestChangeSegment3}</h2>
+                </div>
+            </aura:if>
+            <aura:if isTrue="{!not(v.requestPermission)}">
+                <div class="{! !!v.requestPermission ? 'slds-hide' : 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error' }"
+                    role="alert">
+                    <span class="slds-assistive-text">error</span>
+                    <span class="slds-icon_container slds-icon-utility-error slds-m-right_x-small">
+                        <lightning:icon iconName="utility:error" variant="inverse" size="x-small" />
+                    </span>
+                    <h2>Your Profile can not request change segment</h2>
+                </div>
+            </aura:if>
+            <aura:if isTrue="{!v.isThrowError}">
+                <div class="{! !v.isThrowError ? 'slds-hide' : 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error' }"
+                    role="alert">
+                    <span class="slds-assistive-text">error</span>
+                    <span class="slds-icon_container slds-icon-utility-error slds-m-right_x-small">
+                        <lightning:icon iconName="utility:error" variant="inverse" size="x-small" />
+                    </span>
+                    <h2>{!v.ThrowErrorMessage}</h2>
+                </div>
+            </aura:if>
+            <div class="slds-form-element" style="text-align:center;margin: 15px;">
+                <aura:if isTrue="{!not(v.isThrowError)}">
+                    <lightning:button label="Confirm request" onclick="{!c.handleSubmit}" />
+                </aura:if>
+                <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.handleCancel}" />
+            </div>
+        </aura:if>
+    </lightning:card>
+
+
+
+</aura:component>

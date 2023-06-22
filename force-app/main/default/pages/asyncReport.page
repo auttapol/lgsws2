@@ -1,0 +1,282 @@
+<apex:page controller="AsyncReportController" 
+  showchat="false" 
+  sidebar="false" 
+  showheader="false"
+  readOnly="true">
+<head>
+
+    
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, 'TMBassets/jquery/jquery-2.0.0.min.js')}"  />
+    <apex:includescript value="{!URLFOR($Resource.datatable, '/datatable/datatables.min.js')}" />
+
+    <link rel="stylesheet" type="text/css" href="{!URLFOR($Resource.datatable, '/datatable/datatables.min.css')}"/>
+    <meta http-equiv="x-ua-compatible" content="ie=11"/>
+
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <script>var token = '{!$Api.Session_ID}';</script>
+    <style>
+            .overlay {
+                        display: none;
+                        height: 100%;
+                        left: 0;
+                        position: fixed;
+                        top: 0;
+                        opacity: 0.3;
+                        -moz-opacity: 0.3;
+                        width: 100%;
+                        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+                        filter: alpha(opacity=30);
+                        background: #000;
+                        -khtml-opacity: 0.3;
+                        z-index: 1000;
+                    }
+
+            .loader {
+                        background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+                        width: 32px;
+                        height: 32px;
+                        position: absolute;
+                        left: 48%;
+                    }
+
+            html {
+                margin: 0em;
+                padding: 0em;
+            }
+
+            body {
+                margin-left: auto;
+                margin-right: auto;
+                width: 100%;
+            }
+
+            input {
+                margin: 0;
+            }
+
+            table td {
+                padding: 0.2em;
+            }        
+    </style>
+
+    <script type="text/javascript">
+        function startLoading(text){
+            $('#load_scrl').css('top', 50).html(text);
+            $('.loadingBox').show();
+        }
+
+        function endLoading(){
+            $('.loadingBox').hide(100);
+        }
+
+      function displayContactToAdmin(exception_message) {
+          $("#instance_info").css({ 'display': "block" });
+          $("#instance_info").html('Please Contact Admin. ' + exception_message);
+
+          var style = $("#div_result").attr("style");
+
+          if (style !="display: none;") {
+            $("#table_result").DataTable().destroy()
+          }
+
+          $("#div_result").css({ 'display': "none" });
+      }
+
+      function generateReport(result,reportName) {
+          $("#instance_info").html(result.REPORT_MESSAGE);
+          if (result.REPORT_STATUS == 'Success') {
+              var style = $("#div_result").attr("style");
+
+              if (style !="display: none;") {
+                  $("#table_result").DataTable().destroy()
+              }else {
+                  $("#div_result").css({ 'display': "block" });
+              }
+       
+              $('#table_result thead').html( $('<div />').html(result.TABLE_COLUMN).text() );
+                                  
+              if (result.TABLE_TBODY != undefined && result.TABLE_TBODY != null) {
+                  $('#table_result tbody').html( $('<div />').html(result.TABLE_TBODY).text() );
+              }else {
+                  $('#table_result tbody').html("");
+              }
+                                      
+
+              if (result.TABLE_TFOOTER != undefined && result.TABLE_TFOOTER != null) {
+                $('#table_result tfoot').html( $('<div />').html(result.TABLE_TFOOTER).text() );
+              }else {
+                $('#table_result tfoot').html("");
+              }
+              
+              $("#table_result").DataTable({  
+                                              "order": [[ 0, "desc" ]]
+                                                    , "columnDefs": [
+                                                          { width: '15%', targets: 0 }
+                                                          , { width: '15%', targets: 1 }
+                                                      ],
+                                              scrollY:        "500px",
+                                              //scrollX:        "300px",
+                                              scrollCollapse: true,
+                                              "paging": false,
+                                              fixedColumns: true,
+                                                      //"lengthMenu": [[10, 25, 50, -1], [10, 25, 50, "All"]]
+                                                    });
+          }else {
+              var style = $("#div_result").attr("style");
+
+              if (style !="display: none;") {
+                  $("#table_result").DataTable().destroy()
+              }
+
+              $("#div_result").css({ 'display': "none" });
+              createLongRunningReport(result.REPORT_INSANCE_ID,reportName,true,false);
+          }
+      }
+
+      function doAsyncReport() {
+            startLoading('Loading...');
+            try{ 
+                $("#instance_info").html("");
+                
+                var style = $("#div_result").attr("style");
+
+                if (style !="display: none;") {
+                  $("#table_result").DataTable().destroy()
+                }
+
+                $("#div_result").css({ 'display': "none" });
+
+
+               reportId = $("select[id$='longrunning_report_selection']").val();
+               var reportName = $("select[id$='longrunning_report_selection'] option:selected").text();
+               
+               Visualforce.remoting.Manager.invokeAction(
+                                '{!$RemoteAction.AsyncReportController.runAsyncReport}'
+                                ,reportId
+                                ,reportName
+                                ,false
+                                ,function(result, event){
+                    if (result != null) {
+                        var style = $("#instance_info").attr("style");
+                        
+                        if (style !="display: none;") {
+                            createLongRunningReport(result.REPORT_INSANCE_ID,reportName,true,false);
+                        }else {
+                            $("#instance_info").css({ 'display': "block" });
+                            generateReport(result,reportName);
+                        }
+                    }
+                    endLoading();
+              });
+               
+            }catch(e){
+                //$("#table_result tbody").html('An Error has Occured. Error:' +e);
+                displayContactToAdmin('An Error has Occured. Error:' +e);
+                endLoading();
+            }
+      }
+
+      function createLongRunningReport(instanceId,reportName,isReload,isFirstTime) {
+          try {
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.AsyncReportController.getResultsByInstaceId}'
+                ,instanceId
+                ,reportName
+                ,isFirstTime
+                ,function(result, event){
+                    if (result != null && result.REPORT_STATUS == 'Success') {
+                        generateReport(result,reportName);
+                    }else {
+                        //console.log(" isReload "+isReload);
+                        var currentReportName 
+                            = $("select[id$='longrunning_report_selection'] option:selected").text();
+                        if (isReload && currentReportName == reportName) {
+                            //console.log('result.REPORT_MESSAGE '+result.REPORT_MESSAGE);
+                            $("#instance_info").html(result.REPORT_MESSAGE);
+                            //console.log('result.REPORT_STATUS '+result.REPORT_STATUS);
+                            window.setTimeout(function() {
+                              createLongRunningReport(instanceId,reportName,isReload,false);
+                            }, 5000);
+                        }
+                       
+                      }               
+                    }
+              );
+          }catch(e){
+            //$("#table_result tbody").html('An Error has Occured. Error:' +e);
+            displayContactToAdmin('An Error has Occured. Error:' +e);
+          }
+      }
+
+      var getParamFromURL = function getUrlParameter(sParam) {
+          var sPageURL = decodeURIComponent(window.location.search.substring(1)),
+              sURLVariables = sPageURL.split('&'),
+              sParameterName,
+              i;
+
+          for (i = 0; i < sURLVariables.length; i++) {
+              sParameterName = sURLVariables[i].split('=');
+
+              if (sParameterName[0] === sParam) {
+                  return sParameterName[1] === undefined ? true : sParameterName[1];
+              }
+          }
+      };
+
+      // Shorthand for $( document ).ready()
+      $(function() {
+          var reportId = getParamFromURL('reportId');
+
+          if (reportId != null && reportId.length > 0) {
+              try{ 
+                 Visualforce.remoting.Manager.invokeAction(
+                                  '{!$RemoteAction.AsyncReportController.runCompletedAsyncReport}'
+                                  ,reportId
+                                  ,function(result, event){
+                      if (result != null) {
+                          var style = $("#instance_info").attr("style");
+                          
+                          if (style !="display: none;") {
+                              createLongRunningReport(result.REPORT_INSANCE_ID,result.REPORT_NAME,true,false);
+                          }else {
+                              $("#instance_info").css({ 'display': "block" });
+                              generateReport(result,result.REPORT_NAME);
+                          }
+                      }
+                      endLoading();
+                });
+               
+            }catch(e){
+                //$("#table_result tbody").html('An Error has Occured. Error:' +e);
+                displayContactToAdmin('An Error has Occured. Error:' +e);
+                endLoading();
+            }
+          }
+      });
+
+
+    </script>
+  </head>
+  <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+  <div class="loadingBox overlay"></div>
+  <apex:form >
+     Select Long- Running Report: 
+     <apex:selectList value="{!reportId}" 
+              multiselect="false" 
+              size="1" 
+              id="longrunning_report_selection">
+         <apex:selectOptions value="{!availableReports}"/>
+     </apex:selectList>
+     <input type="button" onclick="doAsyncReport();" value="Run Report"/>
+  </apex:form>
+  <br/>
+  <div id="instance_info" style="display: none;"/>
+  <br/>
+  <div id="div_result" style="display: none;">
+        <table id="table_result" class="stripe row-border order-column" cellspacing="0" style="width:100%">
+            <thead></thead>
+            <tbody></tbody>
+            <tfoot></tfoot>
+        </table>
+  </div>
+</apex:page>

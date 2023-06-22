@@ -1,0 +1,354 @@
+<apex:component controller="RTL_DuplicateAccountComponentController" allowDML="true">
+
+    <apex:attribute name="CurrentObjA" type="CampaignMember" description="Current Obj to check dup account" assignTo="{!currentObject}"/>
+    <apex:attribute name="CurrentObjB" type="Lead" description="Lead Obj to check dup account" assignTo="{!objLead}"/>
+    <apex:attribute name="CreateOpytyList" type="RTL_CampaignProductInterestedWrapper[]" description="RTL_CampaignProductInterestedWrapper" assignTo="{!createOppList}"/>
+    
+    <apex:outputPanel id="page" >
+        <!-- ERROR PAGE -->
+        <apex:outputPanel rendered="{! showErrorMessagePage}" >
+            <apex:form >
+                <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                    <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_Manage_Duplicate_Customer_Label}</h3> 
+                </div>
+
+                <div style="margin: 4px 20px;">
+                    <apex:pageBlock mode="maindetail">
+                        <apex:pageMessages id="errorMSG" escape="false" />
+                    </apex:pageBlock>
+                </div>
+
+                <apex:pageBlock mode="maindetail">
+                    <apex:pageBlockButtons location="bottom">
+                        <apex:commandButton action="{!backPageSelectAccount}" styleClass="slds-button slds-button--neutral" value="{!$Label.RTL_Back_Button_Label}" />
+                    </apex:pageBlockButtons>
+                </apex:pageBlock>
+
+            </apex:form>
+        </apex:outputPanel>
+
+        <!-- SELECT ACCOUNT PAGE -->
+
+        <apex:outputPanel rendered="{! showSelectAccountPage}" >        
+            <div class="slds-form-element">
+                <apex:form >
+
+                    <apex:actionFunction name="ClickMerge" action="{!ClickMerge}" oncomplete="redirectPage();" reRender="rediSection, page"/>
+                    <apex:actionFunction name="CreateNewAccount" action="{!CreateNewAccount}" oncomplete="redirectPage();" reRender="rediSection, page"/>  
+
+                    <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                        <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_Header_Label_Lead_Detail}</h3>
+                    </div>
+                    
+
+                    <div class="bootstrap-sf1">
+                        <div class="row" style="margin: 10px;">
+                            <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="clear: both;">
+                                <span class="padding-label"><apex:outputlabel styleclass="output-label" value="{!$ObjectType.Lead.fields.Name.Label}" /></span>
+                                <div class="padding-values"><apex:outputField value="{!objLead.Name}" /></div>
+                            </div>
+                            
+                            <div class="col-xs-12 col-sm-6 col-md-6 paddingline"  style="clear: both;">
+                                <span class="padding-label"><apex:outputlabel styleclass="output-label" value="{!$ObjectType.Lead.fields.RTL_Mobile_Number__c.Label}" /></span>
+                                <div class="padding-values"><apex:outputField value="{!objLead.RTL_Mobile_Number__c}" /></div>
+                            </div>
+
+                            <div class="col-xs-12 col-sm-6 col-md-6 paddingline"  style="clear: both;">
+                                <span class="padding-label"><apex:outputlabel styleclass="output-label" value="{!$ObjectType.Lead.fields.RTL_ID_Type__c.Label}" /></span>
+                                <div class="padding-values"><apex:outputField value="{!objLead.RTL_ID_Type__c}" /></div>
+                            </div>
+
+                            <div class="col-xs-12 col-sm-6 col-md-6 paddingline"  style="clear: both;">
+                                <span class="padding-label"><apex:outputlabel styleclass="output-label" value="{!$ObjectType.Lead.fields.RTL_Citizen_Id__c.Label}" /></span>
+                                <div class="padding-values"><apex:outputField value="{!objLead.RTL_Citizen_Id__c}" /></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                        <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_Manage_Duplicate_Customer_Label}</h3>
+                    </div>
+
+                    <p style="margin:10px;">
+                        {!$Label.RTL_Manage_Duplicate_HelpText_Label}
+                    </p>
+
+                    <apex:pageBlock mode="maindetail">
+                        <apex:pageBlockButtons location="bottom">
+                            <apex:commandButton styleClass="mergeButtonId slds-button slds-button--neutral" onclick="disableBut();ClickMerge();mergeClick();return false;" value="{!$Label.RTL_Merge_Button_Label}" />
+                            <apex:commandButton styleClass="newButtonId slds-button slds-button--neutral"  onclick="disableBut();CreateNewAccount();newClick();return false;" value="{!$Label.RTL_CreateAcc_Button_Label}"/>
+                            <apex:commandButton styleClass="backButtonId slds-button slds-button--neutral" action="{! ClickBack}" value="{!$Label.RTL_Back_Button_Label}" />
+                        </apex:pageBlockButtons>
+                    </apex:pageBlock>
+
+                    <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                        <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_Select_ExAcc_ToMerge_Label}</h3>
+                    </div>
+
+                    <apex:outputPanel >
+                        <div class="slds-form-element slds-m-around--medium slds-m-top--large"  id="responsive" >
+                            <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal" style="text-align: center;font-size: 12px; width: 100%;">
+                                <thead>
+                                    <tr class="slds-text-title--caps slds-section-title--divider">
+                                        <th scope="col">{!$Label.RTL_Col_Label_Choose}</th>
+                                        <th scope="col">{!$Label.RTL_Col_Label_No}</th>
+                                        <th scope="col">{!$Label.RTL_Col_Label_CustomerName}</th>
+                                        <th scope="col">{!$Label.RTL_Col_Label_TMB_Cust_ID}</th>
+                                        <th scope="col">{!$Label.RTL_Col_Label_ID_Type}</th>
+                                        <th scope="col">{!$Label.RTL_Col_Label_MobileNO}</th>
+                                        <th scope="col">{!$Label.RTL_Col_Label_NID}</th>
+                                        <th scope="col">{!$Label.RTL_Col_Label_Customer_Segment}</th>
+                                        <th scope="col">{!$Label.RTL_Col_Label_OwnerName}</th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                    <apex:variable value="{!0}" var="rowNum"/>
+                                    <apex:repeat value="{!DupAccounts}" var="log">
+                                    <apex:variable var="rowNum" value="{!rowNum + 1}"/> 
+                                        <tr class="dataRow">
+                                            <td data-label="{!$Label.RTL_Col_Label_Choose}">
+                                                <input type="radio" name="accId" value="{!log.id}" onclick="changeValue(this,'{!$Component.RadioButtonValue}');" />
+                                            </td>
+
+                                            <td data-label="{!$Label.RTL_Col_Label_No}">
+                                                <apex:outputText value="{!rowNum}"></apex:outputText>   
+                                            </td>
+
+                                            <td data-label="{!$Label.RTL_Col_Label_CustomerName}">
+                                                <apex:outputField value="{!log.name}" />
+                                            </td>
+
+                                            <td data-label="{!$Label.RTL_Col_Label_TMB_Cust_ID}">
+                                                <apex:outputText value="{!log.TMB_Customer_ID_PE__c}" />
+                                            </td>
+
+                                            <td data-label="{!$Label.RTL_Col_Label_ID_Type}">
+                                                <apex:outputField value="{!log.ID_Type_PE__c}" />
+                                            </td>
+
+                                            <td data-label="{!$Label.RTL_Col_Label_MobileNO}">
+                                                <apex:outputText value="{!log.Mobile_Number_PE__c}" /> 
+                                            </td>
+
+                                            <td data-label="{!$Label.RTL_Col_Label_NID}">
+                                                <apex:outputText value="{!log.NID__c}" /> 
+                                            </td>
+
+                                            <td data-label="{!$Label.RTL_Col_Label_Customer_Segment}">
+                                                <apex:outputField value="{!log.Core_Banking_Suggested_Segment__c}" />
+                                            </td>
+
+                                            <td data-label="{!$Label.RTL_Col_Label_OwnerName}">
+                                                <apex:outputField value="{!log.owner.name}" />
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>
+                            </table> 
+                        </div>
+                    </apex:outputPanel>
+                    <apex:inputHidden value="{!accId}" id="RadioButtonValue" />
+                </apex:form>
+            </div>
+        </apex:outputPanel>
+
+
+
+        <!-- View Opportunity List -->
+        <apex:outputPanel rendered="{! CreateOpptyDone}" > 
+            <div class="slds-form-element">
+                <apex:form >
+                    <apex:actionFunction name="redirect" action="{!close}"  status="loadStatus" />  
+
+                    <div class="slds-button-block"> 
+                        <apex:commandButton value="{!$Label.RTL_Campaign_Member_History_Close_Btn}" styleclass="slds-button slds-button--neutral"  onclick="redirect(); return false;" /> 
+                    </div>
+
+                    <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                        <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_CampaignMemberViewOpportunity_TitlePage}</h3> 
+                    </div>
+
+
+                    <!--Information-->
+                    <div class="bootstrap-sf1">
+                        <div class="row" style="margin: 10px;">
+                            <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="clear: both;">
+                                <span class="padding-label"><apex:outputlabel styleclass="output-label" value="{!$Label.RTL_ViewCampaignMember_CustomerName}"/></span>
+                                <div class="padding-values"><apex:outputText value="{!contactName}" /></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!--Opportunity-->
+                    <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                        <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_CampaignMemberEdit_OpportunityList}</h3> 
+                    </div>
+
+
+                    <apex:outputPanel id="section4" >
+                    <apex:variable value="{!1}" var="count"/>
+                    <div class="slds-form-element slds-m-around--medium slds-m-top--large"  id="responsive" >
+                        <apex:outputPanel id="section00" >
+                            <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal" style="text-align: center;font-size: 12px; width: 100%;">
+                                <thead>
+                                <tr class="slds-text-title--caps section-header-title slds-p-horizontal--small slds-truncate"> 
+                                    <th scope="col"> {!$Label.RTL_CampaignMemberEdit_ColNo} </th>
+                                    <th scope="col"> {!$ObjectType.Opportunity.fields.Name.Label}</th>
+                                    <th scope="col"> {!$ObjectType.Opportunity.fields.RTL_Product_Name__c.Label} </th>
+                                    <th scope="col"> {!$ObjectType.Opportunity.fields.StageName.Label} </th>
+                                    <th scope="col"> {!$ObjectType.Opportunity.fields.RTL_Status__c.Label} </th>
+                                    <th scope="col"> {!$ObjectType.Opportunity.fields.Amount.Label} </th>
+                                    <th scope="col"> {!$ObjectType.Opportunity.fields.CloseDate.Label} </th>
+                                    <th scope="col"> {!$Label.RTL_CampaignMemberViewOpportunity_OwnerName} </th>
+                                </tr>
+                                </thead>
+                                <tbody>
+
+                                <apex:repeat value="{!OpportunityList}" var="each">
+                                    <tr class="dataRow">
+                                        <td data-label="{!$Label.RTL_CampaignMemberEdit_ColNo}"> 
+                                            <apex:outputText >
+                                                {!count}
+                                                <apex:variable value="{!count+1}" var="count"/>
+                                            </apex:outputText>       
+                                        </td>
+                                        <td data-label="{!$ObjectType.Opportunity.fields.Name.Label}"> 
+                                            <a href="javascript:openSubTab('/{!each.Id}','{!each.Name}','{!each.Name}',true);" class="actionLink">
+                                                    {!each.Name}
+                                            </a>
+                                        </td>
+                                        <td data-label="{!$ObjectType.Opportunity.fields.RTL_Product_Name__c.Label}"> 
+                                                <a href="javascript:openSubTab('/{!each.RTL_Product_Name__c}','{!each.RTL_Product_Name__r.Name}','{!each.RTL_Product_Name__r.Name}',true);" class="actionLink">
+                                                    {!each.RTL_Product_Name__r.Name}
+                                            </a>  
+                                        </td>
+                                        <td data-label="{!$ObjectType.Opportunity.fields.StageName.Label}"> 
+                                            <apex:outputField value="{!each.StageName}"/>
+                                        </td>
+                                        <td data-label="{!$ObjectType.Opportunity.fields.RTL_Status__c.Label}"> 
+                                            <apex:outputField value="{!each.RTL_Status__c}"/>
+                                        </td>
+                                        <td data-label="{!$ObjectType.Opportunity.fields.Amount.Label}"> 
+                                            <apex:outputField value="{!each.Amount}"/>
+                                        </td>
+                                        <td data-label="{!$ObjectType.Opportunity.fields.CloseDate.Label}"> 
+                                            <apex:outputField value="{!each.CloseDate}"/>
+                                        </td>
+                                        <td data-label="{!$Label.RTL_CampaignMemberViewOpportunity_OwnerName}"> 
+                                            <apex:outputText value="{!each.Owner.Name}"/>
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                                </tbody>
+                            </table>
+
+                        </apex:outputPanel>
+                        </div>
+                    </apex:outputPanel>
+                </apex:form>
+            </div>
+        </apex:outputPanel>
+    </apex:outputPanel> 
+
+    <apex:outputPanel id="rediSection">
+        <script>
+            function redirectPage() {
+                if({! isConvertSuccess} == true && sforce.console.isInConsole()){
+                    var url = '/{! accId}' ;
+                    var label = '{! acct.name}';
+                    var openimmediately = true;
+
+                    if ('{!$User.UITheme}' == 'Theme3') {
+                        sforce.console.openPrimaryTab(undefined, url, openimmediately, label, setIcon, label);
+                    }
+                    // For Lightning 
+                    else {
+                        // sforce.console.getEnclosingPrimaryTabId(function (praimatyTab) {
+                        //     sforce.console.openPrimaryTab(null, url, true, label, function (result) {
+                        //         sforce.console.closeTab(praimatyTab.id, function () {
+                        //             // sforce.one.navigateToURL(retURL);
+                        //         });
+                        //     }, label);
+
+                        // });
+                        sforce.one.navigateToURL(`/one/one.app#${btoa(JSON.stringify({
+                            "componentDef": "c:workspaceAPIforVF",
+                            "attributes": {
+                                "action": 'openTabPrimaryUrl',
+                                "url": url,
+                                "replace": true,
+                            }
+                        }))}`, false);
+                    }
+                    
+                }else if({! isConvertSuccess} == true){
+                    sforce.one.navigateToURL('/{! accId}', true);
+                }
+            }
+
+            function setIcon(result) {
+                // sforce.console.setTabIcon("{!URLFOR($Resource.customer_logo_icon)}", result.id); 
+                sforce.console.getEnclosingTabId(closeSubtab);
+            }
+
+            var closeSubtab = function closeSubtab(result) {
+                console.log('Close');
+                var tabId = result.id;
+                sforce.console.closeTab(tabId);
+            };
+        </script>
+    </apex:outputPanel>
+
+    <script>
+        $(document).ready(function () {
+            // console.log('Result : ' + {! isConvertSuccess});
+            // console.log('isInConsole : ' + sforce.console.isInConsole());
+
+            // console.log('showErrorMessagePage : ' + {! showErrorMessagePage});
+            // console.log('CreateOpptyDone : ' + {! CreateOpptyDone});
+            // console.log('showSelectAccountPage : ' + {! showSelectAccountPage});
+        });
+
+        function changeValue(input, textid) {
+			document.getElementById(textid).value = input.value;
+            // console.log(document.getElementById(textid).value);
+		}
+
+        function openSubTab(url,label,name,openimmediately) {
+            // sforce.console.getEnclosingPrimaryTabId(function(primarytab){
+            //     sforce.console.openSubtab(primarytab.id , url, openimmediately, label, null, function(result){
+            //         // do any processing here if passes or fails, use result.success (boolean)
+            //     }, name);
+            // });
+            sforce.one.navigateToURL(`/one/one.app#${btoa(JSON.stringify({
+                "componentDef": "c:workspaceAPIforVF",
+                "attributes": {
+                    "action": 'openTabUrl',
+                    "url": url,
+                    "replace": true,
+                }
+            }))}`, false);
+        }
+
+        function disableBut() {
+            $(".mergeButtonId").attr("disabled","true");
+            $(".newButtonId").attr("disabled","true");
+            $(".backButtonId").attr("disabled","true");
+
+
+            $(".newButtonId").css( "border-color", "#c4c4c4" );
+            $(".newButtonId").css( "color", "#909090" );
+            $(".mergeButtonId").css( "border-color", "#c4c4c4" );
+            $(".mergeButtonId").css( "color", "#909090" );
+        }
+
+        function mergeClick() {
+            $(".mergeButtonId").val("Merging...");
+        }
+
+        function newClick() {
+            $(".newButtonId").val("Creating Account...");
+        }
+    </script>
+</apex:component>

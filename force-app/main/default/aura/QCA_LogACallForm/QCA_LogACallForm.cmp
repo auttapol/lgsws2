@@ -1,0 +1,128 @@
+<aura:component controller="QCA_LogCallLogVisitController"
+    implements="force:appHostable,flexipage:availableForAllPageTypes,lightning:isUrlAddressable" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="render" value="{!this}" action="{!c.onRenderSubTask}" />
+
+    <aura:registerEvent name="varSimplifiedLeadProcessStatus" type="c:SimplifiedLeadProcessStatus" />
+    <aura:method name="onSavingLogACall" description="On Saving Task">
+        <aura:attribute name="callback" type="Function" />
+    </aura:method>
+    <aura:method name="onValidFieldHandler" description="On validate field handler" />
+
+    <aura:attribute name="leadObjId" type="Id" />
+    <aura:attribute name="varTaskRecordId" type="Id" />
+    <aura:attribute name="varTaskRecordTypeId" type="Id" />
+
+    <!-- Log a call -->
+    <aura:attribute name="taskObj" type="Task" default="{ 'sobjectType': 'Task', 'Subject': 'Call' }" />
+    <aura:attribute name="isDisabledField" type="Boolean" default="false" />
+
+    <aura:attribute name="MainTaskValues" type="String[]" />
+    <aura:attribute name="SubTaskMap" type="Map" default="{}" />
+    <aura:attribute name="SubTaskValues" type="String[]" />
+    <aura:attribute name="Status" type="String[]" />
+    <aura:attribute name="Priority" type="String[]" />
+    <aura:attribute name="isSubTaskValues" type="Boolean" default="false" />
+
+    <aura:attribute name="showOnloading" type="Boolean" default="false" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+
+    <div>
+        <aura:if isTrue="{! v.showSpinnerLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" />
+        </aura:if>
+        <div class="slds-p-horizontal_large slds-p-vertical_x-small">
+            <div class="slds-var-p-horizontal_xx-small slds-text-title_caps slds-var-p-vertical_small">
+                <lightning:icon size="small" iconName="utility:log_a_call" />
+                Log a Call
+            </div>
+            <div class="slds-form_stacked slds-m-bottom_x-small">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+
+                        <c:strike_lookup label="Assigned To" object="User" searchField="Name" iconName="standard:user"
+                            aura:id="varUser" value="{! v.taskObj.OwnerId }" disabled="{! v.isDisabledField }"
+                            required="true" />
+
+                        <div class="slds-form-element">
+                            <lightning:input aura:id="varLogACall" type="date" name="ActivityDate" label="Due Date"
+                                value="{! v.taskObj.ActivityDate }" updateOn="keyup" disabled="{! v.isDisabledField }"
+                                required="true" />
+                        </div>
+
+                        <!-- <div class="slds-form-element">
+                            <lightning:input type="datetime" name="RTL_Call_Date_Time__c" label="Call Date/Time" value="{! v.taskObj.RTL_Call_Date_Time__c }"
+                                updateOn="keyup" />
+                        </div> -->
+
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                        <div class="slds-form-element">
+                            <lightning:input aura:id="varLogACall" name="Subject" value="{! v.taskObj.Subject }"
+                                label="Subject" disabled="true" />
+                        </div>
+
+                        <div class="slds-form-element">
+                            <lightning:textarea aura:id="varLogACall" label="Comments" name="Description"
+                                value="{! v.taskObj.Description }" updateOn="keyup" />
+                        </div>
+
+                        <!-- <c:strike_lookup label="Lead Name" object="Lead" searchField="Name" iconName="standard:lead" aura:id="varLead" value="{! v.leadObj.Id ? v.leadObj.Id : v.leadObj.id }" /> -->
+
+                        <!-- <div class="slds-form-element">
+                            <lightning:select aura:id="Main_Task__c" name="Main_Task__c" label="Main Task" value="{! v.taskObj.Main_Task__c }"
+                                onchange="{! c.onChangeMainTask }">
+                                <option value="">None</option>
+                                <aura:iteration items="{! v.MainTaskValues }" var="item">
+                                    <option value="{!item}">{!item}</option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div> -->
+
+                        <!-- <div class="slds-form-element">
+                            <lightning:select aura:id="Sub_Task__c" name="Sub_Task__c" label="Sub Task" value="{! v.taskObj.Sub_Task__c }">
+                                <option value="">None</option>
+                                <aura:iteration items="{! v.SubTaskValues }" var="item">
+                                    <option value="{!item.value}">{!item.label}</option>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div> -->
+
+                        <!-- <div class="slds-form-element">
+                            <lightning:input type="text" name="Reference_Job_Id__c" label="Reference Job Id" value="{! v.taskObj.Reference_Job_Id__c }"
+                                updateOn="keyup" />
+                        </div> -->
+
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+        </div>
+
+        <!-- <div class="slds-p-horizontal_large slds-p-vertical_x-small section">
+            <h2 class="slds-text-heading_small slds-m-top_xx-small">Additional Information</h2>
+            <div class="slds-form_stacked slds-m-bottom_x-small">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+
+                        <lightning:select aura:id="Status" name="Status" label="Status" value="{! v.taskObj.Status }">
+                            <aura:iteration items="{! v.Status }" var="item">
+                                <option value="{!item.value}" selected="{!item.selected}">{!item.label}</option>
+                            </aura:iteration>
+                        </lightning:select>
+
+                        <lightning:select aura:id="Priority" name="Priority" label="Priority" value="{! v.taskObj.Priority }">
+                            <aura:iteration items="{! v.Priority }" var="item">
+                                <option value="{!item.value}" selected="{!item.selected}">{!item.label}</option>
+                            </aura:iteration>
+                        </lightning:select>
+
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+        </div> -->
+
+
+
+    </div>
+</aura:component>

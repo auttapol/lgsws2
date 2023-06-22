@@ -1,0 +1,464 @@
+<aura:component controller="RetailCSVLightningUtil" implements="lightning:isUrlAddressable,force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <lightning:navigation aura:id="navService" />
+    <aura:registerEvent name="RetailCSVEvent" type="c:RetailCSV_Event" />
+    <aura:attribute name="parent" type="Aura.Action"/>
+
+    <aura:attribute name="hobbiesMap" type="Map" />
+    <aura:attribute name="hobbiesOption" type="List" />
+    <aura:attribute name="hobbiesValue" type="List" />
+
+    <aura:attribute name="sportsMap" type="Map" />
+    <aura:attribute name="sportsValue" type="List" />
+    <aura:attribute name="sportsOption" type="List" />
+
+    <aura:attribute name="lifestyleMap" type="Map" />
+    <aura:attribute name="lifestyleValue" type="List" />
+    <aura:attribute name="lifestyleOption" type="List" />
+
+    <aura:attribute name="onAcMap" type="Map" />
+    <aura:attribute name="onAcValue" type="List" />
+    <aura:attribute name="onAcOption" type="List" />
+
+    <aura:attribute name="travelMap" type="Map" />
+    <aura:attribute name="travelValue" type="List" />
+    <aura:attribute name="travelOption" type="List" />
+
+    <aura:attribute name="musicMap" type="Map" />
+    <aura:attribute name="musicValue" type="List" />
+    <aura:attribute name="musicOption" type="List" />
+
+    <aura:attribute name="foodMap" type="Map" />
+    <aura:attribute name="foodValue" type="List" />
+    <aura:attribute name="foodOption" type="List" />
+
+    <aura:attribute name="other1Map" type="Map" />
+    <aura:attribute name="other1Value" type="List" />
+    <aura:attribute name="other1Option" type="List" />
+    
+    <aura:attribute name="pfc1Map" type="Map" access="PRIVATE"/>
+    <aura:attribute name="pfc1Option" type="List" access="PRIVATE"/>
+    <aura:attribute name="pfc1Value" type="String" access="PRIVATE"/>
+    
+    <aura:attribute name="pfc2Map" type="Map" access="PRIVATE"/>
+    <aura:attribute name="poc2Option" type="List" access="PRIVATE"/>
+    <aura:attribute name="poc2Value" type="String" access="PRIVATE"/>
+    
+    <aura:attribute name="relationC1Map" type="Map" access="PRIVATE"/>
+    <aura:attribute name="relationC1Option" type="List" access="PRIVATE"/>
+    <aura:attribute name="relationC1Value" type="String" access="PRIVATE"/>
+
+    <aura:attribute name="relationC2Map" type="Map" access="PRIVATE"/>
+    <aura:attribute name="relationC2Option" type="List" access="PRIVATE"/>
+    <aura:attribute name="relationC2Value" type="String" access="PRIVATE"/>
+
+    <aura:attribute name="preferContactMap" type="Map" access="PRIVATE"/>
+    <aura:attribute name="preferContactOption" type="List" access="PRIVATE"/>
+    <aura:attribute name="preferContactValue" type="String" access="PRIVATE"/>
+
+    <aura:attribute name="alterContactMap" type="Map" access="PRIVATE"/>
+    <aura:attribute name="alterContactOption" type="List" access="PRIVATE"/>
+    <aura:attribute name="alterContactValue" type="String" access="PRIVATE"/>
+
+    <aura:attribute name="brcUserName" type="String" />
+    <aura:attribute name="brcUser" type="Object" />
+    
+    <aura:attribute name="userLanguage" type="String" default="English"/>
+
+    <aura:attribute name="errorMessage" type="String" />
+    <aura:attribute name="Lifetime_Code_Error" type="Boolean" default="false"/>
+    <aura:attribute name="Assigned_BRC_Error" type="Boolean" default="false"/>
+    <aura:attribute name="OnSite_Service_Error" type="Boolean" default="false"/>
+    <aura:attribute name="Special_Pref_Error" type="Boolean" default="false"/>
+    <aura:attribute name="Life_Objective_1_Error" type="Boolean" default="false"/>
+    <aura:attribute name="Life_Objective_2_Error" type="Boolean" default="false"/>
+    <aura:attribute name="Life_Objective_3_Error" type="Boolean" default="false"/>
+    <aura:attribute name="RTL_Other2_Error" type="Boolean" default="false"/>
+    <aura:attribute name="Alternative_Number_Error" type="Boolean" default="false"/>
+    <aura:attribute name="Contact_Person_Name_1_Error" type="Boolean" default="false"/>
+    <aura:attribute name="Contact_Person_Name_2_Error" type="Boolean" default="false"/>
+    <aura:attribute name="Contact_Person_Number_1_Error" type="Boolean" default="false"/>
+    <aura:attribute name="Contact_Person_Number_2_Error" type="Boolean" default="false"/>
+
+
+    <aura:attribute name="showSubmitButton" type="Boolean" default="false"/>
+
+    <aura:attribute name="fields_translate" type="List" default="[]" />
+    <aura:attribute name="FieldsUpdateList" type="List" default="[]" />
+    <aura:attribute name="fieldUpdate" type="Map" default="{}" access="private" />
+    <aura:attribute name="dataFields" type="Map" />
+    <aura:attribute name="dataPartion" type="Map" default="{}" />
+    <aura:attribute name="activeSections" type="List" default="['A','B','C','D']" access="private" />
+    <aura:attribute name="theme" type="String" default="{!$Browser.formFactor == 'PHONE' ? 'Theme4t' : 'Theme4u'}" />
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="recordTypeId" type="Id" />
+    <aura:attribute name="FIELDSList" type="List" default="[]" access="private" />
+
+    <aura:attribute name="isRerender" type="Boolean" default="false" />
+    <aura:if isTrue="{! v.isRerender }">
+        <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        <div class="fixHeight"></div>
+    </aura:if>
+
+    <lightning:card class="slds-p-around_small">
+        <lightning:accordion aura:id="accordion" allowMultipleSectionsOpen="true" onsectiontoggle="{! c.handleSectionToggle }" activeSectionName="{! v.activeSections }">
+                <div class="slds-p-around_small slds-grid slds-wrap">
+                    <div class="slds-size_1-of-2 slds-text-heading_medium">
+                        <h1>{!$Label.c.Account_Edit}</h1>
+                    </div>
+                    <div class="slds-size_1-of-2">
+                        <div class="slds-float_right">
+                            <aura:if isTrue="{!v.showSubmitButton }">
+                                <lightning:button label="{!$Label.c.Save}" type="submit" onclick="{!c.onSubmit}"/>
+                            </aura:if>
+                            <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.onCancel}" />
+                        </div>
+                    </div>
+                </div>
+            <!-- <lightning:accordionSection name="A" label="{!$Label.c.Sales_Support_Information}"> -->
+                <!-- <div class="slds-grid"> -->
+                    <!-- <div class="slds-col slds-p-horizontal_medium"> -->
+                        <!-- <aura:if isTrue="{!v.dataFields.FATCA_Form_Completed__c.isAccessible}"> -->
+                            <!-- <label class="slds-form-element__label" style="padding: 5px; margin-bottom: -50px;">{!v.dataFields.FATCA_Form_Completed__c.label}</label> -->
+                            <!-- <lightning:helptext  content="{!v.dataFields.FATCA_Form_Completed__c.inlineHelpText}" class="helptextIcon" />  -->
+                            <!-- <lightning:select class="label-hidden"  name="FATCA" label="" aura:id="FATCA" value="{!v.fatcaValue}" onchange="{! c.onFatcaChange }" variant="label-hidden"> -->
+                                <!-- <aura:iteration items="{!v.fatcaOption}" var="option"> -->
+                                    <!-- <option text="{!option.label}" value="{!option.id}" selected="{!option.selected}" /> -->
+                                <!-- </aura:iteration> -->
+                            <!-- </lightning:select> -->
+                            <!-- <aura:set attribute="else"> -->
+                                <!-- <lightning:helptext content="{!v.dataFields.FATCA_Form_Completed__c.inlineHelpText}" class="helptextIcon" />  -->
+                                <!-- <lightning:input  label="{!v.dataFields.FATCA_Form_Completed__c.label}"   disabled="{!!v.dataFields.FATCA_Form_Completed__c.isAccessible}" value="{!v.dataFields.FATCA_Form_Completed__c.value}"/> -->
+                            <!-- </aura:set> -->
+                        <!-- </aura:if>  -->
+                        <!-- <aura:if isTrue="{!v.Lifetime_Code_Error}"> -->
+                            <!-- <lightning:input label="{!v.dataFields.RTL_Lifetime_Code__c.label}" class="color" disabled="{!!v.dataFields.RTL_Lifetime_Code__c.isAccessible}"  value="{!v.dataFields.RTL_Lifetime_Code__c.value}"/> -->
+                            <!-- <span class="errorText">{!v.errorMessage}</span> -->
+                            <!-- <aura:set attribute="else"> -->
+                                <!-- <lightning:input label="{!v.dataFields.RTL_Lifetime_Code__c.label}"  disabled="{!!v.dataFields.RTL_Lifetime_Code__c.isAccessible}" value="{!v.dataFields.RTL_Lifetime_Code__c.value}"/> -->
+                            <!-- </aura:set> -->
+                        <!-- </aura:if>  -->
+                        <!-- <aura:if isTrue="{!v.OnSite_Service_Error}"> -->
+                            <!-- <lightning:input label="{!v.dataFields.RTL_OnSite_Service__c.label}"  class="color" disabled="{!!v.dataFields.RTL_OnSite_Service__c.isAccessible}" value="{!v.dataFields.RTL_OnSite_Service__c.value}"/> -->
+                            <!-- <span class="errorText">{!v.errorMessage}</span> -->
+                            <!-- <aura:set attribute="else"> -->
+                                <!-- <lightning:input label="{!v.dataFields.RTL_OnSite_Service__c.label}"  disabled="{!!v.dataFields.RTL_OnSite_Service__c.isAccessible}" value="{!v.dataFields.RTL_OnSite_Service__c.value}"/> -->
+                            <!-- </aura:set> -->
+                        <!-- </aura:if>  -->
+                    <!-- </div> -->
+                    <!-- <div class="slds-col slds-p-horizontal_medium"> -->
+                        <!-- <aura:if isTrue="{!v.dataFields.RTL_Assigned_BRC__c.isAccessible}"> -->
+                            <!--  -->
+                            <!-- <c:CustomLookup label="{!v.dataFields.RTL_Assigned_BRC__c.label}" aura:id="customLookupCustomer" objectAPIName="User" selectedRecord="{!v.brcUser}" nameField="Id,Name" IconName="standard:people" queryType="SOSL" onchange="{!c.onBRCUserChange}"/> -->
+                            <!-- <aura:set attribute="else"> -->
+                                <!-- <lightning:input label="{!v.dataFields.RTL_Assigned_BRC__c.label}" onchange="{!c.updateValue}" disabled="{!!v.dataFields.RTL_Assigned_BRC__c.isAccessible}" value="{!v.dataFields.RTL_Assigned_BRC__c.value}"/> -->
+                            <!-- </aura:set> -->
+                        <!-- </aura:if> -->
+                        <!-- <aura:if isTrue="{!v.Assigned_BRC_Error}"> -->
+                            <!-- <span>{!v.errorMessage}</span> -->
+                        <!-- </aura:if> -->
+                    <!-- </div> -->
+                <!-- </div> -->
+            <!-- </lightning:accordionSection> -->
+            <lightning:accordionSection name="B" label="{!$Label.c.Personalized_Information}">
+                <aura:if isTrue="{!v.dataFields.Hobbies__c.isAccessible}">
+                    <lightning:dualListbox aura:id="selectGenre"
+                        label="{!v.dataFields.Hobbies__c.label}"
+                        sourceLabel="Available"
+                        selectedLabel="Chosen"
+                        options="{!v.hobbiesOption }"
+                        value="{!v.hobbiesValue}"
+                        disableReordering="true"
+                        size="5"
+                        onchange="{!c.hobbiesHandleChange}"/>
+                    <aura:set attribute="else">
+                        <lightning:input variant="label-inline" label="{!v.dataFields.Hobbies__c.label}" disabled="{!!v.dataFields.Hobbies__c.isAccessible}"  value="{!v.dataFields.Hobbies__c.value}"/>
+                    </aura:set>
+                </aura:if> 
+                <br/>
+                <aura:if isTrue="{!v.dataFields.Favorite_Sport__c.isAccessible}">
+                    <lightning:dualListbox aura:id="selectGenre"
+                        label="{!v.dataFields.Favorite_Sport__c.label}"
+                        sourceLabel="Available"
+                        selectedLabel="Chosen"
+                        options="{!v.sportsOption }"
+                        value="{!v.sportsValue}"
+                        disableReordering="true"
+                        size="5"
+                        onchange="{!c.sportsHandleChange}"/>
+                    <aura:set attribute="else">
+                        <lightning:input variant="label-inline" label="{!v.dataFields.Favorite_Sport__c.label}" disabled="{!!v.dataFields.Favorite_Sport__c.isAccessible}"  value="{!v.dataFields.Favorite_Sport__c.value}"/>
+                    </aura:set>
+                </aura:if>
+                <br/>
+                <aura:if isTrue="{!v.dataFields.RTL_Lifestyle__c.isAccessible}">
+                    <lightning:dualListbox aura:id="selectGenre"
+                        label="{!v.dataFields.RTL_Lifestyle__c.label}"
+                        sourceLabel="Available"
+                        selectedLabel="Chosen"
+                        options="{!v.lifestyleOption }"
+                        value="{!v.lifestyleValue}"
+                        disableReordering="true"
+                         size="5"
+                        onchange="{!c.lifestyleHandleChange}"/>
+                    <aura:set attribute="else">
+                        <lightning:input variant="label-inline" label="{!v.dataFields.RTL_Lifestyle__c.label}" disabled="{!!v.dataFields.RTL_Lifestyle__c.isAccessible}"  value="{!v.dataFields.RTL_Lifestyle__c.value}"/>
+                    </aura:set>
+                </aura:if>
+                <br/>
+                <aura:if isTrue="{!v.dataFields.RTL_Preferred_Activity__c.isAccessible}">
+                    <lightning:dualListbox aura:id="selectGenre"
+                        label="{!v.dataFields.RTL_Preferred_Activity__c.label}"
+                        sourceLabel="Available"
+                        selectedLabel="Chosen"
+                        options="{!v.onAcOption }"
+                        value="{!v.onAcValue}"
+                        disableReordering="true"
+                        size="5"
+                        onchange="{!c.onAcHandleChange}"/>
+                    <aura:set attribute="else">
+                        <lightning:input variant="label-inline" label="{!v.dataFields.RTL_Preferred_Activity__c.label}" disabled="{!!v.dataFields.RTL_Preferred_Activity__c.isAccessible}"  value="{!v.dataFields.RTL_Preferred_Activity__c.value}"/>
+                    </aura:set>
+                </aura:if>
+                <br/>
+                <aura:if isTrue="{!v.dataFields.Favorite_Place_Travel__c.isAccessible}">
+                    <lightning:dualListbox aura:id="selectGenre"
+                        label="{!v.dataFields.Favorite_Place_Travel__c.label}"
+                        sourceLabel="Available"
+                        selectedLabel="Chosen"
+                        options="{!v.travelOption }"
+                        value="{!v.travelValue}"
+                        disableReordering="true"
+                        size="5"
+                        onchange="{!c.travelHandleChange}"/>
+                    <aura:set attribute="else">
+                        <lightning:input variant="label-inline" label="{!v.dataFields.Favorite_Place_Travel__c.label}" disabled="{!!v.dataFields.Favorite_Place_Travel__c.isAccessible}"  value="{!v.dataFields.Favorite_Place_Travel__c.value}"/>
+                    </aura:set>
+                </aura:if>
+                <br/>
+                <aura:if isTrue="{!v.dataFields.Favorite_Music__c.isAccessible}">
+                    <lightning:dualListbox aura:id="selectGenre"
+                        label="{!v.dataFields.Favorite_Music__c.label}"
+                        sourceLabel="Available"
+                        selectedLabel="Chosen"
+                        options="{!v.musicOption }"
+                        value="{!v.musicValue}"
+                        disableReordering="true"
+                        size="5"
+                        onchange="{!c.musicHandleChange}"/>
+                    <aura:set attribute="else">
+                        <lightning:input variant="label-inline" label="{!v.dataFields.Favorite_Music__c.label}" disabled="{!!v.dataFields.Favorite_Music__c.isAccessible}"  value="{!v.dataFields.Favorite_Music__c.value}"/>
+                    </aura:set>
+                </aura:if>
+                <br/>
+                <aura:if isTrue="{!v.dataFields.Favorite_Food__c.isAccessible}">
+                    <lightning:dualListbox aura:id="selectGenre"
+                        label="{!v.dataFields.Favorite_Food__c.label}"
+                        sourceLabel="Available"
+                        selectedLabel="Chosen"
+                        options="{!v.foodOption }"
+                        value="{!v.foodValue}"
+                        disableReordering="true"
+                        size="5"
+                        onchange="{!c.foodHandleChange}"/>
+                    <aura:set attribute="else">
+                        <lightning:input variant="label-inline" label="{!v.dataFields.Favorite_Food__c.label}" disabled="{!!v.dataFields.Favorite_Food__c.isAccessible}"  value="{!v.dataFields.Favorite_Food__c.value}"/>
+                    </aura:set>
+                </aura:if>
+                <br/>
+                <aura:if isTrue="{!v.dataFields.RTL_Other1__c.isAccessible}">
+                    <lightning:dualListbox aura:id="selectGenre"
+                        label="{!v.dataFields.RTL_Other1__c.label}"
+                        sourceLabel="Available"
+                        selectedLabel="Chosen"
+                        options="{!v.other1Option }"
+                        value="{!v.other1Value}"
+                        disableReordering="true"
+                        size="5"
+                        onchange="{!c.other1HandleChange}"/>
+                    <aura:set attribute="else">
+                        <lightning:input variant="label-inline" label="{!v.dataFields.RTL_Other1__c.label}"  disabled="{!!v.dataFields.RTL_Other1__c.isAccessible}" value="{!v.dataFields.RTL_Other1__c.value}"/>
+                    </aura:set>
+                </aura:if>
+                <br/>
+                    <div class="slds-form_horizontal">
+                        <aura:if isTrue="{!v.dataFields.RTL_Special_Pref__c.isAccessible}">
+                            <lightning:textarea  class="textAreaBody" value="{!v.dataFields.RTL_Special_Pref__c.value}"  label="{!v.dataFields.RTL_Special_Pref__c.label}" />
+                            <aura:if isTrue="{!v.Special_Pref_Error}">
+                                <span>{!v.errorMessage}</span>
+                            </aura:if>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Special_Pref__c.label}" disabled="{!!v.dataFields.RTL_Special_Pref__c.isAccessible}"  value="{!v.dataFields.RTL_Special_Pref__c.value}"/>
+                            </aura:set>
+                        </aura:if>
+                        <aura:if isTrue="{!v.dataFields.RTL_Life_Objective_1__c.isAccessible}">
+                            <lightning:textarea  value="{!v.dataFields.RTL_Life_Objective_1__c.value}" label="{!v.dataFields.RTL_Life_Objective_1__c.label}" />
+                            <aura:if isTrue="{!v.Life_Objective_1_Error}">
+                                <span>{!v.errorMessage}</span>
+                            </aura:if>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Life_Objective_1__c.label}" disabled="{!!v.dataFields.RTL_Life_Objective_1__c.isAccessible}"  value="{!v.dataFields.RTL_Life_Objective_1__c.value}"/>
+                            </aura:set>
+                        </aura:if>
+                        <aura:if isTrue="{!v.dataFields.RTL_Life_Objective_2__c.isAccessible}">
+                            <lightning:textarea  value="{!v.dataFields.RTL_Life_Objective_2__c.value}" label="{!v.dataFields.RTL_Life_Objective_2__c.label}" />
+                                <aura:if isTrue="{!v.Life_Objective_2_Error}">
+                                    <span>{!v.errorMessage}</span>
+                                </aura:if>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Life_Objective_2__c.label}" disabled="{!!v.dataFields.RTL_Life_Objective_2__c.isAccessible}"  value="{!v.dataFields.RTL_Life_Objective_2__c.value}"/>
+                            </aura:set>
+                        </aura:if>
+                        <aura:if isTrue="{!v.dataFields.RTL_Life_Objective_3__c.isAccessible}">
+                            <lightning:textarea  value="{!v.dataFields.RTL_Life_Objective_3__c.value}" label="{!v.dataFields.RTL_Life_Objective_3__c.label}" />
+                            <aura:if isTrue="{!v.Life_Objective_3_Error}">
+                                <span>{!v.errorMessage}</span>
+                            </aura:if>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Life_Objective_3__c.label}" disabled="{!!v.dataFields.RTL_Life_Objective_3__c.isAccessible}"  value="{!v.dataFields.RTL_Life_Objective_3__c.value}"/>
+                            </aura:set>
+                        </aura:if>
+                        <aura:if isTrue="{!v.dataFields.RTL_Other2__c.isAccessible}">
+                            <lightning:textarea value="{!v.dataFields.RTL_Other2__c.value}" label="{!v.dataFields.RTL_Other2__c.label}" />
+                            <aura:if isTrue="{!v.RTL_Other2_Error}">
+                                <span>{!v.errorMessage}</span>
+                            </aura:if>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Other2__c.label}" disabled="{!!v.dataFields.RTL_Other2__c.isAccessible}"  value="{!v.dataFields.RTL_Other2__c.value}"/>
+                            </aura:set>
+                        </aura:if>
+                        </div>
+            </lightning:accordionSection>
+            <lightning:accordionSection name="C" label="{!$Label.c.Contact_Number_and_Email_Address}">
+                <div class="slds-grid slds-gutters">
+                    <div class="slds-col">
+                        <div class="slds-form slds-form_stacked" >
+                            <aura:if isTrue="{!v.dataFields.RTL_Preferred_Contact_Channel__c.isAccessible}">
+                                <lightning:select name="PreferContact" label="{!v.dataFields.RTL_Preferred_Contact_Channel__c.label}" aura:id="PreferContact" value="{!v.preferContactValue}" onchange="{! c.onPreferContactChange }">
+                                    <aura:iteration items="{!v.preferContactOption}" var="option">
+                                        <option text="{!option.label}" value="{!option.id}" selected="{!option.selected}" />
+                                    </aura:iteration>
+                                </lightning:select>
+                                <aura:set attribute="else">
+                                    <lightning:input label="{!v.dataFields.RTL_Preferred_Contact_Channel__c.label}"   disabled="{!!v.dataFields.RTL_Preferred_Contact_Channel__c.isAccessible}" value="{!v.dataFields.RTL_Preferred_Contact_Channel__c.value}"/>
+                                </aura:set>
+                            </aura:if>
+                        </div>
+                        <div class="slds-form slds-form_stacked" >
+                            <!-- <lightning:input label="{!v.dataFields.RTL_Alternative_Number__c.label}" disabled="{!!v.dataFields.RTL_Alternative_Number__c.isAccessible}"  value="{!v.dataFields.RTL_Alternative_Number__c.value}"/> -->
+                            <aura:if isTrue="{!v.Alternative_Number_Error}">
+                                <lightning:input label="{!v.dataFields.RTL_Alternative_Number__c.label}" class="color" disabled="{!!v.dataFields.RTL_Alternative_Number__c.isAccessible}"  value="{!v.dataFields.RTL_Alternative_Number__c.value}"/>
+                                <span class="errorText">{!v.errorMessage}</span>
+                                <aura:set attribute="else">
+                                    <lightning:input label="{!v.dataFields.RTL_Alternative_Number__c.label}"  disabled="{!!v.dataFields.RTL_Alternative_Number__c.isAccessible}" value="{!v.dataFields.RTL_Alternative_Number__c.value}"/>
+                                </aura:set>
+                            </aura:if>
+                        </div>
+                    </div>
+                    <div class="slds-col">
+                        <div class="slds-form slds-form_stacked" >
+                            <aura:if isTrue="{!v.dataFields.RTL_Alternative_Contact_Channel__c.isAccessible}">
+                                <lightning:select name="AlterContact" label="{!v.dataFields.RTL_Alternative_Contact_Channel__c.label}" aura:id="AlterContact" value="{!v.alterContactValue}" onchange="{! c.onAlterContactChange }">
+                                    <aura:iteration items="{!v.alterContactOption}" var="option">
+                                        <option text="{!option.label}" value="{!option.id}" selected="{!option.selected}" />
+                                    </aura:iteration>
+                                </lightning:select>
+                                <aura:set attribute="else">
+                                    <lightning:input label="{!v.dataFields.RTL_Alternative_Contact_Channel__c.label}"   disabled="{!!v.dataFields.RTL_Alternative_Contact_Channel__c.isAccessible}" value="{!v.dataFields.RTL_Alternative_Contact_Channel__c.value}"/>
+                                </aura:set>
+                            </aura:if>
+                        </div>
+                    </div>
+                </div>
+            </lightning:accordionSection>
+            <lightning:accordionSection name="D" label="{!$Label.c.Alternate_Contact_Information}">
+                <div class="slds-grid">
+                    <div class="slds-col slds-p-horizontal_medium">
+                        <!-- <lightning:input label="{!v.dataFields.RTL_Contact_Person_Name_1__c.label}" disabled="{!!v.dataFields.RTL_Contact_Person_Name_1__c.isAccessible}"  value="{!v.dataFields.RTL_Contact_Person_Name_1__c.value}"/> -->
+                        <aura:if isTrue="{!v.Contact_Person_Name_1_Error}">
+                            <lightning:input label="{!v.dataFields.RTL_Contact_Person_Name_1__c.label}" class="color" disabled="{!!v.dataFields.RTL_Contact_Person_Name_1__c.isAccessible}"  value="{!v.dataFields.RTL_Contact_Person_Name_1__c.value}"/>
+                            <span class="errorText">{!v.errorMessage}</span>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Contact_Person_Name_1__c.label}"  disabled="{!!v.dataFields.RTL_Contact_Person_Name_1__c.isAccessible}" value="{!v.dataFields.RTL_Contact_Person_Name_1__c.value}"/>
+                            </aura:set>
+                        </aura:if>
+                        <!-- <lightning:input label="{!v.dataFields.RTL_Contact_Person_Number_1__c.label}"  disabled="{!!v.dataFields.RTL_Contact_Person_Number_1__c.isAccessible}" value="{!v.dataFields.RTL_Contact_Person_Number_1__c.value}"/> -->
+                        <aura:if isTrue="{!v.Contact_Person_Number_1_Error}">
+                            <lightning:input label="{!v.dataFields.RTL_Contact_Person_Number_1__c.label}" class="color" disabled="{!!v.dataFields.RTL_Contact_Person_Number_1__c.isAccessible}"  value="{!v.dataFields.RTL_Contact_Person_Number_1__c.value}"/>
+                            <span class="errorText">{!v.errorMessage}</span>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Contact_Person_Number_1__c.label}"  disabled="{!!v.dataFields.RTL_Contact_Person_Number_1__c.isAccessible}" value="{!v.dataFields.RTL_Contact_Person_Number_1__c.value}"/>
+                            </aura:set>
+                        </aura:if>
+                        <aura:if isTrue="{!v.dataFields.RTL_Purpose_for_Contact1__c.isAccessible}">
+                            <lightning:select name="PFC1" label="{!v.dataFields.RTL_Purpose_for_Contact1__c.label}" aura:id="PFC1" value="{!v.pfc1Value}" onchange="{! c.onPFC1Change }">
+                                <aura:iteration items="{!v.pfc1Option}" var="option">
+                                    <option text="{!option.label}" value="{!option.id}" selected="{!option.selected}" />
+                                </aura:iteration>
+                            </lightning:select>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Purpose_for_Contact1__c.label}"   disabled="{!!v.dataFields.RTL_Purpose_for_Contact1__c.isAccessible}" value="{!v.dataFields.RTL_Purpose_for_Contact1__c.value}"/>
+                            </aura:set>
+                        </aura:if>
+                        <aura:if isTrue="{!v.dataFields.RTL_Relationship_Contact_1__c.isAccessible}">
+                            <lightning:select name="RelationC1" label="{!v.dataFields.RTL_Relationship_Contact_1__c.label}" aura:id="RelationC1" value="{!v.relationC1Value}" onchange="{! c.onRelationC1Change }">
+                                <aura:iteration items="{!v.relationC1Option}" var="option">
+                                    <option text="{!option.label}" value="{!option.id}" selected="{!option.selected}" />
+                                </aura:iteration>
+                            </lightning:select>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Relationship_Contact_1__c.label}"   disabled="{!!v.dataFields.RTL_Relationship_Contact_1__c.isAccessible}" value="{!v.dataFields.RTL_Relationship_Contact_1__c.value}"/>
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                    <div class="slds-col slds-p-horizontal_medium">
+                        <!-- <lightning:input label="{!v.dataFields.RTL_Contact_Person_Name_2__c.label}"  disabled="{!!v.dataFields.RTL_Contact_Person_Name_2__c.isAccessible}" value="{!v.dataFields.RTL_Contact_Person_Name_2__c.value}"/> -->
+                        <aura:if isTrue="{!v.Contact_Person_Name_2_Error}">
+                            <lightning:input label="{!v.dataFields.RTL_Contact_Person_Name_2__c.label}" class="color" disabled="{!!v.dataFields.RTL_Contact_Person_Name_2__c.isAccessible}"  value="{!v.dataFields.RTL_Contact_Person_Name_2__c.value}"/>
+                            <span class="errorText">{!v.errorMessage}</span>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Contact_Person_Name_2__c.label}"  disabled="{!!v.dataFields.RTL_Contact_Person_Name_2__c.isAccessible}" value="{!v.dataFields.RTL_Contact_Person_Name_2__c.value}"/>
+                            </aura:set>
+                        </aura:if>
+                        <!-- <lightning:input label="{!v.dataFields.RTL_Contact_Person_Number_2__c.label}" disabled="{!!v.dataFields.RTL_Contact_Person_Number_2__c.isAccessible}"  value="{!v.dataFields.RTL_Contact_Person_Number_2__c.value}"/> -->
+                        <aura:if isTrue="{!v.Contact_Person_Number_2_Error}">
+                            <lightning:input label="{!v.dataFields.RTL_Contact_Person_Number_2__c.label}" class="color" disabled="{!!v.dataFields.RTL_Contact_Person_Number_2__c.isAccessible}"  value="{!v.dataFields.RTL_Contact_Person_Number_2__c.value}"/>
+                            <span class="errorText">{!v.errorMessage}</span>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Contact_Person_Number_2__c.label}"  disabled="{!!v.dataFields.RTL_Contact_Person_Number_2__c.isAccessible}" value="{!v.dataFields.RTL_Contact_Person_Number_2__c.value}"/>
+                            </aura:set>
+                        </aura:if>
+                        <aura:if isTrue="{!v.dataFields.RTL_Purpose_of_Contact2__c.isAccessible}">
+                            <lightning:select name="POC2" label="{!v.dataFields.RTL_Purpose_of_Contact2__c.label}" aura:id="POC2" value="{!v.poc2Value}" onchange="{! c.onPOC2Change }">
+                                <aura:iteration items="{!v.poc2Option}" var="option">
+                                    <option text="{!option.label}" value="{!option.id}" selected="{!option.selected}" />
+                                </aura:iteration>
+                            </lightning:select>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Purpose_of_Contact2__c.label}"   disabled="{!!v.dataFields.RTL_Purpose_of_Contact2__c.isAccessible}" value="{!v.dataFields.RTL_Purpose_of_Contact2__c.value}"/>
+                            </aura:set>
+                        </aura:if>
+                        <aura:if isTrue="{!v.dataFields.RTL_Relationship_Contact_2__c.isAccessible}">
+                            <lightning:select name="RelationC2" label="{!v.dataFields.RTL_Relationship_Contact_2__c.label}" aura:id="RelationC2" value="{!v.relationC2Value}" onchange="{! c.onRelationC2Change }">
+                                <aura:iteration items="{!v.relationC2Option}" var="option">
+                                    <option text="{!option.label}" value="{!option.id}" selected="{!option.selected}" />
+                                </aura:iteration>
+                            </lightning:select>
+                            <aura:set attribute="else">
+                                <lightning:input label="{!v.dataFields.RTL_Relationship_Contact_2__c.label}"   disabled="{!!v.dataFields.RTL_Relationship_Contact_2__c.isAccessible}" value="{!v.dataFields.RTL_Relationship_Contact_2__c.value}"/>
+                            </aura:set>
+                        </aura:if> 
+                    </div>
+                </div>
+                <br/>
+                <div class="slds-align_absolute-center" style="height:3rem">
+                    <aura:if isTrue="{!v.showSubmitButton }">
+                        <lightning:button label="{!$Label.c.Save}" type="submit" onclick="{!c.onSubmit}"/>
+                    </aura:if>
+                    <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.onCancel}" />
+                </div>
+            </lightning:accordionSection>
+        </lightning:accordion>
+    </lightning:card>
+</aura:component>

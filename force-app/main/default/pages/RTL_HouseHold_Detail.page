@@ -1,0 +1,480 @@
+<apex:page standardController="RTL_Household__c" extensions="RTL_HouseHoldDetailExtension" tabStyle="RTL_Household_Member__c" showchat="false" sidebar="false" showheader="false"
+           standardstylesheets="true">
+    <!-- Includes Js -->
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading ...');" id="status" onstop="endLoading();" />
+    <!-- Salesconsole JS API -->
+    <apex:includescript value="/support/console/36.0/integration.js" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+
+    <!-- Style for Ajax Request -->
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+            /* width: 32px;*/
+            height: 32px;
+            position: absolute;
+            left: 48%;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+    <!-- // End Ajax Request -->
+    <apex:form id="form" >
+    <apex:sectionheader title="{!$Label.RTL_Household}" subtitle="{!Household.Name}" />
+        <apex:outputPanel id="script">
+        <apex:pageMessages ></apex:pageMessages>
+        <script>
+        
+        function redirectPage(){
+            var url = '';
+            var primaryMembURL = '/{!primaryMemberId}';
+            var householdDetailURL = '/apex/RTL_HouseHold_Detail?id='+'{!household.id}';
+            console.log('HouseholdList Size :::: {!householdList.size}');     
+            var url = householdDetailURL;
+            if($('.errorMsg').length > 0 || '{!hasError}' == 'true'){
+                //If has error , do nothing
+            }else{
+                if('{!householdList.size}' == '0'){
+                    url = primaryMembURL;
+                }             
+                tabNavigation(url);
+            }    
+        }
+            
+        function tabNavigation(url){
+            if(_isInConsole){
+                // In Sales Console
+                //sforce.console.getSubtabIds(_primaryTabId , showTabIds);
+                sforce.console.getFocusedPrimaryTabObjectId(showTabIds);
+            }else if(_isInSF1){
+                //In Salesforce1
+                sforce.one.navigateToURL(url);
+            }else{
+                //Desktop Version
+                window.location.href = url;
+            }
+        }
+        
+        function redirectURL(url,pageName){
+            
+            if(_isInConsole){
+                // In Sales Console
+                OpenTabPage(url,pageName);
+                //sforce.console.generateConsoleUrl([url], showConsoleUrl); 
+            }else if(_isInSF1){
+                //In Salesforce1
+                sforce.one.navigateToURL(url);
+            }else{
+                //Desktop Version
+                window.location.href = url;
+            }
+        }
+        var showTabIds = function showTabIds(result) {
+            var url = '/apex/RTL_HouseHold_Detail?id='+'{!household.id}';
+            var pageName = '';
+            //Display the subtab IDs
+            var objId = result.id.toString();
+            //Open from Primary Tab
+            var isHouseholdDeleted = '{!householdList.size}' == '0'?true:false;
+            if(objId.startsWith('001') == false && isHouseholdDeleted == false){
+                sforce.console.openPrimaryTab(_primaryTabId,url,true);
+                
+            }else{
+                if(isHouseholdDeleted == false){
+                    OpenTabPage(url,pageName);
+                }
+                sforce.console.getEnclosingTabId(callCloseTab);
+                sforce.console.refreshPrimaryTabById(_primaryTabId,true);
+            }
+        };
+        </script>
+        </apex:outputPanel>
+    <apex:actionFunction name="submitApproval" action="{!submitForApproval}"/>
+    <apex:actionFunction name="requestDelete" action="{!requestDelete}"/>
+    <apex:actionFunction name="approveAll" action="{!approveAll}" oncomplete="redirectPage();return false;" reRender="script"/>
+    <apex:actionFunction name="rejectAll" action="{!rejectAll}" oncomplete="redirectPage();return false;" reRender="script"/>
+    <apex:actionFunction name="requestDeleteMember" action="{!requestDeleteMember}" reRender="none">
+        <apex:param name="membId" value="" assignTo="{!membId}"/>
+    </apex:actionFunction>
+    <apex:actionFunction name="deleteHistory" action="{!deleteHistory}" reRender="script" oncomplete="redirectPage();return false;">
+        <apex:param name="histId"  value="" assignTo="{!histId}"/>
+    </apex:actionFunction>
+    <apex:actionFunction name="notifyRequestor" action="{!notifyRequestor}"/>
+    <apex:pageBlock mode="maindetail" >
+        <apex:pageBlockButtons >
+            <apex:commandbutton action="{!Edit}" value="{!$Label.Edit}" style="{!IF(isHouseholdRecordLocked == true || isHouseholdEditable == false,'display:none;','')}" />
+            <apex:commandbutton onclick="cfDelete();return false;" value="{!$Label.RTL_Request_Delete}" style="{!IF(isHouseholdRecordLocked == true || isHouseholdEditable == false || Household.RTL_Status__c == 'New','display:none;','')}" />
+            <apex:commandbutton onclick="submitBtn();return false;" style="{!IF(isHouseholdRecordLocked == true || isHouseholdEditable == false || approvalList.size == 0 ,'display:none;','')}"  value="{!$Label.RTL_Submit_for_Approval}" />
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection title="{!$Label.RTL_Household_Information}">
+            <apex:outputField value="{!Household.Name}"/>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.RTL_Household__c.fields.RTL_RM__c.Label}" />
+                <apex:outputPanel >
+                    <apex:outputLink onclick="redirectURL('/{!household.RTL_RM__c}','{!household.RTL_RM__r.Name}');return false;" >{!household.RTL_RM__r.Name}</apex:outputLink>
+            </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:outputField value="{!Household.RTL_Benefit_Package__c}"/>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.RTL_Household__c.fields.RTL_Approver_UserName__c.Label}" />
+                <apex:outputPanel >
+                    <apex:outputLink onclick="redirectURL('/{!household.RTL_RM__r.ManagerId}','{!household.RTL_Approver_UserName__c}');return false;">{!household.RTL_Approver_UserName__c}</apex:outputLink>
+            </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:outputField value="{!Household.RTL_Status__c}"/>
+            <apex:outputField value="{!Household.RTL_Number_of_Members__c}"/>
+            <apex:outputField value="{!Household.RTL_Remarks__c}"/>
+        </apex:pageBlockSection> 
+    </apex:pageBlock>
+   <!-- Start Member Table -->
+   <apex:pageBlock title="{!$Label.RTL_Household_Member}" >
+        <apex:pageBlockButtons location="top">
+            <apex:outputPanel style="{!IF(isHouseholdRecordLocked == true || isHouseholdEditable == false,'display:none;','')}">
+                <a class="btn" href="javascript:redirectURL('/apex/RTL_HouseholdMember_Creation?householdId={!Household.Id}&tabId='+_tabId,'New Member');" style="text-decoration:none;padding:4px;" >{!$Label.RTL_New_Household_Member}</a>
+            </apex:outputPanel>
+        </apex:pageBlockButtons>
+       <apex:pageBlockTable value="{!memberList}" var="member" rendered="{!NOT(ISNULL(memberList)) && memberList.size > 0}">                   
+           <!-- Action -->
+           <apex:column headerValue="{!$Label.Action}" width="80px">
+                <apex:outputPanel style="{!IF(isHouseholdRecordLocked == true || isHouseholdEditable == false || member.RTL_Primary__c == true ,'display:none;','')}">
+                    <a href="javascript:redirectURL('/apex/RTL_HouseholdMember_Edit?id={!member.Id}&tabId='+_tabId,'{!member.name}');" >{!$Label.Edit}</a>
+                </apex:outputPanel>
+                <apex:outputPanel style="{!IF(isHouseholdRecordLocked == true || isHouseholdEditable == false || member.RTL_Primary__c == true ,'display:none;','')}" > | </apex:outputPanel>
+                <apex:outputLink onclick="cfDeleteMember('{!member.id}');return false;" style="{!IF(isHouseholdRecordLocked == true || isHouseholdEditable == false || member.RTL_Primary__c == true,'display:none;','')}" >{!$Label.Delete}</apex:outputLink>
+               </apex:column>
+           <!-- Member Name (Hidden by request see TD-0330)
+           <apex:column headerValue="{!$ObjectType.RTL_Household_Member__c.fields.Name.Label}" >       
+               <apex:outputField value="{!member.Name}" >
+               </apex:outputField>
+           </apex:column>
+           -->
+           <!--Related Account Name -->
+           <apex:column headerValue="{!$ObjectType.RTL_Household_Member__c.fields.RTL_Household_Member_Name__c.Label}">
+               <a href="javascript:redirectURL('/{!member.RTL_Household_Member_Name__c}','{!member.RTL_Household_Member_Name__r.Name}');">{!member.RTL_Household_Member_Name__r.Name}</a>
+           </apex:column>
+           <!--TMB Cust ID (Hidden by request see TD-0330)
+           <apex:column headerValue="{!$ObjectType.RTL_Household_Member__c.fields.RTL_TMB_Customer_ID_PE__c.Label}" value="{!member.RTL_TMB_Customer_ID_PE__c }"> </apex:column>
+           -->
+           <!--Primary-->
+           <apex:column headerValue="{!$ObjectType.RTL_Household_Member__c.fields.RTL_Primary__c.Label}">
+               <apex:outputField value="{!member.RTL_Primary__c}" >
+               </apex:outputField>
+           </apex:column>
+           <!--Benefit-->
+           <apex:column headerValue="{!$ObjectType.RTL_Household_Member__c.fields.RTL_Benefit__c.Label}">
+               <apex:outputField value="{!member.RTL_Benefit__c}" >
+               </apex:outputField>
+           </apex:column>
+           <!--To Delete Label (Hidden by request see TD-0330)
+           <apex:column headerValue="{!$ObjectType.RTL_Household_Member__c.fields.RTL_To_Delete__c.Label}" value="{!member.RTL_To_Delete__c}"/>
+            -->           
+           <apex:column headerValue="{!$ObjectType.RTL_Household_Member__c.fields.RTL_Relationship__c.Label}">
+               <apex:outputField value="{!member.RTL_Relationship__c}" >
+               </apex:outputField>
+           </apex:column>
+           <apex:column headerValue="{!$ObjectType.RTL_Household_Member__c.fields.RTL_Status__c.Label}">
+               <apex:outputField value="{!member.RTL_Status__c}" >
+               </apex:outputField>
+           </apex:column>
+        </apex:pageBlockTable>
+        <apex:outputText value="{!$Label.RTL_No_Record_Display}" rendered="{!(ISNULL(memberList) || memberList.size == 0)}" styleClass="noRowsHeader"></apex:outputText>          
+    </apex:pageBlock>
+    <!-- End Member Table -->
+    <!-- Start Approval Tabel -->
+    <apex:pageBlock title="{!$Label.RTL_Approval}" >
+       <apex:pageBlockButtons >
+           <apex:commandButton onclick="cfApprove();return false;" id="apprvAllBtn" value="{!$Label.RTL_Approve_All}" style="{!IF($User.Id != household.RTL_RM__r.ManagerId || approvalList.size == 0 || isHouseholdRecordLocked == false || Household.RTL_Status__c == 'Deleted','display:none;','')}"/>
+           <apex:commandButton onclick="cfReject();return false;" id="rejectAllBtn" value="{!$Label.RTL_Reject_All}" style="{!IF($User.Id != household.RTL_RM__r.ManagerId || approvalList.size == 0 || isHouseholdRecordLocked == false || Household.RTL_Status__c == 'Deleted','display:none;','')}"/>
+        </apex:pageBlockButtons>
+       <apex:pageBlockTable value="{!approvalList}" var="appr" rendered="{!NOT(ISNULL(approvalList)) && approvalList.size > 0}">
+           <!-- Action -->
+           <apex:column headerValue="{!$Label.Action}" width="80px"> 
+               <apex:outputPanel style="{!IF($User.Id != household.RTL_RM__r.ManagerId || isHouseholdRecordLocked == false || Household.RTL_Status__c == 'Deleted','display:none;','')}">
+                   <apex:outputLink onclick="redirectURL('/{!appr.id}/e?tabId='+_tabId,'{!appr.name}');return false;" >{!$Label.Edit}</apex:outputLink>
+                   <apex:inputHidden id="tabId" />
+               </apex:outputPanel>
+                   <!--<apex:outputPanel style="{!IF(isHouseholdRecordLocked == true || ($User.Id != household.RTL_RM__c) && ($User.Id != household.CreatedById) ,'display:none;','')}"> | </apex:outputPanel>-->
+                <apex:outputLink onclick="cfDeleteHistory('{!appr.id}','{!appr.RTL_Field_Label__c}');return false;" style="{!IF(isHouseholdRecordLocked == true || isHouseholdEditable == false ,'display:none;','')}" >{!$Label.Delete}</apex:outputLink>
+           </apex:column>
+           <apex:column headerValue="{!$Label.RTL_Request}" >
+               <apex:outputLink onclick="redirectURL('/{!appr.id}','{!appr.name}');return false;" >{!appr.Name}</apex:outputLink>
+           </apex:column>
+           <apex:column headerValue="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_Section__c.Label}" value="{!appr.RTL_Section__c }"/>           
+           <apex:column headerValue="{!$Label.RTL_Household_Requested_Type}" value="{!$Label[historyTypeMap[appr.RTL_Field_Label__c].DeveloperName] }"/>
+           <apex:column headerValue="{!$Label.RTL_Related_Record}">
+               <apex:outputText value="{!appr.RTL_Household__r.Name}" style="{!IF(ISBLANK(appr.RTL_Member_Lookup_Account__c),'','display:none;')}"/>
+               <apex:outputLink onclick="redirectURL('/{!appr.RTL_Member_Lookup_Account__c}','{!appr.RTL_Member_Lookup_Account__r.Name}');return false;" style="{!IF(ISBLANK(appr.RTL_Member_Lookup_Account__c),'display:none;','')}">
+                   {!appr.RTL_Member_Lookup_Account__r.Name}
+               </apex:outputLink>
+           </apex:column>
+           <apex:column headerValue="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_Prev_Value__c.Label}">
+               <apex:outputPanel rendered="{!appr.RTL_Field_Changed__c != 'RTL_Benefit__c'}">
+                    <apex:outputText style="{!IF(appr.RTL_Field_Changed__c == 'RTL_To_Delete__c','display:none;','')}" value="{!appr.RTL_Prev_Value__c }"></apex:outputText>
+                    <apex:outputText style="{!IF(appr.RTL_Field_Changed__c == 'RTL_To_Delete__c','','display:none;')}"></apex:outputText>
+               </apex:outputPanel>
+               <apex:outputPanel rendered="{!appr.RTL_Field_Changed__c == 'RTL_Benefit__c'}">
+                    <apex:outputText value="{!IF(appr.RTL_Prev_Value__c == 'true' ,'Yes','No')}"></apex:outputText>
+               </apex:outputPanel>
+           </apex:column>
+           <apex:column headerValue="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_New_Value__c.Label}">
+               <apex:outputPanel rendered="{!appr.RTL_Field_Changed__c != 'RTL_Benefit__c'}">
+                    <apex:outputText style="{!IF(appr.RTL_Field_Changed__c == 'RTL_To_Delete__c' || appr.RTL_Field_Changed__c == 'New Household' || appr.RTL_Field_Changed__c == 'New Member','display:none;','')}" value="{!appr.RTL_New_Value__c }"></apex:outputText>
+                    <apex:outputText style="{!IF(appr.RTL_Field_Changed__c == 'RTL_To_Delete__c' || appr.RTL_Field_Changed__c == 'New Household' || appr.RTL_Field_Changed__c == 'New Member','','display:none;')}"></apex:outputText>
+               </apex:outputPanel>
+               <apex:outputPanel rendered="{!appr.RTL_Field_Changed__c == 'RTL_Benefit__c'}">
+                    <apex:outputText value="{!IF(appr.RTL_New_Value__c == 'true' ,'Yes','No')}"></apex:outputText>
+               </apex:outputPanel>
+           </apex:column>
+           <apex:column headerValue="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_Date_Requested__c.Label}" value="{!appr.RTL_Date_Requested__c  }"/>         
+           <apex:column headerValue="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_Outcome__c.Label}" value="{!appr.RTL_Outcome__c}" ></apex:column>
+        </apex:pageBlockTable>
+        <apex:outputText value="{!$Label.RTL_No_Record_Display}" rendered="{!(ISNULL(approvalList) || approvalList.size == 0)}" styleClass="noRowsHeader"></apex:outputText>
+    </apex:pageBlock>
+    <!-- End Approval Table -->
+    <!-- Start History Table -->
+    <apex:pageBlock title="{!$Label.RTL_History}" id="history-section">
+        <apex:pageBlockButtons location="top" >
+           <apex:commandButton onclick="cfNotifyRequestor();return false;" id="sendNotifyBtn" value="{!$Label.RTL_Send_Email}" style="{!IF($User.Id != household.RTL_RM__r.ManagerId || approvalList.size > 0 || notNotifiedHistoryList.size == 0,'display:none;','')}" rerender = "history-section"/>
+        </apex:pageBlockButtons>  
+         <apex:pageBlockButtons location="bottom" >
+           <apex:commandButton value="{!$Label.RTL_First}" action="{!First}" status="status" rerender="history-section" disabled="{!DisablePrevious}"/>
+           <apex:commandButton value="{!$Label.RTL_Previous}" action="{!Previous}" status="status" rerender="history-section" disabled="{!DisablePrevious}"/>
+           <apex:commandButton value="{!$Label.RTL_Next}" action="{!Next}" status="status" rerender="history-section" disabled="{!DisableNext}"/>
+           <apex:commandButton value="{!$Label.RTL_Last}" action="{!Last}" status="status" rerender="history-section" disabled="{!DisableNext}"/>
+        </apex:pageBlockButtons>
+       <apex:pageBlockTable value="{!historyList}" var="history" rendered="{!NOT(ISNULL(historyList)) && historyList.size > 0}"> 
+           <apex:column headerValue="{!$Label.RTL_Request}" width="80px"> 
+               <apex:outputLink onclick="redirectURL('/{!history.id}','{!history.name}');return false;">{!history.Name}</apex:outputLink>
+           </apex:column>
+           <apex:column headerValue="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_Section__c.Label}" value="{!history.RTL_Section__c}"/>
+           <apex:column headerValue="{!$Label.RTL_Household_Requested_Type}" value="{!$Label[historyTypeMap[history.RTL_Field_Label__c].DeveloperName] }"/> 
+           <apex:column headerValue="{!$Label.RTL_Related_Record}">
+               <apex:outputText value="{!history.RTL_Household__r.Name}" style="{!IF(ISBLANK(history.RTL_Member_Lookup_Account__c),'','display:none;')}"/>
+               <apex:outputLink onclick="redirectURL('/{!history.RTL_Member_Lookup_Account__c}','{!history.RTL_Member_Lookup_Account__r.Name}');return false;" style="{!IF(ISBLANK(history.RTL_Member_Lookup_Account__c),'display:none;','')}">
+                   {!history.RTL_Member_Lookup_Account__r.Name}
+               </apex:outputLink>
+           </apex:column>         
+           <apex:column headerValue="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_Prev_Value__c.Label}">
+               <apex:outputPanel rendered="{!history.RTL_Field_Changed__c != 'RTL_Benefit__c'}">
+                    <apex:outputText style="{!IF(history.RTL_Field_Changed__c == 'RTL_To_Delete__c','display:none;','')}" value="{!history.RTL_Prev_Value__c }"></apex:outputText>
+                    <apex:outputText style="{!IF(history.RTL_Field_Changed__c == 'RTL_To_Delete__c','','display:none;')}"></apex:outputText>
+               </apex:outputPanel>
+               <apex:outputPanel rendered="{!history.RTL_Field_Changed__c == 'RTL_Benefit__c'}">
+                    <apex:outputText value="{!IF(history.RTL_Prev_Value__c == 'true' ,'Yes','No')}"></apex:outputText>
+               </apex:outputPanel>
+           </apex:column>
+           <apex:column headerValue="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_New_Value__c.Label}">
+                    <apex:outputPanel rendered="{!history.RTL_Field_Changed__c != 'RTL_Benefit__c'}">
+                        <apex:outputText style="{!IF(history.RTL_Field_Changed__c == 'RTL_To_Delete__c' || history.RTL_Field_Changed__c == 'New Household' || history.RTL_Field_Changed__c == 'New Member','display:none;','')}" value="{!history.RTL_New_Value__c }"></apex:outputText>
+                        <apex:outputText style="{!IF(history.RTL_Field_Changed__c == 'RTL_To_Delete__c' || history.RTL_Field_Changed__c == 'New Household' || history.RTL_Field_Changed__c == 'New Member','','display:none;')}"></apex:outputText>
+                    </apex:outputPanel>
+               <apex:outputPanel rendered="{!history.RTL_Field_Changed__c == 'RTL_Benefit__c'}">
+                    <apex:outputText value="{!IF(history.RTL_New_Value__c == 'true' ,'Yes','No')}"></apex:outputText>
+               </apex:outputPanel>
+           </apex:column>
+           <!-- 
+           <apex:column headerValue="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_User_Requesting__c.Label}" >
+               <apex:outputLink onclick="redirectURL('/{!history.RTL_User_Requesting__c}','{!history.RTL_User_Requesting__r.Name}');return false;">{!history.RTL_User_Requesting__r.Name}</apex:outputLink>
+           </apex:column>-->
+           <apex:column headerValue="{!$Label.RTL_Result}" value="{!history.RTL_Outcome__c}" />
+           <!--
+           <apex:column headerValue="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_Date_Requested__c.Label}" value="{!history.RTL_Date_Requested__c  }"/>
+            -->
+           <!--
+           <apex:column headerValue="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_Approver_Link__c.Label}" >        
+               <apex:outputLink onclick="redirectURL('/{!history.RTL_Approver_Link__c }','{!history.RTL_Approver_Link__r.Name}');return false;">{!history.RTL_Approver_Link__r.Name}</apex:outputLink>           
+           </apex:column> -->
+           <apex:column headerValue="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_Date_Approved__c.Label}" value="{!history.RTL_Date_Approved__c }"/>
+        </apex:pageBlockTable>
+        <apex:outputText value="{!$Label.RTL_No_Record_Display}" rendered="{!(ISNULL(historyList) || historyList.size == 0)}" styleClass="noRowsHeader"></apex:outputText>
+        <apex:outputPanel layout="block" styleClass="myHeader" style="float:right;margin: 4px">
+            <!--<apex:outputText value="{!counter+1}"/> -&nbsp;<apex:outputText value="{!if(totalsize<counter+pageSize,totalsize,counter+pageSize)}"/>  Total : <apex:outputText value="{!totalsize}"/>-->
+            <apex:outputText value="{!$Label.RTL_Page} {!CEILING((counter+1)/pageSize)}"/> of &nbsp;<apex:outputText value="{!CEILING(totalsize/pageSize)}"/>
+        </apex:outputPanel>
+        </apex:pageBlock>
+    
+    <script>
+        function startLoading(text){
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading(){
+            $('.loadingBox').hide();
+        }
+        function submitBtn(){
+            if(confirm('{!$Label.RTL_Confirm_Submit_For_Approval}')){
+                submitApproval();
+            }
+        }
+        function cfApprove(){
+            if(confirm('{!$Label.RTL_Confirm_Approve_All}')){
+                approveAll();
+            }
+        }
+    
+        function cfReject(){
+            if(confirm('{!$Label.RTL_Confirm_Reject_All}')){
+                rejectAll();
+            }
+        }
+    
+        function cfDelete(){
+            if(confirm('{!$Label.RTL_Confirm_Request_Delete_Household}')){
+                requestDelete();
+            }
+        }
+    
+        function cfDeleteMember(membId){
+            if(confirm('{!$Label.RTL_Confirm_Request_Delete_Household_Member}')){
+                requestDeleteMember(membId);
+            }
+        }
+        function cfDeleteHistory(histId,Type){
+            var cfMessage = '{!$Label.RTL_Confirm_Delete}';
+            if(Type == 'New Household'){
+                cfMessage = '{!$Label.RTL_Confirm_Cancel_Create_Household}';
+                _DeleteNewHousehold = true;
+            }
+            if(confirm(cfMessage)){
+                deleteHistory(histId);
+            }
+        }
+        
+        function cfNotifyRequestor(){
+            if(confirm('{!$Label.RTL_Confirm_Send_Email}')){
+                notifyRequestor();
+            }
+        }
+        
+        // Global variable
+    var _isInConsole = false;
+    var _isInSF1 = false;
+    var _primaryTabId ='';
+    var _customername = '{!Household.Name}';
+    var _tabId;
+    var _objId;
+ 
+    /*-------------------------------------------------------------------------
+            Salesforce :  Sale Console Js
+        ---------------------------------------------------------------------------*/
+    function IsInConsole() {
+
+        if (sforce.console.isInConsole()) {
+            _isInConsole = true;
+            _isInSF1 = false;
+            // Then get primary tab id 
+            sforce.console.getEnclosingPrimaryTabId(MainTabId);
+            sforce.console.getEnclosingTabId(showTabId);
+            sforce.console.setTabTitle(_customername);
+            sforce.console.setTabIcon("{!URLFOR($Resource.RTL_Household_Logo)}", null);
+
+        }
+        // Ref. https://developer.salesforce.com/docs/atlas.en-us.salesforce1.meta/salesforce1/vf_dev_best_practices_pages_multipurpose.htm
+        else if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+            _isInConsole = false;
+            _isInSF1 = true;
+
+        }
+        else {
+            _isInConsole = false;
+            _isInSF1 = false;
+        }
+
+        console.log('_isInConsole = ' +  _isInConsole);
+        console.log('_isInSF1 = ' +  _isInSF1);
+
+    }
+        
+    var showTabId = function showTabId(result) {
+        // Display the tab ID    
+        _tabId = result.id;
+        $("[id$=tabId]").val(_tabId);
+    };
+        
+    
+        
+    function OpenTabPage(url,pagename){
+        console.log('primary '+_primaryTabId);
+        // Open new sub tab
+        sforce.console.openSubtab(_primaryTabId , url, true, pagename, null, openSuccess,null);        
+    }
+    var MainTabId = function getMainTabId(result  /* primary tab info */) {
+        //Now that we have the primary tab ID, we can open a new subtab in it
+        console.log(result);
+        _primaryTabId = result.id;
+        sforce.console.getFocusedPrimaryTabObjectId(setTabIcon);
+        
+        
+    };
+    var setTabIcon= function setTabIcon(result) {
+        var objId = result.id.toString();
+        if(objId.startsWith('001') == false)
+        {
+            sforce.console.setTabIcon("{!URLFOR($Resource.RTL_Household_Logo)}", _primaryTabId);
+            
+        }
+            
+    }
+    var openSuccess = function openSuccess(result) {
+        //Report whether we succeeded in opening the subtab
+        if (result.success == true) {
+
+        } else {
+
+        }
+    };
+        var callCloseTab= function callCloseTab(result) {
+            sforce.console.closeTab(result.id);
+            
+        }
+        
+        function closeTab(){
+            sforce.console.getEnclosingTabId(callCloseTab);
+        }
+        
+        function showConsoleUrl(result) {
+            OpenTabPage(result.consoleUrl,'');
+            //alert(result.consoleUrl);
+        }
+    /*-------------------------------------------------------------------------
+            Salesforce :  Main Function
+        ---------------------------------------------------------------------------*/
+    $(document).ready(function () {
+        //Check Application
+        IsInConsole();
+    });
+    
+    if (!String.prototype.startsWith) {
+        String.prototype.startsWith = function(searchString, position) {
+            position = position || 0;
+            return this.indexOf(searchString, position) === position;
+        };
+    }
+        
+        
+  
+    </script>
+    </apex:form>
+</apex:page>

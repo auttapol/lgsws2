@@ -1,0 +1,343 @@
+<aura:component controller="CampaignMemberCallBackCtrl" implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId,lightning:isUrlAddressable" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />  
+    <aura:attribute name="iconName" type="String" default="utility:chevrondown"/>
+    <aura:attribute name="isExpanded" type="Boolean" default="false"/>
+    <aura:attribute name="Mode" type="String" default="Edit"/>
+    
+    <aura:attribute name="recordId" type="Id"/>
+    <aura:attribute name="todayDate" type="Date"/>
+    <aura:attribute name="timeNow" type="Time"/>
+    <aura:attribute name="readonly" type="Boolean" default="false"/>
+    <aura:attribute name="marketingCode" type="String"/>
+    <aura:attribute name="loaded" type="Boolean" default="false"/>
+
+    <aura:attribute name="callback_id" type="String" />
+    <aura:attribute name="callback_number" type="String" />
+    <aura:attribute name="callback_mode" type="String" default="Strict Agent"/>
+    <aura:attribute name="callback_description" type="String" />
+    <aura:attribute name="callback_date" type="String" />
+    <aura:attribute name="callback_time" type="String" />
+    <aura:attribute name="callback_date_label" type="String" />
+    <aura:attribute name="callback_time_label" type="String" />
+     <aura:attribute name="currentUser" type="User"/>
+
+    <aura:attribute name="task" type="Task"  />
+    <aura:attribute name="original_task" type="Task"
+    default="{'sObjectType':'Task', 
+        'Call_Number__c':'', 
+        'Call_Back_Mode__c':''},
+        'Description':''}"/>
+
+    <aura:attribute name="agent_mode" type="String" default="Standard"/>
+
+    <aura:attribute name="requiredDate" type="Boolean" default="false" />
+    <aura:attribute name="requiredTime" type="Boolean" default="false" />
+    <aura:attribute name="requiredFlag" type="Boolean" default="false" />
+    <aura:attribute name="reschedule" type="Boolean" />
+
+    <aura:attribute name="onQuickAction" type="Boolean" default="false" />
+
+    <aura:method name="parentSubmit" action="{!c.handleSubmit}" access="PUBLIC" />
+    <aura:method name="callbackSelected" action="{!c.requireAll}" access="PUBLIC" />
+    <aura:method name="callbackDeselected" action="{!c.unrequireAll}" access="PUBLIC" />
+    <aura:method name="validateCallBack" action="{!c.validate}" access="PUBLIC" />
+    <aura:method name="validateCallBackInput" action="{!c.validateInput}" access="PUBLIC" />
+    
+    <aura:method name="validateBusinessHour" action="{!c.validateBusinessHour}" access="PUBLIC" >
+        <aura:attribute name="callback" type="Function" />
+    </aura:method>
+    <aura:method name="clearValidate" action="{!c.clearValidate}" access="PUBLIC" />
+
+    <aura:handler name="change" value="{!v.readonly}" action="{!c.handleReadonly}"/> 
+
+    <aura:handler name="change" value="{!v.task}" action="{!c.setTask}"/> 
+
+    <aura:if isTrue="{!v.Mode == 'Edit'}">
+       <aura:If isTrue="{!!v.onQuickAction}" >
+            <div class="{! 'slds-section' + (v.isExpanded ? ' slds-is-open' : '')}" >
+                <h3 class="slds-section__title" style="margin-bottom: 10px;">
+                    <button aria-controls="expando-unique-id" aria-expanded="{!v.isExpanded}" class="slds-button slds-section__title-action" onclick="{!c.changeState}" >
+                        <lightning:icon iconName="{!v.iconName}" alternativeText="chevrondown" title="chevrondown" size="x-small" />
+                        <span class="slds-truncate section_header" title="Section Title">{!$Label.c.RTL_CampaignMember_SectionTitle_CallBack}</span>
+                    </button>
+                </h3>
+                <div class="slds-section__content" aria-hidden="{!!v.isExpanded}" id="expando-unique-id">
+                    <div class="slds-grid slds-wrap">                               
+
+                        <aura:if isTrue="{! v.loaded }">
+                            <lightning:spinner alternativeText="Loading" />   
+                        </aura:if>
+
+                        <div class="slds-col slds-size_2-of-4" style="margin-bottom: 10px;">
+                            <lightning:input variant="{!v.onQuickAction ? '' : 'label-inline'}"
+                                            label="Call Back Date"
+                                            aura:id="callbackForm"
+                                            class="inputStyle"
+                                            value="{! v.callback_date }"
+                                            type="date"
+                                            format="dd-MMM-yyyy"
+                                            min="{!v.todayDate}" onchange="{!c.handleCallBackDate}" disabled="{!v.readonly}"/>
+                        </div>  
+    
+                        <div class="slds-col slds-size_2-of-4" style="margin-bottom: 10px;">
+                            <lightning:input variant="{!v.onQuickAction ? '' : 'label-inline'}"
+                                            label="Call Back Phone Number"
+                                            aura:id="callbackForm"
+                                            class="inputStyle"
+                                            value="{! v.callback_number }" disabled="{!v.readonly}"/>
+                        </div>  
+                        <div class="slds-col slds-size_2-of-4" style="margin-bottom: 10px;">
+                            <lightning:input variant="{!v.onQuickAction ? '' : 'label-inline'}"
+                                            label="Call Back Time"
+                                            aura:id="callbackForm"
+                                            class="inputStyle"
+                                            type="time"
+                                            value="{! v.callback_time }" onchange="{!c.handleCallBackTime}" disabled="{!v.readonly}"/>
+                        </div>   
+                        <div class="slds-col slds-size_0.5-of-4">
+                            <div class="slds-form-element__label slds-no-flex" style="margin-left: 3px;">Call Back Mode</div>
+                        </div>
+                        <div class="slds-col slds-grid slds-size_1-of-4 radio-callback" >
+                            <div class="slds-size_1.5-of-4">
+                                <span class="slds-radio radioStyle">
+                                    <input type="radio" id="radio-44" value="Strict Agent"
+                                            name="default" onchange="{! c.modeChange }"
+                                            checked="{!v.callback_mode ? v.callback_mode == 'Strict Agent' : true}"/>
+                                    <label class="slds-radio__label" for="radio-44">
+                                        <span class="slds-radio_faux"></span>
+                                        <span class="slds-form-element__label">Strict Agent</span>
+                                    </label>
+                                </span>
+                            </div>
+                            <div class="slds-size_2.5-of-4">
+                                <span class="slds-radio radioStyle">
+                                    <input type="radio" id="radio-43" value="Standard"
+                                            name="default" onchange="{! c.modeChange }"
+                                            checked="{!v.callback_mode == 'Standard'}" disabled="true"/>
+                                    <label class="slds-radio__label" for="radio-43">
+                                        <span class="slds-radio_faux"></span>
+                                        <span class="slds-form-element__label">Standard</span>
+                                    </label>
+                                </span>
+                            </div>                  
+                        </div>
+                        <div class="slds-col slds-size_2-of-4">
+                            <lightning:textarea variant="{!v.onQuickAction ? '' : 'label-inline'}"
+                                            label="Call Back Note"
+                                            aura:id="callbackForm"
+                                            class="inputStyle"
+                                            name="input1"
+                                            value="{! v.callback_description }" disabled="{!v.readonly}"/>
+                        </div>                     
+                    </div>   
+                </div>
+            </div> 
+
+            <aura:set  attribute="else">
+                <div class="slds-grid slds-wrap">   
+                    <div class="slds-col slds-size_2-of-4">
+                        <div class="slds-col slds-size_4-of-4" style="margin-bottom: 10px;">
+                            <lightning:input variant="{!v.onQuickAction ? '' : 'label-inline'}"
+                                            label="Call Back Date"
+                                            required="{!v.requiredDate}"
+                                            aura:id="callbackForm"
+                                            class="inputStyle"
+                                            value="{! v.callback_date }"
+                                            type="date"
+                                            min="{!v.todayDate}" onchange="{!c.handleCallBackDate}" disabled="{!v.readonly}"/>
+                        </div>         
+                        <div class="slds-col slds-size_4-of-4" style="margin-bottom: 10px;">
+                            <lightning:input variant="{!v.onQuickAction ? '' : 'label-inline'}"
+                                            label="Call Back Time"
+                                            required="{!v.requiredTime}"
+                                            aura:id="callbackForm"
+                                            class="inputStyle"
+                                            type="time"
+                                            value="{! v.callback_time }" onchange="{!c.handleCallBackTime}" disabled="{!v.readonly}"/>
+                        </div>  
+                        <lightning:textarea variant="{!v.onQuickAction ? '' : 'label-inline'}"
+                                        label="Call Back Note"
+                                        aura:id="callbackForm"
+                                        class="inputStyle"
+                                        name="input1"
+                                        value="{! v.task.Description }" disabled="{!v.readonly}"/>                          
+                    </div>
+                    <div class="slds-col slds-size_2-of-4">
+                        <div class="slds-col slds-size_4-of-4" style="margin-bottom: 10px;">
+                            <lightning:input variant="{!v.onQuickAction ? '' : 'label-inline'}"
+                                            label="Call Back Phone Number"
+                                            required="{!v.requiredFlag}"
+                                            aura:id="callbackForm"
+                                            class="inputStyle"
+                                            value="{! v.task.Call_Number__c }" disabled="{!v.readonly}"/>
+                        </div>  
+                        <div class="slds-form-element__label slds-no-flex" style="margin-top: 10px;">Call Back Mode</div>
+                        <div class="slds-col slds-grid slds-size_1-of-4">
+                            <div class="slds-size_2.5-of-4">
+                                <span class="slds-radio radioStyle">
+                                    <input type="radio" id="radio-44" value="Strict Agent"
+                                            name="default" onchange="{! c.modeChange }"
+                                            checked="{!v.task.Call_Back_Mode__c ? v.task.Call_Back_Mode__c == 'Strict Agent' : true}"/>
+                                    <label class="slds-radio__label" for="radio-44">
+                                        <span class="slds-radio_faux"></span>
+                                        <span class="slds-form-element__label">Strict Agent</span>
+                                    </label>
+                                </span>
+                            </div>
+                            <div class="slds-size_2.5-of-4">
+                                <span class="slds-radio radioStyle">
+                                    <input type="radio" id="radio-43" value="Standard"
+                                            name="default" onchange="{! c.modeChange }"
+                                            checked="{!v.task.Call_Back_Mode__c == 'Standard'}" disabled="true"/>
+                                    <label class="slds-radio__label" for="radio-43">
+                                        <span class="slds-radio_faux"></span>
+                                        <span class="slds-form-element__label">Standard</span>
+                                    </label>
+                                </span>
+                            </div>        
+                        </div>
+                    </div>
+                </div>                           
+            </aura:set>
+        </aura:If>
+    </aura:if>
+
+    <aura:if isTrue="{!v.Mode == 'View'}">
+        <aura:If isTrue="{!!v.onQuickAction}" >
+            <div class="{! 'slds-section' + (v.isExpanded ? ' slds-is-open' : '')}" >
+                <h3 class="slds-section__title" style="margin-bottom: 10px;">
+                <button aria-controls="expando-unique-id" aria-expanded="{!v.isExpanded}" class="slds-button slds-section__title-action" onclick="{!c.changeState}" >
+                    <lightning:icon iconName="{!v.iconName}" alternativeText="chevrondown" title="chevrondown" size="x-small" />
+                    <span class="slds-truncate section_header" title="Section Title">{!$Label.c.RTL_CampaignMember_SectionTitle_CallBack}</span>
+                </button>
+                </h3>
+                <div class="slds-section__content" aria-hidden="{!!v.isExpanded}" id="expando-unique-id">
+                    <div class="slds-grid slds-wrap">                             
+                        <div class="slds-col slds-size_1-of-4" style="width: 20%;">
+                            <div class="labelStyle">Call Back Date</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-4" >
+                            <div class="outputStyle">{!v.callback_date_label}</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-4" style="width: 25%;">
+                            <div class="labelStyle">Call Back Phone Number</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-4" >
+                            <div class="outputStyle">{! v.callback_number }</div>
+                        </div> 
+                        <div class="slds-col slds-size_1-of-4" style="width: 20%;">
+                            <div class="labelStyle">Call Back Time</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-4" >
+                            <div class="outputStyle">{! v.callback_time_label }</div>
+                        </div>                       
+                        <div class="slds-col slds-size_1-of-4" style="width: 25%;">
+                            <div class="labelStyle">Call Back Mode</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-4" >
+                            <span class="slds-radio radioStyle">
+                                <input type="radio" id="radio-44" value="Strict Agent"
+                                        name="default" onchange="{! c.modeChange }"
+                                        checked="{!v.callback_mode ? v.callback_mode == 'Strict Agent' : true}" disabled="true"/>
+                                <label class="slds-radio__label" for="radio-44">
+                                    <span class="slds-radio_faux"></span>
+                                    <span class="slds-form-element__label">Strict Agent</span>
+                                </label>
+                            </span>
+                            <span class="slds-radio radioStyle">
+                                <input type="radio" id="radio-43" value="Standard"
+                                        name="default" onchange="{! c.modeChange }"
+                                        checked="{!v.callback_mode == 'Standard'}" disabled="true"/>
+                                <label class="slds-radio__label" for="radio-43">
+                                    <span class="slds-radio_faux"></span>
+                                    <span class="slds-form-element__label">Standard</span>
+                                </label>
+                            </span>
+                        </div>    
+                        <div class="slds-col slds-size_1-of-4" style="width: 20%;">
+                            <div class="labelStyle">Call Back Note</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-4" >
+                            <div class="outputStyle">{! v.callback_description }</div>
+                        </div>                      
+                    </div>   
+                </div>
+            </div>
+
+            <aura:set  attribute="else">
+                <div class="slds-grid slds-wrap"> 
+                    <div class="slds-col slds-size_2-of-4">
+                        <div class="slds-col slds-size_2-of-4" style="margin-bottom: 10px;">
+                            <lightning:input variant="{!v.onQuickAction ? '' : 'label-inline'}"
+                                            label="Call Back Date"
+                                            required="{!v.requiredDate}"
+                                            aura:id="callbackForm"
+                                            class="inputStyle"
+                                            value="{! v.callback_date }"
+                                            type="date"
+                                                min="{!v.todayDate}" onchange="{!c.handleCallBackDate}" disabled="true"/>
+                        </div>  
+    
+                        <div class="slds-col slds-size_2-of-4" style="margin-bottom: 10px;">
+                            <lightning:input variant="{!v.onQuickAction ? '' : 'label-inline'}"
+                                            label="Call Back Phone Number"
+                                            required="{!v.requiredFlag}"
+                                            aura:id="callbackForm"
+                                            class="inputStyle"
+                                            value="{! v.task.Call_Number__c }" disabled="true"/>
+                        </div>  
+                        <div class="slds-col slds-size_2-of-4" style="margin-bottom: 10px;">
+                            <lightning:input variant="{!v.onQuickAction ? '' : 'label-inline'}"
+                                            label="Call Back Time"
+                                            required="{!v.requiredTime}"
+                                            aura:id="callbackForm"
+                                            class="inputStyle"
+                                            type="time"
+                                            min="{!v.timeNow}" value="{! v.callback_time }" onchange="{!c.handleCallBackTime}" disabled="true"/>
+                        </div>   
+                        <div class="slds-form-element__label slds-no-flex" style="margin-top: 10px;">Call Back Mode</div>
+                        <div class="slds-col slds-grid slds-size_1-of-4">
+                            <div class="slds-size_2.5-of-4">
+                                <span class="slds-radio radioStyle">
+                                    <input type="radio" id="radio-44" value="Strict Agent"
+                                            name="default" onchange="{! c.modeChange }"
+                                            checked="{!v.task.Call_Back_Mode__c ? v.task.Call_Back_Mode__c == 'Strict Agent' : true}" disabled="true"/>
+                                    <label class="slds-radio__label" for="radio-44">
+                                        <span class="slds-radio_faux"></span>
+                                        <span class="slds-form-element__label">Strict Agent</span>
+                                    </label>
+                                </span>
+                            </div>
+                            <div class="slds-size_2.5-of-4">
+                                <span class="slds-radio radioStyle">
+                                    <input type="radio" id="radio-43" value="Standard"
+                                            name="default" onchange="{! c.modeChange }"
+                                            checked="{!v.task.Call_Back_Mode__c == 'Standard'}" disabled="true"/>
+                                    <label class="slds-radio__label" for="radio-43">
+                                        <span class="slds-radio_faux"></span>
+                                        <span class="slds-form-element__label">Standard</span>
+                                    </label>
+                                </span>
+                            </div>        
+                        </div>
+                    </div>
+                    <div class="slds-col slds-size_2-of-4">
+                        <lightning:textarea variant="{!v.onQuickAction ? '' : 'label-inline'}"
+                                        label="Call Back Note"
+                                        aura:id="callbackForm"
+                                        class="inputStyle"
+                                        name="input1"
+                                        value="{! v.task.Description }" disabled="true"/>
+                    </div>   
+                </div>                        
+            </aura:set>
+        </aura:If>
+    </aura:if>
+
+    <aura:if isTrue="{!v.onQuickAction}" >
+        <div class="slds-form-element buttons slds-text-align_center" style="margin-top: 50px;">
+            <lightning:button class="button-style" variant="brand" label="Submit" title="Submit callback" onclick="{!c.handleSubmit}" />
+            <lightning:button variant="brand" label="Cancel" title="Cancel" onclick="{!c.cancelQuickAction}" />
+        </div>
+    </aura:if>
+</aura:component>

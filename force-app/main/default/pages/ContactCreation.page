@@ -1,0 +1,222 @@
+<apex:page standardController="Contact"> </apex:page>
+<!--
+<apex:page standardController="Contact" extensions="01p90000006OqwV" title="Create New Contact">
+    
+<apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+    <apex:actionStatus onstart="startLoading('Inserting ...');"  id="InsertStatus" />
+    <apex:actionStatus onstart="startLoading('Calling Webservice ...');" onstop="endLoading();" id="WebserviceStatus"/>
+    <style>
+        .overlay {
+        display: none;
+        height: 100%;
+        left: 0;
+        position: fixed;
+        top: 0;
+        opacity: 0.3;
+        -moz-opacity: 0.3;
+        width: 100%;
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        filter: alpha(opacity=30);
+        background: #000;
+        -khtml-opacity: 0.3;
+        z-index: 1000;
+        }
+        .loader {
+        background: url('/img/loading32.gif') scroll no-repeat 0 0;
+        width: 32px;
+        height: 32px;
+        position: absolute;
+        left: 50%;
+        }
+		.red-label {
+        list-style: none;
+        color: #f00;
+        }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    
+    <div class="loadingBox overlay"> </div>
+    <script type="text/javascript">
+        function startLoading(text){
+        $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+        $('.loadingBox').show();
+    }
+    function endLoading(){
+        $('.loadingBox').hide();
+    }
+    function noenter(ev)  {
+        if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+            save();
+            return false;
+        } else {
+            return true;
+        }
+    }
+    
+    function save(){
+        checkID();
+        doSave();
+    }
+    
+    function checkID()
+    {
+        var isValid = $("[id$=isIDValid]");
+        var id = $("[id$=idNum]").val();
+        if(id.length != 13) {
+            isValid.val(false);
+            
+            return false;
+        }
+        for(i=0, sum=0; i < 12; i++){
+            sum += parseFloat(id.charAt(i))*(13-i); 
+        }
+        
+        if((11-sum%11)%10!=parseFloat(id.charAt(12))){
+            isValid.val(false);
+            return false;
+        }
+        isValid.val(true);  
+        return true;
+    }
+    $(document).ready(function () {
+        /*  $( "[id$=province]").on( "change", function() {
+            $('[id$=district] option[value!="0"]').remove(); 
+            
+            $('[id$=subdis] option[value!="0"]').remove(); 
+            
+            $('[id$=postcode] option[value!="0"]').remove();
+            
+        }); 
+        $( "[id$=district]").on( "change", function() {
+            
+            $('[id$=subdis] option[value!="0"]').remove();
+            $('[id$=postcode] option[value!="0"]').remove();   
+            
+            
+        }); 
+        $( "[id$=subdis]").on( "change", function() {
+            
+            $('[id$=postcode] option[value!="0"]').remove();  
+            
+        });*/
+    });
+    
+    
+    
+    </script>     
+    
+    
+    <apex:sectionHeader title="Contact" subtitle="New Contact"/>
+    <apex:Form onkeypress="return noenter(event);" id="createcontactform">
+        <apex:actionFunction name="selectProvince" action="{!Provinceselected}" reRender="district,subdis,postcode"   />
+        <apex:actionFunction name="selectDistrict" action="{!DistrictSelected}" reRender="subdis,postcode"   /> 
+        <apex:actionFunction name="selectSubDistrict" action="{!SubDistrictSelected}" reRender="postcode"   />
+        <apex:actionFunction name="CountryChange" action="{!CheckCountry}" reRender="PhoneAddress"   /> 
+        <apex:outputPanel id="statusMessage">
+            <apex:pageMessages ></apex:pageMessages>
+        </apex:outputPanel>
+        <apex:actionFunction name="doSave" action="{!save}" status="InsertStatus" rerender="statusMessage" oncomplete="if({!isCalloutAllow})insertCallout(); else endLoading();" />
+        <apex:actionFunction name="insertCallout" action="{!insertContactCallOut}" status="WebserviceStatus" rerender="statusMessage" oncomplete="if({!isCreateSuccess})viewContact();" />
+        <apex:actionFunction name="viewContact" action="{!viewContact}" />
+        <apex:PageBlock mode="edit" >
+            
+            <apex:PageBlockSection columns="2" title="Contact Information">
+                <apex:inputField value="{!contact.Salutation }" taborderhint="1" />
+                <apex:inputField value="{!contact.ID_Type_Temp__c}" taborderhint="5" />
+
+             <apex:PageBlockSectionItem >
+                    <apex:outputLabel value="First Name" >
+                                                         <span class="red-label">*</span>
+                                    </apex:outputLabel>
+                <apex:inputText value="{!contact.First_Name_Temp__c}" Label="First Name" tabindex="20" />
+             </apex:PageBlockSectionItem>
+                
+                <apex:inputField value="{!contact.ID_number_Temp__c}" id="idNum" taborderhint="6" />
+                <apex:inputField value="{!contact.Last_Name_Temp__c}" taborderhint="3" />                
+                <apex:inputField value="{!contact.Position__c}"  taborderhint="7" />
+                <apex:inputField value="{!contact.Date_of_Birth__c}" taborderhint="4" />
+                <apex:inputField value="{!contact.Authorized_person_of_signature__c}" taborderhint="8" />                
+                <apex:PageBlockSectionItem >
+                </apex:PageBlockSectionItem>
+                <apex:inputField value="{!contact.Main_contact__c}" taborderhint="9" />
+            </apex:PageBlockSection>
+           
+            <apex:PageBlockSection columns="2" title="Phone & Address" id="PhoneAddress">
+                <apex:inputText maxlength="18" value="{!contact.Mobile_No_Temp__c}" tabindex="100" />
+                <apex:inputField value="{!contact.Address_No_Temp__c}" taborderhint="14" />               
+                <apex:inputText maxlength="18" value="{!contact.Office_No_Temp__c}" tabindex="110" />
+				<apex:inputField value="{!contact.Soi_Temp__c}" taborderhint="15" /> 
+				<apex:inputText maxlength="18" value="{!contact.Fax_No_Temp__c}" tabindex="120" />                
+                <apex:inputField value="{!contact.Street_Temp__c}" taborderhint="16" />  
+				<apex:inputField value="{!contact.Email_Temp__c}" taborderhint="13" />                
+                <apex:pageBlockSectionItem rendered="{!IsCountryAsTH}">
+                    <apex:outputLabel value="Province" for="province"/>
+                    <apex:selectList value="{!selectedProvince}" multiselect="false" size="1" id="province" onchange="selectProvince();" tabindex="170" >
+                        <apex:selectOptions value="{!ProvinceOptionList}" ></apex:selectOptions>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>
+                <apex:inputField value="{!contact.Province_Temp__c}" rendered="{!IsOtherCountry}" taborderhint="17" />
+				                <apex:PageBlockSectionItem rendered="{!IsCountryAsTH}" >
+                </apex:PageBlockSectionItem>
+                <apex:pageBlockSectionItem rendered="{!IsCountryAsTH}">
+                    <apex:outputLabel value="District" for="district"/>
+                    <apex:selectList value="{!selectedDistrict}" multiselect="false" size="1" id="district" onchange="selectDistrict();" tabindex="180">
+                        <apex:selectOptions value="{!DistrictOptionList}" ></apex:selectOptions>                    
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>    
+                <apex:PageBlockSectionItem rendered="{!IsOtherCountry}" >
+                </apex:PageBlockSectionItem>
+                <apex:inputField value="{!contact.District_Temp__c}" rendered="{!IsOtherCountry}" taborderhint="18" />
+                <apex:PageBlockSectionItem rendered="{!IsCountryAsTH}" >
+                </apex:PageBlockSectionItem>
+                <apex:pageBlockSectionItem rendered="{!IsCountryAsTH}">
+                    <apex:outputLabel value="Sub District" for="subdis"/>
+                    <apex:selectList value="{!selectedSubDistrict}" multiselect="false" size="1" id="subdis" onchange="selectSubDistrict();" tabindex="190">
+                        <apex:selectOptions value="{!SubDistrictOptionList}" ></apex:selectOptions>                    
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>
+                <apex:PageBlockSectionItem rendered="{!IsOtherCountry}" >
+                </apex:PageBlockSectionItem>
+                <apex:inputField value="{!contact.Sub_District_Temp__c}" rendered="{!IsOtherCountry}" taborderhint="19" />
+                
+                <apex:PageBlockSectionItem >
+                </apex:PageBlockSectionItem>
+                <apex:pageBlockSectionItem rendered="{!IsCountryAsTH}" >
+                    <apex:outputLabel value="Postal Code" for="postcode"/>
+                    <apex:selectList value="{!selectedPostcode}" multiselect="false" size="1" id="postcode" tabindex="200">
+                        <apex:selectOptions value="{!PostcodeOptionList}" ></apex:selectOptions>                    
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>
+                
+                <apex:inputField label="Postal Code" value="{!contact.Zip_code_Temp__c}" rendered="{!IsOtherCountry}" taborderhint="20"  />
+                
+                <apex:PageBlockSectionItem >
+                </apex:PageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel value="Country" for="country"/>
+                    <apex:selectList value="{!selectedCountry}" multiselect="false" size="1" id="country" onchange="CountryChange();" tabindex="210" >
+                        <apex:selectOptions value="{!CountriesOptionList}" ></apex:selectOptions>                    
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>
+
+            </apex:PageBlockSection>
+            
+            
+            
+            <apex:PageBlockSection columns="2" title="Support Information">
+                <apex:inputField value="{!contact.Value_Style__c}" taborderhint="22" />
+                <apex:inputField value="{!contact.Difficult_to_deal__c}" taborderhint="25" />
+                <apex:inputField value="{!contact.Decision_Map__c}" taborderhint="23" />
+                <apex:inputField value="{!contact.Description__c}" taborderhint="26" />
+                <apex:inputField value="{!contact.Product_Decision__c}" taborderhint="24" />
+                <apex:inputHidden value="{!isIDValid}" id="isIDValid"  />
+            </apex:PageBlockSection>         
+           
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Save" onclick="save();return false;" tabindex="270" />
+                <apex:commandButton value="Cancel" action="{!cancel}" tabindex="280" />
+            </apex:pageBlockButtons>
+            
+        </apex:PageBlock>
+    </apex:Form>
+</apex:page> -->

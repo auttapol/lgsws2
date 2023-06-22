@@ -1,0 +1,2594 @@
+<apex:page standardController="AcctPlanWallet__c" extensions="AccountPlanWalletDomainIIICtrl"
+    docType="html-5.0" showChat="false" showHeader="{! !isConsoleMode}" sidebar="false" 
+    applyBodyTag="false" applyHtmlTag="true" standardStylesheets="true">
+    <head>
+<title>Wallet by Domain III for Edit page </title> 
+<meta charset="utf-8" />
+        
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+<meta name="author" content="Keattisak Chinburarat" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+<!-- Static Resource -->
+<!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+<!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+        #workingCapital_label table tr td label{
+            height: 35px;
+            display: table-cell;
+        }
+        .workingCapital_value table tr td span{
+            height: 35px;
+            display: block;
+            padding: 7px 0 0 0;
+            width: 91%;
+            float: left;
+        }
+        .workingCapital_value .glyphicon-question-sign,.LGProjectValue .glyphicon-question-sign{
+            float: right;
+            width: auto !important;   
+            padding-top: 10px;
+            margin-left: 5px;
+        }
+        .workingCapital_value .form-control{
+            width: 91%;
+            float: left;
+        }
+        .dropdownList{
+            width: 150px !important;
+        }
+        .message li{
+            float: left;
+            clear: both;
+        }
+        .LGProjectValue .form-control.fillin{
+            width: 90%;
+            float:left;
+        }
+<!--
+#tabContainer {
+    display: none;
+}
+-->
+</style>
+       
+    </head>
+
+
+    <body>
+        <c:AccountPlanHeader activetab="3" activesubtab="3"/>
+        <div class="bootstrap-sf1">
+            <div id="responseErrors"></div>
+            <apex:form styleClass="form-horizontal">
+                <apex:pageblock >
+                <fieldset>
+                   
+                </fieldset>
+                <apex:actionstatus id="status">
+                        <apex:facet name="start">
+                            <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                                &nbsp;
+                            </div>
+                            <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                                <img src="/img/loading32.gif" />
+                            </div>
+                        </apex:facet>
+                    </apex:actionstatus>
+                <div style="text-align: center; margin-bottom:10px;">
+                    
+                    <apex:pageBlockButtons location="both" style="float:left;margin-left:100px;" >
+                        <apex:commandButton action="{!save}" status="status" value="Save" styleClass="btn btn-success" rerender="result"/>&nbsp;&nbsp;&nbsp;
+                        <apex:commandButton action="{!view}" value="Cancel" styleClass="btn btn-success" onclick="if(!confirm('Are you sure you want to exit this screen without saving?')) return false;" />
+                    </apex:pageBlockButtons>
+                    <apex:PageBlockSection id="result" columns="1" >
+                        <apex:pageMessages /> 
+                    </apex:PageBlockSection>    
+                </div>
+                
+                
+                                
+                                  <!--  Section 1 -->
+                        
+                            <apex:actionFunction name="checkportion" action="{!Changetotalpercent}" 
+                                            reRender="portiontable,estimateamount,totaldomesticamount,totalexpertpercent,totalexportamount" 
+                                            />
+                            <fieldset>
+                            <div class="row">
+                                <div class="col-sm-12 col-md-8  col-lg-8">
+                                    
+                                        <table class="table" id="portiontable">
+                                            
+                                                <tr>
+                                                    <td class=" text-left" style="border: none;width:43%;"> <!--<label
+                                                        class="control-label">Unit: THB</label> -->&nbsp; </td>
+                                                    <td style="border: none;" class=" forceBackground">Sale portion (%)</td>
+                                                    <td style="border: none;" class=" forceBackground">Amount/Year</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="padding15 text-left forceBackground" style="border: none;">
+                                                        <label for="EstimatedSales__c" class="control-label" style="padding-top: 0;">Estimated
+                                                            Sales (Year of account plan ) :</label>
+                                                    </td>
+                                                    <td class="padding15 text-right" style="border: none;">
+                                                        <apex:outputField value="{!acctplanwallet.EstimatedSalesPercent__c}" styleClass="form-control"
+                                                            id="EstimatedSales__c" />
+                                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.EstimatedSalesPercent__c.inlineHelpText}" />
+                                                    </td>
+                                                    <td class="padding15 text-right" style="border: none;">
+                                                        <apex:outputtext value="{0, number, ###,##0}" style="border: none;" id="EstimatedSalesAmount__c">
+                                                                  <apex:param value="{!acctplanwallet.EstimatedSalesAmtPerYear__c}" />
+                                                                </apex:outputtext>
+                                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.EstimatedSalesAmtPerYear__c.inlineHelpText}" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="padding15 text-left forceBackground" style="border: none;">
+                                                        <label for="FundingDomesticPercent__c"
+                                                        class="control-label" style="padding-top: 0;">Total % Domestic :</label>
+                                                    </td>
+                                                    <td class="padding15 text-right" style="border: none;">
+                                                            <apex:outputField value="{!acctplanwallet.TotalDomesticPercent__c}" styleClass="form-control"/>
+                                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalDomesticPercent__c.inlineHelpText}" /> 
+                                                    </td>
+                                                    <td class="padding15 text-right" style="border: none;">
+                                                        <apex:outputField value="{!acctplanwallet.TotalDomesticAmtPerYear__c}" styleClass="form-control"/>
+                                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalDomesticAmtPerYear__c.inlineHelpText}" /> 
+                                                     </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="padding15 text-left forceBackground" style="border: none;">
+                                                        <label for="FundingImportExportPercent__c"
+                                                        class="control-label" style="padding-top: 0;">Total % Export :</label>
+                                                    </td>
+                                                    <td class="padding15 text-right" style="border: none;">
+                                                         <apex:outputField value="{!acctplanwallet.TotalExportPercent__c }" styleClass="form-control"/>
+                                                         <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalExportPercent__c.inlineHelpText}" />
+                                                    </td>
+                                                  <td class="padding15 text-right" style="border: none;">
+                                                        <apex:outputField value="{!acctplanwallet.TotalExportAmtPerYear__c}" styleClass="form-control"/>
+                                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalExportAmtPerYear__c.inlineHelpText}" />
+                                                  </td>
+                                                </tr>
+
+                                            </table>
+                                    
+                                </div>
+                            </div>
+                                                            </fieldset>                             
+                                       <!--Working Capital -->                    
+                                         
+                                            
+                                     <header class="navbar navbar-default navbar-branded" role="banner">
+                    <div class="panel-heading">
+                        <div class="navbar-header">
+                            <a data-toggle="collapse" aria-expanded="true"
+                               href="#collapse2" class="navbar-brand navbar-foundation-logo">
+                               Working Capital
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                                    
+                <div class="card collapse in panel-collapse" id="collapse2">            
+                    <div class="card-detail" >
+                        <fieldset>  
+                  <apex:actionFunction name="seasonalmonth" action="{!SelectSeasonalMonth}"  reRender="seasonaltrue,seasonalperiod,normalperiod"/> 
+
+                         <!-- Working Capital -->  
+                        <div class="col-sm-12 col-md-6 col-lg-6" style="width:75% !important;">
+                                    <div class="form-group">
+
+                                        <div style="height: 100px;">
+                                            <table class="table"  id="seasontable">
+                                                <tr> 
+                                                    <td class="text-left" style="border: none; width: 260px;">
+                                                        Business has seasonal effect or not
+                                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.BusinessHasSeasonal__c.inlineHelpText}" />
+                                                            
+                                                    </td>
+                                                    <td style="border: none;">&nbsp;</td>
+                                                     <td style="border:none;">
+                                                            <apex:selectList styleClass="form-control dropdownList {!IF(Seasonal == null,'danger','success')}" 
+                                                            value="{!Seasonal}" multiselect="false" id="seasonalpicklist" 
+                                                            onchange="seasonalmonth();checkIshasValue(this,'');" size="1" style="height:30px;">
+                                                            <apex:selectOptions value="{!YesorNo}" />
+                                                            </apex:selectList>
+                                                     </td>       
+                                                </tr>
+                                                 <tr>
+                                                    <td class="text-left" style="border: none;">
+                                                            <div style="display:{!if(isHasSeasonal==true,'block','none')};" id="seasonaltrue">High Season Period</div>
+                                                    </td>
+                                                    <td style="border: none;width:14%">
+                                                            <div style="display:{!if(isHasSeasonal==true,'block','none')};" id="seasonaltrue">
+                                                            Start Month
+                                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.HighSeasonStartMonth__c.inlineHelpText}" />
+                                                    
+                                                            </div>
+                                                    </td>
+                                                            <td style="border:none;">
+                                                            <div style="display:{!if(isHasSeasonal==true,'block','none')};" id="seasonaltrue">
+                                                            <apex:selectList styleClass="form-control  dropdownList {!IF(selectedstartmonth == '0','danger','success')}" style="height:30px; "
+                                                                value="{!selectedstartmonth}" multiselect="false" id="startmonthpicklist" onchange="seasonalmonth();checkIshasValue(this,'');"
+                                                                size="1">
+                                                                <apex:selectOptions value="{!Months}" />
+                                                            </apex:selectList>
+                                                            </div>
+                                                            </td>
+                                                            <td  style="border: none;">
+                                                            &nbsp;
+                                                            </td>
+                                                             <td style="border: none;width:17%">
+                                                            <div style="border: none; display:{!if(isHasSeasonal==true,'block','none')};" id="seasonaltrue">   
+                                                            Ending Month
+                                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.HighSeasonEndMonth__c.inlineHelpText}" />
+                                                    
+                                                            </div>
+                                                    </td>
+                                                           <td style="border:none;">
+                                                            <div style="text-align: left; display:{!if(isHasSeasonal==true,'block','none')};" id="seasonaltrue">
+                                                           <apex:selectList styleClass="form-control  dropdownList {!IF(selectedendmonth == '0','danger','success')}" style="height:30px; "
+                                                                value="{!selectedendmonth}" multiselect="false" id="endmonthpicklist" onchange="seasonalmonth();checkIshasValue(this,'');"
+                                                                size="1">
+                                                                <apex:selectOptions value="{!Months}" />
+                                                            </apex:selectList>
+                                                            </div>
+                                                            </td>  
+                                                </tr>
+                                                <tr> 
+                                                         <td style="border:none;"></td> 
+                                                         <td style="border:none;"></td>
+                                                         <td style="border:none; text-align: left;">
+                                                            <apex:inputCheckbox value="{!acctplanwallet.FICustomerFlag__c}" label="FI/Retail Customer"> 
+                                                                <apex:actionsupport event="onchange" action="{!FICustomerFlagAction}" reRender="FICustomerFlagSection,renderFICutomerFlag" status="status">
+                                                                </apex:actionsupport>
+                                                            </apex:inputCheckbox>
+                                                            <span>&nbsp;FI/Retail Customer</span>
+                                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.FICustomerFlag__c.inlineHelpText}" />
+                                                    
+                                                        </td>   
+                                                </tr>
+                                                <tr>          
+                                                </tr>
+                                                
+                                            </table>
+                                        </div> 
+
+                                    </div>
+                                </div>
+                               <!--Working Capital tab -->                             
+                            
+                                <!-- Period -->
+                                  <div style="clear:both;">
+                                  <br/>
+                                  <apex:outputpanel id="renderFICutomerFlag">
+                                <div id="workingCapital_label" class="float-left clear-both"  style="width: 410px;">
+                                    <table class="table table-striped ">
+                                         <tr>
+                                                    <td class="text-left" style="border:none; background-color: #fff;"> &nbsp; </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-left forceBackground" style="border: none;width:43%;">
+                                                        <label  class="control-label">No.of month in each period    </label>
+                                                    </td>
+                                                </tr>  
+                                                <tr>
+                                                    <td class="text-left forceBackground" style="border: none;">
+                                                        <label 
+                                                        class="control-label">Average A/R Days  </label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-left forceBackground" style="border: none;">
+                                                        <label 
+                                                        class="control-label">Average Inv. Days </label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                  <td class="text-left forceBackground" style="border: none;">
+                                                        <label 
+                                                        class="control-label">Average A/P Days</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-left forceBackground" style="border: none;">
+                                                        <label 
+                                                        class="control-label">Trade Cycle (Days)</label>
+                                                    </td>
+                                                </tr>
+                                               <tr style="display: {!IF(acctplanwallet.FICustomerFlag__c == true,'none','grid')}">
+                                                  <td class="text-left forceBackground" style="border: none;">
+                                                        <label 
+                                                        class="control-label">Working Capital Needs </label>
+                                                    </td>
+                                                </tr>
+                                                <tr style="display: {!IF(acctplanwallet.FICustomerFlag__c == false,'none','grid')}">
+                                                  <td class="text-left forceBackground" style="border: none;">
+                                                        <label 
+                                                        class="control-label">Working Capital Needs - FI</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                  <td class="text-left forceBackground" style="border: none;">
+                                                        <label 
+                                                        class="control-label">NIMc (%)</label>
+                                                    </td>
+                                                </tr>
+                                               <tr>
+                                                  <td class="text-left forceBackground" style="border: none;">
+                                                        <label 
+                                                        class="control-label">Wallet NIIc (Yearly)</label>
+                                                    </td>
+                                                </tr>
+                                               <tr>
+                                                  <td class="text-left forceBackground" style="border: none;">
+                                                        <label 
+                                                        class="control-label">Total Wallet NIIc (Yearly)</label>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                  <td class="text-left forceBackground" style="border: none;">
+                                                        <label 
+                                                        class="control-label">Front end fee (%)</label>
+                                                    </td>
+                                                </tr> 
+                                                 <tr>
+                                                  <td class="text-left forceBackground" style="border: none;">
+                                                        <label 
+                                                        class="control-label">Credit fee</label>
+                                                    </td>
+                                                </tr>   
+                                                <tr>
+                                                  <td class="text-left forceBackground" style="border: none;">
+                                                        <label 
+                                                        class="control-label">Total credit fee (Yearly)</label>
+                                                    </td>
+                                                </tr>  
+                                    </table>
+                                </div>
+                                <apex:repeat value="{!APWorkingCapital}" var="item">
+                                    <div id="{!IF(item.RecordType__c =='High Season Period','seasonaltrue','')}" class="workingCapital_value float-left {!IF(isHasSeasonal==false && item.RecordType__c =='High Season Period','display-none','')}" style="width: {!IF(isHasSeasonal==true ,'18%','36%')};">
+                                    <table class="table table-striped " id="periodtable"  style="">
+                                               <tr>
+                                                    <td style="border: none;" class="forceBackground">{!item.RecordType__c}</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-center forceBackground" style="border: none;">
+                                                        <apex:outPutText value="{!NormalPeriod}" styleClass="form-control" style="float:left;width:19%;margin-left:40%;display:{!IF(item.RecordType__c =='High Season Period','none','block')};" id="normalperiod" /> 
+                                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}' 
+                                                                    data-animation="false" data-placement="bottom" style="display:{!IF(item.RecordType__c =='High Season Period','none','block')};float:left;"
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.NoOfMonth__c.inlineHelpText}" />
+                                                     
+                                                        <apex:outPutText value="{!SeasonalPeriod}" styleClass="form-control" style="float:left;width:19%;margin-left:40%;display:{!IF(item.RecordType__c =='Normal Period','none','block')};" id="seasonalperiod" />
+                                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" style="display:{!IF(item.RecordType__c =='Normal Period','none','block')};float:left;"
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.NoOfMonth__c.inlineHelpText}" />
+                                                     
+                                                    </td>
+                                                </tr>
+                                                <tr> 
+                                                    <td class="text-right" style="border: none;">
+                                                        <apex:inputField value="{!item.AvgARDays__c}" rendered="{! !acctplanwallet.FICustomerFlag__c}" styleClass="form-control {!IF(acctplanwallet.FICustomerFlag__c == true,'success',IF(item.AvgARDays__c == null || item.AvgARDays__c < 0,'danger','success'))} " onchange="checkIshasValue(this,'Average');"/>
+                                                        <apex:outputField value="{!item.AvgARDays__c}" rendered="{! acctplanwallet.FICustomerFlag__c}" styleClass="form-control"/>
+                                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.AvgARDays__c.inlineHelpText} - {!item.RecordType__c}" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                  <td class="text-right" style="border: none;">
+                                                      <apex:inputField value="{!item.AvgInvDays__c}" rendered="{! !acctplanwallet.FICustomerFlag__c}" styleClass="form-control {!IF(acctplanwallet.FICustomerFlag__c == true,'success',IF(item.AvgInvDays__c == null || item.AvgInvDays__c < 0,'danger','success'))} " onchange="checkIshasValue(this,'Average');"/>
+                                                      <apex:outputField value="{!item.AvgInvDays__c}" rendered="{! acctplanwallet.FICustomerFlag__c}" styleClass="form-control"/>
+                                                          <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.AvgInvDays__c.inlineHelpText} - {!item.RecordType__c}" />
+                                                  </td>
+                                                </tr>
+                                                <tr>
+                                                  <td class="text-right" style="border: none;">
+                                                      <apex:inputField value="{!item.AvgAPDays__c}" rendered="{! !acctplanwallet.FICustomerFlag__c}" styleClass="form-control {!IF(acctplanwallet.FICustomerFlag__c == true,'success',IF(item.AvgAPDays__c == null || item.AvgAPDays__c < 0,'danger','success'))} " onchange="checkIshasValue(this,'Average');"/>
+                                                      <apex:outputField value="{!item.AvgAPDays__c}" rendered="{! acctplanwallet.FICustomerFlag__c}" styleClass="form-control"/>
+                                                          <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.AvgAPDays__c.inlineHelpText} - {!item.RecordType__c}" />
+                                                  </td> 
+                                                </tr>
+                                                <tr>
+                                                  <td class="text-right" style="border: none;">
+                                                      <apex:outputField value="{!item.TradeCycleDays__c}" styleClass="form-control"/>
+                                                      <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.TradeCycleDays__c.inlineHelpText} - {!item.RecordType__c}" />
+                                                  </td>
+                                                </tr>
+                                                <tr style="display: {!IF(acctplanwallet.FICustomerFlag__c == true,'none','grid')}">
+                                                  <td class="text-right" style="border: none;">
+                                                      <apex:outputField value="{!item.WorkingCapitalNeeds__c}" styleClass="form-control"/>
+                                                      <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.WorkingCapitalNeeds__c.inlineHelpText} - {!item.RecordType__c}" />
+                                                  </td>
+                                                </tr>
+                                                <tr style="display: {!IF(acctplanwallet.FICustomerFlag__c == false,'none','grid')}">
+                                                  <td class="text-right" style="border: none;">
+                                                      
+                                                          <apex:outputField value="{!item.WorkingCapitalNeedsFI__c}" id="WorkingCapitalNeedsFIoutput" rendered="{! !acctplanwallet.FICustomerFlag__c}" styleClass="form-control"/>
+                                                          <apex:inputField value="{!item.WorkingCapitalNeedsFI__c}" id="WorkingCapitalNeedsFIinput" onchange="checkIshasValue(this,'');" rendered="{! acctplanwallet.FICustomerFlag__c}" styleClass="form-control {!IF(item.WorkingCapitalNeedsFI__c == null || item.WorkingCapitalNeedsFI__c <= 0 ,'danger','success')} "/>
+                                                      
+                                                      <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.WorkingCapitalNeedsFI__c.inlineHelpText} - {!item.RecordType__c}" />
+                                                  </td>
+                                                </tr>   
+                                                <tr>
+                                                  <td class="text-right" style="border: none;">
+                                                      <apex:inputField value="{!item.NimcPercent__c}" styleClass="form-control {!IF(item.NimcPercent__c == null || item.NimcPercent__c <= 0,'danger','success')} " style="margin-top: 5px;" onchange="checkIshasValue(this,'');"/>
+                                                      <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.NimcPercent__c.inlineHelpText} - {!item.RecordType__c}" />
+                                                  </td>
+                                                </tr>
+                                               <tr>
+                                                  <td class="text-right" style="border: none;">
+                                                      <apex:outputField value="{!item.WalletNIIC__c}" styleClass="form-control"/>
+                                                      <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.WalletNIIC__c.inlineHelpText} - {!item.RecordType__c}" />
+                                                  </td>
+                                                </tr>
+                                               <tr>
+                                                   <td class="text-right" style="border: none; height: 51px;">
+                                                       <div class="{!IF(item.RecordType__c =='Normal Period' && isHasSeasonal==true,'display-none totalwalletNormal','')} {!IF(item.RecordType__c =='Normal Period','totalwalletNormal','')}">
+                                                           <apex:outputField value="{!acctplanwallet.TotalWalletNiic__c}" id="TotalWalletNiic"/>
+                                                           <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.TotalWalletNiic__c.inlineHelpText} - {!item.RecordType__c}" />
+                                                        </div>
+                                                   </td>
+                                                </tr>
+                                                <tr>
+                                                  <td class="text-right" style="border: none;">
+                                                      <apex:inputField value="{!item.FrontEndFee__c}" styleClass="form-control {!IF(item.FrontEndFee__c == null,'danger','success')} " onchange="checkIshasValue(this,'FrontEndFee');"/>
+                                                      <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.FrontEndFee__c.inlineHelpText} - {!item.RecordType__c}" />
+                                                  </td> 
+                                                </tr> 
+                                                 <tr>
+                                                  <td class="text-right" style="border: none;">
+                                                      <apex:outputField value="{!item.CreditFee__c}" styleClass="form-control"/>
+                                                      <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWorkingCapital__c.Fields.CreditFee__c.inlineHelpText} - {!item.RecordType__c}" />
+                                                  </td>
+                                                </tr>   
+                                                <tr>
+                                                        <td class="text-right" style="height: 52px; border: none;" >
+                                                            <div class="{!IF(item.RecordType__c =='Normal Period' && isHasSeasonal==true,'display-none','')} {!IF(item.RecordType__c =='Normal Period','maxcreditNormal','')}">
+                                                              <apex:outputText value="{0, number, #,###}" id="MaxCreditFeeWorkingCapital">
+                                                                   <apex:param value="{!acctplanwallet.MaxCreditFeeWorkingCapital__c}" />
+                                                              </apex:outputText>
+                                                              <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.MaxCreditFeeWorkingCapital__c.inlineHelpText} - {!item.RecordType__c}" />
+                                                            </div> 
+                                                       </td>
+                                                </tr>   
+                                    </table>
+                                    </div>
+                                </apex:repeat>
+                                </apex:outputpanel> 
+                            </div>                           
+                                                            
+                                <!-- Period -->  
+                                <!--  Domestic -->
+                                
+                                    
+                                  <div>
+                             <div>
+                                    
+                                        <table class="table table-striped " id="domesticTable" style="margin-bottom: 0px;">
+                                              <thead>
+                                                 
+                                        <tr>
+                                            
+                                            <th style="width:24%;">Credit facility (Domestic)   </th>
+                                            <!--<th style="background-color: #fff; color: #000;">
+                                                <div id="CreditfacilityDomesticBlock" style="float:right;margin-right:50px;">
+                                                </div>
+                                            </th>-->
+                                        </tr>
+                                        <tr>
+                                            
+                                                    <th >
+                                                        <div style="min-width:230px !important;">
+                                                        <span>Data as of </span>
+                                                         
+                                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.DataAsOfMonthFacilityDomestic__c.inlineHelpText}" />
+                                                            
+                                                        <apex:inputField styleClass="form-control fillin dropdownList"  value="{!acctplanWallet.DataAsOfMonthFacilityDomestic__c}" id="domesticmonth" style=" height: 30px; margin-left: 5px; display:inline-block !important;"/>
+                                                            </div>
+                                                   </th>
+                                                   <th >
+                                                            <div style="min-width:230px !important;">
+                                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.DataAsOfYearFacilityDomestic__c .inlineHelpText}" />
+                                                         
+                                                        <apex:selectList styleClass="form-control fillin dropdownList" 
+                                                            style="height: 30px; margin-left: 5px; display: inline-block !important;"
+                                                            value="{!selectedDomesticyear}" multiselect="false" id="domesticyear"
+                                                            size="1" >
+                                                            <apex:selectOptions value="{!FiscalYear}" />
+                                                        </apex:selectList>
+                                                            </div>
+                                                   </th>         
+                                                  <th style="border:none;background-color:white;">
+                                                                <div class="row"> 
+                                        <div class="col-sm-12 col-md-6  col-lg-6" style="width:100%;">                                            
+                                              <button id="domesticIU" class="btn btn-success">Add / Edit</button>
+                                        </div>                                        
+                                    </div>
+                                              </th>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                  Credit Types
+                                                  <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.CreditType__c.inlineHelpText}" />
+                                                
+                                            </th>
+                                            <th class="text-center">
+                                                Other Credit Type
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.OtherCreditType__c.inlineHelpText}" />
+                                                         
+                                            </th>
+                                            <th class="text-center" style="width:16%">
+                                                Limit Amount
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.LimitAmount__c.inlineHelpText}" />
+                                                         
+                                            </th>
+                                            <th class="text-center" style="width:16%">
+                                                Outstanding
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.Outstanding__c.inlineHelpText}" />
+                                                         
+                                            </th>
+                                            <th class="text-center">
+                                                Bank
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.Bank__c.inlineHelpText}" />
+                                                         
+                                            </th>
+                                            <th class="text-center">
+                                                Collateral
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.Collateral__c.inlineHelpText}" />
+                                                         
+                                            </th>
+                                            <th class="text-center">
+                                                Collateral Detail
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.CollateralDetail__c.inlineHelpText}" />
+                                                         
+                                            </th>   
+                                            <th class="text-center">
+                                                LTV (%)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.LTV__c.inlineHelpText}" />
+                                                         
+                                            </th>
+                                        </tr>
+                                        </thead>
+                                        <tbody> 
+                                           
+                                              </tbody>
+                                        </table>                                    
+                                    </div>
+                                                                         
+                            </div>   
+                             </fieldset>       
+                                    
+                                    
+                                    
+                                <!-- Domestic -->
+                                <!-- International -->
+                                  <fieldset>
+
+                            <div>
+                                <table class="table table-striped "  style="margin-bottom: 0px;">
+                                    <thead>
+                                        <tr>
+                                            
+                                            <th  style="width:24%">Credit facilities  (International)   </th>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                            <div style="min-width:230px !important;">
+                                                 <span>Data as of </span>
+                                                    <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom" 
+                                                                        title="{!$ObjectType.AcctPlanWallet__c.Fields.DataAsOfMonthFacilityInternational__c.inlineHelpText}" />
+                                                              
+                                                    <apex:inputField styleClass="form-control fillin dropdownList"  value="{!acctplanWallet.DataAsOfMonthFacilityInternational__c}" id="intermonth" style=" height: 30px; margin-left: 5px; display: inline-block !important;"/>
+                                                </div>   
+                                            </th>
+                                             <th>
+                                                 <div style="min-width:230px !important;">
+                                                 <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.DataAsOfYearFacilityInternational__c.inlineHelpText}" />
+                                                  
+                                                <apex:selectList styleClass="form-control fillin dropdownList"
+                                                    value="{!selectedInternationalyear}" multiselect="false" id="interyear"
+                                                    size="1" style=" height: 30px; margin-left: 5px; display: inline-block !important;"> 
+                                                    <apex:selectOptions value="{!FiscalYear}" />
+                                                </apex:selectList>  
+                                                  </div>
+                                            </th>
+                                            <th style="border:none;background-color:white;">
+                                                <div class="row"> 
+                                                    <div class="col-sm-12 col-md-6  col-lg-6" style="width:100%;">                                            
+                                                          <button id="internationnalIU" class="btn btn-success">Add / Edit</button>
+                                                    </div>                                        
+                                                </div>
+                                            </th>          
+                                        </tr>
+                                        <tr>
+                                            <th style="width: 12%;">
+                                                Credit Types <br/>Import transaction
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.CreditType__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;width:16%;">
+                                                Other Credit Type
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.OtherCreditType__c.inlineHelpText}" />
+                                           </th>
+                                            <th style="vertical-align: top;width:16%;">
+                                                Limit Amount
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.LimitAmount__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;width:16%;">
+                                                Outstanding
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.Outstanding__c.inlineHelpText}" />
+                                                
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Bank
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.Bank__c.inlineHelpText}" />
+                                                
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Collateral
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.Collateral__c.inlineHelpText}" />
+                                                
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Collateral Detail
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.CollateralDetail__c.inlineHelpText}" />
+                                                
+                                            </th>                        
+                                            <th style="vertical-align: top;">
+                                                LTV (%)
+                                                     <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.LTV__c.inlineHelpText}" />
+                                                
+                                            </th>                                       
+                                        </tr>
+                                        
+                                    </thead>
+                                     <tbody id="interimportTable">
+                                       
+                                     </tbody>
+                                                                                  
+                                    
+                                </table>
+                            </div>
+                          <div>
+                              <table class="table table-striped " style="margin-top: 30px;">
+                                    <thead>
+                                                 
+                                        <tr>
+                                            <th style="width: 145px;">
+                                                     Export transaction
+                                                     <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.CreditType__c.inlineHelpText}" />
+                                            </th>                                     
+                                            <th style="width:19%;">
+                                                     Limit Amount
+                                                     <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.LimitAmount__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="width:19%;">
+                                                     Outstanding
+                                                     <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.Outstanding__c.inlineHelpText}" />
+                                            </th>
+                                            <th >
+                                                     Bank
+                                                     <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.Bank__c.inlineHelpText}" />
+                                            </th>
+                                            <th >
+                                                     Collateral
+                                                     <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.Collateral__c.inlineHelpText}" />
+                                            </th>
+                                            <th >
+                                                     Collateral Detail
+                                                     <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.CollateralDetail__c.inlineHelpText}" />
+                                            </th>
+                                            <th >
+                                                     LTV (%)
+                                                    <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWalletCreditFacility__c.Fields.LTV__c.inlineHelpText}" />
+                                                
+                                            </th>
+                                        </tr>
+                                            </thead>
+                                       <tbody id="interexporttable">
+                                        
+                                    </tbody>                                     
+                                 </table>                                                 
+                                                                                  
+                                                                                  
+                           </div>                                                      
+                            
+                            
+                               
+
+                                
+                        </fieldset>                     
+                                <!-- International -->                       
+                        
+                    </div>
+                </div>                                    
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                       <!-- /Working Capital tab -->                    
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                                                            
+                           
+                           
+
+                        
+                        <!-- /Long term Loan -->
+
+                        <header class="navbar navbar-default navbar-branded" role="banner">
+                    <div class="panel-heading">
+                        <div class="navbar-header">
+                            <a data-toggle="collapse" aria-expanded="true"
+                               href="#collapse3" class="navbar-brand navbar-foundation-logo">
+                               Long term Loan
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                                    
+                <div class="card collapse in panel-collapse" id="collapse3">            
+                    <div class="card-detail" >
+                     <!-- Existing Long term Loan -->
+                         
+                        <fieldset>
+                           <div>
+                                <table class="table table-striped " id="existingloanTable">
+                                    <thead>
+                                        <tr>
+                                            
+                                            <th >Long term Loan     </th>
+                                        </tr>
+                                        <tr>
+                                            
+                                                <th >1) Exisitng Long term Loan 
+                                                   </th>
+                                                
+                                                 <th style="border:none;background-color:white;">
+                                                                <div class="row"> 
+                                        <div class="col-sm-12 col-md-6  col-lg-6" style="width:100%;">                                            
+                                              <button id="existingloanIU" class="btn btn-success">Add / Edit</button>
+                                        </div>                                        
+                                    </div>
+                                              </th>   
+                                        </tr>
+                                        <tr>
+                                           <th style="vertical-align: top;">
+                                                Bank
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.Bank__c.inlineHelpText}" />
+                                                
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Currency
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.CCY__c.inlineHelpText}" />
+                                                
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Amount (THB)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.EquivalentAmount__c.inlineHelpText}" />
+                                                
+                                            </th>
+                                            <th>
+                                                Interest Type <br />(Fixed/Float)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.InterestType__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Interest rate
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.InterestFixedRate__c.inlineHelpText} / {!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.InterestFloatingRate__c.inlineHelpText} " />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Collateral
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.Collateral__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Collateral Detail
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.CollateralDetail__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                LTV (%)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.LTVPercent__c.inlineHelpText}" />
+                                            </th>                                  
+                                            <th style="vertical-align: top;">
+                                                NIMc (%)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.NimcPercent__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Remaining Tenors (Yrs)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.RemainingTenorsYear__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Wallet NIIc
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.WalletNiicYearly__c.inlineHelpText}" />
+                                            </th>
+                                        </tr>    
+                                        
+                                    </thead>
+                                    <tbody> 
+                                            
+                                    </tbody>
+                                    
+                                </table>
+                            </div>  
+                                                 
+                                                       
+                                                      
+                           <div>
+                                <table class="table table-striped " id="capitalloanTable">
+                                    <thead>
+                                       <tr>
+                                                <th style="width:17.5%;">2) Capital Expenditure Plan    
+                                                   </th>
+                                             <th style="border:none;background-color:white;">
+                                                                <div class="row"> 
+                                        <div class="col-sm-12 col-md-6  col-lg-6" style="width:100%;">                                            
+                                              <button id="capitalloanIU" class="btn btn-success">Add / Edit</button>
+                                        </div>                                        
+                                    </div>
+                                              </th>   
+                                        </tr>
+                                           
+                                        <tr>
+                                           <th style="vertical-align: top;" >
+                                                Purpose
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.Purpose__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Project amount (THB)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.ProjectAmount__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Investment location
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.InvestmentLocation__c.inlineHelpText}" />
+                                            </th>
+                                            <th >
+                                                Financing ratio (%)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.FinancingRation__c.inlineHelpText}" />
+                                            </th>                 
+                                            <th >
+                                                Tenor (Yrs) 
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.TenorYearly__c.inlineHelpText}" />
+                                            </th>
+                                            <th >
+                                                NIMc (%)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.NimcPercent__c.inlineHelpText}" />
+                                            </th>      
+                                            <th style="vertical-align: top;">
+                                                      Wallet NIIc <br/>(Yearly)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.WalletNiicYearly__c.inlineHelpText}" />
+                                            </th>                    
+                                            <th style="vertical-align: top;">
+                                                Front end fee (%)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.FrontEndFee__c.inlineHelpText}" />
+                                            </th>               
+                                            <th >
+                                                Credit fee (THB)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.CreditFee__c.inlineHelpText}" />
+                                            </th>
+                         
+                                        </tr>
+                                        
+                                    </thead>
+                                    <tbody>
+                                              
+                                    </tbody>
+                                    
+                                </table>
+                            </div>                              
+                                     <br />
+                                <br />  
+                                                       
+                                <table class="table table-striped "
+                                    style="width: 34%" id="totalLongTermloanYearlyTable">
+                                     <tbody>
+                                        <tr >
+                                        <td class="forceBackground"  style="min-width:230px !important">Total Wallet NIIc Long term loan (Yearly)   
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.SumOfWalletNiicLongTermLoan__c.inlineHelpText}" />
+                                            
+                                        </td>
+                                        <td>
+                                            <apex:outputText value="{0, number, #,###}">
+                                                <apex:param value="{!SumOfWalletNiicLongTermLoan}" />
+                                            </apex:outputText>
+                                        </td>
+                                           
+                                        </tr>
+                                    </tbody>
+                                </table>   
+                                        
+                                        <br />
+                                <br />
+                                <table class="table table-striped "
+                                    style="width: 34%" id="totalYearlyTable">
+                                     <tbody>
+                                        <tr >
+                                        <td class="forceBackground" style="min-width:230px !important">Total Wallet NIIc (Yearly)   
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.SumOfWalletNiicYearly__c.inlineHelpText}" />
+                                            
+                                        </td>
+                                        <td>
+                                            <apex:outputText value="{0, number, #,###}">
+                                                <apex:param value="{!SumOfWalletNiicYearly}" />
+                                            </apex:outputText>
+                                        </td>
+                                            
+                                        </tr>
+                                        <tr >
+                                        <td class="forceBackground" style="min-width:230px !important">Total Wallet Credit fee (Yearly)     
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.SumOfWalletCreditFeeYearly__c.inlineHelpText}" />
+                                            
+                                        </td>
+                                        <td>
+                                            <apex:outputText value="{0, number, #,###}">
+                                                <apex:param value="{!SumOfWalletCreditFeeYearly}" />
+                                            </apex:outputText>
+                                        </td>
+                                           
+                                        </tr>
+                                    </tbody>
+                                </table> 
+                                                      
+                             
+                             
+                             
+                             
+                             
+                         
+                        </fieldset>
+                         <!-- Existing Long term Loan -->
+                    </div>
+                </div>             
+                        
+                           
+                  
+                <header class="navbar navbar-default navbar-branded" role="banner">
+                    <div class="panel-heading">
+                        <div class="navbar-header">
+                            <a data-toggle="collapse" aria-expanded="true"
+                               href="#collapse4" class="navbar-brand navbar-foundation-logo" >
+                                    Contingent liabilities
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                          
+                <div class="card collapse in panel-collapse" id="collapse4">            
+                    <div class="card-detail" >
+                    
+                                            
+                                                
+                        <!--  Long term Loan -->
+
+
+                        <fieldset>
+                            <div >
+                                
+                                <table class="table table-striped " id="lgissuingtable"
+                                    style="width: 50%">
+                                
+                                     <thead>
+                                       <tr>
+                                                <th colspan="2" class="text-left">1.L/G issuing 
+                                                   </th>
+                                        </tr>
+                                        </thead>
+                                     <tbody>
+                                       <apex:actionFunction name="lgprojectsection" action="{!checklgsection}" reRender=""/>
+                                                      
+                                        <apex:variable var="LGissuingSegment" value="L/G issuing" />  
+                                        <apex:repeat value="{!QuestionnaireLists[LGissuingSegment]}" var="item" >
+                                            
+                                           <tr class="{!IF(item.Sub_Segment_SEQ__c == 2 || item.Sub_Segment_SEQ__c == 3 || item.Sub_Segment_SEQ__c == 4 || item.Sub_Segment_SEQ__c == 5,'trlgproject', '')}"
+                                                style="display:{!if((item.Sub_Segment_SEQ__c == 2 || item.Sub_Segment_SEQ__c == 3 || item.Sub_Segment_SEQ__c == 4 || item.Sub_Segment_SEQ__c == 5) && isHasLGProject==false,'none','')};">
+                                                <td class="padding15" style="width:150px;">
+                                                    <apex:outputPanel rendered="{!item.Sub_Segment_SEQ__c == 1}">
+                                                        <apex:selectList styleClass=" form-control fillin {!IF(item.Sub_Segment_SEQ__c == 1 ,'selectedlgproject', IF(item.Sub_Segment_SEQ__c == 6,'selectedlgpurchase',IF(item.Sub_Segment_SEQ__c == 7,'selectedlgutilities',IF(item.Sub_Segment_SEQ__c == 8,'selectedlgtax',''))))}" 
+                                                            style="height:30px;"
+                                                            value="{!selectedLGProject}" multiselect="false" 
+                                                            size="1" onchange="lgprojectsection()">
+                                                            <apex:selectOptions value="{!YesorNo}" />
+                                                        </apex:selectList>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!item.Sub_Segment_SEQ__c == 6}">
+                                                        <apex:selectList styleClass=" form-control fillin {!IF(item.Sub_Segment_SEQ__c == 1 ,'selectedlgproject', IF(item.Sub_Segment_SEQ__c == 6,'selectedlgpurchase',IF(item.Sub_Segment_SEQ__c == 7,'selectedlgutilities',IF(item.Sub_Segment_SEQ__c == 8,'selectedlgtax',''))))}" 
+                                                            style="height:30px;"
+                                                            value="{!selectedLGPurchase}" multiselect="false" 
+                                                            size="1" onchange="lgprojectsection()">
+                                                            <apex:selectOptions value="{!YesorNo}" />
+                                                        </apex:selectList>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!item.Sub_Segment_SEQ__c != 1 && item.Sub_Segment_SEQ__c < 6 }">
+                                                        <apex:inputField value="{!item.Answer__c}" onchange="lgprojectsection()" 
+                                                        style="height:30px;" 
+                                                        styleClass=" form-control fillin {!IF(item.Sub_Segment_SEQ__c == 1 ,'selectedlgproject', IF(item.Sub_Segment_SEQ__c == 6,'selectedlgpurchase',IF(item.Sub_Segment_SEQ__c == 7,'selectedlgutilities',IF(item.Sub_Segment_SEQ__c == 8,'selectedlgtax',''))))}"/>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!item.Sub_Segment_SEQ__c == 7 }">
+                                                        <apex:selectList styleClass=" form-control fillin {!IF(item.Sub_Segment_SEQ__c == 1 ,'selectedlgproject', IF(item.Sub_Segment_SEQ__c == 6,'selectedlgpurchase',IF(item.Sub_Segment_SEQ__c == 7,'selectedlgutilities',IF(item.Sub_Segment_SEQ__c == 8,'selectedlgtax',''))))}" 
+                                                            style="height:30px;"
+                                                            value="{!selectedLGUtilities}" multiselect="false" 
+                                                            size="1" onchange="lgprojectsection()">
+                                                            <apex:selectOptions value="{!YesorNo}" />
+                                                        </apex:selectList>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!item.Sub_Segment_SEQ__c == 8}">
+                                                        <apex:selectList styleClass=" form-control fillin {!IF(item.Sub_Segment_SEQ__c == 1 ,'selectedlgproject', IF(item.Sub_Segment_SEQ__c == 6,'selectedlgpurchase',IF(item.Sub_Segment_SEQ__c == 7,'selectedlgutilities',IF(item.Sub_Segment_SEQ__c == 8,'selectedlgtax',''))))}" 
+                                                            style="height:30px;"
+                                                            value="{!selectedLGTax}" multiselect="false" 
+                                                            size="1" onchange="lgprojectsection()">
+                                                            <apex:selectOptions value="{!YesorNo}" />
+                                                        </apex:selectList>
+                                                    </apex:outputPanel>
+                                                </td>
+                                                <td class="padding15 forceBackground text-left" >{!item.Question__c}</td>
+                                                <td style="display:{!IF(item.Sub_Segment_SEQ__c == 6,'block','none')};" class="padding15 forceBackground text-center" >Existing Amount or Expected amount <br/>  (Unit : THB)</td>
+                                                <td style="display:{!IF(item.Sub_Segment_SEQ__c == 7,'block','none')};"  class="padding15">
+                                                    <apex:outputPanel rendered="{!item.Sub_Segment_SEQ__c == 7}">
+                                                        <apex:inputField value="{!acctplanwallet.ExistingAmountLGUtilities__c}" style="width: 95%;float:left;" styleClass="padding15 form-control fillin" />
+                                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.ExistingAmountLGUtilities__c.inlineHelpText}" />
+                                                    </apex:outputPanel>
+                                                </td>
+                                                <td style="display:{!IF(item.Sub_Segment_SEQ__c == 8,'block','none')};"  class="padding15">
+                                                    <apex:outputPanel rendered="{!item.Sub_Segment_SEQ__c == 8}">
+                                                        <apex:inputField value="{!acctplanwallet.ExistingAmountLGTax__c}" style="width: 95%;float:left;" styleClass="padding15 form-control fillin" />
+                                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.ExistingAmountLGTax__c.inlineHelpText}" />
+                                                    </apex:outputPanel>
+                                                </td>
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>
+                                
+                            </div>
+                                            
+                            <div class="LGProjectValue">
+                                <table class="table table-striped " style="width:50%;display:{!if(isHasLGProject==true,'block','none')};" id="lgprojecttable">
+                                    <thead>
+                                       <tr>
+                                                <th >1.1 L/G Project    
+                                                   </th>
+                                        </tr>
+                                        <tr>
+                                                    <th>&nbsp;</th>
+                                            <th>Short term project</th>
+                                            <th>Long term project</th>
+                                            
+                                        </tr>
+                                        
+                                    </thead>
+                                    <tbody>
+                                       <tr >
+                                        <td class="forceBackground text-left padding15" >Project value    </td>
+                                        <td class="">
+                                            <apex:inputField value="{!APLGProject.ShortTermProjectValue__c}" styleClass="form-control fillin" />
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanLGProject__c.Fields.ShortTermProjectValue__c.inlineHelpText}" />
+                                        </td>
+                                        <td class="">
+                                            <apex:inputField value="{!APLGProject.LongTermProjectValue__c}" styleClass="form-control fillin" />
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanLGProject__c.Fields.LongTermProjectValue__c.inlineHelpText}" />
+                                        </td>    
+                                                
+                                        </tr>
+                                        <tr >
+                                                     <td class="forceBackground text-left padding15" >% of L/G      </td>
+                                        <td class="" style="">
+                                            <apex:inputField value="{!APLGProject.ShortTermLGPercent__c }" styleClass="form-control fillin" />
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanLGProject__c.Fields.ShortTermLGPercent__c.inlineHelpText}" />
+                                        </td>    
+                                        <td class="" style="">
+                                            <apex:inputField value="{!APLGProject.LongTermLGPercent__c}" styleClass="form-control fillin" />
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanLGProject__c.Fields.LongTermLGPercent__c.inlineHelpText}" />
+                                        </td>    
+                                                
+                                        </tr>
+                                        <tr >
+                                                     <td class="forceBackground text-left padding15" >L/G Fee (%)      </td>
+                                        <td class="">
+                                            <apex:inputField value="{!APLGProject.ShortTermLGRate__c}" styleClass="fillin form-control" />
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanLGProject__c.Fields.ShortTermLGRate__c.inlineHelpText}" />
+                                        </td>                                                     
+                                        <td class="">
+                                            <apex:inputField value="{!APLGProject.LongTermLGRate__c}" styleClass="fillin form-control" />
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanLGProject__c.Fields.LongTermLGRate__c.inlineHelpText}" />
+                                        </td>                                                     
+                                                
+                                        </tr>
+                                        <tr >
+                                        <td class="forceBackground text-left padding15" >Project tenor (months)   </td>
+                                        <td class="" style="" >
+                                            <apex:inputField value="{!APLGProject.ShortTermProjectTenor__c}" styleClass="fillin form-control" />
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanLGProject__c.Fields.ShortTermProjectTenor__c.inlineHelpText}" />
+                                        </td>    
+                                        <td class="" style=" border-top: none;"> &nbsp; </td>    
+                                        </tr>
+                                        <tr >
+                                            <td class="forceBackground text-left padding15" >Wallet L/G fee    </td>
+                                        <td class="padding15">
+                                            <apex:outputField value="{!acctplanwallet.ShortTermWalletLGFee__c}"/>
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanwallet__c.Fields.ShortTermWalletLGFee__c.inlineHelpText}" />
+                                        </td>    
+                                        <td class="padding15">
+                                            <apex:outputField value="{!acctplanwallet.LongTermWalletLGFee__c}"/>
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanwallet__c.Fields.LongTermWalletLGFee__c.inlineHelpText}" />
+                                        </td>    
+                                                
+                                        </tr>                                         
+                                    </tbody>
+                                    
+                                </table>
+                            </div>
+                               <div>
+                                                                                        
+                                <table class="table table-striped " style="width:50%;display:{!IF(isHasLGProject ==true,'block','none')};" id="lgprojecttable">
+                                   
+                                    <tbody>
+                                       <thead>
+                                       
+                                        <tr>
+                                                    <th style="background-color:white;border:none;">&nbsp;</th>
+                                                    <th style="background-color:white;border:none;">&nbsp;</th>
+                                            <th style="width: 150px;"  class="forceBackground text-center">Business Opportunity</th>
+                                            
+                                        </tr>
+                                        
+                                    </thead>
+                                      
+                                        <apex:variable var="LGprojectSegment" value="L/G Project"/>  
+                                        <apex:repeat value="{!QuestionnaireLists[LGprojectSegment]}" var="item" >
+                                            <tr >
+                                                <td style="width:120px;">
+                                                    <apex:inputField value="{!item.Answer__c}" id="selectlgprojectopt" styleClass=" form-control fillin" style="height:30px;"/>
+                                                </td>
+                                                    <td class="forceBackground text-left" >{!item.Question__c}<br/><div style="margin-top: 5px;color: #c5d9f1;">{!item.Question_TH__c}</div></td>
+                                                <td style="width: 150px;" class="labellgprojectopt text-left {!IF(item.Answer__c == 'Yes','','display-none')}">{!item.Opportunity__c}</td>
+                                            </tr>  
+                                        </apex:repeat>
+                                    </tbody>
+                                    
+                                </table>
+                            </div>                           
+                                  
+                            <div style="display:{!if(isHasLGPurchase==true,'block','none')};" id="lgpurchasetable">                                  
+                                <br /><br />                                       
+                                <div>
+                                    <table class="table table-striped " style="width:50%;">
+                                        <thead>
+                                           <tr>
+                                                    <th style="width: 36%;" >1.2 L/G Purchase       
+                                                       </th>
+                                            </tr>
+                                            <tr>
+                                                        <th>&nbsp;</th>
+                                                <th>Short term project</th>
+                                                
+                                            </tr>
+                                            
+                                        </thead>
+                                        <tbody>
+                                        <tr >
+                                        <td class="padding15 forceBackground text-left" >Purchase amount per month (Unit : THB) 
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanWallet__c.Fields.LGPurchaseAmountPerMonth__c.inlineHelpText}" />
+                                        
+                                        
+                                        </td>
+                                        <td class="" style="width: 25%"><apex:inputField value="{!acctplanwallet.LGPurchaseAmountPerMonth__c}" styleClass="form-control fillin" /></td>
+                                               
+                                        </tr>
+                                        <tr >
+                                        <td class="padding15 forceBackground text-left" >Credit term (days)  
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanWallet__c.Fields.LGPurchaseCreditTerm__c.inlineHelpText}" />
+                                        
+                                        
+                                        </td>
+                                        <td class="" style="width: 25%"><apex:inputField value="{!acctplanwallet.LGPurchaseCreditTerm__c}" styleClass="fillin form-control" /></td>  
+                                        </tr>
+                                        <tr >
+                                        <td class="padding15 forceBackground text-left" >Required L/G portion (%) 
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanWallet__c.Fields.LGPurchaseRequiredLGPortion__c.inlineHelpText}" />
+                                        </td>
+                                        <td class="" style="width: 25%"><apex:inputField value="{!acctplanwallet.LGPurchaseRequiredLGPortion__c}" styleClass="fillin form-control" /></td>  
+                                        </tr>                                      
+                                       
+                                        <tr >
+                                                                                                               <td class="padding15 forceBackground text-left" >Required L/G amount (Unit : THB)  
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanWallet__c.Fields.LGPurchaseRequiredLGAmount__c.inlineHelpText}" />
+                                        
+                                        
+                                        </td>
+                                        <td class="padding15" style="width: 25%"><apex:outputField value="{!acctplanwallet.LGPurchaseRequiredLGAmount__c}" styleClass="fillin form-control" /></td>  
+                                        </tr> 
+                                        <tr >
+                                        <td class="padding15 forceBackground text-left" >L/G Fee (%)  
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanWallet__c.Fields.LGPurchaseLGFee__c.inlineHelpText}" />
+                                        </td>
+                                        <td class="" style="width: 25%"><apex:inputField value="{!acctplanwallet.LGPurchaseLGFee__c}" styleClass="fillin form-control" /></td>  
+                                        </tr>
+                                        <tr >
+                                           <td class="padding15 forceBackground text-left" >Total Wallet L/G fee (Unit : THB)   
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanWallet__c.Fields.LGPurchaseTotalWalletLGFee__c.inlineHelpText}" />
+                                        
+                                        </td>
+                                        <td class="padding15" style="width: 25%"><apex:outputField value="{!acctplanwallet.LGPurchaseTotalWalletLGFee__c}" styleClass="fillin form-control" /></td>  
+                                        </tr>                                     
+                                        </tbody>
+                                        
+                                    </table>
+                                </div>
+                                <div>
+                                                                                        
+                                <!--<table class="table table-striped " style="width:50%;">
+                                   
+                                    <tbody>
+                                       <tr >
+                                    <td class="padding15 forceBackground text-left" >Total Wallet L/G fee (Yearly)       
+                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanWallet__c.Fields.SumOfWalletLGFeeYearly__c.inlineHelpText}" />
+                                        
+                                        
+                                        </td>
+                                        <td class="padding15"><apex:outputField value="{!acctplanwallet.SumOfWalletLGFeeYearly__c}"/></td>
+                                               
+                                        </tr>                                          
+                                    </tbody>
+                                    
+                                </table>-->
+                            </div> 
+                            </div>                              
+                            
+                            <div>
+                                <table class="table table-striped " style="width:50%;">
+                                   
+                                    <tbody>
+                                       <tr >
+                                    <td class="padding15 forceBackground text-left" >Total Wallet L/G fee (Yearly)       
+                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanWallet__c.Fields.SumOfWalletLGFeeYearly__c.inlineHelpText}" />
+                                        
+                                        
+                                        </td>
+                                        <td class="padding15"><apex:outputField value="{!acctplanwallet.SumOfWalletLGFeeYearly__c}"/></td>
+                                               
+                                        </tr>                                          
+                                    </tbody>
+                                    
+                                </table>
+                            </div>
+                            
+                            <!-- Start >> 17Aug2015 :by DA -->
+                            <!--<div style="display:{!if(isHasLGUtilities==true,'block','none')};" id="lgutilitiestable">-->
+                                <div>
+                            <br /> <br /> 
+                            <div>
+                                                                                        
+                                <table class="table table-striped " style="width:50%">
+                                   
+                                    <tbody>
+                                       <thead>
+                                       
+                                        <tr>
+                                                
+                                            <th colspan="2" class="forceBackground text-center">1.3 AVAL &amp; Acceptance  (Domestic)</th>
+                                            
+                                            <th style="width: 150px;"  class="forceBackground text-center">Business Opportunity</th>
+                                        </tr>
+                                        
+                                    </thead>
+                                        <apex:variable var="AVALAcceptanceSegment" value="AVAL & Acceptance" />   
+                                        <apex:repeat value="{!QuestionnaireLists[AVALAcceptanceSegment]}" var="item" >
+                                            <tr >
+                                                <td style="width:120px;">
+                                                    <apex:inputField value="{!item.Answer__c}" id="selectlgutilitiesopt" styleClass=" form-control fillin" style="height:30px;"/>
+                                                </td>
+                                                <td class="forceBackground text-left" >{!item.Question__c}<br/><div style="margin-top: 5px;color: #c5d9f1;">{!item.Question_TH__c}</div></td>
+                                                <td style="width: 150px;" class="text-left labellgutilitiesopt {!IF(item.Answer__c == 'Yes','','display-none')}">{!item.Opportunity__c}</td>
+                                            </tr>     
+                                         </apex:repeat>
+                                    </tbody>
+                                    
+                                </table>
+                            </div>
+                            </div>                            
+                                      
+                            <!--<div style="display:{!if(isHasLGTax==true,'block','none')};" id="lgtaxtable" > --> 
+                            <div > 
+                            <br /><br /> 
+                            <div>
+                                <table class="table table-striped " style="width:50%">
+                                   
+                                    <tbody>
+                                    <thead>
+                                       
+                                        <tr>
+                                                
+                                    <th colspan="2" class="forceBackground text-center">1.4 International bank guarantee/ Standby L/C </th>
+                                            
+                                            <th style="width: 150px;"  class="forceBackground text-center">Business Opportunity</th>
+                                        </tr>
+                                        
+                                    </thead>
+                                        
+                                        
+                                        <apex:variable var="InternationalBank1Segment" value="International bank section1" />    
+                                        <apex:repeat value="{!QuestionnaireLists[InternationalBank1Segment]}" var="item" >   
+                                            <tr >
+                                                <td style="width:120px;">
+                                                    <apex:inputField value="{!item.Answer__c}" styleClass=" form-control fillin  {!IF(item.Opportunity__c != null && item.Opportunity__c != '','selectlgtax2','selectlgtax1')}"  style="height:30px;"/>
+                                                </td>
+                                                <td class="forceBackground text-left" >{!item.Question__c}<br/><div style="margin-top: 5px;color: #c5d9f1;">{!item.Question_TH__c}</div></td>
+                                                    <td style="width: 150px;" class="text-left {!IF(item.Opportunity__c != null && item.Opportunity__c != '','labellgtaxopt1','')} {!IF(item.Answer__c == 'Yes','','display-none')}">{!item.Opportunity__c}</td>
+                                            </tr>     
+                                                    
+                                         </apex:repeat> 
+                                    </tbody>
+                                    
+                                </table>
+                            </div>                           
+                                                        
+                            <br /><br />       
+                            
+                            <!--<div style="display: {!IF(isHasInternationalBank == false,'none','block')}" id="InternationalBank2Segment">-->
+                                <div>
+                                <table class="table table-striped " style="width:50%;">
+                                    <tbody>
+                                       <thead>                                       
+                                        <tr>                                                
+                                            <th colspan="2" class="text-center" style="border:none;background-color:white;">&nbsp; </th>
+                                            
+                                            <th style="width: 150px;"  class="forceBackground text-center">Business Opportunity</th>
+                                        </tr>                                        
+                                    </thead>
+                                        
+                                        <apex:repeat value="{!QuestionnaireLists[InternationalBank2Segment]}" var="item" >
+                                            <tr >
+                                                <td style="width:120px;">
+                                                    <apex:inputField value="{!item.Answer__c}" styleClass=" form-control fillin {!IF(item.Opportunity__c != null && item.Opportunity__c != '','selectlgtaxopt2','')}" style="height:30px;"/>
+                                                </td>
+                                                <td class="forceBackground text-left" >{!item.Question__c}<br/><div style="margin-top: 5px;color: #c5d9f1;">{!item.Question_TH__c}</div></td>
+                                                <td style="width: 150px;" class="text-left {!IF(item.Opportunity__c != null && item.Opportunity__c != '','labellgtaxopt2','')} {!IF(item.Answer__c == 'Yes','','display-none')}">{!item.Opportunity__c}</td>
+                                            </tr>     
+                                         </apex:repeat>   
+                                    </tbody>                                    
+                                </table>
+                            </div>
+                            </div>
+                            <br /><br /> 
+                            <div>
+                                <table class="table table-striped " style="width:50%;">                                   
+                                    <tbody>
+                                       <thead>                                       
+                                        <tr>                                                
+                                            <th colspan="2" class="forceBackground text-center">1.5 Shipping guarantee </th>
+                                            
+                                            <th style="width: 150px;"  class="forceBackground text-center">Business Opportunity</th>
+                                        </tr>                                        
+                                    </thead>
+                                        <apex:variable var="ShippingGuaranteeSegment" value="Shipping guarantee" />  
+                                         <apex:repeat value="{!QuestionnaireLists[ShippingGuaranteeSegment]}" var="item" >
+                                            <tr >
+                                                <td style="width:120px;">
+                                                    <apex:inputField value="{!item.Answer__c}" id="selectshippingopt" styleClass=" form-control fillin" style="height:30px;"/>
+                                                </td>
+                                                <td class="forceBackground text-left" >{!item.Question__c}<br/><div style="margin-top: 5px;color: #c5d9f1;">{!item.Question_TH__c}</div></td>
+                                                <td style="width: 150px;" class="text-left labelshippingopt {!IF(item.Answer__c == 'Yes','','display-none')}">{!item.Opportunity__c}</td>
+                                            </tr>     
+                                         </apex:repeat>
+                                    </tbody>                                    
+                                </table>
+                            </div>                            
+                            <!-- End >> 17Aug2015 :by DA -->
+                           
+                            
+                           
+                            <br/><br/><br/>
+                            <div>
+                                <table class="table table-striped " style="width:50%" id="requiredbuyer">
+                                    <thead>
+                                       <tr>
+                                            <th style="width: 36%;">2. Request L/G from Buyer         
+                                               </th>
+                                            <th style="border:none;background-color:white;">&nbsp;         
+                                               </th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                                
+                                <table class="table table-striped " style="width:50%" id="requiredbuyer">
+                                   
+                                    <tbody>
+                                       <thead>
+                                       
+                                        <tr>
+                                            <th style="border:none;background-color:white;" class="danger">&nbsp;</th>
+                                            <th style="border:none;background-color:white;" class="danger">&nbsp;</th>
+                                            <th style="width: 150px;"  class="forceBackground text-center">Business Opportunity</th>
+                                            
+                                        </tr>
+                                        
+                                    </thead>
+                                        <apex:variable var="RequestLGSegment" value="Request L/G" /> 
+                                         <apex:repeat value="{!QuestionnaireLists[RequestLGSegment]}" var="item" >
+                                            <tr >
+                                                <td style="width:120px;">
+                                                    <apex:inputField value="{!item.Answer__c}" id="selectrequestlgopt" styleClass=" form-control fillin" style="height:30px;"/>
+                                                </td>
+                                                <td class="forceBackground text-left" >{!item.Question__c}<br/><div style="margin-top: 5px;color: #c5d9f1;">{!item.Question_TH__c}</div></td>
+                                                <td style="width: 150px;" class="text-left labelrequestlgopt {!IF(item.Answer__c == 'Yes','','display-none')}">{!item.Opportunity__c}</td>
+                                            </tr>     
+                                         </apex:repeat> 
+                                    </tbody>
+                                    
+                                </table>
+                            </div>
+                             
+                            <div>
+                                <table class="table table-striped " style="width:50%;" id="orderperbuyer">
+                                    <thead>
+                                        <tr>
+                                                    <th style="background-color: white;">&nbsp;</th>
+                                            
+                                                    <td class="text-left" style="border: none;"><label
+                                                        class="control-label">Unit: THB</label></td>
+                                                
+                                        </tr>
+                                        
+                                    </thead>
+                                    <tbody>
+                                       
+                                                                                                                    
+                                        <tr >
+                                        <td class="padding15 forceBackground text-left" >Order per buyer (per year)   
+                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanWallet__c.Fields.RequestLGFromBuyerOrderPerBuyer__c.inlineHelpText}" />
+                                        
+                                        </td>
+                                        <td class=""><apex:inputField value="{!acctplanwallet.RequestLGFromBuyerOrderPerBuyer__c}" styleClass="fillin form-control" /></td>
+                                               
+                                        </tr> 
+                                        <tr >
+                                            <td class="padding15 forceBackground text-left" >% of required L/G       
+                                        <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanWallet__c.Fields.RequestLGFromBuyerLGPercent__c.inlineHelpText}" />
+                                        
+                                        </td> 
+                                        <td class="" style="">
+                                            <apex:inputField value="{!acctplanwallet.RequestLGFromBuyerLGPercent__c}" styleClass="fillin form-control" /></td>  
+                                        </tr>
+                                        <tr >
+                                                <td class="padding15 forceBackground text-left" >Who pay for L/G fee       
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                 data-animation="false" data-placement="bottom" 
+                                                 title="{!$ObjectType.AcctPlanWallet__c.Fields.RequestLGFromBuyerWhoPayLGFee__c.inlineHelpText}" />
+                                        
+                                            </td>
+                                        <td class="">
+                                            <apex:inputField value="{!acctplanwallet.RequestLGFromBuyerWhoPayLGFee__c}" styleClass="fillin form-control" />
+                                           
+                                         </td>  
+                                        </tr>                                                                            
+                                                                                   
+                                    </tbody> 
+                                    
+                                </table>
+                            </div>            
+                        </fieldset>
+                        <!-- /Section 4 -->
+
+                    </div>
+                </div> 
+                </apex:pageblock>                            
+            </apex:form>               
+        </div>
+           <div class="bootstrap-sf1">                                  
+          <!-- Modal -->
+                <div  class="modal fade modal-fullscreen force-fullscreen"  id="frmModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-bottom: 30px;margin-top: 45px;">
+                  <div class="modal-dialog" style="width:100%;height:95%;" >
+                    <div class="modal-content" style="width:100%;height:95%;" >
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Credit facility </h4>
+                      </div>
+                      <div class="modal-body">
+                          <iframe id="modalIframe" src="#" width="100%" height="450px" frameborder="0" allowtransparency="true"></iframe>  
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>                       
+                      </div>
+                    </div>
+                    <!-- /.modal-content -->
+                  </div>  <!-- /.modal-dialog -->
+                </div>
+              </div>                              
+
+              <apex:remoteObjects jsNamespace="JSObjects"> 
+                <apex:remoteObjectModel name="AcctPlanWalletCreditFacility__c" fields="Id" jsShorthand="walletdomestic">
+                    <apex:remoteObjectField name="Segment__c" jsShorthand="facilityType" /> 
+                    <apex:remoteObjectField name="Bank__c" jsShorthand="bankId" />
+                    <apex:remoteObjectField name="BankName__c" jsShorthand="bank" />
+                    <apex:remoteObjectField name="Collateral__c" jsShorthand="collateral" />  
+                    <apex:remoteObjectField name="CollateralDetail__c" jsShorthand="collateralDetail" /> 
+                    <apex:remoteObjectField name="CreditType__c" jsShorthand="credittype" /> 
+                    <apex:remoteObjectField name="OtherCreditType__c" jsShorthand="othercredittype" />                         
+                    <apex:remoteObjectField name="LimitAmount__c" jsShorthand="limitamount" />  
+                    <apex:remoteObjectField name="LTV__c" jsShorthand="ltv" />
+                    <apex:remoteObjectField name="Outstanding__c" jsShorthand="outstanding" /> 
+                    <apex:remoteObjectField name="AcctPlanWallet__c" jsShorthand="wallet" />  
+                </apex:remoteObjectModel>
+                                            
+               <apex:remoteObjectModel name="AcctPlanExistingLongTermLoan__c" fields="Id" jsShorthand="walletLongTermLoan">
+                    <apex:remoteObjectField name="Bank__c" jsShorthand="bankid" /> 
+                    <apex:remoteObjectField name="CCY__c" jsShorthand="ccyid" />
+                    <apex:remoteObjectField name="BankName__c" jsShorthand="bankname" /> 
+                    <apex:remoteObjectField name="CCYName__c" jsShorthand="ccyname" />
+                    <apex:remoteObjectField name="Collateral__c" jsShorthand="collateral" /> 
+                    <apex:remoteObjectField name="CollateralDetail__c" jsShorthand="collateralDetail" />       
+                    <apex:remoteObjectField name="EquivalentAmount__c" jsShorthand="amount" /> 
+                    <apex:remoteObjectField name="InterestFixedRate__c" jsShorthand="interestfixedrate" />
+                    <apex:remoteObjectField name="InterestFloatingRate__c" jsShorthand="interestfloatingrate" />
+                    <apex:remoteObjectField name="InterestType__c" jsShorthand="interesttype" />
+                    <apex:remoteObjectField name="LTVPercent__c" jsShorthand="ltv" /> 
+                    <apex:remoteObjectField name="NimcPercent__c" jsShorthand="nimc" />  
+                    <apex:remoteObjectField name="RemainingTenorsYear__c" jsShorthand="remainingtenorsyear" />
+                    <apex:remoteObjectField name="Remark__c" jsShorthand="remark" />        
+                    <apex:remoteObjectField name="TypeOfLoan__c" jsShorthand="typeofloan" /> 
+                    <apex:remoteObjectField name="WalletNiicYearly__c" jsShorthand="walletniic" /> 
+                    <apex:remoteObjectField name="AcctPlanWallet__c" jsShorthand="wallet" /> 
+                </apex:remoteObjectModel>
+                                         
+               <apex:remoteObjectModel name="AcctPlanCapitalExpenditurePlan__c" fields="Id" jsShorthand="walletExpenditurePlan">
+                    <apex:remoteObjectField name="Purpose__c" jsShorthand="purpose" /> 
+                    <apex:remoteObjectField name="ProjectAmount__c" jsShorthand="projectamount" />
+                    <apex:remoteObjectField name="InvestmentLocation__c" jsShorthand="investmentlocation" />        
+                    <apex:remoteObjectField name="TenorYearly__c" jsShorthand="tenoryearly" /> 
+                    <apex:remoteObjectField name="NimcPercent__c" jsShorthand="nimc" />  
+                    <apex:remoteObjectField name="WalletNiicYearly__c" jsShorthand="walletniic" />
+                    <apex:remoteObjectField name="CreditFee__c" jsShorthand="creditfee" /> 
+                    <apex:remoteObjectField name="FrontEndFee__c" jsShorthand="frontendfee" />
+                    <apex:remoteObjectField name="FinancingRation__c" jsShorthand="financingration" />
+                    <apex:remoteObjectField name="AcctPlanWallet__c" jsShorthand="wallet" />                        
+                </apex:remoteObjectModel>
+                                           
+            </apex:remoteObjects> 
+            <apex:includeScript value="{!$Resource.AccountPlan_JqueryScript}"/>
+            <apex:includeScript value="{!$Resource.AccountPlan_Bootstrap}"/>
+            <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+            <apex:includeScript value="{!$Resource.approvals_underscore_1_5_1}"/>
+            <apex:includeScript value="/support/console/22.0/integration.js"/>
+            <script>
+            // <!--  editable   SECTION -->
+
+                var $j = jQuery.noConflict();
+                var walletid = '{!acctplanwallet.Id}'; 
+                var CompanyId = '{!CompanyId}';
+                var domesticobj = new JSObjects.walletdomestic(); 
+                var interimportobj = new JSObjects.walletdomestic();
+                var interexportobj = new JSObjects.walletdomestic();
+
+                var existingloanobj = new JSObjects.walletLongTermLoan();
+                var capitalloanobj = new JSObjects.walletExpenditurePlan();
+            
+                Number.prototype.formatMoney = function(c, d, t){
+                    var n = this, 
+                        c = isNaN(c = Math.abs(c)) ? 2 : c, 
+                        d = d == undefined ? "." : d, 
+                        t = t == undefined ? "," : t, 
+                        s = n < 0 ? "-" : "", 
+                        i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", 
+                        j = (j = i.length) > 3 ? j % 3 : 0;
+                    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+                };
+                
+                function clearIframe(){
+                    $j("#modalIframe").attr('src','');
+                }
+                //Domestic
+                domesticobj.getData = function(callback){
+                    domesticobj.retrieve({
+                     
+                         where: {
+                            and: {
+                              AcctPlanWallet__c: { eq: walletid },
+                              Segment__c: { eq: 'Domestic' }
+                            }
+                          },
+                       
+                        limit: 100                    
+                    }
+                    , function(err, records){
+                            if(err) alert(err.message);
+                            else {
+                                 callback(records);
+                            };
+                        });
+                }
+               // Template 
+                var domesticTrTemplate = "<tr>" +
+                                    "   <td data-id='{{Id}}'>{{credittype}}</td>"+
+                                    "   <td data-id='{{Id}}'>{{othercredittype}}</td>"+
+                                    "   <td class='text-right'>{{limitamount}}</td>"+
+                                    "   <td class='text-right'>{{outstanding}}</td>"+ 
+                                    "   <td>{{bank}}</td>"+
+                                    "   <td>{{collateral}}</td>"+
+                                    "   <td>{{{collateralDetail}}}</td>"+
+                                    "   <td>{{ltv}}</td>"+ 
+                                    "</tr>";    
+                var domesticTrTotalTemplate = "<tr class='info endRow'>" +
+                                    "   <td data-id='{{Id}}' class='forceBackground' >Total</td>"+
+                                    "   <td class='forceBackground'></td>"+
+                                    "   <td class='forceBackground text-right' >{{domesticlimittotal}}</td>"+
+                                    "   <td class='forceBackground text-right' >{{domesticoutstandingtotal}}</td>"+ 
+                                    "</tr>";                                    
+
+                var domestictable = $j('#domesticTable tbody');  
+                var mandatoryDiv = "<p id='CreditfacilityDomesticNotify' class='bg-danger text-center' style=' float: left;padding: 8px;border: 1px solid #E28888;margin-left:10px;'>"+
+                                   "{!msgTableMandatory}"+
+                                   "</p>";
+                var mandatoryblock = $j('#CreditfacilityDomesticBlock');
+ 
+              var domesticCallback =  function(result){
+                          var domestictotal ={
+                                        Id : 'domestic-total',
+                                        domesticlimittotal :0,
+                                        domesticoutstandingtotal : 0
+                                };
+                          if(result.length ==0 ){
+                              mandatoryblock.empty();
+                                mandatoryblock.append(mandatoryDiv); 
+                                
+                           }
+                          for (index = 0; index < result.length; ++index) {
+                            var record = result[index];
+                                     var obj  = {
+                                            Id : record.get("Id"),
+                                            credittype : record.get("credittype"),
+                                            othercredittype : record.get("othercredittype"),
+                                            limitamount : record.get("limitamount"),
+                                            outstanding : record.get("outstanding"),
+                                            bank : record.get("bank"),
+                                            collateral : record.get("collateral"),
+                                            collateralDetail : record.get("collateralDetail"),
+                                            ltv : record.get("ltv")
+                                        };
+                                        domestictotal.domesticlimittotal =  domestictotal.domesticlimittotal  + obj.limitamount;                                  
+                                        domestictotal.domesticoutstandingtotal = domestictotal.domesticoutstandingtotal + obj.outstanding;
+                                        
+                                        obj.limitamount = (obj.limitamount).formatMoney(0);
+                                        if(obj.outstanding >0){
+                                            obj.outstanding = (obj.outstanding).formatMoney(0);
+                                        }else{
+                                            obj.outstanding = '';
+                                        }
+                                        if(obj.ltv > 0){
+                                            obj.ltv = (obj.ltv).formatMoney(2)+'%';
+                                        }
+                                        domestictable.append(Mustache.render(domesticTrTemplate, obj));     
+                        } 
+                   domestictotal.domesticlimittotal = (domestictotal.domesticlimittotal).formatMoney(0);
+                   domestictotal.domesticoutstandingtotal = (domestictotal.domesticoutstandingtotal).formatMoney(0);
+                   domestictable.append(Mustache.render(domesticTrTotalTemplate, domestictotal)); 
+                    }
+                  
+              
+              
+              //interimport
+               interimportobj.getData = function(callback){
+                    interimportobj.retrieve({
+                        
+                         where: {
+                            and: {
+                              AcctPlanWallet__c: { eq: walletid },
+                              Segment__c: { eq: 'ImportTransaction' }
+                            }
+                          },
+                        
+                        limit: 100                    
+                    }
+                    , function(err, records){
+                            if(err) alert(err.message);
+                            else {                 
+                                callback(records);
+                            };
+                        });
+                }
+               // Template 
+                var importTrTemplate = "<tr>" +                
+                                    "   <td data-id='{{Id}}'>{{credittype}}</td>"+
+                                    "   <td data-id='{{Id}}'>{{othercredittype}}</td>"+
+                                    "   <td class='text-right'>{{limitamount}}</td>"+
+                                    "   <td class='text-right'>{{outstanding}}</td>"+ 
+                                    "   <td>{{bank}}</td>"+
+                                    "   <td>{{collateral}}</td>"+
+                                    "   <td>{{{collateralDetail}}}</td>"+
+                                    "   <td>{{ltv}}</td>"+ 
+                                    "</tr>";                                    
+                                                                            
+                var importTrTotalTemplate = "<tr class='info endRow'>" +
+                                    "   <td data-id='{{Id}}' class='forceBackground' >Total</td>"+
+                                    "   <td class='forceBackground'></td>"+
+                                    "   <td class='forceBackground text-right' >{{interimportlimittotal}}</td>"+
+                                    "   <td class='forceBackground text-right' >{{interimportoutstandingtotal}}</td>"+ 
+                                    "</tr>";                                    
+
+                 var interimporttable = $j('#interimportTable');  
+
+ 
+              var interimportCallback =  function(result){
+                          var interimporttotal ={
+                                        Id : 'interimport-total',
+                                        interimportlimittotal :0,
+                                        interimportoutstandingtotal : 0
+                                };
+                          
+                          for (index = 0; index < result.length; ++index) {
+                            var record = result[index];
+                                     var obj  = {
+                                            Id : record.get("Id"),
+                                            credittype : record.get("credittype"),
+                                         othercredittype : record.get("othercredittype"),
+                                            limitamount : record.get("limitamount"),
+                                            outstanding : record.get("outstanding"),
+                                            bank : record.get("bank"),
+                                            collateral : record.get("collateral"),
+                                            collateralDetail : record.get("collateralDetail"),
+                                            ltv : record.get("ltv") 
+                                        };
+                                        interimporttotal.interimportlimittotal =  interimporttotal.interimportlimittotal  + obj.limitamount;                                  
+                                        interimporttotal.interimportoutstandingtotal = interimporttotal.interimportoutstandingtotal + obj.outstanding;
+                                        obj.limitamount = (obj.limitamount).formatMoney(0);
+                                        if(obj.outstanding >0){
+                                            obj.outstanding = (obj.outstanding).formatMoney(0);
+                                        }else{
+                                            obj.outstanding = '';
+                                        }
+                                        if(obj.ltv > 0){
+                                            obj.ltv = (obj.ltv).formatMoney(2)+'%';
+                                        }
+                                        interimporttable.append(Mustache.render(importTrTemplate, obj)); 
+    
+                      } 
+                  interimporttotal.interimportlimittotal = (interimporttotal.interimportlimittotal).formatMoney(0);
+                  interimporttotal.interimportoutstandingtotal = (interimporttotal.interimportoutstandingtotal).formatMoney(0);
+                   
+                   interimporttable.append(Mustache.render(importTrTotalTemplate, interimporttotal)); 
+                    }
+              
+              
+              
+              
+               //interexport
+              interexportobj.getData = function(callback){
+                    interexportobj.retrieve({
+                        
+                         where: {
+                            and: {
+                              AcctPlanWallet__c: { eq: walletid },
+                              Segment__c: { eq: 'ExportTransaction' }
+                            }
+                          },
+                        
+                        limit: 100                    
+                    }
+                    , function(err, records){
+                            if(err) alert(err.message);
+                            else {                
+                                callback(records);
+                            };
+                        });
+                }
+
+              // Template 
+                var exportTrTemplate = "<tr>" + 
+                                    "   <td data-id='{{Id}}'>{{credittype}}</td>"+
+                                    "   <td class='text-right'>{{limitamount}}</td>"+
+                                    "   <td class='text-right'>{{outstanding}}</td>"+ 
+                                    "   <td>{{bank}}</td>"+
+                                    "   <td>{{collateral}}</td>"+
+                                    "   <td>{{{collateralDetail}}}</td>"+
+                                    "   <td>{{ltv}}</td>"+ 
+                                    "</tr>";    
+                var exportTrTotalTemplate = "<tr class='info endRow'>" +
+                                    "   <td data-id='{{Id}}' class='forceBackground' >Total</td>"+
+                                    "   <td class='forceBackground text-right' >{{interexportlimittotal}}</td>"+
+                                    "   <td class='forceBackground text-right' >{{interexportoutstandingtotal}}</td>"+ 
+                                    "</tr>";                                    
+
+                var interexporttable = $j('#interexporttable');  
+
+              var interexportCallback =  function(result){
+                          var interexporttotal ={
+                                        Id : 'interexport-total',
+                                        interexportlimittotal :0,
+                                        interexportoutstandingtotal : 0
+                                };
+                          
+                          for (index = 0; index < result.length; ++index) {
+                            var record = result[index];
+                                     var obj  = {
+                                            Id : record.get("Id"),
+                                            credittype : record.get("credittype"),
+                                            limitamount : record.get("limitamount"),
+                                            outstanding : record.get("outstanding"),
+                                            bank : record.get("bank"),
+                                            collateral : record.get("collateral"),
+                                            collateralDetail : record.get("collateralDetail"),
+                                            ltv : record.get("ltv")
+                                        };
+                                        interexporttotal.interexportlimittotal =  interexporttotal.interexportlimittotal  + obj.limitamount;                                  
+                                        interexporttotal.interexportoutstandingtotal = interexporttotal.interexportoutstandingtotal + obj.outstanding;
+                                        obj.limitamount = (obj.limitamount).formatMoney(0);
+                                        if(obj.outstanding >0){
+                                            obj.outstanding = (obj.outstanding).formatMoney(0);
+                                        }else{
+                                            obj.outstanding = '';
+                                        }
+                                        if(obj.ltv > 0){
+                                            obj.ltv = (obj.ltv).formatMoney(2)+'%';
+                                        }
+                                        interexporttable.append(Mustache.render(exportTrTemplate, obj)); 
+                     
+                      } 
+                  interexporttotal.interexportlimittotal = (interexporttotal.interexportlimittotal).formatMoney(0);
+                  interexporttotal.interexportoutstandingtotal = (interexporttotal.interexportoutstandingtotal).formatMoney(0);
+                   
+                   interexporttable.append(Mustache.render(exportTrTotalTemplate, interexporttotal)); 
+                    }
+              //end interexport
+                                         
+            //long term loan existing
+
+              existingloanobj.getData = function(callback){
+                    existingloanobj.retrieve({
+                        
+                         where: {
+                            
+                              AcctPlanWallet__c : { eq: walletid }
+                            
+                          },
+                        
+                        limit: 100                    
+                    }
+                    , function(err, records){
+                            if(err) alert(err.message);
+                            else {
+                                 
+                                                  
+                                callback(records);
+                            };
+                        });
+                }
+              
+                     
+               // Template 
+                var existingloanTrTemplate = "<tr>" +
+                                    "   <td data-id='{{Id}}'>{{bankname}}</td>"+
+                                    "   <td>{{ccyname}}</td>"+
+                                    "   <td class='text-right'>{{amount}}</td>"+
+                                    "   <td>{{interesttype}}</td>"+ 
+                                    "   <td>{{interestrate}}</td>"+
+                                    "   <td>{{collateral}}</td>"+
+                                    "   <td>{{{collateralDetail}}}</td>"+
+                                    "   <td>{{ltv}}</td>"+
+                                    "   <td>{{nimc}}</td>"+
+                                    "   <td>{{remainingtenorsyear}}</td>"+ 
+                                    "   <td class='text-right'>{{walletniic}}</td>"+
+                                    "</tr>";    
+                var existingloanTrTotalTemplate = "<tr class='info endRow'>" +
+                                    "   <td data-id='{{Id}}' class='forceBackground' >Total</td>"+
+                                    "   <td class='forceBackground text-right' >&nbsp;</td>"+
+                                    "   <td class='forceBackground text-right' >{{existingloanamounttotal}}</td>"+
+                                    "   <td class='forceBackground text-right' colspan='7' >&nbsp;</td>"+
+                                    "   <td class='forceBackground text-right' >{{existingloanwallettotal}}</td>"+ 
+                                    "</tr>";                                    
+
+                 var existingloantable = $j('#existingloanTable tbody');  
+
+              var existingloanCallback =  function(result){
+                          var existingloantotal ={
+                                        Id : 'existingloan-total',
+                                        existingloanamounttotal :0,
+                                        existingloanwallettotal : 0
+                                };
+                          
+                          for (index = 0; index < result.length; ++index) {
+                            var record = result[index];
+                                     var obj  = {
+                                            Id : record.get("Id"),
+                                            bankname : record.get("bankname"),
+                                            ccyname : record.get("ccyname"),
+                                            amount : record.get("amount"),
+                                            interesttype : record.get("interesttype"),
+                                            interestfixedrate : record.get("interestfixedrate"),
+                                            interestfloatingrate : record.get("interestfloatingrate"),
+                                            interestrate: null,
+                                            collateral : record.get("collateral"),
+                                            collateralDetail : record.get("collateralDetail"),
+                                            ltv : record.get("ltv"),
+                                            nimc : record.get("nimc"),
+                                            remainingtenorsyear : record.get("remainingtenorsyear"),
+                                         walletniic : record.get("walletniic")//*record.get("nimc")
+                                        };
+                                        existingloantotal.existingloanamounttotal =  existingloantotal.existingloanamounttotal  + obj.amount;                                  
+                                        existingloantotal.existingloanwallettotal = existingloantotal.existingloanwallettotal + obj.walletniic;
+                                        obj.amount = (obj.amount).formatMoney(0);
+                                        obj.walletniic = (obj.walletniic).formatMoney(0); 
+                                        if(obj.interesttype == 'Fixed rate' && obj.interestfixedrate >0){
+                                             obj.interestrate = (obj.interestfixedrate).formatMoney(2)+'%';
+                                        }else{
+                                            obj.interestrate = obj.interestfloatingrate;
+                                        }
+                                        if(obj.ltv > 0){
+                                            obj.ltv = (obj.ltv).formatMoney(2)+'%';
+                                        }
+                                        if(obj.nimc > 0){
+                                            obj.nimc = (obj.nimc).formatMoney(2)+'%';
+                                        }else{
+                                            obj.nimc = '';
+                                        }                              
+                                        if(obj.walletniic <= 0){
+                                            obj.walletniic = '';
+                                        }
+                                        existingloantable.append(Mustache.render(existingloanTrTemplate, obj)); 
+                     
+                      } 
+                   existingloantotal.existingloanamounttotal = (existingloantotal.existingloanamounttotal).formatMoney(0);
+                   existingloantotal.existingloanwallettotal = (existingloantotal.existingloanwallettotal).formatMoney(0);
+                   
+                   existingloantable.append(Mustache.render(existingloanTrTotalTemplate, existingloantotal)); 
+                    }
+              //end long term loan existing
+            
+              
+              
+               //long term loan capital
+
+              capitalloanobj.getData = function(callback){
+                    capitalloanobj.retrieve({
+                        
+                         where: {
+                              AcctPlanWallet__c: { eq: walletid }
+                          
+                          },
+                        
+                        limit: 100                    
+                     }
+                    , function(err, records){
+                            if(err) alert(err.message);
+                            else {
+                                 
+                                                  
+                                callback(records);
+                            };
+                        });
+                }
+               // Template 
+                var capitalloanTrTemplate = "<tr>" +
+                                    "   <td data-id='{{Id}}'>{{{purpose}}}</td>"+
+                                    "   <td class='text-right' >{{projectamount}}</td>"+
+                                    "   <td>{{{investmentlocation}}}</td>"+
+                                    "   <td>{{financingration}}</td>"+
+                                    "   <td>{{tenoryearly}}</td>"+ 
+                                    "   <td>{{nimc}}</td>"+
+                                    "   <td class='text-right'>{{walletniic}}</td>"+
+                                    "   <td>{{frontendfee}}</td>"+
+                                    "   <td class='text-right'>{{creditfee}}</td>"+
+                                    "</tr>";    
+
+                var capitalloanTrTotalTemplate = "<tr class='info endRow'>" +
+                                    "   <td data-id='{{Id}}' class='forceBackground' >Total</td>"+
+                                    "   <td class='forceBackground text-right' >{{capitalloanamounttotal}}</td>"+
+                                    "   <td class='forceBackground text-right' colspan='4' >&nbsp;</td>"+
+                                    "   <td class='forceBackground text-right' >{{capitalloanwallettotal}}</td>"+
+                                    "   <td class='forceBackground text-right' >&nbsp;</td>"+
+                                    "   <td class='forceBackground text-right' >{{capitalloancredittotal}}</td>"+ 
+                                    "</tr>";                                    
+
+                 var capitalloantable = $j('#capitalloanTable tbody');  
+
+              var capitalloanCallback =  function(result){
+                          var capitalloantotal ={
+                                        Id : 'capitalloan-total',
+                                        capitalloanamounttotal :0,
+                                        capitalloanwallettotal :0,
+                                        capitalloancredittotal : 0
+                                };
+                          
+                          for (index = 0; index < result.length; ++index) {
+                              
+                            var record = result[index];
+                                     var obj  = {
+                                            Id : record.get("Id"),
+                                            purpose : record.get("purpose"),
+                                            projectamount : record.get("projectamount"),
+                                            investmentlocation : record.get("investmentlocation"),
+                                            financingration : record.get("financingration"),
+                                            tenoryearly : record.get("tenoryearly"),
+                                            nimc : record.get("nimc"),
+                                            walletniic: record.get("walletniic"),
+                                            frontendfee : record.get("frontendfee"),
+                                            creditfee : record.get("creditfee")
+                                        };
+                              
+                                        capitalloantotal.capitalloanamounttotal =  capitalloantotal.capitalloanamounttotal  + obj.projectamount;  
+                                        capitalloantotal.capitalloancredittotal = capitalloantotal.capitalloancredittotal + obj.creditfee;
+                                        capitalloantotal.capitalloanwallettotal = capitalloantotal.capitalloanwallettotal + obj.walletniic;
+                                        
+                                        obj.projectamount = (obj.projectamount).formatMoney(0);
+                                        obj.walletniic = (obj.walletniic).formatMoney(0);
+                                        obj.creditfee = (obj.creditfee).formatMoney(0);
+                                        if(obj.financingration > 0){
+                                            obj.financingration = (obj.financingration).formatMoney(2)+'%';
+                                        }
+                                        if(obj.nimc > 0){
+                                            obj.nimc = (obj.nimc).formatMoney(2)+'%';
+                                        }else{
+                                            obj.nimc = '';
+                                        }
+                              
+                                        if(obj.walletniic <= 0){
+                                            obj.walletniic = '';
+                                        }
+                                        if(obj.creditfee <=0){
+                                            obj.creditfee = '';
+                                        }
+                              
+                                        if(obj.frontendfee > 0){
+                                            obj.frontendfee = (obj.frontendfee).formatMoney(2)+'%';
+                                        }else{
+                                            obj.frontendfee = '';
+                                        }
+                                        capitalloantable.append(Mustache.render(capitalloanTrTemplate, obj)); 
+                     
+                      } 
+                  capitalloantotal.capitalloanamounttotal = (capitalloantotal.capitalloanamounttotal).formatMoney(0);
+                  capitalloantotal.capitalloancredittotal = (capitalloantotal.capitalloancredittotal).formatMoney(0);
+                  capitalloantotal.capitalloanwallettotal = (capitalloantotal.capitalloanwallettotal).formatMoney(0);
+                  
+                  capitalloantable.append(Mustache.render(capitalloanTrTotalTemplate, capitalloantotal)); 
+                    }
+              //end long term loan capital
+               
+              
+
+              
+            </script> 
+
+
+                        <script >
+        $j(document).ready(function () {
+                    $j('[data-toggle="tooltip"]').tooltip();   
+                    clearIframe();
+              
+            //Season Period
+            $j('[id$=seasonalpicklist]').change(function() {
+                if($j('[id$=seasonalpicklist]').val() =='Yes'){
+                    
+                   $j('[id$="seasonaltrue"]').show();
+                   $j('.workingCapital_value').css('width','18%');
+                   $j('.totalwalletNormal').hide();
+                   $j('.maxcreditNormal').hide();
+                   
+                }else{
+                    $j('[id$="seasonaltrue"]').hide();
+                    $j('.workingCapital_value').css('width','36%');
+                    $j('.totalwalletNormal').show();
+                    $j('.maxcreditNormal').show();
+                }
+            });
+            
+            //LG Project
+            $j('[class$=selectedlgproject]').change(function() {               
+                if($j('[class$=selectedlgproject]').val() =='Yes'){
+                    
+                    $j('.trlgproject').show();
+                    $j('[id$="lgprojecttable"]').show();
+                   
+                }else{
+                    $j('.trlgproject').hide();
+                    $j('[id$="lgprojecttable"]').hide();
+                }
+            });
+            
+            
+            
+            //LG Purchase
+            $j('[class$=selectedlgpurchase]').change(function() {
+                if($j('[class$=selectedlgpurchase]').val() =='Yes'){
+                    
+                    //$j('[id$="trlgpurchase"]').show();
+                    $j('[id$="lgpurchasetable"]').show();
+                   
+                }else{
+                    //$j('[id$="trlgpurchase"]').hide();
+                    $j('[id$="lgpurchasetable"]').hide();
+                }
+            });
+            
+            //LG Utilities
+            $j('[class$=selectedlgutilities]').change(function() {
+               
+                if($j('[class$=selectedlgutilities]').val() =='Yes'){
+                    
+                    $j('[id$="lgutilitiestable"]').show();
+                   
+                }else{
+                    $j('[id$="lgutilitiestable"]').hide();
+                }
+            });
+            
+            //LG Tax
+            $j('[class$=selectedlgtax]').change(function() {
+               
+                if($j('[class$=selectedlgtax]').val() =='Yes'){
+                    
+                    $j('[id$="lgtaxtable"]').show();
+                   
+                }else{
+                    $j('[id$="lgtaxtable"]').hide();
+                }
+            });
+            
+            //Opp
+            $j('[id$=selectlgprojectopt]').change(function() {
+               
+                if($j('[id$=selectlgprojectopt]').val() =='Yes'){
+                    
+                    $j('.labellgprojectopt').show();
+                   
+                }else{
+                    $j('.labellgprojectopt').hide();
+                }
+            });
+            $j('[id$=selectlgutilitiesopt]').change(function() {
+               
+                if($j('[id$=selectlgutilitiesopt]').val() =='Yes'){
+                    
+                    $j('.labellgutilitiesopt').show();
+                   
+                }else{
+                    $j('.labellgutilitiesopt').hide();
+                }
+            });
+            /*$j('[class$=selectlgtaxopt1]').change(function() {
+               
+                if($j('[class$=selectlgtaxopt1]').val() =='Yes'){
+                    
+                    $j('.labellgtaxopt1').show();
+                   
+                }else{
+                    $j('.labellgtaxopt1').hide();
+                }
+            });*/
+            $j('[class$=selectlgtax1]').change(function() {
+               
+                if($j('[class$=selectlgtax1]').val() =='Yes'&& $j('[class$=selectlgtax2]').val() =='Yes'){
+                    
+                    $j('.labellgtaxopt1').show();
+                   
+                }else{
+                    $j('.labellgtaxopt1').hide();
+                }
+            });
+            $j('[class$=selectlgtax2]').change(function() {
+               
+                if($j('[class$=selectlgtax1]').val() =='Yes'&& $j('[class$=selectlgtax2]').val() =='Yes'){
+                    
+                    $j('.labellgtaxopt1').show();
+                   
+                }else{
+                    $j('.labellgtaxopt1').hide();
+                }
+            });
+            $j('[class$=selectlgtaxopt2]').change(function() {
+               
+                if($j('[class$=selectlgtaxopt2]').val() =='Yes'){
+                    
+                    $j('.labellgtaxopt2').show();
+                   
+                }else{
+                    $j('.labellgtaxopt2').hide();
+                }
+            });
+            $j('[id$=selectshippingopt]').change(function() {
+               
+                if($j('[id$=selectshippingopt]').val() =='Yes'){
+                    
+                    $j('.labelshippingopt').show();
+                   
+                }else{
+                    $j('.labelshippingopt').hide();
+                }
+            });
+            $j('[id$=selectrequestlgopt]').change(function() {
+               
+                if($j('[id$=selectrequestlgopt]').val() =='Yes'){
+                    
+                    $j('.labelrequestlgopt').show();
+                   
+                }else{
+                    $j('.labelrequestlgopt').hide();
+                }
+            });
+
+            
+            //domestic callback;
+            domesticobj.getData(domesticCallback);
+            
+                    $j("#domesticIU").on('click',function(event){
+                        
+                        event.preventDefault();
+                        var mandatoryblock = $j('#CreditfacilityDomesticBlock');
+                        mandatoryblock.empty();
+                        $j('#modalIframe').attr("src",'/apex/CreditFacilityEditable?WalletID='+walletid+'&type=Domestic');
+                                        
+                        $j('#frmModel').modal({show:true});
+                         
+                 
+                    }); 
+                    
+                    $j('#frmModel').on('show.bs.modal', function () {
+                        // $j(this).find('.modal-body').css({width:'auto',height:'750', 'max-height':'100%'});
+                    });
+        
+                    $j('#frmModel').on('hidden.bs.modal', function (e) {
+                        
+                        clearIframe();
+                        domestictable.hide();
+                        domestictable.empty();
+                       
+                        domesticobj.getData(domesticCallback);
+                        domestictable.show();
+                        
+                          
+                    });
+            
+            //end domestic callback
+           
+            
+            //interimport callback;
+            interimportobj.getData(interimportCallback);
+            
+             $j("#internationnalIU").on('click',function(event){
+                        
+                 event.preventDefault();
+                        $j('#modalIframe').attr("src",'/apex/CreditFacilityEditable?WalletID='+walletid+'&type=International');                 
+                        
+                        $j('#frmModel').modal({show:true});
+                    }); 
+                    
+                    $j('#frmModel').on('show.bs.modal', function () {
+                    });
+        
+                    $j('#frmModel').on('hidden.bs.modal', function (e) {
+                        clearIframe();
+                        interimporttable.hide();
+                        interimporttable.empty();
+                        
+                        interimportobj.getData(interimportCallback);
+                        interimporttable.show();
+                        
+                        interexporttable.hide();
+                        interexporttable.empty();
+                        
+                        interexportobj.getData(interexportCallback);
+                        interexporttable.show();
+                       
+                    });
+            
+            //end interimport callback
+            
+            
+            //interexport callback;
+            interexportobj.getData(interexportCallback);
+            
+             
+            
+            //exisitinglongloan callback;
+            existingloanobj.getData(existingloanCallback);
+            
+             $j("#existingloanIU").on('click',function(event){
+                        
+                        event.preventDefault();
+                        $j('#modalIframe').attr("src",'/apex/LongTermLoanEdittable?WalletID='+walletid+'&type=Existing&CompanyId='+CompanyId);                 
+                        
+                        $j('#frmModel').modal({show:true});
+                    }); 
+                    
+                    $j('#frmModel').on('show.bs.modal', function () {
+                        $j(this).find('.modal-body').css({                        
+                            // 'max-height':'800px'
+                        });
+                    });
+        
+                    $j('#frmModel').on('hidden.bs.modal', function (e) {
+                        clearIframe();
+                        existingloantable.hide();
+                        existingloantable.empty();
+                        
+                        existingloanobj.getData(existingloanCallback);
+                        existingloantable.show();
+                        
+                        
+                    });
+            
+            //end exisitinglongloan callback
+            
+            
+             //capital callback;
+            capitalloanobj.getData(capitalloanCallback);
+            
+             $j("#capitalloanIU").on('click',function(event){
+                        
+                        event.preventDefault();
+                        $j('#modalIframe').attr("src",'/apex/LongTermLoanEdittable?WalletID='+walletid+'&type=Capital&CompanyId='+CompanyId);                 
+                        
+                        $j('#frmModel').modal({show:true});
+                    }); 
+                    
+                    $j('#frmModel').on('show.bs.modal', function () {
+                        $j(this).find('.modal-body').css({                        
+                            // 'max-height':'800px'
+                        });
+                    });
+        
+                    $j('#frmModel').on('hidden.bs.modal', function (e) {
+                        clearIframe();
+                        capitalloantable.hide();
+                        capitalloantable.empty();
+                        
+                        capitalloanobj.getData(capitalloanCallback);
+                        capitalloantable.show();
+                        
+                        
+                          
+                    });
+            
+            //end capital callback
+            
+        }); 
+/*function checkIshasValue(item) {
+                    var msg = item.value;                  
+                    $j(item).removeClass('info');
+                    $j(item).removeClass('danger');
+                    $j(item).removeClass('success');
+                    if(msg !='' && msg != null && msg !='0' && msg !=0){
+                        $j(item).addClass('success');
+                    }else{
+                        $j(item).addClass('danger'); 
+                    }                   
+                } */
+                function checkIshasValue(item,e) {
+                   var msg = item.value;
+                    $j(item).removeClass('info');
+                    $j(item).removeClass('danger');
+                    $j(item).removeClass('success');
+                    if(e != 'FrontEndFee' && e != 'Average'){
+                        if(msg !='' && msg != null && msg !='0' && msg !=0){
+                            $j(item).addClass('success');
+                        }else{
+                            $j(item).addClass('danger'); 
+                        }
+                    }else{
+                        if(e == 'Average' && msg < 0){
+                            $j(item).addClass('danger'); 
+                        }else{
+                            if(msg !='' && msg != null){
+                                $j(item).addClass('success');
+                            }else{
+                                $j(item).addClass('danger'); 
+                            }
+                        }
+                    }
+                }
+            </script>
+  <script>
+            window.closeModal = function(){
+                $j('#frmModel').modal('hide');
+            };
+
+        //Sets the title of the current tab to "Case Transactions Detail"
+        window.onload = function setTitleConsole(){
+            setTitle();
+        }
+        //Sets the title of the current tab to "Case Transactions Detail"
+        function setTitle() {
+            sforce.console.setTabTitle('Wallet by Domain');
+        }
+        </script>
+    </body>
+
+</apex:page>

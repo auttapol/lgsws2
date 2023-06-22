@@ -1,0 +1,257 @@
+<apex:page standardController="lead" extensions="LeadExtensionV2" lightningStylesheets="true">
+
+    <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+    <apex:includeScript value="/support/console/28.0/integration.js" />
+
+    <script>
+        var closeSubtab = function closeSubtab(result) {
+            sforce.console.closeTab(result.id);
+        };
+        function checkIsSalesforceOne() {
+            var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+            var theme = '{!$User.UIThemeDisplayed}';
+            if ('{!isStatusPass}' == 'no') {
+                if (theme == 'Theme4u' && isLightningMode) {
+                    $("#main-wrapper").css('display', 'block');
+                }
+                else if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                    if ('{!id}' != '')
+                        sforce.one.navigateToURL('/apex/LeadCreateMobile?id={!id}');
+                    else
+                        sforce.one.navigateToURL('/apex/LeadCreateMobile?recordType={!recordTypeObj.id}');
+                } else {
+                    $("#main-wrapper").css('display', 'block');
+                }
+            } else {
+                alert('Commercial Complete Lead cannot be modified');
+                if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                    sforce.one.navigateToURL('/00Q');
+                } else {
+                    if (sforce.console.isInConsole()) {
+                        sforce.console.getEnclosingTabId(closeSubtab);
+                    } else {
+                        window.location.href = '/00Q';
+                    }
+                }
+            }
+        }
+
+        $(document).ready(function () {
+            checkIsSalesforceOne();
+        });
+
+        function doCancel() {
+            var displayAction = '{!displayAction}';
+            if (sforce.console.isInConsole()) {
+
+                if (displayAction == 'Create') {
+
+                    var customer_type = "{!leadobj.customer_type__c}"
+                    if (customer_type != 'undefined' && customer_type != null && customer_type != '') {
+
+                        cancelSalesConsole();
+                    } else {
+                        sforce.console.getEnclosingTabId(closeSubtab);
+                    }
+                } else {
+                    viewDetail();
+                }
+            } else if (displayAction == 'Update') {
+                window.location.href = '{!$Site.Prefix}' + '/' + '{!leadObj.id}';
+            } else {
+                if ('{!leadObj.RTL_Referral__c}' == '') {
+                    window.location.href = "../00Q";
+                } else {
+                    window.location.href = "/{!leadObj.RTL_Referral__c}";
+                }
+
+            }
+        }
+
+    </script>
+
+
+
+
+    <div id="main-wrapper" style='display:none'>
+
+        <apex:form >
+            <apex:actionFunction action="{!cancelSalesConsole}" name="cancelSalesConsole" />
+        </apex:form>
+
+        <apex:sectionHeader title="Lead Edit" subtitle="{!IF(displayAction=='Create','New Lead',leadobj.Company)}" />
+        <apex:form id="theForm">
+            <apex:actionstatus id="status">
+                <apex:facet name="start">
+                    <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                        &nbsp;
+                    </div>
+                    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                        <img src="/img/loading32.gif" />
+                    </div>
+                </apex:facet>
+            </apex:actionstatus>
+
+
+            <apex:pageblock mode="Edit">
+                <apex:actionFunction action="{!viewDetail}" name="viewDetail" />
+                <!-- apex:actionFunction action="{!cancelSalesConsole}" name="cancelSalesConsole" / -->
+                <apex:pageblockButtons >
+                    <apex:commandButton value="Save" action="{!doAction}" status="status" rerender="messages" rendered="{!isHasPermission}" />
+                    <apex:commandButton value="Cancel" onclick="doCancel();return false;" status="status" rerender="messages" />
+                </apex:pageblockButtons>
+
+                <apex:PageBlockSection id="messages">
+                    <apex:pageMessages id="messages" />
+                </apex:PageBlockSection>
+
+                <apex:pageBlockSection title="Lead Information" id="theSection11" columns="2" rendered="{!if(recordTypeObj.name=='Commercial Lead','true','false')}">
+
+                    <apex:inputField value="{!leadObj.Customer_Type__c}" label="Customer Type" required="true" taborderhint="1" />
+                    <apex:outputText value="{!if(leadObj.owner.name != null,leadObj.owner.name,$User.FirstName+' '+$User.LastName)}" label="Lead Owner"
+                    />
+
+                    <apex:inputField value="{!leadObj.Company}" label="Customer Name" taborderhint="2" />
+                    <apex:outputText value="{!recordTypeObj.name}" label="Lead Record Type" />
+
+                    <apex:inputField value="{!leadObj.Customer_Name_EN__c}" label="Customer Name EN" taborderhint="3" />
+                    <apex:outputField value="{!leadObj.Status}" label="Lead Status" />
+
+                    <apex:inputField value="{!leadObj.ID_Type__c}" label="ID Type" taborderhint="4" />
+                    <apex:outputField value="{!leadObj.Lead_Segment__c}" label="{!$ObjectType.Lead.Fields.Lead_Segment__c.label}" />
+
+                    <apex:inputField value="{!leadObj.ID_Number__c}" label="ID Number" taborderhint="5" />
+                    <apex:inputField value="{!leadObj.Remark__c}" label="{!$ObjectType.Lead.Fields.Remark__c.label}" taborderhint="11" />
+
+                    <apex:inputField value="{!leadObj.Primary_Campaign__c}" label="Primary Campaign" rendered="{!if(leadObj.Primary_Campaign__c!=null,false,true)}"
+                        taborderhint="6" />
+                    <apex:outputField value="{!leadObj.Primary_Campaign__c}" label="Primary Campaign" rendered="{!if(leadObj.Primary_Campaign__c==null,false,true)}"
+                    />
+                    <apex:inputField value="{!leadObj.Address_Line_1__c}" label="Address No/Moo/Soi/Street" taborderhint="12" />
+
+                    <apex:inputField value="{!leadObj.Mobile_No__c}" label="Mobile No." taborderhint="7" />
+                    <apex:inputField value="{!leadObj.Address_Line_2__c}" label="Sub District" taborderhint="13" />
+
+                    <apex:inputField value="{!leadObj.Office_No__c}" label="Office No." taborderhint="8" />
+                    <apex:inputField value="{!leadObj.Address_Line_3__c}" label="District" taborderhint="14" />
+
+                    <apex:inputField value="{!leadObj.Ext__c}" label="Ext" taborderhint="9" />
+                    <apex:inputField value="{!leadObj.Province__c}" label="Province" taborderhint="15" />
+
+                    <apex:inputField value="{!leadObj.Email__c}" label="Email" taborderhint="10" />
+                    <apex:inputField value="{!leadObj.Zipcode__c}" label="Zipcode" taborderhint="16" />
+
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputText />
+                        <apex:outputPanel >
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField value="{!leadObj.Country__c}" label="Country" taborderhint="17" />
+
+
+
+                </apex:pageBlockSection>
+
+                <apex:pageBlockSection title="Lead Information" id="theSection12" columns="2" rendered="{!if(recordTypeObj.name=='Commercial Account','true','false')}">
+
+                    <apex:inputField value="{!leadObj.Customer_Type__c}" required="true" taborderhint="1" rendered="{!if(tempLead.id==null,true,false)}"
+                    />
+                    <apex:outputText value="{!leadObj.Customer_Type__c}" rendered="{!if(tempLead.id!=null,true,false)}" />
+                    <apex:outputText value="{!if(leadObj.owner.name != null,leadObj.owner.name,$User.FirstName+' '+$User.LastName)}" label="Lead Owner"
+                    />
+
+                    <apex:inputField value="{!leadObj.Company}" taborderhint="2" rendered="{!if(tempLead.id==null,true,false)}" />
+                    <apex:outputText value="{!leadObj.Company}" rendered="{!if(tempLead.id!=null,true,false)}" />
+                    <apex:outputText value="{!recordTypeObj.name}" label="Lead Record Type" />
+
+                    <apex:outputField value="{!leadObj.Account__c}" label="Link To Customer" />
+                    <apex:outputField value="{!leadObj.Status}" label="Lead Status" />
+
+                    <apex:inputField value="{!leadObj.Primary_Campaign__c}" label="Primary Campaign" rendered="{!if(leadObj.Primary_Campaign__c!=null,false,true)}"
+                        taborderhint="4" />
+                    <apex:outputField value="{!leadObj.Primary_Campaign__c}" label="Primary Campaign" rendered="{!if(leadObj.Primary_Campaign__c==null,false,true)}"
+                    />
+                    <apex:inputField value="{!leadObj.Remark__c}" label="{!$ObjectType.Lead.Fields.Remark__c.label}" taborderhint="5" />
+
+                </apex:pageBlockSection>
+
+                <apex:pageBlockSection title="Contact Information" id="theSection13" columns="2">
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputText value="First Name" />
+                        <apex:outputPanel >
+                            <apex:inputField value="{!leadObj.Salutation}" taborderhint="17" />
+                            <apex:inputField value="{!leadObj.Firstname}" Label="First Name" taborderhint="18" />
+
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField value="{!leadObj.Decision_Map__c}" label="Decision Map" taborderhint="21" />
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel >Last Name</apex:outputLabel>
+                        <!--<apex:outputPanel layout="block" styleClass="requiredInput">
+                        <apex:outputPanel layout="block" styleClass="requiredBlock"/> 
+                    </apex:outputPanel> -->
+                        <apex:inputField value="{!leadObj.Lastname}" taborderhint="19" />
+                    </apex:pageBlockSectionItem>
+                    <apex:inputField value="{!leadObj.Phone__c}" taborderhint="22" />
+                    <apex:inputField value="{!leadObj.Title}" label="Contact Position" taborderhint="20" />
+                    <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+
+
+
+
+
+
+
+
+
+
+                </apex:pageBlockSection>
+
+                <apex:pageBlockSection title="Detail Information" id="theSection21" rendered="{!if(recordTypeObj.name=='Commercial Lead','true','false')}">
+
+                    <apex:inputField value="{!leadObj.Rating}" label="Rating" taborderhint="23" />
+                    <apex:inputField value="{!leadObj.Industry__c}" label="Industry" taborderhint="27" />
+
+                    <apex:inputField value="{!leadObj.Parent_Company__c}" label="Parent Company" taborderhint="24" />
+                    <apex:inputField value="{!leadObj.Sales_amount_per_year__c}" taborderhint="28" />
+
+                    <apex:inputField value="{!leadObj.Group__c}" label="Group" taborderhint="25" />
+                    <apex:inputField value="{!leadObj.No_of_Years_Business_Run__c}" taborderhint="29" />
+
+                    <apex:inputField value="{!leadObj.Total_Expected_Revenue__c}" label="Total Expected Revenue" taborderhint="26" />
+                    <apex:inputField value="{!leadObj.Preferred_Branch__c}" label="Preferred Branch" taborderhint="30" />
+
+                    <apex:inputField value="{!leadObj.Link_Document__c}" taborderhint="27" />
+                </apex:pageBlockSection>
+
+                <apex:pageBlockSection title="Detail Information" id="theSection22" rendered="{!if(recordTypeObj.name=='Commercial Account','true','false')}">
+
+                    <apex:inputField value="{!leadObj.Rating}" label="Rating" taborderhint="31" />
+                    <apex:pageblockSectionItem ></apex:pageblockSectionItem>
+
+                    <apex:inputField value="{!leadObj.Total_Expected_Revenue__c}" label="Total Expected Revenue" taborderhint="32" />
+
+                </apex:pageBlockSection>
+
+
+                <apex:pageblockSection title="Lead Source" id="theSection3">
+
+                    <apex:inputField value="{!leadObj.Branch_Referred__c}" label="Branch Referred" taborderhint="33" />
+                    <apex:inputField value="{!leadObj.LeadSource}" label="Lead Source" taborderhint="36" />
+
+                    <apex:inputField value="{!leadObj.Referral_Staff_ID__c}" label="Referral Staff ID" taborderhint="34" />
+                    <apex:inputField value="{!leadObj.Other_Source__c}" label="Other Source" taborderhint="37" />
+
+                    <apex:inputField value="{!leadObj.Referral_Staff_Name__c}" label="Referral Staff Name" taborderhint="35" />
+                    <apex:inputField value="{!leadObj.RTL_Referral__c}" label="Referral" />
+
+                </apex:pageblockSection>
+
+            </apex:pageblock>
+        </apex:form>
+
+    </div>
+
+</apex:page>

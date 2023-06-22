@@ -1,0 +1,68 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId,lightning:isUrlAddressable" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+
+    <aura:handler name="change" value="{!v.pageReference}" action="{!c.onInit}" />
+
+    <lightning:workspaceAPI aura:id="workspace"/>
+
+    <aura:attribute name="campaignMemberId" type="Id" default=""/>
+    <aura:attribute name="leadId" type="Id" default=""/>
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+    <aura:attribute name="cm" type="CampaignMember" />
+
+    <aura:attribute name="fields" type="List" default="['RTL_Product_Name__c', 'RTL_W2L_Co_Borrower_1_Age__c', 'RTL_W2L_Loan_Request_Type__c', 'RTL_W2L_Co_Borrower_1_Occupation__c', 'RTL_W2L_Developer_Name__c', 'RTL_W2L_Co_Borrower_1_Income__c', 'RTL_W2L_Source_Collateral_Type__c', 'RTL_W2L_Co1_Other_Income__c', 'RTL_W2L_Transfer_Period__c', 'RTL_W2L_Co1_Income_OT__c', 'RTL_W2L_Occupation__c', 'RTL_W2L_Co1_Income_Rental__c', 'RTL_W2L_Salary__c', 'RTL_W2L_Co1_Income_Bonus__c', 'RTL_W2L_Other_Income__c', 'RTL_W2L_Co1_Percent_Shareholder__c', 'RTL_W2L_Income_OT__c', 'RTL_W2L_Co1_Capital__c', 'RTL_W2L_Income_Rental__c', 'RTL_W2L_Co1_Car_Loan__c', 'RTL_W2L_Income_Bonus__c', 'RTL_W2L_Co1_Personal_Loan__c', 'RTL_W2L_Percent_Shareholder__c', 'RTL_W2L_Co1_CC_Loan__c', 'RTL_W2L_Capital__c', 'RTL_W2L_Co1_Cash_OD_Loan__c', 'RTL_W2L_Car_Loan__c', 'RTL_W2L_Co1_Other_Loan__c', 'RTL_W2L_Personal_Loan__c', 'RTL_W2L_Co_Borrower_2_Age__c', 'RTL_W2L_CC_Loan__c', 'RTL_W2L_Co_Borrower_2_Occupation__c', 'RTL_W2L_Cash_OD_Loan__c', 'RTL_W2L_Co_Borrower_2_Income__c', 'RTL_W2L_Other_Loan__c', 'RTL_W2L_Co2_Other_Income__c', 'RTL_W2L_Buying_Amount__c', 'RTL_W2L_Co2_Income_OT__c', 'RTL_W2L_Calculated_Amount__c', 'RTL_W2L_Co2_Income_Rental__c', 'RTL_W2L_Calculated_Loan_Period__c', 'RTL_W2L_Co2_Income_Bonus__c', 'RTL_W2L_Calculated_No_of_Installments__c', 'RTL_W2L_Co2_Percent_Shareholder__c', 'RTL_Email_Address__c', 'RTL_W2L_Co2_Capital__c', 'RTL_MORTGAGE_FEE__c', 'RTL_W2L_Co2_Car_Loan__c', 'RTL_FIRE_INSURANCE_FEE__c', 'RTL_W2L_Co2_Personal_Loan__c', 'RTL_APPRAISAL_FEE__c', 'RTL_W2L_Co2_CC_Loan__c', 'RTL_INTERESTS__c', 'RTL_W2L_Co2_Cash_OD_Loan__c', 'RTL_W2L_Has_Co_Borrower_Text__c', 'RTL_W2L_Co2_Other_Loan__c']" />
+
+    <force:recordData aura:id="recordLoader" recordId="{!v.pageReference.state.c__campaignMemberId}" fields="Id, LeadId" targetFields="{!v.cm}"/>
+
+    <div class="slds-is-relative">
+        <aura:if isTrue="{! v.isLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </aura:if>
+
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:campaign_members" alternativeText="campaign_members" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <h1 class="slds-text-heading_label">
+                    Campaign Member
+                </h1>
+                <div class="page-section page-header">
+                    <h2 class="slds-text-heading_medium">
+                        Home Loan Information
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+
+        <lightning:card>
+            <div class="card-container" style="min-height: 500px;">
+                <div class="slds-align_absolute-center">
+                    <lightning:button label="Close" title="Close" onclick="{!c.close}"/>
+                </div>
+
+                <div style="padding: 1%;">
+                    <aura:if isTrue="{!v.leadId == ''}">
+                        <lightning:recordForm
+                            recordId="{!v.cm.LeadId}"
+                            objectApiName="Lead"
+                            density="comfy"
+                            columns="2"
+                            fields="{!v.fields}"
+                            mode="readonly" />
+                        <aura:set attribute="else">
+                            <lightning:recordForm
+                                recordId="{!v.leadId}"
+                                objectApiName="Lead"
+                                density="comfy"
+                                columns="2"
+                                fields="{!v.fields}"
+                                mode="readonly" />
+                        </aura:set>
+                    </aura:if> 
+                </div>
+            </div>
+        </lightning:card>
+    </div>
+    
+</aura:component>

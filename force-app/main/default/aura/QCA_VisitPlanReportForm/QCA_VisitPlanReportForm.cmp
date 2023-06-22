@@ -1,0 +1,197 @@
+<aura:component controller="QCA_LogCallLogVisitController"
+    implements="force:appHostable,flexipage:availableForAllPageTypes" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:registerEvent name="varSimplifiedLeadProcessStatus" type="c:SimplifiedLeadProcessStatus" />
+    <aura:method name="onSaveLogVisit" description="On Submit Visit plan report for Lead">
+        <aura:attribute name="callback" type="Function" />
+    </aura:method>
+    <aura:method name="onSaveLogVisitOppty" description="On Submit Visit plan report for Opporunity">
+        <aura:attribute name="callback" type="Function" />
+    </aura:method>
+    <aura:method name="onValidLogVisitHandler" description="On Submit Visit plan report for Lead" />
+
+    <aura:attribute name="leadObjId" type="Id" />
+    <aura:attribute name="opptyId" type="Id" />
+    <aura:attribute name="accId" type="Id" />
+
+    <aura:attribute name="callReportObj" type="Call_Report__c" />
+    <aura:attribute name="isValidInputField" type="Boolean" default="false" />
+    <aura:attribute name="varVisitPlanReportRecordId" type="Id" />
+    <aura:attribute name="varVisitPlanReportRecordTypeId" type="Id" />
+
+    <aura:attribute name="mainPurposeValues" type="String" />
+    <aura:attribute name="subPurposeValues" type="Map" />
+    <aura:attribute name="isDisabledField" type="Boolean" default="false" />
+    <aura:attribute name="isDisabledOnlyDateVisitField" type="Boolean" default="false" />
+    <aura:attribute name="onInitValidInputField" type="Boolean" default="false" />
+
+    <aura:attribute name="flowType" type="String" />
+    <aura:attribute name="showOnInit" type="Boolean" default="false" />
+    <aura:attribute name="showOnloading" type="Boolean" default="false" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+    <!-- 
+        Status progress
+        1. Create a new visit plan / report
+        2. Set up custom lookup related lead
+     -->
+    <div>
+        <aura:if isTrue="{! v.showSpinnerLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" />
+        </aura:if>
+        <aura:if isTrue="{! v.showOnInit }">
+            <lightning:recordEditForm class="{! v.flowType == 'QCALeadType' ? 'section' : 'section-white'}" aura:id="visitPlanForm" onload="{!c.onLoad}" onsubmit="{!c.onSubmit}"
+                onsuccess="{!c.onSuccess}" onerror="{!c.onError}"
+                recordId="{! v.varVisitPlanReportRecordId ? v.varVisitPlanReportRecordId : '' }"
+                recordTypeId="{!v.varVisitPlanReportRecordTypeId}" objectApiName="Call_Report__c">
+                <lightning:messages />
+
+                <lightning:inputField class="slds-hide" aura:id="VisitPlanFormInput" fieldName="Status__c"
+                    disabled="true" />
+                <!-- <aura:renderIf isTrue="{! v.showOnloading }">
+                <c:strike_lookup label="Record Type ID" object="RecordType" searchField="Name" disabled="true"
+                    value="{! v.varVisitPlanReportRecordTypeId }" />
+            </aura:renderIf> -->
+
+                <lightning:inputField class="slds-hide" aura:id="VisitPlanFormInput" fieldName="OwnerId" />
+                <!-- <lightning:inputField aura:id="VisitPlanFormInput" fieldName="Customer_name__c" disabled="true" /> -->
+
+                <div class="{! v.flowType == 'QCALeadType' ? 'slds-p-horizontal_large slds-p-vertical_x-small section' : 'slds-p-horizontal_large slds-p-vertical_x-small section-white'}">
+                    <div class="slds-var-p-horizontal_xx-small slds-text-title_caps slds-var-p-vertical_small">
+                        <lightning:icon size="small" iconName="utility:event" />
+                        New visit plan / report
+                    </div>
+                    <div class="slds-form_stacked slds-m-bottom_x-small">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <!-- <aura:renderIf isTrue="{! v.showOnloading }">
+                            <c:strike_lookup label="Lead" object="Lead" searchField="Name" iconName="standard:lead"
+                                disabled="true" value="{!v.leadObj.id != null ? v.leadObj.id : null}" aura:id="varLead" />
+                        </aura:renderIf> -->
+                                <div aura:id="Date_of_Visit__c" class="slds-form-element customRequiredField">
+                                    <lightning:inputField aura:id="VisitPlanFormInput" fieldName="Date_of_Visit__c"
+                                        disabled="{! v.isDisabledField || v.isDisabledOnlyDateVisitField }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+
+                                <div class="slds-form-element" aura:id="Visit_Time">
+                                    <span class="startTimeEndTime" style="display:flex;width:100%">
+                                        <div
+                                            class="slds-form-element slds-col slds-p-horizontal_small slds-size_5-of-12">
+                                            <div aura:id="Start_Visit_Time__c"
+                                                class="slds-form-element customRequiredField">
+                                                <lightning:inputField aura:id="VisitPlanFormInput"
+                                                    fieldName="Start_Visit_Time__c" disabled="{! v.isDisabledField }"
+                                                    onchange="{! c.onChanngRemoveInvalidInputField }" />
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="slds-form-element slds-col slds-p-horizontal_small slds-size_2-of-12">
+                                            <label class="slds-form-element__label"></label>
+                                            <div class="slds-form-element__control slds-form-element__label"
+                                                style="text-align: center; ">
+                                                To
+                                            </div>
+                                        </div>
+                                        <div
+                                            class="slds-form-element slds-col slds-p-horizontal_small slds-size_5-of-12">
+                                            <div aura:id="End_Visit_Time__c"
+                                                class="slds-form-element customRequiredField">
+                                                <lightning:inputField aura:id="VisitPlanFormInput"
+                                                    fieldName="End_Visit_Time__c" disabled="{! v.isDisabledField }"
+                                                    onchange="{! c.onChanngRemoveInvalidInputField }" />
+                                            </div>
+                                        </div>
+                                    </span>
+                                </div>
+
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </div>
+
+                </div>
+                <hr />
+                <div class="{! v.flowType == 'QCALeadType' ? 'slds-p-horizontal_large slds-p-vertical_x-small section' : 'slds-p-horizontal_large slds-p-vertical_x-small section-white'}">
+                    <div class="slds-form_stacked slds-m-bottom_x-small">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div aura:id="Categories__c" class="slds-form-element customRequiredField">
+                                    <lightning:inputField aura:id="VisitPlanFormInput" fieldName="Categories__c"
+                                        disabled="{! v.isDisabledField }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" />
+                                </div>
+                                <div aura:id="Main_purpose__c" class="slds-form-element customRequiredField">
+                                    <lightning:inputField aura:id="VisitPlanFormInput" fieldName="Main_purpose__c"
+                                        disabled="{! v.isDisabledField }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" />
+                                </div>
+
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div aura:id="Sub_Purpose__c" class="slds-form-element">
+                                    <lightning:inputField aura:id="VisitPlanFormInput" fieldName="Sub_Purpose__c"
+                                        disabled="{! v.isDisabledField }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" />
+                                </div>
+                            </lightning:layoutItem>
+
+                            <!-- <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                                <lightning:inputField aura:id="VisitPlanFormInput" fieldName="Customer_Counterparty__c" />
+                            </lightning:layoutItem> -->
+
+                        </lightning:layout>
+                    </div>
+                </div>
+                <hr />
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small section">
+                    <div class="slds-var-p-horizontal_xx-small slds-text-title_caps slds-var-p-vertical_small">
+                        <lightning:icon size="small" iconName="utility:date_input" />
+                        Visit Result
+                    </div>
+                    <div class="slds-form_stacked slds-m-bottom_x-small">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <!-- <lightning:inputField aura:id="VisitPlanFormInput" fieldName="Complete_Date__c" /> -->
+                                <div aura:id="Actual_Visit_Date__c" class="slds-form-element">
+                                    <lightning:inputField aura:id="VisitPlanFormInput" fieldName="Actual_Visit_Date__c"
+                                        disabled="{! v.isDisabledField }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" />
+                                </div>
+                                <lightning:inputField aura:id="VisitPlanFormInput" fieldName="Meeting_Place__c"
+                                    disabled="{! v.isDisabledField }" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div aura:id="Outcome__c" class="slds-form-element">
+                                    <lightning:inputField aura:id="VisitPlanFormInput" fieldName="Outcome__c"
+                                        disabled="{! v.isDisabledField }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" />
+                                </div>
+                                <div aura:id="Loss_Incomplete_reason__c" class="slds-form-element">
+                                    <lightning:inputField aura:id="VisitPlanFormInput"
+                                        fieldName="Loss_Incomplete_reason__c" disabled="{! v.isDisabledField }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="12"
+                                largeDeviceSize="12">
+                                <lightning:inputField aura:id="VisitPlanFormInput"
+                                    fieldName="Business_talk_and_opportunity__c" disabled="{! v.isDisabledField }" />
+                            </lightning:layoutItem>
+                            <!-- <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="12">
+                            <lightning:button variant="brand" type="submit" name="save" label="Save" />
+                        </lightning:layoutItem> -->
+                        </lightning:layout>
+                    </div>
+                </div>
+
+            </lightning:recordEditForm>
+        </aura:if>
+    </div>
+</aura:component>

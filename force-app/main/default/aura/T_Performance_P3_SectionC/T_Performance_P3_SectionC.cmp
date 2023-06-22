@@ -1,0 +1,113 @@
+<aura:component>
+    <aura:attribute name="branchName" type="String" default="Outbound branch" />
+    <!-- <aura:attribute name="kpi" type="Decimal" default="0" /> -->
+    <aura:attribute name="individual" type="Decimal" default="0" />
+    <aura:attribute name="bankwide" type="Decimal" default="0" />
+    <aura:attribute name="chartObj" type="Object" access="public" />
+
+    <aura:attribute name="chartNeedleObj" type="Object" access="public" />
+    <aura:attribute name="monthLst" type="List" />
+    <aura:attribute name="selectedPeriod" type="String" />
+    <aura:attribute name="selectedYear" type="String" />
+    <aura:attribute name="selectedMonth" type="String" />
+    <aura:attribute name="currentYear" type="String" />
+    <aura:attribute name="previousYear" type="String" />
+    <aura:attribute name="financePerf" type="Object" />
+    <aura:attribute name="isLoadData" type="Boolean" default="true" />
+    <aura:attribute name="scriptLoaded" type="Boolean" default="false" />
+    <aura:attribute name="chartID" type="String" />
+
+    <aura:attribute name="parent" type="Aura.Component" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler name="change" value="{!v.individual}" action="{!c.valueChange}" />
+    <aura:handler name="change" value="{!v.bankwide}" action="{!c.checkBankWide}" />
+    <ltng:require scripts="{!$Resource.ChartJs}" afterScriptsLoaded="{!c.scriptsLoaded}" />
+    <!-- New add -->
+    <!-- <ltng:require scripts="{!join(',',
+    $Resource.ChartJs_v3_9_1 + '/chart.js',
+    $Resource.ChartJs_v3_9_1 + '/plugin.js')}" afterScriptsLoaded="{!c.scriptsLoaded}" /> -->
+
+    <div class="section-row"
+        style="display: flex; justify-content: center; text-align:center;flex-direction: column;position:relative;">
+        <b style="text-align: center; top:0; left:30%;">{!v.branchName}</b>
+        <!-- น่าจะเป็น scale -->
+        <!-- <div class="slds-col slds-size_1-of-1 slds-m-vertical_medium"
+            style="text-align: center;">
+            <div class="slds-grid slds-wrap chart-container" style="justify-content:center; position:relative;">
+                <canvas aura:id="chart" id="{!v.chartID}" width="250" height="160"></canvas>
+                <canvas aura:id="chartNeedle" id="secondContainer" width="250" height="160" style="position: absolute;"></canvas>
+                <canvas aura:id="chartLabel" id="chartLabel" width="250" height="160" style="padding-bottom: 50px; position: absolute;"></canvas>
+            </div>
+        </div> -->
+        
+        <!-- น่าจะเป็น scale -->
+        <!-- <img src="{!$Resource.T_Performance_Graph_Description}" alt="User avatar" style="margin-bottom: 10px; width: 320px;"/> -->
+        <div class="section-row slds-m-vertical_medium" style="display: flex; align-items: center; flex-direction: column; margin-bottom: 10px; ">
+            <div class="slds-grid slds-wrap chart-container">
+              <!-- <canvas aura:id="chart" id="chartJSContainer" width="250" height="160"></canvas> -->
+                <canvas aura:id="chart" id="chartJSContainer" width="250" height="160"></canvas>
+                <canvas aura:id="chartNeedle" id="secondContainer" width="250" height="160" style="position: absolute;"></canvas>
+                <canvas aura:id="chartLabel" id="chartLabel" width="250" height="160" style="padding-bottom: 50px; position: absolute;"></canvas>
+            </div>
+            <div>
+              <img src="{!$Resource.T_Performance_Graph_Description}" style="width: 330px;" alt="User avatar"/>
+            </div>
+        </div>
+
+        <!-- class="slds-text-title_bold" -->
+        <div style="justify-content: center; display: flex;flex-direction: column;">
+            <div style="display:flex;margin:0 auto;">
+                <b style="display: inherit">
+                    <span>Avg. Individual : </span>
+                    <!-- <span><lightning:formattedNumber value="{!v.individual}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span> -->
+                    <aura:if isTrue="{!v.isLoadData == true}">
+                        <!-- <div class="exampleHolder"> -->
+                        <!-- <lightning:spinner alternativeText="Loading" size="medium" /> -->
+                        <div class="demo-only" style="height:1.1rem; margin-left: 10px; position:relative">
+                            <div class="slds-spinner_container">
+                                <div role="status" class="slds-spinner slds-spinner_xx-small">
+                                    <span class="slds-assistive-text">Loading</span>
+                                    <div class="slds-spinner__dot-a"></div>
+                                    <div class="slds-spinner__dot-b"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- </div> -->
+                    </aura:if>
+                    <aura:if isTrue="{!v.isLoadData == false}">
+                        <span style="margin-left:10px">
+                            <lightning:formattedNumber value="{!v.individual}" minimumFractionDigits="2"
+                                maximumFractionDigits="2" />%
+                        </span>
+                    </aura:if>
+                </b>
+            </div>
+            <div style="display:flex;margin:0 auto;">
+                <b style="display: inherit;">
+
+                    <span>Avg. Bankwide : </span>
+                    <aura:if isTrue="{!v.isLoadData == true}">
+                        <!-- <div class="exampleHolder"> -->
+                        <!-- <lightning:spinner alternativeText="Loading" size="medium" /> -->
+                        <div class="demo-only" style="height:1.1rem; margin-left: 10px; position:relative">
+                            <div class="slds-spinner_container">
+                                <div role="status" class="slds-spinner slds-spinner_xx-small">
+                                    <span class="slds-assistive-text">Loading</span>
+                                    <div class="slds-spinner__dot-a"></div>
+                                    <div class="slds-spinner__dot-b"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- </div> -->
+                    </aura:if>
+                    <aura:if isTrue="{!v.isLoadData == false}">
+                        <span style="margin-left:10px">
+                            <lightning:formattedNumber value="{!v.bankwide}" minimumFractionDigits="2"
+                                maximumFractionDigits="2" />%
+                        </span>
+                    </aura:if>
+                </b>
+            </div>
+        </div>
+    </div>
+</aura:component>

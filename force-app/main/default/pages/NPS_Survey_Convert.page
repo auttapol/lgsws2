@@ -1,0 +1,580 @@
+<apex:page standardcontroller="Lead" id="thePage" extensions="LeadActionController" lightningStylesheets="true" title="Complete Survey"  doctype="html-5.0">
+    <apex:slds />
+    <head>
+        <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}" />
+        <script src="/support/console/37.0/integration.js" type="text/javascript"></script>
+        <apex:includeScript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includeScript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:includeScript value="{!$Resource.AccountPlan_Mustache}" />
+        <apex:stylesheet value="{!URLFOR($Resource.SLOS)}" />
+        <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+        <style>
+            .bootstrap-sf1 input[type="radio"],
+            .bootstrap-sf1 input[type="checkbox"] {
+                float: left;
+                text-align: left;
+            }
+
+            .leftRadioCheckbox tbody td {
+                float: left;
+                text-align: left;
+                margin: 5px 15px;
+            }
+
+            .leftSelect select,
+            .leftSelect span textarea {
+                margin: 5px 15px;
+                font-size: 12px;
+                color: #4a4a56;
+            }
+
+            .leftSelect table select,
+            .leftSelect table textarea {
+                margin: 5px 0px;
+                font-size: 12px;
+                color: #4a4a56;
+            }
+
+            .leftRadioCheckbox tbody td label {
+                margin-left: 10px;
+            }
+
+            .bootstrap-sf1 label {
+                font-size: 12px;
+                color: #4a4a56;
+            }
+
+            a.lookup {
+                padding: 5px !important;
+                background-color: transparent !important;
+                background-image: none !important;
+                -webkit-box-shadow: none !important;
+                box-shadow: none !important;
+                width: 35px !important;
+            }
+
+            .lookup {
+                display: inline !important;
+            }
+
+            select,
+            textarea {
+                display: block;
+                width: 100%;
+                height: 34px;
+                padding: 6px 14px;
+                font-size: 14px;
+                line-height: 1.42857143;
+                color: #000000;
+                background-color: #ffffff;
+                background-image: none;
+                border: 1px solid #cfd0d2;
+                border-radius: 4px;
+            }
+
+            .bootstrap-sf1 .form-control {
+                font-size: 12px;
+            }
+
+            select {
+                width: auto !important;
+            }
+
+            .bootstrap-sf1 {
+                background-color: #FFF;
+            }
+
+            .bootstrap-sf1 .card {
+                border: none;
+            }
+
+            .datePicker select {
+                width: 85px !important;
+                height: 25px !important;
+                font-size: 10px;
+                padding: 5px;
+                display: initial;
+            }
+
+            td.buttonCell {
+                margin-top: 35px !important;
+            }
+
+            .requiredInput {
+                width: 290px;
+            }
+            .disabling {
+                pointer-events : none;
+            }
+            .slds-scope img {
+            height: fit-content;
+            }
+            /*.messageCell{
+        text-align: left;
+        }
+        .messageTable td{
+            float: left;
+         }*/
+
+            .messageTable h4 {
+                margin-top: 0px !important;
+                text-align: left !important;
+                color: inherit !important;
+            }
+
+            .slds img {
+                max-width: none;
+            }
+
+            /*.messageTable ul{
+            text-align: left;
+         }*/
+
+            .messageTable tbody td {
+                text-align: left;
+                float: left;
+            }
+        </style>
+    </head>
+
+    <apex:form id="sldsfrm">
+
+        <div id="loadingImage" class="Indicator">
+            <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                <div id="spinner" role="status" class="slds-spinner slds-spinner_medium">
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </div>
+
+
+
+        <apex:actionstatus id="statusslds">
+            <apex:facet name="start">
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <div id="spinner" role="status" class="slds-spinner slds-spinner_medium">
+                        <div class="slds-spinner__dot-a"></div>
+                        <div class="slds-spinner__dot-b"></div>
+                    </div>
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+
+        <!--<apex:actionFunction name="savesurveyslds" action="{!dosave}" reRender="sldsfrm,questionlistsdls,statusMessage" status="statusslds"   />-->
+        <apex:actionFunction name="actioncompletesurvey" action="{!completeSurvey}" reRender="sldsfrm,questionlistsdls,statusMessage,opptySection"
+            status="statusslds" />
+
+        <apex:actionFunction immediate="true" name="resultChange" action="{!interestAction}" status="statusslds" rerender="convertsection,statusMessage">
+            <!-- //Fixed: 2018Jan -->
+            <apex:param value="" name="inpInterestResult" />
+        </apex:actionFunction>
+        <apex:actionFunction name="redirect" action="{!cancel}" />
+        <div class="slds" id="appearOnDesktop">
+            <!--HEADER-->
+            <div class="slds-page-header" role="banner">
+                <div class="slds-grid">
+                    <div class="slds-col">
+                        <div class="slds-media">
+
+                            <div class="slds-media__figure">
+                                <span class="slds-icon__container slds-icon__container--circle slds-icon-standard-product">
+                                    <span class="bootstrap-sf1">
+                                        <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                                    </span>
+                                </span>
+                            </div>
+
+                            <div class="slds-media__body">
+                                <p class="slds-text-heading--label">NPS</p>
+                                <h1 class="slds-text-heading--small">
+                                    Complete Survey
+                                </h1>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!--END HEADER-->
+
+            <!--BUTTONS-->
+            <div class="slds-size--1-of-1">
+                <div class="slds-box--x-small slds-m-horizontal--x-small">
+                    <fieldset class="slds-theme--default ">
+                        <div class="slds-form-element slds-text-align--center ">
+                            <div class="slds-form-element__control  slds-m-top--medium">
+
+
+
+
+
+                                <apex:commandButton styleClass="slds-button slds-button--neutral uiButton forceActionButton" rendered="{!IsAllowToConvert && !isRequiredOpp }" action="{!completeSurvey}"
+                                    reRender="sldsfrm,questionlistsdls,statusMessage,opptySection,actionButton,actionButton2,savebutton,savebutton2,script_block,convertsection,surveyresult"
+                                    status="statusslds" style="margin-right:15px;" id="savebutton" value="Save" onclick="disablingPage();"/>
+
+                                <apex:commandbutton action="{!ConvertAction}" value="Create Opportunity" rendered="{!IsAllowToConvert && isRequiredOpp && !isNeedtobeMember}"
+                                    status="statusslds" reRender="sldsfrm,questionlistsdls,statusMessage,opptySection,actionButton,actionButton2,savebutton,savebutton2,script_block,convertsection,surveyresult"
+                                    id="actionButton" styleClass="slds-button slds-button--neutral uiButton forceActionButton" />
+
+                                <apex:commandButton action="{!cancel}" styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Cancel" status="statusslds" />
+
+
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <!--END BUTTONS-->
+
+            <div class="bootstrap-sf1">
+                <div class="card collapse in panel-collapse" id="collapse1">
+                    <div class="card-detail">
+
+                        <!--  Section 1 -->
+
+                        <fieldset>
+                            <div class="row">
+                                <apex:PageBlock mode="view" id="flowBlock">
+                                    <apex:outputPanel id="statusMessage">
+                                        <apex:pageMessages ></apex:pageMessages>
+                                    </apex:outputPanel>
+
+                                    <apex:pageblockSection columns="1" id="surveyresult" rendered="{! !isRequiredOpp && IsAllowToConvert && isCompleteSurvey}">
+
+
+
+
+                                        <apex:pageblockSectionItem >
+                                            <apex:outputLabel style="margin-top:7px;" value="{!$ObjectType.Survey__c.fields.Result__c.label}" />
+
+                                            <apex:outputPanel layout="block" styleClass="requiredInput">
+                                                <apex:outputPanel layout="block" styleClass="requiredBlock" />
+
+                                                <apex:inputField value="{!surveyobj.Result__c}" styleClass="form-control" />
+                                            </apex:outputPanel>
+
+                                        </apex:pageblockSectionItem>
+                                    </apex:pageblockSection>
+
+                                    <apex:pageblocksection columns="1" id="convertsection" rendered="{! !isRequiredOpp && IsAllowToConvert && !isCompleteSurvey  }">
+                                        <apex:pageBlockSectionItem >
+                                            <apex:outputLabel styleClass="labelCustom">Convert to Opportunity</apex:outputLabel>
+                                            <apex:inputfield value="{!leadobj.Interest_result__c}" style="width:120px;" required="true" onchange="InterestResultChange(this)"
+                                            />
+                                        </apex:pageBlockSectionItem>
+                                        <apex:pageBlockSectionItem rendered="{!if(leadobj.Interest_result__c=='No',true,false)}">
+                                            <apex:outputLabel styleClass="labelCustom" rendered="{!if(leadobj.Interest_result__c=='No',true,false)}" id="UninterestedReason1">Unqualified Reason</apex:outputLabel>
+                                            <apex:inputfield value="{!leadobj.Unqualified_Reasons__c}" styleClass="form-control" rendered="{!if(leadobj.Interest_result__c=='No',true,false)}"
+                                                id="UninterestedReason2" required="true" />
+                                        </apex:pageBlockSectionItem>
+                                        <apex:pageBlockSectionItem rendered="{!if(leadobj.Interest_result__c=='No',true,false)}">
+                                            <apex:outputLabel styleClass="labelCustom" rendered="{!if(leadobj.Interest_result__c=='No',true,false)}" id="UninterestedReason3">Sub Unqualified Reason</apex:outputLabel>
+                                            <apex:inputfield value="{!leadobj.Sub_Unqualified_Reason__c}" styleClass="form-control" rendered="{!if(leadobj.Interest_result__c=='No',true,false)}"
+                                                id="UninterestedReason4" required="true" />
+                                        </apex:pageBlockSectionItem>
+                                        <apex:pageBlockSectionItem >
+                                            <apex:outputLabel styleClass="labelCustom">Other Reason</apex:outputLabel>
+                                            <apex:inputfield value="{!leadobj.Other_Reason__c }" styleClass="form-control" style="width: 70%" />
+                                        </apex:pageBlockSectionItem>
+                                        <apex:pageBlockSectionItem >
+                                            <apex:outputLabel styleClass="labelCustom" style="display:none;" id="UninterestedAction1">Uninterested Action</apex:outputLabel>
+                                            <apex:inputfield value="{!leadobj.Unqualified_Action__c}" styleClass="form-control" style="display:none;" id="UninterestedAction2"
+                                            />
+                                        </apex:pageBlockSectionItem>
+                                    </apex:pageblocksection>
+
+
+
+
+
+
+                                    <apex:pageblocksection columns="1" id="opptySection" rendered="{! isRequiredOpp && IsAllowToConvert }">
+                                        <apex:inputfield type="date" showDatePicker="false" value="{!oppty.Expected_submit_date__c}" required="true" styleClass="form-control" style="width:170px;"
+                                        />
+                                        <apex:inputfield type="date" showDatePicker="false" value="{!oppty.CloseDate}" required="true" styleClass="form-control" style="width:170px;" />
+                                        <apex:outputfield value="{!leadobj.Account__c}" rendered="{!leadobj.Account__c!=null}" />
+                                        <br />
+                                        <apex:outputPanel id="result" rendered="{!ProductWrapperList.size>0}">
+                                            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                                <tr class="headerRow">
+                                                    <th class="headerRow" style="width:100px;"> Selection </th>
+                                                    <th class="headerRow"> Product Name </th>
+                                                    <th class="headerRow"> Opportunity Type </th>
+                                                    <th class="headerRow"> Link to Opportunity </th>
+                                                </tr>
+                                                <apex:repeat value="{!ProductWrapperList}" var="prod">
+                                                    <tr class="dataRow" >
+                                                        <td class="dataCell lb-center">
+                                                            <apex:inputCheckbox value="{!prod.Isselected}" />
+                                                        </td>
+                                                        <td class="dataCell" style="text-align:left;">
+                                                            <apex:outputfield value="{!prod.ProductIN.Product__c }"/>
+                                                        </td>
+                                                        <td class="dataCell" style="text-align:left;">
+                                                            <apex:outputfield value="{!prod.ProductIN.Opportunity_Type__c}" />
+                                                        </td>
+                                                        <td class="dataCell" style="text-align:left;">
+                                                            <apex:inputfield value="{!prod.ProductIN.Opportunity__c  }" styleClass="form-control"
+                                                                rendered="{!prod.ProductIN.Opportunity_Type__c !='No Opp' && !isCommercialLead}"
+                                                            />
+                                                        </td>
+                                                    </tr>
+                                                </apex:repeat>
+                                            </table>
+
+                                        </apex:outputPanel>
+                                    </apex:pageblocksection>
+
+
+
+
+                                </apex:PageBlock>
+
+
+
+                            </div>
+                        </fieldset>
+                    </div>
+
+                </div>
+            </div>
+
+            <!--BUTTONS-->
+            <div class="slds-size--1-of-1" style="margin-left:-2.5px;">
+                <div class="slds-box--x-small slds-m-horizontal--x-small">
+                    <fieldset class="slds-theme--default ">
+                        <div class="slds-form-element slds-text-align--center ">
+                            <div class="slds-form-element__control ">
+                                <apex:commandButton styleClass="slds-button slds-button--neutral uiButton forceActionButton" rendered="{!IsAllowToConvert && !isRequiredOpp }" action="{!completeSurvey}"
+                                    reRender="sldsfrm,questionlistsdls,statusMessage,opptySection,actionButton,actionButton2,savebutton,savebutton2,script_block,convertsection,surveyresult"
+                                    status="statusslds" style="margin-right:15px;" id="savebutton2" value="Save" onclick="disablingPage();"/>
+
+                                <apex:commandbutton action="{!ConvertAction}" value="Create Opportunity" rendered="{!IsAllowToConvert && isRequiredOpp && !isNeedtobeMember}"
+                                    status="statusslds" reRender="sldsfrm,questionlistsdls,statusMessage,opptySection,actionButton,actionButton2,savebutton,savebutton2,script_block,convertsection,surveyresult"
+                                    id="actionButton2" styleClass="slds-button slds-button--neutral uiButton forceActionButton" />
+
+                                <apex:commandButton action="{!cancel}" styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Cancel" status="statusslds" />
+
+
+                            </div>
+                        </div>
+                    </fieldset>
+                </div>
+            </div>
+            <!--END BUTTONS-->
+
+        </div>
+
+        <apex:actionFunction name="redirect" action="{!cancel}" />
+
+        <apex:outPutPanel layout="block" id="script_block">
+            <script>
+                var requiredOpp = "{!isRequiredOpp}";
+                var allowConvert = "{!IsAllowToConvert}";
+                var toggle = "{!toggleScript}";
+                var _maintab;
+                var _subtab;
+                var OpNotCreate = "{!isOppNotCreated}";
+                var inconsole = sforce.console.isInConsole();
+                var launchNextPage = "{!launchNextPage}";
+                var isRequiredOpp = "{!isRequiredOpp}";
+
+                var $j = jQuery.noConflict();
+
+                $j(document).ready(function () {
+
+                    startLoading();
+
+                    if (inconsole) {
+                        //setTitle();
+                        _maintab = sforce.console.getEnclosingPrimaryTabId(mainTab);
+
+                    }
+
+                    endLoading();
+
+
+                });
+
+                function disablingPage() {
+                    // console.log('disablin');
+                    var obj = document.getElementById('appearOnDesktop');
+                    obj.classList.add("disabling");
+                }
+
+                function InterestResultChange(e) {
+                    var InterestResult = $j(e).val();
+                    if (InterestResult == 'Uninterested') {
+                        resultChange();
+                    } else {
+                        resultChange(InterestResult);
+                    }
+                    document.getElementById("{!$Component.statusMessage}").hidden = true;
+                }
+
+
+                /*var sfView = (function() {
+                var indicator =  $j("#loadingImage");
+                // All functions now have direct access to each other
+                var onProcess = function(strmessage) { 
+                    indicator.removeClass('hidden');
+                };
+                var onComplete = function() {
+                    indicator.addClass('hidden');
+                };      
+                // Return the object that is assigned to Module
+                return {
+                    onProcess: onProcess,
+                    onComplete: onComplete
+                };
+            }());*/
+
+                function startLoading() {
+                    $j("#loadingImage").removeClass('hidden');
+                }
+
+                function endLoading() {
+                    $j("#loadingImage").addClass('hidden');
+                }
+
+                //Sets the title of the current tab to "Case Transactions Detail"
+                function setTitle() {
+                    sforce.console.setTabTitle('Complete Survey');
+                }
+
+
+
+                //console.log('inconsole : '+inconsole+' requiredOpp : '+requiredOpp+' allowConvert: '+allowConvert+' toggle :'+toggle);
+
+                if (inconsole == true && requiredOpp == 'false' && allowConvert == 'true' && toggle == 'true') {
+
+                    sforce.console.getFocusedPrimaryTabId(showTabId);
+                    //redirect();
+
+                }
+
+
+                if (inconsole == true && requiredOpp == 'true' && allowConvert == 'true' && toggle == 'true') {
+
+
+                    sforce.console.getFocusedPrimaryTabId(showTabId);
+                    //redirect();
+
+                }
+
+                if (inconsole == false && requiredOpp == 'false' && allowConvert == 'true' && launchNextPage == 'true') {
+
+
+                    redirect();
+
+                }
+
+                if (inconsole == false && toggle == 'true' && requiredOpp == 'true' && allowConvert == 'true' && launchNextPage == 'true') {
+
+
+                    redirect();
+
+                }
+
+
+                var showTabId = function showTabId(result) {
+                    var tabId = result.id;
+                    startLoading();
+                    sforce.console.refreshPrimaryTabById(tabId, true, refreshSuccess);
+                    //startLoading();
+
+                };
+
+
+
+
+
+
+
+
+
+                var mainTab = function mainTab(result) {
+                    //Now that we have the primary tab ID, we can close it
+                    _maintab = result.id;
+                };
+
+                var refreshSuccess = function refreshSuccess(result) {
+                    //Report whether refreshing the primary tab was successful
+                    //console.log('refresh');
+
+                    redirect();
+                    if (result.success == true) {
+                        //console.log('flag');
+
+                        //CloseCurrentTab();
+                    } else {
+                        //redirect();
+                    }
+                };
+
+
+                function CloseCurrentTab() {
+                    //First find the ID of the current tab to close it
+                    if (sforce.console.isInConsole()) {
+                        sforce.console.getEnclosingTabId(closeSubtab);
+                    } else {
+                        redirect();
+                    }
+                }
+
+                var closeSubtab = function closeSubtab(result) {
+                    //Now that we have the tab ID, we can close it
+                    var tabId = result.id;
+                    sforce.console.closeTab(tabId);
+                };
+
+
+
+                var subtab = function subtab(result) {
+                    //Now that we have the primary tab ID, we can close it
+                    _subtab = result.id;
+                };
+
+
+                var mainTab = function mainTab(result) {
+                    //Now that we have the primary tab ID, we can close it
+                    _maintab = result.id;
+                };
+
+
+                function refreshPrimaryTabById() {
+                    //Get the value for 'scc-pt-0' from the openPrimaryTab method
+                    //This value is for example purposes only  
+
+                    if (sforce.console.isInConsole()) {
+
+                        sforce.console.refreshPrimaryTabById(_maintab, true, refreshSuccess);
+                    }
+
+                }
+
+
+
+                function loading(val) {
+                    if (val) {
+                        document.getElementById('contentLoading').style.display = 'block';
+                        document.getElementById('contentLoaded').style.display = 'none';
+                    }
+                    else {
+                        document.getElementById('contentLoading').style.display = 'none';
+                        document.getElementById('contentLoaded').style.display = 'block';
+                    }
+                }
+
+
+
+
+
+
+            </script>
+        </apex:outPutPanel>
+    </apex:form>
+
+</apex:page>

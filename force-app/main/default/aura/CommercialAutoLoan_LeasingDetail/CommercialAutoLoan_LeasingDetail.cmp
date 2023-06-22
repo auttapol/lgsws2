@@ -1,0 +1,157 @@
+<aura:component controller="CommercialAutoLoanController" access="global">
+    <c:methodUtils aura:id="methodUtils" />
+    <lightning:navigation aura:id="navService" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+
+    <!-- watermark -->
+    <c:watermark aura:id="watermark" oninit="{!c.waterMark}" />
+    <aura:attribute name="waterMarkImage" type="String" />
+    <aura:html tag="style">
+        :root {
+        --backgroundImage: {!v.waterMarkImage};
+        }
+    </aura:html>
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="tmbCustId" type="String" />
+    <aura:attribute name="theme" type="String" />
+    <aura:attribute name="ca_no" type="String" />
+    <aura:attribute name="markedca_no" type="String" />
+
+    <aura:attribute name="product" type="Map" default="{}" />
+    <aura:attribute name="accessibleCusHold" type="Map" default="{}" />
+    <aura:attribute name="result" type="Map" default="{}" description="for temporary value" />
+    <aura:attribute name="error" type="Map"
+        default="{'state':false,'isTimeout':false,'isError':false,'title':'Warning!','messages':{},message:'','herfLink':'','retry':''}" />
+
+    <aura:attribute name="isLoadingLeasing" type="Boolean" default="false" />
+    <aura:attribute name="isLoadingGuarantor" type="Boolean" default="false" />
+
+    <ui:scrollerWrapper aura:id="scrollerWrapper" class="container slds-no-print">
+        <lightning:layout verticalAlign="stretch" multipleRows="true">
+
+            <lightning:layoutItem size="12" class="slds-var-p-top_small">
+                <lightning:card title="{!$Label.c.Auto_Loan_Product_Leasing}" iconName="standard:product" />
+            </lightning:layoutItem>
+
+            <aura:if isTrue="{!v.error.state}">
+                <lightning:layoutItem size="12" class="slds-p-top_small">
+                    <lightning:card class="slds-theme_shade slds-theme_alert-texture">
+                        <aura:set attribute="title">
+                            <div class="slds-text-heading_medium slds-text-color_destructive">
+                                <aura:unescapedHtml value="{!v.error.title}" />
+                            </div>
+                        </aura:set>
+
+                        <lightning:layoutItem aura:id="hrefComponent" class="slds-p-around_small">
+                            <div style="white-space: pre-wrap;">
+                                <aura:if isTrue="{!v.error.herfLink}">
+                                    <div>
+                                        {!v.error.herfLink}
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!v.error.retry}">
+                                    <div>
+                                        {!v.error.retry}
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!v.error.message}">
+                                    <div>
+                                        {!v.error.message}
+                                    </div>
+                                </aura:if>
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:card>
+                </lightning:layoutItem>
+            </aura:if>
+
+            <lightning:layoutItem size="12" class="slds-p-top_small">
+                <div aura:id="LeasingHref"></div>
+                <lightning:card>
+                    <aura:set attribute="title">
+                        {!$Label.c.Auto_Loan_Leasing}
+                        <aura:if isTrue="{! v.isLoadingLeasing }">
+                            <div class="slds-is-relative spinnerInline">
+                                <lightning:spinner alternativeText="Loading" size="small" variant="brand" />
+                            </div>
+                        </aura:if>
+                    </aura:set>
+
+                    <div class="slds-form">
+                        <lightning:layout verticalAlign="stretch" multipleRows="true">
+                            <aura:iteration items="{!v.product.LeasingInfo}" var="field" indexVar="index">
+                                <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                                    padding="horizontal-small"
+                                    class="{! 'slds-form__item slds-p-bottom_small ' + (field.fieldName != '' ? '' : 'hideMinWidth') }">
+                                    <div
+                                        class="{!'slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent ' + (field.fieldName ? 'slds-form-element_readonly ' : '') + (field.class ? field.class : '') }">
+                                        <span class="slds-form-element__label">
+                                            {!field.label}
+                                        </span>
+
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-form-element__static">
+                                                <aura:if isTrue="{! or(v.error.messages.Leasing.isError, v.error.messages.Leasing.isTimeout)}">
+                                                    <c:pillOutput type="STRING" value="{!field.value}" />
+                                                    <aura:set attribute="else">
+                                                        <c:pillOutput type="{!field.type}" value="{!field.value}" />
+                                                    </aura:set>
+                                                </aura:if>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                            </aura:iteration>
+                        </lightning:layout>
+                    </div>
+                </lightning:card>
+            </lightning:layoutItem>
+
+            <lightning:layoutItem size="12" class="slds-p-top_small">
+                <div aura:id="GuarantorHref"></div>
+                <lightning:card>
+                    <aura:set attribute="title">
+                        {!$Label.c.Guarantor}
+                        <aura:if isTrue="{! v.isLoadingGuarantor }">
+                            <div class="slds-is-relative spinnerInline">
+                                <lightning:spinner alternativeText="Loading" size="small" variant="brand" />
+                            </div>
+                        </aura:if>
+                    </aura:set>
+
+                    <div class="slds-form">
+                        <lightning:layout verticalAlign="stretch" multipleRows="true">
+                            <aura:iteration items="{!v.product.Guarantor}" var="field" indexVar="index">
+                                <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                                    padding="horizontal-small"
+                                    class="{! 'slds-form__item slds-p-bottom_small ' + (field.fieldName != '' ? '' : 'hideMinWidth') }">
+                                    <div
+                                        class="{!'slds-form-element slds-form-element_edit slds-form-element_readonly slds-form-element_horizontal slds-hint-parent ' + (field.fieldName ? 'slds-form-element_readonly ' : '') + (field.class ? field.class : '') }">
+                                        <span class="slds-form-element__label">
+                                            {!field.label}
+                                        </span>
+                                        <div class="slds-form-element__control">
+                                            <div class="slds-form-element__static">
+                                                <aura:if isTrue="{! v.error.messages.Guarantor.isError ||
+                                                                    v.error.messages.Guarantor.isTimeout ||
+                                                                    v.error.messages.Guarantor.isNoData }">
+                                                    <c:pillOutput type="STRING" value="{!field.value}" />
+                                                    <aura:set attribute="else">
+                                                        <c:pillOutput type="{!field.type}" value="{!field.value}" />
+                                                    </aura:set>
+                                                </aura:if>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                            </aura:iteration>
+                        </lightning:layout>
+                    </div>
+                </lightning:card>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </ui:scrollerWrapper>
+
+</aura:component>

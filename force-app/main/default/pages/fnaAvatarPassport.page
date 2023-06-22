@@ -1,0 +1,395 @@
+<apex:page controller="fnaAvatarPassportCtrl" showHeader="false" sidebar="false" cache="false"  id="profile" standardStylesheets="false" html-prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#" doctype="html-5.0" applyBodyTag="false">
+    <head>
+        <meta http-equiv="Content-Type"     content="text/html; charset=utf-8" />
+        <meta http-equiv="X-UA-Compatible"  content="IE=edge"/>
+        <meta name="viewport"               content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+        <meta property="og:url"             content="{!urlForSharing}" />
+        <meta property="og:type"            content="website" />
+        <meta property="og:title"           content="{!avatar.Avatar_TH__c}" />
+        <meta property="og:description"     content="{!avatar.Avatar_Short_Description__c}" />
+        <meta property="og:image:width" content="200"/>
+        <meta property="og:image:height" content="200"/>
+
+        <title>FIN Avatar Passport</title>
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}"  />   
+        <apex:includeScript value="{!URLFOR($Resource.DOMToImage)}"  /> 
+
+        <apex:stylesheet value="{!URLFOR($Resource.FNA_Resource, '/public/css/bootstrap.min.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.FNA_Resource, '/public/css/hover.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.FNA_Resource, '/src/css/passport.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.fnaAvatarDetail, '/css/fnaAvatarDetail.css')}" />        
+        <apex:includeScript value="{!URLFOR($Resource.FNA_Resource, '/public/js/bootstrap.min.js')}"/>
+        <apex:includeScript value="{!URLFOR($Resource.FNA_Resource, '/public/js/jquery-ui.js')}"/>
+       
+        <style>
+            a {
+                text-decoration: none;
+            }
+
+            .img{
+                max-width: 100%;
+                height: auto;
+
+            }
+            .marginAuto{
+                margin: 0 auto;
+            }
+
+            @media (max-width: 767px) and (min-width: 320px){
+                .passport .persona .col-6 .quote em2{
+                    position: relative !important;
+                    display: block !important;
+                    margin: 0 auto;
+                    width: 70px !important;
+                    height: 70px !important;    
+                    top: -20px;
+                }
+            }
+
+            .slds-spinner_container {
+                position: fixed;
+            }
+
+            .hide{
+                display: none;
+            }
+
+            @media (max-width: 500px) and (min-width: 320px){
+                .contentQuestion{
+                    overflow: auto;
+                }
+            }
+            @media (max-width: 500px) and (min-width: 320px){
+                .img{
+                    max-width: 100% !important;
+                    height: auto;
+                }
+            }
+
+            .pointer{
+                cursor: pointer;
+            }
+
+            button {
+                outline: none;
+            }
+
+        </style>
+     
+    </head>
+    <body>
+        <apex:form >
+            <apex:actionFunction action="{!saveScreenShot}" name="saveImageFile" rerender="frm">
+                <apex:param assignTo="{!strImageBlob}" name="imageBlob" value=""/>
+            </apex:actionFunction>
+        </apex:form>
+        <div id="mapDiv">
+            <span class="loadingDisplay hide">
+                <div id="spinnerDiv" class="demo-only demo--inverse" >
+                    <div class="slds-spinner_container">
+                        <div role="status" class="slds-spinner slds-spinner_medium">
+                            <span class="slds-assistive-text">Loading</span>
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div>
+                </div>
+            </span>
+            <div class="loadingQuestion contentQuestion">
+                <div class="contentQuestion" id='avatar-img'>
+                    <header>
+                        <div class="topbar" style="position: relative;">
+                            <img src="{!imageResource.logo}" class="logo" />
+                        </div>
+                    </header>
+                    <main>		
+                        <section class="too-small">
+                            <div class="container">
+                                <div class="row">
+                                    <div class="col">
+                                    
+                                    </div>
+                                    <div class="col-8">
+                                        <div class="frown text-center">
+                                            <img src="{!imageResource.hurt}"  class="img-fluid" />
+                                        </div>
+                                        <div class="dizzy text-center">
+                                            <img src="{!imageResource.dead}" class="img-fluid" />
+                                        </div>
+                                        <div class="box">
+                                            <h1>
+                                                Your device is not supported, please upgrade your device if you want to take this journey with us!<br/>
+                                                <i class="fas fa-mobile-alt"></i>
+                                            </h1>
+                                        </div>
+                                    </div>
+                                    <div class="col">
+                                    
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+                
+                        <section class="passport">
+                
+                            <div class="persona">
+                                <h1 class="display-4">{!avatarName}</h1>
+                                <h1 class="display-4">{!avatar.Avatar_TH__c}</h1>
+                                <div class="row">
+                                    <div class="col-6 marginAuto">
+                                        <div class="quote">
+                                            <em>“</em>
+                                            <span class="media-body avatarDescription">
+                                                {!avatar.Avatar_Short_Description__c}
+                                            </span>
+                                            <em>”</em>
+                                        </div>
+                                        <dl>
+                                            <dt><img src="{!urlImage}" class="img-fluid" /></dt>
+                                            <dd><div class="shadow"></div></dd>
+                                        </dl>
+                                        
+                                    </div>
+                                </div>
+                                
+                                <div class="row">
+                                    <div class="col align-self-center">
+                                        <button onclick="handleProduct()" type="submit" id="showprod" class="btn-lg cta hvr-grow-shadow download pointer">ดูผลิตภัณฑ์ที่ตอบโจทย์ความต้องการของคุณ</button>
+                                    </div>
+                                </div>
+                                
+                                <div class="row" >
+
+                                    <div class="col align-self-center">
+                                        <ul>
+                                            
+                                            <!-- <li><a href="#" id="link" onclick="downloadImage()"><img src="{!imageResource.download}" /><br/>Save</a></li>
+                                            <li><a href="#" id="fnaShareFacebook" onclick="shareFB()"><img src="{!imageResource.fb}" /><br/>Facebook</a></li>
+                                            <li><a href="#" onclick="shareLine()"><img src="{!imageResource.line}" /><br/>Line</a></li> -->
+
+                                            <!-- <li><a href="#"><img src={imageResource.ig} /><br/>Instagram</a></li> -->
+                                            <!-- <li><a href="#" onclick="messengerShareHandler()"><img src="{!imageResource.messenger}" /><br/>Messenger</a></li> -->
+                                            
+                                            <script src="https://d.line-scdn.net/r/web/social-plugin/js/thirdparty/loader.min.js" async="async" defer="defer"></script>
+                                        </ul>
+                                    </div>
+                                </div>
+
+                                <div class="modal fade" id="IEModal" tabindex="-1" role="dialog" aria-labelledby="IEModal" aria-hidden="true">
+                                    <div class="modal-dialog" role="document">
+                                        <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h3 class="modal-title" id="mobileLabel">ไม่สามารถดาวน์โหลด Avatar ได้!</h3>
+                                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                                <i class="fas fa-times-circle"></i>
+                                            </button>
+                                        </div>
+                                        <div class="modal-body">
+                                            <i class="fas fa-exclamation-circle"></i>
+                                            <p>เบราว์เซอร์ของคุณไม่รองรับ กรุณาเปิดเบราว์เซอร์ที่รองรับ</p>
+                                            <ul>
+                                                <li><img src="{!imageResource.chrome}" /></li>
+                                                <li><img src="{!imageResource.firefox}" /></li>
+                                                <li><img src="{!imageResource.safari}" /></li>
+                                            </ul>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-lg cta" data-dismiss="modal">ตามนั้น</button>
+                                        </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            
+                            </div>
+                        </section>
+                        
+                    </main>
+                </div>
+            </div>	
+        </div>        
+    </body>
+    
+
+    <script type="text/javascript">
+ 
+        var _imageDataURL;
+        var notSupport = false;
+        var isIE11 = !!window.MSInputMethodContext && !!document.documentMode;
+        // console.log('isIE11' + isIE11);
+
+        window.onload = function(){
+            
+
+            if((navigator.userAgent).includes("Line") || isIE11 || detectIEEdge() != false){
+                notSupport = true;
+                console.log('We\'re sorry, but this browser is not supported');
+            }
+
+            var node = document.getElementById('avatar-img');
+            if(!notSupport){
+                try{
+                    domtoimage.toPng(node,{bgcolor:'#e1f4fd'})
+                    .then(function (dataUrl) {
+                        _imageDataURL = dataUrl;
+                        callActionFunction();
+        
+                    })
+                    .catch(function (error) {
+                        console.error('oops, something went wrong!', error);
+                    });
+                }catch(err) {
+                    // IE11 not support
+                    console.log('Catch : ' + err );
+
+                }
+            }
+        }
+
+        function shareFB(){
+            if(notSupport){
+                // console.log('Line')
+                $('#IEModal').modal('toggle');
+            }else{
+                url = '{!urlForSharing}';
+                newwindow=window.open('https://www.facebook.com/sharer/sharer.php?u='+url,'TMBPopup','height=480,width=640');
+                if (window.focus) {newwindow.focus()}
+                return false;
+            }
+        }
+
+        function shareLine(){
+            if(notSupport){
+                // console.log('Line')
+                $('#IEModal').modal('toggle');
+            }else{
+                // console.log('else');
+                var shareUrl = '{!urlForSharing}';
+                location.href = 'https://social-plugins.line.me/lineit/share?url=' + encodeURIComponent(shareUrl);
+            }
+        }
+
+        function callActionFunction(){
+            saveImageFile(_imageDataURL);
+        }
+
+        function handleProduct() {
+            var originalURL = 'Id=' + '{!fnaIdEncrypted}';
+            window.location.href = '/fin/s/fnaHighlightProduct?' + encodeURIComponent(originalURL);
+        }
+
+        function downloadImage()
+        {
+            if(notSupport){
+                // console.log('Line')
+                $('#IEModal').modal('toggle');
+            }
+            else{
+                var link = document.getElementById('link');
+                link.setAttribute('download', '{!avatar.Avatar_TH__c}' + '.png');
+                link.setAttribute('href', _imageDataURL);
+            }
+            // var canvas = document.getElementById("canvasDownload");
+            // var image = canvas.toDataURL("image/png");
+
+            // console.log('device : ' + device);
+            // if(device == 'iOS'){
+            //      /*Open new Tab and manual Save*/
+            //     var newTab = window.open();
+            //     newTab.document.body.innerHTML = '<img src="'+image+'" width="100%"/>';
+
+            // }else{
+            //     /*Download Image auto save*/
+            //     var link = document.getElementById('link');
+            //     link.setAttribute('download', '{!avatar.Avatar_TH__c}' + '.png');
+            //     link.setAttribute('href', canvas.toDataURL("image/png"));
+            //     // link.click();
+            // }
+
+            // if(device == 'iOS'){
+                /*Open new Tab and manual Save*/
+                // var newTab = window.open();
+                // newTab.document.body.innerHTML = '<img src="'+_imageDataURL+'" width="100%"/>';
+            // }else{
+            //     /*Download Image auto save*/
+            //var ieversion = detectIEEdge();
+            
+        }
+
+        function homepage(){
+            window.location.href = '/fin/s/';
+        }
+
+        /**
+         * detect IEEdge
+         * returns version of IE/Edge or false, if browser is not a Microsoft browser
+         */
+        function detectIEEdge() {
+            var ua = window.navigator.userAgent;
+
+            var msie = ua.indexOf('MSIE ');
+            if (msie > 0) {
+                // IE 10 or older => return version number
+                return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+            }
+
+            var trident = ua.indexOf('Trident/');
+            if (trident > 0) {
+                // IE 11 => return version number
+                var rv = ua.indexOf('rv:');
+                return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+            }
+
+            var edge = ua.indexOf('Edge/');
+            if (edge > 0) {
+            // Edge => return version number
+            return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
+            }
+
+            // other browser
+            return false;
+        }   
+
+        /*function messengerShareHandler(){
+            console.log('messengerShareHandler device'+ device);
+            if(device == "unknown"){
+                console.log("unknown");
+                var link = document.getElementById('fnaShareFacebook');
+                link.click();
+            }else{
+                var rekuest= new XMLHttpRequest();  
+                rekuest.open('GET', 'fb-messenger://share/?link=' + '{!urlForSharing}', true);  
+                rekuest.send();  
+                if (rekuest.status === "404") {alert("not exist!"); }  
+                console.log("messengerShare");
+                location.href = 'fb-messenger://share/?link=' + '{!urlForSharing}';
+            }
+    
+        }*/
+
+        ////////// Share ///////////////
+
+        /*var device = checkDevice();
+        function checkDevice(){
+            // https://stackoverflow.com/questions/21741841/detecting-ios-android-operating-system
+            var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+            
+            if (/android/i.test(userAgent)) {
+                // $('#device').text('Android');
+                return "Android";
+            }else if (/iPad|iPhone|iPod/.test(userAgent) && !window.MSStream) {
+                // iOS detection from: http://stackoverflow.com/a/9039885/177710
+                // $('#device').text('iOS');
+                // console.log("iOS");
+                return "iOS";
+            }else{
+                // $('#device').text('unknown');
+                // console.log("unknown");
+                return "unknown";
+            }
+        };*/
+
+        // var e = document.getElementById("avatar-img");
+        // console.log(e);    
+
+    </script>
+</apex:page>

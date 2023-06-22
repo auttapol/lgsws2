@@ -1,0 +1,71 @@
+<apex:page standardController="Account" extensions="PerformanceProxyCtrl" showChat="false" showHeader="false" title="Performance Report">
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionStatus onstart="startLoading('Inserting ...');" id="InsertStatus" onstop="endLoading();" />
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 0 0;
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            left: 50%;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+
+    <div class="loadingBox overlay"> </div>
+    <script type="text/javascript">
+        function startLoading(text) {
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading() {
+            $('.loadingBox').hide();
+        }
+
+
+        $(document).ready(function () {
+            startLoading('Loading....');
+        });
+    </script>
+
+    <apex:form >
+        <apex:actionFunction name="page" action="{!redirectPage}" />
+        <apex:actionFunction name="mobile" action="{!redirectMobile}" />
+    </apex:form>
+    <apex:includeScript value="/support/console/34.0/integration.js" />
+    <script type="text/javascript">
+        var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+        var theme = '{!$User.UIThemeDisplayed}';
+        if (theme == 'Theme4u' || isLightningMode) {
+            page();
+        }
+        else if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+            //alert("Mobile");
+            mobile();
+        } else {
+            //alert("Full Site");
+            page();
+        }
+    </script>
+</apex:page>

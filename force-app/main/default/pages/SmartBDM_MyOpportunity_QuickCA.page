@@ -1,0 +1,552 @@
+<apex:page controller="SmartBDM_MyOpportunity_QuickCACtrl" doctype="html-5.0" title="Smart BDM" lightningStyleSheets="true"
+    id="thePage">
+
+    <head>
+
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includeScript value="/support/console/39.0/integration.js" />
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system.css')}" />
+        <apex:slds />
+
+        <style type="text/css">
+            div[id*="customerList"].bPageBlock{
+                padding:0px !important;
+                border:none !important;
+                border-radius: none !important;
+                box-shadow: none !important;
+                -webkit-box-shadow: none !important;
+                height: 100vh;
+                overflow: auto;
+                margin-bottom: 0px !important;
+            }
+            .pbBody{
+                position: relative;
+                min-height: 100vh;
+            }
+            .tableClass {
+                border-style: hidden;
+                width: 100%;
+            }
+            body.slds-scope{
+                color:#16325C;
+            }
+            .tableHeader {
+                background-color: #ccc;
+                padding: 5px;
+                margin: 1px;
+                border: 1px solid #FFF;
+            }
+
+            .slds-context-bar {
+                width: 100%;
+            }
+
+            form {
+                width: 100%;
+            }
+
+            @media (max-width: 1024px) {
+                .CheckTablet {
+                    float: right;
+                }
+            }
+
+            @media (max-width: 500px) {
+                .CheckTablet {
+                    /* width: 50%; */
+                    float: left;
+                }
+            }
+
+            .retMiniCSV {
+                display: none;
+            }
+            ul.slds-breadcrumb{
+                font-size: .875rem;
+            }
+            .header-nav{
+                margin-top: 0 !important;
+                /* font-size: 1rem !important; */
+            }
+            .wrapper-header-nav{
+                padding: 1rem 1.5em;
+                /* height: 65px; */
+                display: flex;
+                align-items: center;
+                background-color: #F7F9FB;
+            }
+            .wrapper-header-nav .slds-media__figure{
+                display: flex;
+            }
+            .padding-75-200{
+                padding: .75rem 2rem !important;
+            }
+            .select-css{
+                position: relative;
+            }
+            .select-css:before , .select-css:after{
+                
+                position: absolute;
+                content: '';
+                display: block;
+                right: .5rem;
+                width: 0;
+                height: 0;
+                border-left: 3px solid transparent;
+                border-right: 3px solid transparent;
+                
+            }
+            .select-css:before {
+                border-bottom: 5px solid #061c3f;
+                top: calc((1.75rem / 2) - 6px);
+            }
+            .select-css:after {
+                border-top: 5px solid #061c3f;
+                bottom: calc((1.75rem / 2) - 6px);
+            }
+            tr.even{
+                background-color: #F3F2F2;
+            }
+            [placeholder]{
+                color: #16325C  !important;
+                font-size: 0.8rem !important;
+                opacity: 1; /* Firefox */
+            }
+            ::-webkit-input-placeholder{
+                color: #16325C  !important;
+                font-size: 0.8rem !important;
+                opacity: 1; /* Firefox */
+            }
+            /* ::placeholder {
+                color: red;
+                font-size: 0.8rem !important;
+            } */
+            .select-css select ,input.slds-select  {
+                font-size: .8rem;
+                color: #16325C  !important;
+            }
+        </style>
+
+        <!-- <apex:includescript value="//code.jquery.com/jquery-1.11.1.min.js" / >
+ 
+        <apex:includescript value="//cdn.datatables.net/1.10.4/js/jquery.dataTables.min.js" />
+
+        <apex:stylesheet value="//cdn.datatables.net/1.10.4/css/jquery.dataTables.css" /> -->
+
+
+        <script type="text/javascript">
+            $(document).ready(function () {
+
+            });
+
+            $j = jQuery.noConflict();
+
+            function redirectCustomerPage(elem) {
+                // var Id = $j(elem).find(".retMiniCSV").text();
+                var url = "/lightning/n/My_Customer_Quick_CA";
+                // var url = "/" + Id + "?refType=Accountlist";
+                var theme = '{!$User.UIThemeDisplayed}';
+                //Salesforce console mode
+                if (sforce.console.isInConsole()) {
+                    // OpenTabPage(url,pageName);
+                }
+                //Salesforce classic theme OR Lightning Expericence theme
+                else if (theme == 'Theme3' || theme == 'Theme4d') {
+                    console.log('new window in classic');
+                    // window.open(url);
+                }
+                //Salesforce1 mobile theme
+                else if (theme == 'Theme4t') {
+                    sforce.one.navigateToURL(url, false);
+                }
+            }
+
+            // function redirectMiniCSV_onClick(Id) {
+            //     var url = "/apex/Mini_CSV?id=" + Id + "&retURL={!refReturnPage}&refType=Accountlist";
+            //     // var url = "/" + Id + "?refType=Accountlist";
+            //     var theme = '{!$User.UIThemeDisplayed}';
+            //     console.log(theme);
+            //     console.log(url);
+            //     //Salesforce console mode
+            //     if (sforce.console.isInConsole()) {
+            //         // OpenTabPage(url,pageName);
+            //     }
+            //     //Salesforce classic theme OR Lightning Expericence theme
+            //     else if (theme == 'Theme3' || theme == 'Theme4d') {
+            //         console.log('new window in classic');
+            //         // window.open(url);
+            //     }
+            //     //Salesforce1 mobile theme
+            //     else if (theme == 'Theme4t') {
+            //         sforce.one.navigateToURL(url);
+            //     }
+            //     //Salesforce1 Lightning theme
+            //     else if (theme == 'Theme4u') {
+            //         sforce.one.navigateToURL(url);
+            //     }
+
+            // }
+            
+
+            // window.onload = function () {
+            //     // setTimeout(function (result) {
+            //         if ({!If(oppties.size > 3 ,true,false)}) {
+            //             var accId = '{!accId}';
+            //             var recordTypeIdOppty = '{!recordTypeIdOppty}';
+            //             console.log(accId);
+            //             console.log(recordTypeIdOppty);
+            //             if (accId) {
+            //                 var url = window.location.href;
+            //                 /&id=([^&]+)/.exec(url) && (Id = /Id=([^&]+)/.exec(url)[1]);
+            //                 //show create page, to edit a Record
+            //                 var argumentsTemp = {
+            //                     "componentDef": "c:QCA_SimplifiedOpportunityForm",
+            //                     "attributes": {
+            //                         // "leadId": Id,
+            //                         "accId": accId,
+            //                         // "opptyId": ,
+            //                         "opptyRecordId": recordTypeIdOppty,
+            //                         "uniqueId": uuidv4()
+            //                     }
+            //                 };
+            //                 var urlParameter = JSON.stringify(argumentsTemp);
+
+            //                 // use base64 encoding to generate url
+            //                 var encodedURL = btoa(urlParameter);
+            //                 sforce.one.navigateToURL('/one/one.app#' + encodedURL, false);
+            //             }
+            //         }
+            //     // }, 100);
+            // }
+            function uuidv4() {
+                return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                });
+            }
+            function redirectNewOpptyInformation(accIdTmp, recordTypeIdOpptyTmp) {
+                // var Id;
+                var accId = accIdTmp;
+                var recordTypeIdOppty = recordTypeIdOpptyTmp;
+                console.log(accId);
+                console.log(recordTypeIdOppty);
+                if (accId) {
+                    var url = window.location.href;
+                    /&id=([^&]+)/.exec(url) && (Id = /Id=([^&]+)/.exec(url)[1]);
+                    //show create page, to edit a Record
+                    var argumentsTemp = {
+                        "componentDef": "c:QCA_SimplifiedOpportunityForm",
+                        "attributes": {
+                            // "leadId": Id,
+                            "accId": accId,
+                            // "opptyId": ,
+                            "flowType":'QCAOpptyType',
+                            "opptyRecordId": recordTypeIdOppty,
+                            "uniqueId": uuidv4()
+                        }
+                    };
+                    var urlParameter = JSON.stringify(argumentsTemp);
+
+                    // use base64 encoding to generate url
+                    var encodedURL = btoa(urlParameter);
+                    sforce.one.navigateToURL('/one/one.app#' + encodedURL, false);
+                }
+            }
+            function redirectOpptyInformation(elem, onClick) {
+                var Id;
+                var accId;
+                var recordTypeIdOppty;
+                if (onClick == 'onRowClick') {
+                    Id = $j(elem).find(".opptyId").text();
+                    accId = $j(elem).find(".accId").text();
+                    recordTypeIdOppty = $j(elem).find(".recordTypeIdOppty").text();
+                }
+                else if (onClick == 'onClick') {
+                    Id = $j(elem).find(".opptyId").text();
+                    accId = $j(elem).find(".accId").text();
+                    recordTypeIdOppty = $j(elem).find(".recordTypeIdOppty").text();
+                }
+
+                if (Id) {
+                    var url = window.location.href;
+                    /&id=([^&]+)/.exec(url) && (Id = /Id=([^&]+)/.exec(url)[1]);
+                    //show create page, to edit a Record
+                    var argumentsTemp = {
+                        "componentDef": "c:QCA_SimplifiedOpportunityForm",
+                        "attributes": {
+                            // "leadId": Id,
+                            "accId": accId,
+                            "opptyId": Id,
+                            "flowType": 'QCAOpptyType',
+                            "opptyRecordTypeId": recordTypeIdOppty,
+                            "uniqueId": uuidv4()
+                        }
+                    };
+                    var urlParameter = JSON.stringify(argumentsTemp);
+
+                    // use base64 encoding to generate url
+                    var encodedURL = btoa(urlParameter);
+                    sforce.one.navigateToURL('/one/one.app#' + encodedURL, false);
+                }
+            }
+
+            function getMobileOperatingSystem() {
+                var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+                if (userAgent.match(/iPad/i) || userAgent.match(/iPhone/i) || userAgent.match(/iPod/i)) {
+                    return 'iOS';
+                } else if (userAgent.match(/Android/i)) {
+                    return 'Android';
+                } else {
+                    return 'unknown';
+                }
+            }
+
+            function goToOutside() {
+                switch (getMobileOperatingSystem()) {
+                    case 'Android':
+                        sforce.one.navigateToURL('{!Deeplink_Android}');
+                        break;
+                    case 'iOS':
+                        sforce.one.navigateToURL('{!Deeplink_iOS}');
+                        break;
+                    default:
+                        console.log('Unknown');
+                        break;
+                }
+            }
+        </script>
+    </head>
+
+
+        <apex:outputPanel id="displayCustomer_list" rendered="{!isSF1}">
+
+            <apex:form >
+                <apex:pageBlock id="customerList" >
+                    <!-- GRID COL -->
+                    <div class="slds-col slds-has-flexi-truncate wrapper-header-nav">
+                        <!-- HEADING AREA -->
+                        <!-- MEDIA OBJECT = FIGURE + BODY -->
+                        <div class="slds-media slds-no-space slds-grow">
+                            <div class="slds-media__figure">
+
+                                <span class="slds-icon_container slds-icon-standard-account" style="width:48px;height:48px;">
+                                    <span aria-hidden="true" class="slds-icon slds-icon_medium sl">
+                                        <img src="/apexpages/slds/latest/assets/icons/standard/account.svg" style="width:100%;" class="pageTitleIcon" title="Account"
+                                        />
+                                    </span>
+                                </span>
+
+                            </div>
+                            <div class="slds-media__body">
+                                <!--<p class="slds-breadcrumb__item">{!$Label.RTL_Campaign_Member_History_Title}</p> -->
+                                <!-- <div> -->
+                                    <nav role="navigation" aria-label="Breadcrumbs">
+                                    
+                                        <ul class="slds-breadcrumb slds-list_horizontal slds-wrap">
+                                            <li class="slds-breadcrumb__item">
+                                                <a href="javascript:void(0);" onclick="goToOutside(); " class="slds-breadcrumb__item" title="{!$Label.TMB_Smart_title}">
+                                                    <span class="slds-truncate" title="{!$Label.TMB_Smart_title}">{!$Label.TMB_Smart_title}</span>
+                                                </a>
+                                            </li>
+                                            <li class="slds-breadcrumb__item">
+                                                <a href="javascript:void(0);" class="slds-breadcrumb__item" onclick="redirectCustomerPage(this);" title="{!$Label.My_Customers}">
+                                                    <span class="slds-truncate" title="{!$Label.My_Customers}">{!$Label.My_Customers}</span>
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    
+                                    </nav>
+                                    <h1 class="slds-page-header__title slds-text-heading_medium slds-m-right_small slds-align-middle slds-wrapper slds-m-top_x-small header-nav"
+                                        title="Opportunity">
+                                        <apex:outputPanel id="header_title">My Opportunity</apex:outputPanel>
+                                    </h1>
+                                <!-- </div> -->
+                                
+
+
+
+
+                            </div>
+
+                        </div>
+                        <!-- / MEDIA OBJECT -->
+                        <!-- /HEADING AREA -->
+                    </div>
+
+                    
+
+                    <apex:outputPanel id="statusMessage">
+                        <apex:pageMessages escape="false"></apex:pageMessages>
+                    </apex:outputPanel>
+
+
+                    <!-- <span class="slds-form-element__label">
+                    
+                </span>
+                <div class="slds-form-element__control">
+                    <span class="slds-form-element__static">
+                        
+                    </span>
+                </div> -->
+                    <div class="slds-grid slds-wrap slds-m-top_small padding-75-200" style="">
+                        <div class="slds-col slds-size_12-of-12 slds-medium-size_12-of-12 slds-large-size_12-of-12">
+                            <div style="font-size: 1rem;color:#54698D">
+                                OPPORTUNITY LIST
+                            </div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-m-top_small">
+                            <div style="font-size: .875rem;color:#54698D;">{!$ObjectType.Account.Fields.Name.label}</div>
+                            <div style="font-size: .875rem;">{!acct.Name}</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-m-top_small">
+                            <div style="font-size: .875rem;color:#54698D">{!$ObjectType.Account.Fields.Customer_Type__c.label}</div>
+                            <div style="font-size: .875rem;">{!acct.Customer_Type__c}</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-m-top_small">
+                            <div style="font-size: .875rem;color:#54698D;">{!$ObjectType.Account.Fields.Core_Banking_Suggested_Segment__c.label}</div>
+                            <div style="font-size: .875rem;">{!acct.Core_Banking_Suggested_Segment__c}</div>
+                        </div>
+                        <div class="slds-col slds-size_1-of-2 slds-medium-size_1-of-2 slds-large-size_1-of-2 slds-m-top_small">
+                            <div style="font-size: .875rem;color:#54698D;">{!$ObjectType.Account.Fields.TMB_Customer_ID_PE__c.label}</div>
+                            <div style="font-size: .875rem;">{!acct.TMB_Customer_ID_PE__c}</div>
+                        </div>
+                        
+                    </div>
+                    <div class="slds-grid slds-wrap slds-m-top_small padding-75-200 slds-grid_align-end">
+                        <!-- <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-12 slds-large-size_3-of-12">
+                            <apex:outputLabel styleClass="slds-form-element__label slds-text-body_regular" value="Search" />
+                        </div> -->
+                        <!-- <div class="slds-float_right"> -->
+                            <div class="slds-col slds-size_1-of-3 slds-medium-size_1-of-3 slds-large-size_1-of-3" style="margin-right:.75rem;">
+                               <div class="select-css">
+                                <apex:selectList value="{!filterStageName}" multiselect="false" size="1" styleClass="slds-select" style="padding: 0 10px;">
+                                    <apex:actionSupport event="onchange" action="{!filterCustomerType}" rerender="customerTable, pageinationSet" />
+                                    <apex:selectOptions value="{!selectValues}" />
+                                </apex:selectList>
+                               </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-3 slds-medium-size_1-of-3 slds-large-size_1-of-3">
+                                <apex:inputText value="{!searchKey}" html-placeholder="Search" styleClass="slds-select">
+                                    <apex:actionSupport event="onkeyup" action="{!filterCustomerType}"  rerender="customerTable, pageinationSet" />
+                                </apex:inputText>
+                            </div>
+                            
+                            <!-- <div class="slds-col slds-size_1-of-2 slds-medium-size_3-of-12 slds-large-size_3-of-12">
+                                                        <apex:outputLabel styleClass="slds-form-element__label slds-text-body_regular" value="{!$ObjectType.Opportunity.Fields.StageName.label}"
+                                                        />
+                                                    </div> -->
+                            
+                        <!-- </div> -->
+                        
+                    </div>
+
+
+
+                    <!-- styleClass="slds-table slds-table_bordered slds-table_cell-buffer slds-table_striped" -->
+                    <div class="padding-75-200" style="padding-bottom:4rem !important; ">
+                        <apex:dataTable value="{!oppties}" var="oppty" id="customerTable" rowClasses="odd,even" onRowClick="redirectOpptyInformation(this, 'onRowClick');"
+                            styleClass="slds-table slds-table_bordered slds-table_col-bordered slds-table_fixed-layout slds-border_left slds-border_right slds-border_bottom slds-table_cell-buffer slds-m-top_small">
+                        
+                            <apex:column headerClass="tableHeader slds-text-align_center">
+                                <apex:facet name="header">Name
+                                    <apex:commandLink value="{!$ObjectType.Opportunity.Fields.Name.label}" action="{!sortAccColumn}" reRender="customerTable"
+                                        styleClass="slds-cell-wrap">
+                                        <apex:param name="column" value="Id" />
+                                    </apex:commandLink>
+                                </apex:facet>
+                                <!-- action="{!open_minicsv}" -->
+                        
+                                <apex:commandLink value="{!oppty.Name}" onclick="return false;" styleClass="slds-cell-wrap">
+                                    <apex:param name="refAccountId" value="{!oppty.Id}" />
+                                    <apex:param name="refType" value="Accountlist" />
+                                </apex:commandLink>
+                                <apex:outputText value="{!oppty.Id}" styleClass="opptyId hidden" />
+                                <apex:outputText value="{!accId}" styleClass="accId hidden" />
+                                <apex:outputText value="{!recordTypeIdOppty}" styleClass="recordTypeIdOppty hidden" />
+                            </apex:column>
+                        
+                            <apex:column headerClass="tableHeader slds-text-align_center" styleClass="slds-text-align_center">
+                                <apex:facet name="header">StageName
+                                    <apex:commandLink value="{!$ObjectType.Opportunity.Fields.StageName.label}" action="{!sortAccColumn}" reRender="customerTable"
+                                        styleClass="slds-cell-wrap">
+                                        <apex:param name="column" value="StageName" />
+                                    </apex:commandLink>
+                                </apex:facet>
+                                <!-- <apex:commandLink value="{!account.Customer_Type__c}" action="{!open_minicsv}" styleClass="slds-cell-wrap">
+                                                    <apex:param name="refAccountId" value="{!account.Id}" />
+                                                    <apex:param name="refType" value="Accountlist" />
+                                                </apex:commandLink> -->
+                                <apex:outputText value="{!oppty.StageName}" styleClass="slds-cell-wrap" />
+                            </apex:column>
+                            <!-- <apex:column headerClass="tableHeader slds-text-align_center" styleClass="slds-text-align_center">
+                                <apex:facet name="header">Segment
+                                    <apex:commandLink value="{!$ObjectType.Opportunity.Fields.Segment2__c.label}" action="{!sortAccColumn}" reRender="customerTable"
+                                        styleClass="slds-cell-wrap">
+                                        <apex:param name="column" value="Segment" />
+                                    </apex:commandLink>
+                                </apex:facet>
+                             
+                                <apex:outputText value="{!oppty.Segment2__c}" styleClass="slds-cell-wrap" />
+                            </apex:column> -->
+                        
+                        </apex:dataTable>
+                        
+                        <apex:outputPanel id="pageinationSet" styleClass="">
+                            <div class="slds-grid slds-wrap slds-m-top_x-small">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12">
+                                    <div class="slds-clearfix">
+                                        <div class="slds-clearfix">
+                                            <div class="slds-float_left">
+                                                <apex:outputText value="Showing {! IF(countAccounts != 0, offset + 1, 0) } to {! records } of {!countAccounts} entries" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_6-of-12">
+                                    <div class="slds-clearfix">
+                                        <div class="slds-clearfix">
+                                            <div class="CheckTablet">
+                        
+                                                <ol class="slds-breadcrumb slds-list_horizontal slds-wrap">
+                                                    <li class="slds-breadcrumb__item slds-text-title_caps">
+                                                        <apex:commandLink value="Previous" onclick="previouspage(); return false;">
+                                                            <apex:actionFunction name="previouspage" action="{!PreviousPage}" rerender="customerTable, pageinationSet"></apex:actionFunction>
+                                                        </apex:commandLink>
+                                                    </li>
+                                                    <li class="slds-breadcrumb__item slds-text-title_caps">
+                                                        <a href="">
+                                                            <apex:outputText value="{!currentPage}" />
+                                                        </a>
+                                                    </li>
+                                                    <li class="slds-breadcrumb__item slds-text-title_caps">
+                                                        <apex:commandLink value="Next" onclick="nextpage(); return false;">
+                                                            <apex:actionFunction name="nextpage" action="{!NextPage}" rerender="customerTable, pageinationSet"></apex:actionFunction>
+                                                        </apex:commandLink>
+                                                    </li>
+                                                </ol>
+                        
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+                    </div>
+                    <div class="slds-p-horizontal_large slds-p-vertical_x-small" style="    position: absolute;bottom: 0;right: 0;padding: 1rem 2rem;">
+                        <div class="slds-clearfix">
+                            <div class="slds-clearfix">
+                                <div class="slds-float_right">
+                                    <button class="slds-button slds-button_brand" onclick="redirectNewOpptyInformation('{!accId}','{!recordTypeIdOppty}');">New Opportunity</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </apex:pageBlock>
+                <!-- <button ></button> -->
+                
+            </apex:form>
+        </apex:outputPanel>
+    
+</apex:page>

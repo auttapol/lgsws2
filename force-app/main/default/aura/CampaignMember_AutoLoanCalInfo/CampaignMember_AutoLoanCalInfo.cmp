@@ -1,0 +1,185 @@
+<aura:component controller="CampaignMember_AutoLoanController"
+    implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId,lightning:isUrlAddressable"
+    access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+
+    <aura:handler name="change" value="{!v.pageReference}" action="{!c.onInit}" />
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <aura:attribute name="campaignMemberId" type="Id" default="" />
+    <aura:attribute name="productNumber" type="String" default="" />
+
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+    <aura:attribute name="cm" type="CampaignMember" />
+    <aura:attribute name="isShowEditBtn" type="Boolean" default="false"/>
+    <aura:attribute name="isEdit" type="Boolean" default="false"/>
+    
+    <!-- <aura:attribute name="fields" type="List"
+        default="['RTL_Product_Name__c', 'RTL_W2L_Co_Borrower_1_Age__c', 'RTL_W2L_Loan_Request_Type__c', 'RTL_W2L_Co_Borrower_1_Occupation__c', 'RTL_W2L_Developer_Name__c', 'RTL_W2L_Co_Borrower_1_Income__c', 'RTL_W2L_Source_Collateral_Type__c', 'RTL_W2L_Co1_Other_Income__c', 'RTL_W2L_Transfer_Period__c', 'RTL_W2L_Co1_Income_OT__c', 'RTL_W2L_Occupation__c', 'RTL_W2L_Co1_Income_Rental__c', 'RTL_W2L_Salary__c', 'RTL_W2L_Co1_Income_Bonus__c', 'RTL_W2L_Other_Income__c', 'RTL_W2L_Co1_Percent_Shareholder__c', 'RTL_W2L_Income_OT__c', 'RTL_W2L_Co1_Capital__c', 'RTL_W2L_Income_Rental__c', 'RTL_W2L_Co1_Car_Loan__c', 'RTL_W2L_Income_Bonus__c', 'RTL_W2L_Co1_Personal_Loan__c', 'RTL_W2L_Percent_Shareholder__c', 'RTL_W2L_Co1_CC_Loan__c', 'RTL_W2L_Capital__c', 'RTL_W2L_Co1_Cash_OD_Loan__c', 'RTL_W2L_Car_Loan__c', 'RTL_W2L_Co1_Other_Loan__c', 'RTL_W2L_Personal_Loan__c', 'RTL_W2L_Co_Borrower_2_Age__c', 'RTL_W2L_CC_Loan__c', 'RTL_W2L_Co_Borrower_2_Occupation__c', 'RTL_W2L_Cash_OD_Loan__c', 'RTL_W2L_Co_Borrower_2_Income__c', 'RTL_W2L_Other_Loan__c', 'RTL_W2L_Co2_Other_Income__c', 'RTL_W2L_Buying_Amount__c', 'RTL_W2L_Co2_Income_OT__c', 'RTL_W2L_Calculated_Amount__c', 'RTL_W2L_Co2_Income_Rental__c', 'RTL_W2L_Calculated_Loan_Period__c', 'RTL_W2L_Co2_Income_Bonus__c', 'RTL_W2L_Calculated_No_of_Installments__c', 'RTL_W2L_Co2_Percent_Shareholder__c', 'RTL_Email_Address__c', 'RTL_W2L_Co2_Capital__c', 'RTL_MORTGAGE_FEE__c', 'RTL_W2L_Co2_Car_Loan__c', 'RTL_FIRE_INSURANCE_FEE__c', 'RTL_W2L_Co2_Personal_Loan__c', 'RTL_APPRAISAL_FEE__c', 'RTL_W2L_Co2_CC_Loan__c', 'RTL_INTERESTS__c', 'RTL_W2L_Co2_Cash_OD_Loan__c', 'RTL_W2L_Has_Co_Borrower_Text__c', 'RTL_W2L_Co2_Other_Loan__c''RTL_Product_Name__c', 'RTL_AL_BlueBook__c', 'RTL_AL_car_type__c', 'RTL_AL_car_brand__c', 'RTL_AL_car_group__c', 'RTL_AL_car_subtype__c', 'RTL_AL_car_year__c', 'RTL_AL_car_gear__c', 'RTL_AL_car_plate_no__c', 'RTL_AL_wanted_amount__c', 'RTL_AL_max_set_up_amount__c', 'RTL_AL_normal_price__c', 'RTL_AL_DownPercent__c', 'RTL_AL_DownAmt__c', 'RTL_AL_installment_amount__c', 'RTL_AL_installment_periods__c', 'RTL_AL_PayPerMonth__c', 'RTL_AL_contact_channel__c', 'RTL_AL_ContactZipcode__c', 'RTL_AL_ContactDistrict__c', 'RTL_AL_available_time__c', 'RTL_AL_ContactProvince__c', 'RTL_AL_ContactSubDistrict__c', 'RTL_AL_Refer_No__c', 'RTL_Reason_Lost__c', 'RTL_AL_Req_No1__c', 'RTL_AL_Req_No2__c'] " /> -->
+    <aura:attribute name="Firstfields" type="List"
+        default="['RTL_Campaign_Product_1__c','RTL_AL_BlueBook__c','RTL_AL_car_type__c','RTL_AL_wanted_amount__c','RTL_AL_car_brand__c','RTL_AL_max_set_up_amount__c','RTL_AL_car_group__c','RTL_AL_normal_price__c','RTL_AL_car_subtype__c','RTL_AL_DownPercent__c','RTL_AL_car_year__c','RTL_AL_DownAmt__c','RTL_AL_car_gear__c','RTL_AL_installment_amount__c','RTL_AL_car_plate_no__c','RTL_AL_installment_periods__c','RTL_AL_Province_Car_Plate_No__c','RTL_AL_PayPerMonth__c','RTL_AL_Car_Status__c','RTL_AL_Leasing_Condition__c','RTL_Partner_Branch__c','RTL_Partner_Employee__c','WS_Response_Detail__c','RTL_Contact_Method__c','LGS_VIN_No__c','Car_Reference_No__c','LGS_Assignment_Code__c''RTL_Partner_Branch_Code__c','LGS_PartnerCode__c','RTL_Partner_Employee_Code__c','LGS_BrandCode__c','RTL_Request_Hub_Code_1__c','LGS_BrandShowroomCode__c','RTL_Request_Hub_Name_1__c','Corebank_Approved_Date_Time_1__c','RTL_Product_Campaign_Code_1__c','Corebank_Branch_Code_1__c','RTL_Product_Campaign_Name_1__c','Corebank_Branch_Name_1__c','RTL_Dealer_Code_1__c','Corebank_Sales_Manager_Head_Id_1__c','RTL_Dealer_Name_1__c','Corebank_Sales_Manager_Head_1__c','RTL_Stage_Name_Date_Time_1__c']" />
+        <!--ก่อนแก้ default="['RTL_Campaign_Product_1__c','RTL_AL_BlueBook__c','RTL_AL_car_type__c','RTL_AL_wanted_amount__c','RTL_AL_car_brand__c','RTL_AL_max_set_up_amount__c','RTL_AL_car_group__c','RTL_AL_normal_price__c','RTL_AL_car_subtype__c','RTL_AL_DownPercent__c','RTL_AL_car_year__c','RTL_AL_DownAmt__c','RTL_AL_car_gear__c','RTL_AL_installment_amount__c','RTL_AL_car_plate_no__c','RTL_AL_installment_periods__c','RTL_AL_Province_Car_Plate_No__c','RTL_AL_PayPerMonth__c','LGS_VIN_No__c','Car_Reference_No__c','RTL_AL_Car_Status__c','RTL_AL_Leasing_Condition__c','RTL_Partner_Branch__c','RTL_Partner_Branch_Code__c','RTL_Partner_Employee__c','WS_Response_Detail__c','RTL_Partner_Employee_Code__c','RTL_Contact_Method__c','LGS_Assignment_Code__c','LGS_BrandCode__c','LGS_PartnerCode__c','LGS_BrandShowroomCode__c']" /> -->
+
+    <aura:attribute name="Secondfields" type="List"
+        default="['RTL_AL_contact_channel__c','RTL_AL_available_time__c','RTL_Contact_Address__c','RTL_AL_ContactZipcode__c','RTL_AL_ContactProvince__c','RTL_AL_ContactDistrict__c','RTL_AL_ContactSubDistrict__c',]" />
+
+    <aura:attribute name="Thirdfields" type="List"
+        default="['RTL_AL_Refer_No_1__c','RTL_AL_Req_No1_1__c','RTL_Reason_Lost__c','RTL_AL_Req_No2_1__c','Corebank_Emp_Name_1__c','Corebank_Emp_Phone_No_1__c','RTL_Hub_Code_1__c','RTL_Hub_Name_1__c','HPAP_Status_Code_1__c','RTL_Status_1__c','Details_of_Status_1__c','HPAP_Reason_Code_1__c','HPAP_Reason_Description_1__c','HPAP_Status_Approve_1__c','HPAP_Refer_Date_1__c','HPAP_Request_date_1__c']" />
+
+    <aura:attribute name="firstSectionFields" type="Object"/>
+    <aura:attribute name="secondSectionFields" type="Object"/>
+    <aura:attribute name="thirdSectionFields" type="Object"/>
+
+    <aura:attribute name="activeSections" type="List" default="['A','B','C']" />
+    <aura:attribute name="activeSectionsMessage" type="String" default="" />
+
+    <force:recordData aura:id="recordLoader" recordId="{!v.pageReference.state.c__campaignMemberId}" fields="Id"
+        targetFields="{!v.cm}" />
+
+
+    <div class="slds-is-relative">
+        <aura:if isTrue="{! v.isLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </aura:if>
+
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:campaign_members" alternativeText="campaign_members" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <h1 class="slds-text-heading_label">
+                    Campaign Member
+                </h1>
+                <div class="page-section page-header">
+                    <h2 class="slds-text-heading_medium">
+                        Auto Loan Information
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+            <!-- <aura:if isTrue="{! v.isShowEditBtn }">
+                <lightning:layoutItem alignmentBump="left"> 
+                    <div class="slds-no-flex" style="margin-top: 10px;">
+                        <lightning:button label="Edit" title="Edit" onclick="{!c.handleEdit}"/>
+                    </div>
+                </lightning:layoutItem>
+            </aura:if> -->
+        </lightning:layout>
+
+        <lightning:card>
+            <div class="card-container" style="min-height: 500px;">
+                <aura:if isTrue="{! v.isEdit }">
+                    <lightning:recordEditForm aura:id="recordEditForm" recordId="{!v.campaignMemberId}" objectApiName="CampaignMember" 
+                    onsubmit="{!c.handleSubmit}" onsuccess="{!c.handleSuccess}">
+                        <lightning:messages />
+                        <div class="slds-align_absolute-center">
+                            <lightning:button class="slds-m-top_small" variant="brand" type="submit" name="save" label="Save" />
+                            <lightning:button class="slds-m-top_small" label="Cancel" title="Cancel" onclick="{!c.handleCancel}" />
+                        </div>
+                        <lightning:accordion allowMultipleSectionsOpen="true" onsectiontoggle="{! c.handleSectionToggle }"
+                            activeSectionName="{! v.activeSections }">
+                            <lightning:accordionSection name="A" label="ข้อมูลผลิตภัณฑ์เช่าซื้อรถยนต์">
+                                <div style="padding: 1%;">
+                                    <div class="slds-grid slds-wrap">
+                                        <aura:iteration items="{!v.firstSectionFields}" var="field" indexVar="index">         
+                                            <div class="slds-col slds-size_1-of-2">   
+                                                <div class="slds-col">                
+                                                    <aura:if isTrue="{!field.read_only}">
+                                                        <lightning:outputField fieldName="{!field.field_name}" />
+                                                    </aura:if>
+                                                    <aura:if isTrue="{!!field.read_only}">
+                                                        <lightning:inputField fieldName="{!field.field_name}" />
+                                                    </aura:if>     
+                                                </div>        
+                                            </div>                                                           
+                                        </aura:iteration>      
+                                    </div>                            
+                                </div>
+                            </lightning:accordionSection>
+                            <lightning:accordionSection name="B" label=" ข้อมูลช่องทางที่ประสงค์ให้ทำการติดต่อ">
+                                <div style="padding: 1%;">
+                                    <div class="slds-grid slds-wrap">
+                                        <aura:iteration items="{!v.secondSectionFields}" var="field" indexVar="index">         
+                                            <div class="slds-col slds-size_1-of-2">   
+                                                <div class="slds-col">                
+                                                    <aura:if isTrue="{!field.read_only}">
+                                                        <lightning:outputField fieldName="{!field.field_name}" />
+                                                    </aura:if>
+                                                    <aura:if isTrue="{!!field.read_only}">
+                                                        <lightning:inputField fieldName="{!field.field_name}" />
+                                                    </aura:if>     
+                                                </div>        
+                                            </div>                                                           
+                                        </aura:iteration>      
+                                    </div>                  
+                                </div>
+                            </lightning:accordionSection>
+                            <lightning:accordionSection name="C" label=" ข้อมูลจากระบบ HPAP">
+                                <div style="padding: 1%;">
+                                    <div class="slds-grid slds-wrap">
+                                        <aura:iteration items="{!v.thirdSectionFields}" var="field" indexVar="index">         
+                                            <div class="slds-col slds-size_1-of-2">   
+                                                <div class="slds-col">                
+                                                    <aura:if isTrue="{!field.read_only}">
+                                                        <lightning:outputField fieldName="{!field.field_name}" />
+                                                    </aura:if>
+                                                    <aura:if isTrue="{!!field.read_only}">
+                                                        <lightning:inputField fieldName="{!field.field_name}" />
+                                                    </aura:if>     
+                                                </div>        
+                                            </div>                                                           
+                                        </aura:iteration>      
+                                    </div>                  
+                                </div>
+                            </lightning:accordionSection>
+                        </lightning:accordion>       
+                        <div class="slds-align_absolute-center">
+                            <lightning:button class="slds-m-top_small" variant="brand" type="submit" name="save" label="Save" />
+                            <lightning:button class="slds-m-top_small" label="Cancel" title="Cancel" onclick="{!c.handleCancel}" />
+                        </div>
+                    </lightning:recordEditForm>
+
+                    <aura:set attribute="else">
+                      
+                            <div class="slds-align_absolute-center slds-hide" aura:id="toggle1">
+                                <lightning:button label="Edit" title="Edit" onclick="{!c.handleEdit}" />
+                                <lightning:button label="Close" title="Close" onclick="{!c.close}" />
+                            </div>
+                            <div class="slds-align_absolute-center slds-hide" aura:id="toggle2">
+                                <lightning:button label="Close" title="Close" onclick="{!c.close}" />
+                            </div>
+                     
+                        
+                        <lightning:accordion allowMultipleSectionsOpen="true" onsectiontoggle="{! c.handleSectionToggle }"
+                            activeSectionName="{! v.activeSections }">
+                            <lightning:accordionSection name="A" label="ข้อมูลผลิตภัณฑ์เช่าซื้อรถยนต์">
+                                <div style="padding: 1%;">
+                                    <lightning:recordForm recordId="{!v.campaignMemberId}" objectApiName="CampaignMember"
+                                        density="comfy" columns="2" fields="{!v.Firstfields}" mode="readonly" />
+                                </div>
+                            </lightning:accordionSection>
+                            <lightning:accordionSection name="B" label=" ข้อมูลช่องทางที่ประสงค์ให้ทำการติดต่อ">
+                                <div style="padding: 1%;">
+                                    <lightning:recordForm recordId="{!v.campaignMemberId}" objectApiName="CampaignMember"
+                                        density="comfy" columns="2" fields="{!v.Secondfields}" mode="readonly" />
+                                </div>
+                            </lightning:accordionSection>
+                            <lightning:accordionSection name="C" label=" ข้อมูลจากระบบ HPAP">
+                                <div style="padding: 1%;">
+                                    <lightning:recordForm recordId="{!v.campaignMemberId}" objectApiName="CampaignMember"
+                                        density="comfy" columns="2" fields="{!v.Thirdfields}" mode="readonly" />
+                                </div>
+                            </lightning:accordionSection>
+                        </lightning:accordion>
+                    </aura:set>
+                </aura:if>       
+            </div>
+        </lightning:card>
+
+
+    </div>
+
+
+
+
+
+</aura:component>

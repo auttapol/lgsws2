@@ -1,0 +1,775 @@
+<aura:component implements="lightning:isUrlAddressable" controller="ForecastAdjustmentController">
+    <aura:attribute name="id" type="String" />
+    <aura:handler name="init" value="{!this}" action="{!c.onPageReferenceChange}"/>
+    <aura:handler name="change" value="{!v.pageReference}" action="{!c.onPageReferenceChange}"/>
+
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+
+    <aura:attribute name="account" type="Asset" />
+    <aura:attribute name="month" type="String" />
+    <aura:attribute name="monthNumber" type="Integer" />
+    <aura:attribute name="lastMonthNumber" type="Integer" />
+    <aura:attribute name="totalyear" type="Integer" />
+    <aura:attribute name="yearNumber" type="Integer" />
+    <aura:attribute name="year" type="String" />
+    <aura:attribute name="product" type="String" />
+    <aura:attribute name="volumeData" type="Object" />
+    <aura:attribute name="dumpVolumeData" type="List" />
+    <aura:attribute name="RTSECredit" type="Object" />
+    <aura:attribute name="endingData" type="List" />
+    <aura:attribute name="incomeData" type="List" />
+    <aura:attribute name="columns" type="List" />
+    <aura:attribute name="dealForecastDetail" type="Object" />
+    <aura:attribute name="monthlyForecastList" type="Object[]" />
+    <aura:attribute name="InputNumber" type="Integer[]" /> 
+    <aura:attribute name="showSaveBtn" type="boolean" default="false" />
+    <aura:attribute name="isDaft" type="boolean" default="false" />
+    <aura:attribute name="isAdjustFirstMonth" type="boolean" default="false" />
+    <aura:attribute name="NimFee" type="Integer" default="0" />
+    <aura:attribute name="limitVolume" type="Integer" default="0" />
+    <aura:attribute name="incomeType" type="String" />
+    <aura:attribute name="frequency" type="String" />
+    <aura:attribute name="recurringType" type="String" />
+    <aura:attribute name="canEdit" type="boolean" default="true" />
+
+    <aura:attribute name="Volume1EditMode" type="boolean" default="false" />
+    <aura:attribute name="Volume2EditMode" type="boolean" default="false" />
+    <aura:attribute name="Volume3EditMode" type="boolean" default="false" />
+    <aura:attribute name="Volume4EditMode" type="boolean" default="false" />
+    <aura:attribute name="Volume5EditMode" type="boolean" default="false" />
+    <aura:attribute name="Volume6EditMode" type="boolean" default="false" />
+    <aura:attribute name="Volume7EditMode" type="boolean" default="false" />
+    <aura:attribute name="Volume8EditMode" type="boolean" default="false" />
+    <aura:attribute name="Volume9EditMode" type="boolean" default="false" />
+    <aura:attribute name="Volume10EditMode" type="boolean" default="false" />
+    <aura:attribute name="Volume11EditMode" type="boolean" default="false" />
+    <aura:attribute name="Volume12EditMode" type="boolean" default="false" />
+
+
+    <force:recordData aura:id="recordLoader" recordId="{!v.pageReference.state.c__id}" fields="Id, Name, TMB_Customer_ID_PE__c, Zone_Owner__c, Group__r.Name" targetFields="{!v.account}" />
+
+    <aura:if isTrue="{! v.isLoading }">
+        <div class="exampleHolder">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+
+    <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+        <lightning:layoutItem>
+            <lightning:icon size="large" iconName="standard:forecasts" alternativeText="forecasts" />
+        </lightning:layoutItem>
+        <lightning:layoutItem padding="horizontal-small">
+            <h1 class="slds-text-heading_label">
+                {!v.account.Name}
+            </h1>
+            <div class="page-section page-header">
+                <h2 class="slds-text-heading_medium">
+                    <!-- Forecast Adjustment -->
+                    {!v.dealForecastDetail.productName}
+                </h2>
+            </div>
+        </lightning:layoutItem>
+    </lightning:layout>
+
+    <lightning:card>
+        <lightning:layout class="card-container" verticalAlign="center" multipleRows="true">
+            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6" padding="horizontal-small" class="slds-p-bottom_small">
+                <div class="slds-form-element slds-form-element_horizontal">
+                    <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                        <lightning:formattedText value="Name" />
+                    </label>
+                    <lightning:helptext content="Customer's name." class="helptextIcon"/>
+                    <div class="slds-form-element__control">
+                        <span class="slds-form-element__label">
+                            <lightning:formattedUrl value="{!'/lightning/r/' + v.account.Id + '/view'}" title="{!v.account.Name}" label="{!v.account.Name}"/>
+                        </span>
+                    </div>
+                </div>
+            </lightning:layoutItem>
+
+            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                largeDeviceSize="6" padding="horizontal-small" class="slds-p-bottom_small">
+                <div class="slds-form-element slds-form-element_horizontal">
+                    <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                        <lightning:formattedText value="Opportunity" />
+                    </label>
+                    <div class="slds-form-element__control">
+                        <span class="slds-form-element__label">
+                            <lightning:formattedUrl value="{!'/lightning/r/' + v.dealForecastDetail.oppId + '/view'}" title="{!v.dealForecastDetail.oppName}" label="{!v.dealForecastDetail.oppName}"/>
+                        </span>
+                    </div>
+                </div>
+            </lightning:layoutItem>
+
+            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                largeDeviceSize="6" padding="horizontal-small" class="slds-p-bottom_small">
+                <div class="slds-form-element slds-form-element_horizontal">
+                    <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                        <lightning:formattedText value="Product" />
+                    </label>
+                    <lightning:helptext content="New Deal Product." class="helptextIcon"/>
+                    <div class="slds-form-element__control">
+                        <span class="slds-form-element__label">
+                            <lightning:formattedText value="{!v.dealForecastDetail.productName}" />
+                        </span>
+                    </div>
+                </div>
+            </lightning:layoutItem>
+
+            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                largeDeviceSize="6" padding="horizontal-small" class="slds-p-bottom_small">
+                <div class="slds-form-element slds-form-element_horizontal">
+                    <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                        <lightning:formattedText value="Expected Complete Date" />
+                    </label>
+                    <div class="slds-form-element__control">
+                        <span class="slds-form-element__label">
+                            <lightning:formattedText value="{!v.dealForecastDetail.completeDate}" />
+                        </span>
+                    </div>
+                </div>
+            </lightning:layoutItem>
+
+            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                largeDeviceSize="6" padding="horizontal-small" class="slds-p-bottom_small">
+                <div class="slds-form-element slds-form-element_horizontal">
+                    <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                        <lightning:formattedText value="This Year Expected Revenue" />
+                    </label>
+                    <div class="slds-form-element__control">
+                        <span class="slds-form-element__label">
+                            <lightning:formattedText value="{!v.dealForecastDetail.yearExpected}" />
+                        </span>
+                    </div>
+                </div>
+            </lightning:layoutItem>
+
+            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                largeDeviceSize="6" padding="horizontal-small" class="slds-p-bottom_small">
+                <div class="slds-form-element slds-form-element_horizontal">
+                    <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                        <lightning:formattedText value="Expected Start Date" />
+                    </label>
+                    <div class="slds-form-element__control">
+                        <span class="slds-form-element__label">
+                            <lightning:formattedText value="{!v.dealForecastDetail.startDate}" />
+                        </span>
+                    </div>
+                </div>
+            </lightning:layoutItem>
+
+            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                largeDeviceSize="6" padding="horizontal-small" class="slds-p-bottom_small">
+                <div class="slds-form-element slds-form-element_horizontal">
+                    <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                        <lightning:formattedText value="Remark" />
+                    </label>
+                    <div class="slds-form-element__control">
+                        <span class="slds-form-element__label">
+                            <lightning:formattedText value="{!v.dealForecastDetail.remark}" />
+                        </span>
+                    </div>
+                </div>
+            </lightning:layoutItem>
+
+            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                largeDeviceSize="6" padding="horizontal-small" class="slds-p-bottom_small">
+                <div class="slds-form-element slds-form-element_horizontal">
+                    <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                        <lightning:formattedText value="Prob (H/M/L)." />
+                    </label>
+                    <lightning:helptext content="Probability (High, Medium, Low, Cancel)." class="helptextIcon"/>
+                    <div class="slds-form-element__control">
+                        <span class="slds-form-element__label">
+                            <lightning:formattedText value="{!v.dealForecastDetail.prop}" />
+                        </span>
+                    </div>
+                </div>
+            </lightning:layoutItem>
+
+            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                largeDeviceSize="6" padding="horizontal-small" class="slds-p-bottom_small">
+                <div class="slds-form-element slds-form-element_horizontal">
+                    <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                        <lightning:formattedText value="NIM/Fee rate (%) " />
+                    </label>
+                    <div class="slds-form-element__control">
+                        <span class="slds-form-element__label">
+                            <lightning:formattedNumber value="{!v.dealForecastDetail.NIM_Fee}" />
+                        </span>
+                    </div>
+                </div>
+            </lightning:layoutItem>
+
+            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                largeDeviceSize="6" padding="horizontal-small" class="slds-p-bottom_small">
+                <div class="slds-form-element slds-form-element_horizontal">
+                    <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                        <lightning:formattedText value="Recurring Type" />
+                    </label>
+                    <div class="slds-form-element__control">
+                        <span class="slds-form-element__label">
+                            <lightning:formattedText value="{!v.dealForecastDetail.recurringType}" />
+                        </span>
+                    </div>
+                </div>
+            </lightning:layoutItem>
+
+            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                largeDeviceSize="6" padding="horizontal-small" class="slds-p-bottom_small">
+                <div class="slds-form-element slds-form-element_horizontal">
+                    <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                        <lightning:formattedText value="Income type" />
+                    </label>
+                    <div class="slds-form-element__control">
+                        <span class="slds-form-element__label">
+                            <lightning:formattedText value="{!v.dealForecastDetail.incomeType}" />
+                        </span>
+                    </div>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+
+        <div class="slds-m-around_large" style="height: 300px;">
+            <div class="slds-card slds-scrollable">
+                <table class="slds-table slds-table_bordered slds-table_col-bordered">
+                    <thead>
+                        <tr class="slds-text-title-caps">
+                            <th></th>
+                            <aura:if isTrue="{!v.totalyear == 2}">
+                                <th></th>
+                                <th class="center-text second-color border-line-color" colspan="{!(v.lastMonthNumber)}">{!v.yearNumber}</th>
+                                <aura:if isTrue="{!v.lastMonthNumber != 12}">
+                                    <th class="center-text first-color border-line-color" colspan="{!(12 - v.lastMonthNumber )}">{!v.yearNumber + 1}</th>
+                                </aura:if>
+                                <th></th>
+                            </aura:if>
+                            <aura:if isTrue="{!v.totalyear != 2}">
+                                <th class="center-text second-color border-line-color" colspan="{!(v.lastMonthNumber + v.totalyear)}">{!v.yearNumber}</th>
+                                <aura:if isTrue="{!v.lastMonthNumber != 12}">
+                                    <th class="center-text first-color border-line-color" colspan="{!(12 - v.lastMonthNumber )}">{!v.yearNumber + 1}</th>
+                                </aura:if>
+                                <aura:if isTrue="{!v.lastMonthNumber - 12 != 0}">
+                                    <th></th>
+                                </aura:if>
+                                
+                            </aura:if>
+                            
+                        </tr>
+                    </thead>
+                    
+                    <tbody>
+                        <tr class="slds-text-title-caps">
+                            <aura:iteration items="{!v.columns}" var="col" indexVar="index">
+                                <!-- <td class="{! col.addBg == true ? 'center-text blue-bg' : 'center-text orange-bg'}" scope="col"> -->
+                                <td class="{! index == 0 ? 'center-text' : 'center-text'}">
+                                    <div class="slds-truncate">{!col.label}</div>
+                                </td>
+                            </aura:iteration>
+                        </tr>
+                        <tr aura:id="isDaft">
+                            <td class="first-child">
+                                <div class="slds-truncate">
+                                    Volume
+                                </div>
+                            </td>
+                            <aura:if isTrue="{!v.canEdit == false}">
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume1}" />
+                                    </div>
+                                </td>
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume2}" />
+                                    </div>
+                                </td>
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume3}" />
+                                    </div>
+                                </td>
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume4}" />
+                                    </div>
+                                </td>
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume5}" />
+                                    </div>
+                                </td>
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume6}" />
+                                    </div>
+                                </td>
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume7}" />
+                                    </div>
+                                </td>
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume8}" />
+                                    </div>
+                                </td>
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume9}" />
+                                    </div>
+                                </td>
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume10}" />
+                                    </div>
+                                </td>
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume11}" />
+                                    </div>
+                                </td>
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume12}" />
+                                    </div>
+                                </td>
+
+                                <aura:set attribute="else">
+                                <aura:if isTrue="{!v.totalyear == 2}">
+                                    <td class="right-align">
+                                        <div class="slds-truncate">
+                                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                                        </div>
+                                    </td>
+                                </aura:if>  
+                                <td ondblclick="{!c.EditName}" data-value="Volume1" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                                    class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                                    <span data-value="Volume1">
+                                        <aura:if isTrue="{!v.Volume1EditMode == false}">
+                                            <button onclick="{!c.EditName}" data-value="Volume1" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                                                <lightning:icon aura:id="Volume1EditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                                            </button>
+                                            <span class="slds-truncate" title="Name" data-value="Volume1">
+                                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume1}" />
+                                            </span>
+                                            <aura:set attribute="else">
+                                                <ui:inputNumber aura:id="Volume1id" value="{!v.InputNumber.Volume1Edited}" change="{!c.onChange}" blur="{!c.closeNameBox}" class="slds-resizable__input"/>
+                                            </aura:set>
+                                        </aura:if>
+                                    </span>
+                                </td>
+                                <aura:if isTrue="{!and((v.monthNumber == 12), (v.totalyear != 2))}">
+                                    <td class="right-align">
+                                        <div class="slds-truncate">
+                                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                                        </div>
+                                    </td>
+                                </aura:if>
+
+
+                                <aura:if isTrue="{!v.isAdjustFirstMonth == false}">
+                                    <td ondblclick="{!c.EditName}" data-value="Volume2" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                                        class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                                        <span data-value="Volume2">
+                                            <aura:if isTrue="{!v.Volume2EditMode == false}">
+                                                <button onclick="{!c.EditName}" data-value="Volume2" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                                                    <lightning:icon aura:id="Volume2EditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                                                </button>
+                                                <span class="slds-truncate" title="Name" data-value="Volume2">
+                                                    <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume2}" />
+                                                </span>
+                                                <aura:set attribute="else">
+                                                    <ui:inputNumber aura:id="Volume2id" value="{!v.InputNumber.Volume2Edited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </td>
+                                    <aura:set attribute="else">
+                                        <td class="right-align">
+                                            <span class="slds-truncate" title="Name" data-value="Volume2">
+                                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume2}" />
+                                            </span>
+                                        </td>
+                                    </aura:set>
+                                </aura:if>
+                                <aura:if isTrue="{!and((v.monthNumber == 11), (v.totalyear != 2))}">
+                                    <td class="right-align">
+                                        <div class="slds-truncate">
+                                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                                        </div>
+                                    </td>
+                                </aura:if>
+
+                                <aura:if isTrue="{!v.isAdjustFirstMonth == false}">
+                                    <td ondblclick="{!c.EditName}" data-value="Volume3" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                                        class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                                        <span data-value="Volume3">
+                                            <aura:if isTrue="{!v.Volume3EditMode == false}">
+                                                <button onclick="{!c.EditName}" data-value="Volume3" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                                                    <lightning:icon aura:id="Volume3EditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                                                </button>
+                                                <span class="slds-truncate" title="Name" data-value="Volume3">
+                                                    <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume3}" />
+                                                </span>
+                                                <aura:set attribute="else">
+                                                    <ui:inputNumber aura:id="Volume3id" value="{!v.InputNumber.Volume3Edited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </td>
+                                    <aura:set attribute="else">
+                                        <td class="right-align">
+                                            <span class="slds-truncate" title="Name" data-value="Volume3">
+                                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume3}" />
+                                            </span>
+                                        </td>
+                                    </aura:set>
+                                </aura:if>
+                                <aura:if isTrue="{!and((v.monthNumber == 10), (v.totalyear != 2))}">
+                                    <td class="right-align">
+                                        <div class="slds-truncate">
+                                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                                        </div>
+                                    </td>
+                                </aura:if>
+
+                                <aura:if isTrue="{!v.isAdjustFirstMonth == false}">
+                                    <td ondblclick="{!c.EditName}" data-value="Volume4" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                                        class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                                        <span data-value="Volume4">
+                                            <aura:if isTrue="{!v.Volume4EditMode == false}">
+                                                <button onclick="{!c.EditName}" data-value="Volume4" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                                                    <lightning:icon aura:id="Volume4EditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                                                </button>
+                                                <span class="slds-truncate" title="Name" data-value="Volume4">
+                                                    <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume4}" />
+                                                </span>
+                                                <aura:set attribute="else">
+                                                    <ui:inputNumber aura:id="Volume4id" value="{!v.InputNumber.Volume4Edited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </td>
+                                    <aura:set attribute="else">
+                                        <td class="right-align">
+                                            <span class="slds-truncate" title="Name" data-value="Volume4">
+                                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume4}" />
+                                            </span>
+                                        </td>
+                                    </aura:set>
+                                </aura:if>
+                                <aura:if isTrue="{!and((v.monthNumber == 9), (v.totalyear != 2))}">
+                                    <td class="right-align">
+                                        <div class="slds-truncate">
+                                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                                        </div>
+                                    </td>
+                                </aura:if>
+
+                                <aura:if isTrue="{!v.isAdjustFirstMonth == false}">
+                                    <td ondblclick="{!c.EditName}" data-value="Volume5" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                                        class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                                        <span data-value="Volume5">
+                                            <aura:if isTrue="{!v.Volume5EditMode == false}">
+                                                <button onclick="{!c.EditName}" data-value="Volume5" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                                                    <lightning:icon aura:id="Volume5EditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                                                </button>
+                                                <span class="slds-truncate" title="Name" data-value="Volume5">
+                                                    <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume5}" />
+                                                </span>
+                                                <aura:set attribute="else">
+                                                    <ui:inputNumber aura:id="Volume5id" value="{!v.InputNumber.Volume5Edited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </td>
+                                    <aura:set attribute="else">
+                                        <td class="right-align">
+                                            <span class="slds-truncate" title="Name" data-value="Volume5">
+                                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume5}" />
+                                            </span>
+                                        </td>
+                                    </aura:set>
+                                </aura:if>
+                                <aura:if isTrue="{!and((v.monthNumber == 8), (v.totalyear != 2))}">
+                                    <td class="right-align">
+                                        <div class="slds-truncate">
+                                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                                        </div>
+                                    </td>
+                                </aura:if>
+
+                                <aura:if isTrue="{!v.isAdjustFirstMonth == false}">
+                                    <td ondblclick="{!c.EditName}" data-value="Volume6" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                                        class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                                        <span data-value="Volume6">
+                                            <aura:if isTrue="{!v.Volume6EditMode == false}">
+                                                <button onclick="{!c.EditName}" data-value="Volume6" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                                                    <lightning:icon aura:id="Volume6EditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                                                </button>
+                                                <span class="slds-truncate" title="Name" data-value="Volume6">
+                                                    <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume6}" />
+                                                </span>
+                                                <aura:set attribute="else">
+                                                    <ui:inputNumber aura:id="Volume6id" value="{!v.InputNumber.Volume6Edited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </td>
+                                    <aura:set attribute="else">
+                                        <td class="right-align">
+                                            <span class="slds-truncate" title="Name" data-value="Volume6">
+                                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume6}" />
+                                            </span>
+                                        </td>
+                                    </aura:set>
+                                </aura:if>
+                                <aura:if isTrue="{!and((v.monthNumber == 7), (v.totalyear != 2))}">
+                                    <td class="right-align">
+                                        <div class="slds-truncate">
+                                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                                        </div>
+                                    </td>
+                                </aura:if>
+
+                                <aura:if isTrue="{!v.isAdjustFirstMonth == false}">
+                                    <td ondblclick="{!c.EditName}" data-value="Volume7" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                                        class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                                        <span data-value="Volume7">
+                                            <aura:if isTrue="{!v.Volume7EditMode == false}">
+                                                <button onclick="{!c.EditName}" data-value="Volume7" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                                                    <lightning:icon aura:id="Volume7EditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                                                </button>
+                                                <span class="slds-truncate" title="Name" data-value="Volume7">
+                                                    <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume7}" />
+                                                </span>
+                                                <aura:set attribute="else">
+                                                    <ui:inputNumber aura:id="Volume7id" value="{!v.InputNumber.Volume7Edited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </td>
+                                    <aura:set attribute="else">
+                                        <td class="right-align">
+                                            <span class="slds-truncate" title="Name" data-value="Volume7">
+                                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume7}" />
+                                            </span>
+                                        </td>
+                                    </aura:set>
+                                </aura:if>
+                                <aura:if isTrue="{!and((v.monthNumber == 6), (v.totalyear != 2))}">
+                                    <td class="right-align">
+                                        <div class="slds-truncate">
+                                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                                        </div>
+                                    </td>
+                                </aura:if>
+
+                                <aura:if isTrue="{!v.isAdjustFirstMonth == false}">
+                                    <td ondblclick="{!c.EditName}" data-value="Volume8" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                                        class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                                        <span data-value="Volume8">
+                                            <aura:if isTrue="{!v.Volume8EditMode == false}">
+                                                <button onclick="{!c.EditName}" data-value="Volume8" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                                                    <lightning:icon aura:id="Volume8EditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                                                </button>
+                                                <span class="slds-truncate" title="Name" data-value="Volume8">
+                                                    <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume8}" />
+                                                </span>
+                                                <aura:set attribute="else">
+                                                    <ui:inputNumber aura:id="Volume8id" value="{!v.InputNumber.Volume8Edited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </td>
+                                    <aura:set attribute="else">
+                                        <td class="right-align">
+                                            <span class="slds-truncate" title="Name" data-value="Volume8">
+                                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume8}" />
+                                            </span>
+                                        </td>
+                                    </aura:set>
+                                </aura:if>
+                                <aura:if isTrue="{!and((v.monthNumber == 5), (v.totalyear != 2))}">
+                                    <td class="right-align">
+                                        <div class="slds-truncate">
+                                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                                        </div>
+                                    </td>
+                                </aura:if>
+
+                                <aura:if isTrue="{!v.isAdjustFirstMonth == false}">
+                                    <td ondblclick="{!c.EditName}" data-value="Volume9" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                                        class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                                        <span data-value="Volume9">
+                                            <aura:if isTrue="{!v.Volume9EditMode == false}">
+                                                <button onclick="{!c.EditName}" data-value="Volume9" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                                                    <lightning:icon aura:id="Volume9EditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                                                </button>
+                                                <span class="slds-truncate" title="Name" data-value="Volume9">
+                                                    <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume9}" />
+                                                </span>
+                                                <aura:set attribute="else">
+                                                    <ui:inputNumber aura:id="Volume9id" value="{!v.InputNumber.Volume9Edited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </td>
+                                    <aura:set attribute="else">
+                                        <td class="right-align">
+                                            <span class="slds-truncate" title="Name" data-value="Volume9">
+                                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume9}" />
+                                            </span>
+                                        </td>
+                                    </aura:set>
+                                </aura:if>
+                                <aura:if isTrue="{!and((v.monthNumber == 4), (v.totalyear != 2))}">
+                                    <td class="right-align">
+                                        <div class="slds-truncate">
+                                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                                        </div>
+                                    </td>
+                                </aura:if>
+
+                                <aura:if isTrue="{!v.isAdjustFirstMonth == false}">
+                                    <td ondblclick="{!c.EditName}" data-value="Volume10" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                                        class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                                        <span data-value="Volume10">
+                                            <aura:if isTrue="{!v.Volume10EditMode == false}">
+                                                <button onclick="{!c.EditName}" data-value="Volume10" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                                                    <lightning:icon aura:id="Volume10EditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                                                </button>
+                                                <span class="slds-truncate" title="Name" data-value="Volume10">
+                                                    <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume10}" />
+                                                </span>
+                                                <aura:set attribute="else">
+                                                    <ui:inputNumber aura:id="Volume10id" value="{!v.InputNumber.Volume10Edited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </td>
+                                    <aura:set attribute="else">
+                                        <td class="right-align">
+                                            <span class="slds-truncate" title="Name" data-value="Volume10">
+                                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume10}" />
+                                            </span>
+                                        </td>
+                                    </aura:set>
+                                </aura:if>
+                                <aura:if isTrue="{!and((v.monthNumber == 3), (v.totalyear != 2))}">
+                                    <td class="right-align">
+                                        <div class="slds-truncate">
+                                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                                        </div>
+                                    </td>
+                                </aura:if>
+
+                                <aura:if isTrue="{!v.isAdjustFirstMonth == false}">
+                                    <td ondblclick="{!c.EditName}" data-value="Volume11" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                                        class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                                        <span data-value="Volume11">
+                                            <aura:if isTrue="{!v.Volume11EditMode == false}">
+                                                <button onclick="{!c.EditName}" data-value="Volume11" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                                                    <lightning:icon aura:id="Volume11EditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                                                </button>
+                                                <span class="slds-truncate" title="Name" data-value="Volume11">
+                                                    <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume11}" />
+                                                </span>
+                                                <aura:set attribute="else">
+                                                    <ui:inputNumber aura:id="Volume11id" value="{!v.InputNumber.Volume11Edited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </td>
+                                    <aura:set attribute="else">
+                                        <td class="right-align">
+                                            <span class="slds-truncate" title="Name" data-value="Volume11">
+                                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume11}" />
+                                            </span>
+                                        </td>
+                                    </aura:set>
+                                </aura:if>
+                                <aura:if isTrue="{!and((v.monthNumber == 2), (v.totalyear != 2))}">
+                                    <td class="right-align">
+                                        <div class="slds-truncate">
+                                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                                        </div>
+                                    </td>
+                                </aura:if>
+
+                                <aura:if isTrue="{!v.isAdjustFirstMonth == false}">
+                                    <td ondblclick="{!c.EditName}" data-value="Volume12" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                                        class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                                        <span data-value="Volume12">
+                                            <aura:if isTrue="{!v.Volume12EditMode == false}">
+                                                <button onclick="{!c.EditName}" data-value="Volume12" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                                                    <lightning:icon aura:id="Volume12EditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                                                </button>
+                                                <span class="slds-truncate" title="Name" data-value="Volume12">
+                                                    <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume12}" />
+                                                </span>
+                                                <aura:set attribute="else">
+                                                    <ui:inputNumber aura:id="Volume12id" value="{!v.InputNumber.Volume12Edited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                                                </aura:set>
+                                            </aura:if>
+                                        </span>
+                                    </td>
+                                    <aura:set attribute="else">
+                                        <td class="right-align">
+                                            <span class="slds-truncate" title="Name" data-value="Volume12">
+                                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.volumeData.volume12}" />
+                                            </span>
+                                        </td>
+                                    </aura:set>
+                                </aura:if>
+
+                            </aura:set>
+                        </aura:if>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <c:CallCenterCSV_PillOutput type="NUMBER" value="{undifind}" />
+                            </div>
+                        </td>
+                            <!-- </aura:iteration> -->
+                        </tr>
+                        <tr>
+                            <td class="first-child">
+                                <div class="slds-truncate">
+                                    Ending
+                                </div>
+                            </td>
+                            <aura:iteration items="{!v.endingData}" var="ending" indexVar="index">
+
+                                <td class="right-align"> 
+                                    <div class="slds-truncate">
+                                        <c:CallCenterCSV_PillOutput type="NUMBER" value="{!ending}"/>
+                                    </div>
+                                </td>
+                            </aura:iteration>
+                        </tr>
+                        <tr>
+                            <td class="first-child">
+                                <div class="slds-truncate">
+                                    Income
+                                </div>
+                            </td>
+                            <aura:iteration items="{!v.incomeData}" var="income" indexVar="index">
+                                <td class="right-align">
+                                    <div class="slds-truncate">
+                                        <!-- <c:CallCenterCSV_PillOutput type="NUMBER" value="{!income}" /> -->
+                                        <lightning:formattedNumber value="{!income}" minimumFractionDigits="2" maximumFractionDigits="2" />
+                                    </div>
+                                </td>
+                            </aura:iteration>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="slds-card slds-align_absolute-center">
+                <lightning:button label="Save" onclick ="{!c.saveEditedData}" disabled="{!!v.showSaveBtn}" />
+                <lightning:button label="Cancel" onclick ="{!c.cancelEditedData}" disabled="{!!v.showSaveBtn}" />
+            </div>
+        </div>
+    </lightning:card>
+</aura:component>

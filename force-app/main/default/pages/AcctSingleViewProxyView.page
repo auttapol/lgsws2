@@ -1,0 +1,154 @@
+<apex:page standardController="Account" extensions="AcctSingleViewProxyCtrl" showChat="false" showHeader="false">
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionStatus onstart="startLoading('Inserting ...');" id="InsertStatus" onstop="endLoading();" />
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 0 0;
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            left: 50%;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+
+    <div class="loadingBox overlay"> </div>
+    <script type="text/javascript">
+        function startLoading(text) {
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading() {
+            $('.loadingBox').hide();
+        }
+
+
+        $(document).ready(function () {
+            startLoading('Loading....');
+        });
+    </script>
+
+    <apex:form >
+        <apex:actionFunction name="page" action="{!redirectPage}" />
+        <apex:actionFunction name="mobile" action="{!redirectMobile}" />
+    </apex:form>
+    <apex:includeScript value="/support/console/48.0/integration.js" />
+    <script type="text/javascript">
+        var theme = '{!$User.UIThemeDisplayed}';
+        var recordId = '{!Account.Id}';
+        var recordTpyeId = '{!Account.RecordTypeId}';
+        var recordTypeDeveloperName = '{!Account.RecordType.DeveloperName}';
+        var userProfile = '{!$Profile.Name}';
+
+
+        //Retail
+        if (recordTypeDeveloperName.includes('Retail')) {
+            if (theme == 'Theme3') {
+                window.location.href = '/apex/RetailCustomerEdit?id=' + recordId + '&RecordType=' + recordTpyeId + '&retURL=/' + recordId;
+            } else {
+                if (recordId) {
+                    sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                        "componentDef": "c:RTL_EditCustomer",
+                        "attributes": {
+                            "recordId": recordId,
+                            "recordTypeId": recordTpyeId,
+                            "theme": theme,
+                            "uuid": theme == 'Theme4t' ? 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                                let r = Math.random() * 16 | 0,
+                                    v = c == 'x' ? r : (r & 0x3 | 0x8);
+                                return v.toString(16);
+                            }) : '',
+                        }
+                    })), true);
+                } else {
+                    sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                        "componentDef": "c:workspaceAPIforVF",
+                        "attributes": {
+                            "action": 'openTabUrl',
+                            "url": '/apex/RetailCustomerCreation?RecordType=' + recordTpyeId + '&retURL=/001/o',
+                            "replace": true,
+                        }
+                    })), true);
+                }
+            }
+        }
+
+        // Commercial
+        //ExistingCustomer
+        else if (recordTypeDeveloperName.includes('Existing_Customer')) {
+
+            if (theme == 'Theme3') {
+                window.location.href = '/apex/AccountUpdateV2View?id=' + recordId;
+            }
+            else {
+                if (recordId) {
+                    sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                        "componentDef": "c:AccountUpdateV2view",
+                        "attributes": {
+                            "recordId": recordId,
+                            "recordTypeId": recordTpyeId,
+                            "theme": theme,
+                            "action": 'openTabUrl',
+                            "userProfile": userProfile,
+                            "replace": true
+                        }
+                    })), true);
+                }
+            }
+        }
+
+
+        //Prospect
+        else if (recordTypeDeveloperName.includes('Prospect')) {
+
+            if (theme == 'Theme3') {
+                window.location.href = '/apex/ProspectUpdatePE?id=' + recordId;
+            }
+            else {
+                if (recordId) {
+                    sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                        "componentDef": "c:ProspectUpdatePE",
+                        "attributes": {
+                            "recordId": recordId,
+                            "recordTypeId": recordTpyeId,
+                            "theme": theme,
+                            "userProfile": userProfile,
+                            "action": 'openTabUrl',
+                            "replace": true
+                        }
+                    })), true);
+                }
+            }
+        }
+
+        else {
+            if (theme == 'Theme4t') {
+                mobile();
+            } else {
+                page();
+            }
+        }
+
+    </script>
+</apex:page>

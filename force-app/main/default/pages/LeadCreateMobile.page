@@ -1,0 +1,617 @@
+<apex:page standardController="lead" extensions="LeadExtensionV2" showChat="false" showHeader="false" sidebar="false"
+standardStylesheets="true" applyHtmlTag="true">
+
+<head>
+
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.AccountPlanEditTable)}"/>
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}"  />
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+    <apex:actionStatus onstart="startLoading();" onstop="endLoading();" id="loadStatus"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+ 
+    <style>
+        select{
+            display: block;
+            width: 100%;
+            height: 34px;
+            padding: 6px 14px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #000000;
+            background-color: #ffffff;
+            background-image: none;
+            border: 1px solid #cfd0d2;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+        }
+    </style>
+    <!-- svg loader style -->
+        <style>
+            .Indicator{
+                /*position : relative;*/
+            }
+            .Indicator.hidden {
+                display: none;
+            }
+            .Indicator .modal-glass {
+                background-color: #000000;
+                bottom: 0;
+                display: block;
+                left: 0;
+                margin-left: 0px;
+                opacity: 0.3;
+                position: fixed;
+                right: 0;
+                top: 0;
+                height : 100%;
+                z-index: 1999;            
+            }            
+            .Indicator .hideEl {
+                display: none;
+            }
+            .Indicator .indicatorContainer {
+                background: none repeat scroll 0 0 #354452;
+                border-radius: 5px;
+                color: #FFFFFF;
+                display: block;
+                height: 82px;
+                left: 0;
+                margin: -65px auto;
+                opacity: 0.9;
+                padding-top: 22px;
+                position: fixed;
+                right: 0;
+                text-align: center;
+                top: 250px;
+                width: 110px;
+                z-index: 2000;
+            }
+            /*Set the color of the icon*/
+            svg path,
+            svg rect {
+                fill: #2A94D6;
+            }
+            .text-blue-color{
+                color: #2a94d6;
+            }
+        </style>
+</head>
+
+<body>
+    <div class="bootstrap-sf1">   
+        <div >              
+            <div class="page-header page-header-anchor context-lead">
+                <div class="container">
+                    <h1>Lead {!displayAction}</h1>
+                </div>
+            </div>
+            
+            <apex:form id="frm">        
+
+                <apex:pageMessages id="messages"/>    
+            
+                <apex:actionFunction action="{!doActionMobile}" name="gosave" />
+            
+                
+                <div style="margin-bottom:10px;" class='text-center'>
+                    <apex:commandButton value="Save" onclick="gosave();return false;" styleClass="btn-lg btn-default"  status="loadStatus" reRender="launchPanel" />
+                    &nbsp;
+                    <apex:outputPanel rendered="{!if(displayAction=='Create','true','false')}">
+                        <apex:commandButton value="Cancel" onclick="sforce.one.navigateToURL('/00Q/o');return false;" styleClass="btn-lg btn-default" reRender="launchPanel"/> 
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!if(displayAction=='Update','true','false')}">
+                        <apex:commandButton value="Cancel" onclick="sforce.one.navigateToSObject('{!leadObj.Id}');return false;" styleClass="btn-lg btn-default" reRender="launchPanel"/> 
+                    </apex:outputPanel>
+                </div>
+                
+                <apex:outputPanel rendered="{!launchNextPage}" id="launchPanel">
+                    <apex:outputPanel rendered="{!if(displayAction=='Create','true','false')}">
+                        <!-- script>sforce.one.navigateToURL('/00Q/o');</script -->
+                        <script>sforce.one.navigateToSObject('{!leadObj.Id}');</script>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!if(displayAction=='Update','true','false')}">
+                        <script>sforce.one.navigateToSObject('{!leadObj.Id}');</script>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+        
+                <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                    <div class="container panel-heading">
+                        <div class="navbar-header ">
+                            <a data-toggle="collapse" aria-expanded="true" href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                            Lead Information
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                <div class="card collapse in panel-collapse" id="collapse1">
+                    <div class="card-detail">
+                        <div class="row">
+                        
+                            <apex:outputPanel rendered="{!if(recordTypeObj.name=='Commercial Lead','true','false')}">
+                            
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Customer Type<span style="color:red">*</span></label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Customer_Type__c}" required="true"/>
+                                    </div>
+                                </div>       
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Customer Name<span style="color:red">*</span></label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.company}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Customer Name EN</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Customer_Name_EN__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">ID Type</label><br/>
+                                        <apex:inputField id="IDTypeOption" styleClass="form-control" value="{!leadObj.ID_Type__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">ID Number</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.ID_Number__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Primary Campaign</label>&nbsp;&nbsp;
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Primary_Campaign__c}" label="Primary Campaign" rendered="{!if(leadObj.Primary_Campaign__c!=null,false,true)}"/>
+                                        <apex:outputField styleClass="form-control" value="{!leadObj.Primary_Campaign__c}" label="Primary Campaign" rendered="{!if(leadObj.Primary_Campaign__c==null,false,true)}"/>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Mobile No.</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Mobile_No__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Office No.</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Office_No__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Ext</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Ext__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Email</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Email__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Lead Status</label>&nbsp;&nbsp;
+                                        <apex:outputField styleClass="form-control" value="{!leadObj.Status}" />
+                                    </div>
+                                </div>
+
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">{!$ObjectType.Lead.Fields.Lead_Segment__c.label}</label>&nbsp;&nbsp;
+                                        <apex:outputField styleClass="form-control" value="{!leadObj.Lead_Segment__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">{!$ObjectType.Lead.Fields.Remark__c.label}</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Remark__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Address No/Moo/Soi/Street</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Address_Line_1__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Sub District</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Address_Line_2__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">District</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Address_Line_3__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Province</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Province__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Zipcode</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Zipcode__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Country</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Country__c}" />
+                                    </div>
+                                </div>
+                                
+                            </apex:outputPanel>
+                            
+                            
+                            <apex:outputPanel rendered="{!if(recordTypeObj.name=='Commercial Account','true','false')}">
+                            
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Customer Type<span style="color:red">*</span></label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Customer_Type__c}" required="true" rendered="{!if(tempLead.id==null,true,false)}"/>
+                                        <apex:outputText styleClass="form-control" value="{!leadObj.Customer_Type__c}" rendered="{!if(tempLead.id!=null,true,false)}"/>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Customer Name<span style="color:red">*</span></label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.company}" rendered="{!if(tempLead.id==null,true,false)}"/>
+                                        <apex:outputText styleClass="form-control" value="{!leadObj.company}" rendered="{!if(tempLead.id!=null,true,false)}"/>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Link To Customer</label>&nbsp;
+                                        <!--<apex:inputField styleClass="form-control" value="{!leadObj.Account__c}" />-->
+                                        <apex:outputLink onclick="navigateTo('{!leadobj.Account__c}');" id="CustLink" >
+                                            {!leadobj.Account__r.Name}
+                                        </apex:outputLink>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Primary Campaign</label>&nbsp;&nbsp;
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Primary_Campaign__c}" label="Primary Campaign" rendered="{!if(leadObj.Primary_Campaign__c!=null,false,true)}"/>
+                                        <apex:outputField styleClass="form-control" value="{!leadObj.Primary_Campaign__c}" label="Primary Campaign" rendered="{!if(leadObj.Primary_Campaign__c==null,false,true)}"/>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Lead Status</label>&nbsp;&nbsp;
+                                        <apex:outputField styleClass="form-control" value="{!leadObj.status}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">{!$ObjectType.Lead.Fields.Remark__c.label}</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Remark__c}" />
+                                    </div>
+                                </div>
+                                
+                            </apex:outputPanel>
+                                   
+                        </div>
+                    </div>
+                </div>
+                
+                
+                <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                    <div class="container panel-heading">
+                        <div class="navbar-header ">
+                            <a data-toggle="collapse" aria-expanded="true" href="#collapse12" class="navbar-brand navbar-foundation-logo">
+                            Contact Information
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                <div class="card collapse in panel-collapse" id="collapse12">
+                    <div class="card-detail">
+                        <div class="row">
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">First Name</label>
+                                    <apex:inputField styleClass="form-control" value="{!leadObj.Salutation}" /><br/>
+                                    <apex:inputField styleClass="form-control" value="{!leadObj.firstname}" />
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Last Name<span style="color:red">*</span></label>
+                                    <apex:inputField styleClass="form-control" value="{!leadObj.lastname}" />
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Contact Position</label>
+                                    <apex:inputField styleClass="form-control" value="{!leadObj.Title}" />
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Decision Map</label>
+                                    <apex:inputField styleClass="form-control" value="{!leadObj.Decision_Map__c}" />
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Contact Phone Number</label>
+                                    <apex:inputField styleClass="form-control" value="{!leadObj.Phone__c}" />
+                                </div>
+                            </div>
+                        
+                        </div>
+                    </div>
+                </div>    
+                
+                
+                <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                    <div class="container panel-heading">
+                        <div class="navbar-header ">
+                            <a data-toggle="collapse" aria-expanded="true" href="#collapse2" class="navbar-brand navbar-foundation-logo">
+                            Detail Information
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                <div class="card collapse in panel-collapse" id="collapse2">
+                    <div class="card-detail">
+                        <div class="row">
+                        
+                            <apex:outputPanel rendered="{!if(recordTypeObj.name=='Commercial Lead','true','false')}">
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Rating</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Rating}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Parent Company</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Parent_Company__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Group</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Group__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Total Expected Revenue</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Total_Expected_Revenue__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Industry</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Industry__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Sales Amount per Year</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Sales_amount_per_year__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">No. of Years Business Run</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.No_of_Years_Business_Run__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Preferred Branch</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Preferred_Branch__c}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Link Document</label> 
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Link_Document__c}" />
+                                    </div>
+                                </div>
+                                
+                            </apex:outputPanel>
+                            
+                            
+                            <apex:outputPanel rendered="{!if(recordTypeObj.name=='Commercial Account','true','false')}">
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Rating</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Rating}" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Total Expected Revenue</label>
+                                        <apex:inputField styleClass="form-control" value="{!leadObj.Total_Expected_Revenue__c}" />
+                                    </div>
+                                </div>
+                                
+                            </apex:outputPanel>
+                            
+                        </div>
+                    </div>
+                </div>
+                
+                
+                <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                    <div class="container panel-heading">
+                        <div class="navbar-header ">
+                            <a data-toggle="collapse" aria-expanded="true" href="#collapse3" class="navbar-brand navbar-foundation-logo">
+                            Lead Source
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                <div class="card collapse in panel-collapse" id="collapse3">
+                    <div class="card-detail">
+                        <div class="row">
+                        
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Branch Referred</label>
+                                    <apex:inputField styleClass="form-control" value="{!leadObj.Branch_Referred__c}" />
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Referral Staff ID</label>
+                                    <apex:inputField styleClass="form-control" value="{!leadObj.Referral_Staff_ID__c}" />
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Referral Staff Name</label>
+                                    <apex:inputField styleClass="form-control" value="{!leadObj.Referral_Staff_Name__c}" />
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Lead Source</label>
+                                    <apex:inputField styleClass="form-control" value="{!leadObj.LeadSource}" />
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Other Source</label>
+                                    <apex:inputField styleClass="form-control" value="{!leadObj.Other_Source__c}" />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Referral</label>
+                                    <apex:inputField styleClass="form-control" value="{!leadObj.RTL_Referral__c}" />
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                <!-- /Loadding ajax -->
+        <div id="loadingImage" class="Indicator">
+            <div class="modal-glass">&nbsp;</div>
+            <div class="indicatorContainer" role="alert">
+                <div class="loader" title="0">
+                    <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="40px" height="40px" viewBox="0 0 40 40" enable-background="new 0 0 40 40" xml:space="preserve">
+                        <path opacity="0.2" fill="#000" d="M20.201,5.169c-8.254,0-14.946,6.692-14.946,14.946c0,8.255,6.692,14.946,14.946,14.946
+                                                           s14.946-6.691,14.946-14.946C35.146,11.861,28.455,5.169,20.201,5.169z M20.201,31.749c-6.425,0-11.634-5.208-11.634-11.634
+                                                           c0-6.425,5.209-11.634,11.634-11.634c6.425,0,11.633,5.209,11.633,11.634C31.834,26.541,26.626,31.749,20.201,31.749z">
+                        </path>
+                        <path fill="#000" d="M26.013,10.047l1.654-2.866c-2.198-1.272-4.743-2.012-7.466-2.012h0v3.312h0
+                                             C22.32,8.481,24.301,9.057,26.013,10.047z">
+                            <animateTransform attributeType="xml" attributeName="transform" type="rotate" from="0 20 20" to="360 20 20" dur="0.5s" repeatCount="indefinite">
+                            </animateTransform>
+                        </path>
+                    </svg>
+                </div>
+                <div id="Indicator-message">Loading ...</div>
+            </div>
+        </div>
+        <!-- Loading ajax -->
+            </apex:form>
+             <script type="text/javascript">
+                $j = jQuery.noConflict();
+                $j(document).ready(function () {
+                    $j("[id$=IDTypeOption]").addClass('form-control');           
+                    setTimeout(function(){sfView.onComplete();},1000);
+                });
+                var sfView = (function() {
+                    var indicator =  $j("#loadingImage");
+                    var msg = $j("#Indicator-message");
+                    // All functions now have direct access to each other
+                    var onProcess = function(strmessage) { 
+                        msg.text(strmessage);
+                        indicator.removeClass('hidden');
+                    };
+                    var onComplete = function() {
+                        indicator.addClass('hidden');
+                    };      
+                    // Return the object that is assigned to Module
+                    return {
+                        onProcess: onProcess,
+                        onComplete: onComplete
+                    };
+                }());
+                
+                
+                function startLoading(){
+                    sfView.onProcess('Loading ...');
+                }
+                
+                function endLoading(){
+                    sfView.onComplete();
+                } 
+            
+            function navigateTo(sObjectId) {  
+                if ((typeof sforce != 'undefined') && sforce && (!!sforce.one)){
+                    // Salesforce1 navigation                 
+                    sforce.one.navigateToSObject(sObjectId, 'detail');
+                } else {
+                    // Set the window's URL using a Visualforce expression
+                    window.location.href = '{!$Site.Prefix}' + '/' + sObjectId;
+                    // site prefix helps when navigation in community
+                }
+            }
+             </script> 
+        </div>
+    </div>
+</body>
+
+</apex:page>

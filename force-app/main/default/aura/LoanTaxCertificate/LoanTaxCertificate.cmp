@@ -1,0 +1,354 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId,lightning:isUrlAddressable" access="global" controller="taxCertificateController">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <aura:attribute name="taxForm" type="Map" default="{coborrower0: {
+                                                            rmid : '',
+                                                            oldFlag : '',
+                                                            currentFlag : '',
+                                                            editable: false },
+                                                        coborrower1: {
+                                                            rmid : '',
+                                                            oldFlag : '',
+                                                            currentFlag : '',
+                                                            editable: false },
+                                                        coborrower2: {
+                                                            rmid : '',
+                                                            oldFlag : '',
+                                                            currentFlag : '',
+                                                            editable: false },
+                                                        coborrower3: {
+                                                            rmid : '',
+                                                            oldFlag : '',
+                                                            currentFlag : '',
+                                                            editable: false },
+                                                        coborrower4: {
+                                                            rmid : '',
+                                                            oldFlag : '',
+                                                            currentFlag : '',
+                                                            editable: false },
+                                                        coborrower5: {
+                                                            rmid : '',
+                                                            oldFlag : '',
+                                                            currentFlag : '',
+                                                            editable: false },
+                                                        }" />
+    <aura:attribute name="option" type="String[]" default="Yes,No" />
+
+    <aura:attribute name="displayAccountNo" type="String" default="" />
+    <aura:attribute name="accountNo" type="String" />
+    <aura:attribute name="creditLimit" type="String" />
+    <aura:attribute name="productName" type="String" />
+    <aura:attribute name="openDate" type="String" />
+    <aura:attribute name="passRMID" type="String" />
+    <aura:attribute name="passAccountType" type="String" />
+    <aura:attribute name="fiident" type="String" />
+
+    <aura:attribute name="is04CallFinish" type="Boolean" default="false" />
+    <aura:attribute name="isTaxConsentCallFinish" type="Boolean" default="false" />
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+    <aura:attribute name="isViewForm" type="Boolean" default="true" />
+    <aura:attribute name="isSearchAble" type="Boolean" default="false" />
+    <aura:attribute name="allowEditBtn" type="Boolean" default="false" />
+
+    <aura:attribute name="isSaveSuccess" type="Map" default="{}" />
+    <aura:attribute name="isError" type="Map" default="{}" />
+
+    <aura:attribute name="waterMarkImage" type="String" />
+
+    <aura:html tag="style">
+        :root { --backgroundImage: {!v.waterMarkImage}; }
+    </aura:html>
+
+    <div class="slds-is-relative slds-no-print">
+        <aura:if isTrue="{!v.isLoading}">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </aura:if>
+
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small bg-watermark">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:form" alternativeText="form" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="around-small">
+                <div class="page-section page-header">
+                    <h2 class="slds-text-heading_medium">
+                        Tax Certificate
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+
+        <aura:if isTrue="{!v.isError.noData}">
+            <lightning:layout>
+                <lightning:layoutItem size="12" class="slds-is-relative slds-p-top_small">
+                    <lightning:card class="slds-theme_shade slds-theme_alert-texture">
+                        <aura:set attribute="title">
+                            <div class="slds-text-heading_medium slds-text-color_destructive">
+                                <aura:unescapedHtml value="Warning" />
+                            </div>
+                        </aura:set>
+                        <lightning:layoutItem class="slds-p-around_small">
+                            <div style="white-space: pre-wrap;">
+                                {!$Label.c.ERR001_ProductHolding}
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:card>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:if>
+        <aura:if isTrue="{!v.isError.timeout}">
+            <lightning:layout>
+                <lightning:layoutItem size="12" class="slds-is-relative slds-p-top_small">
+                    <lightning:card class="slds-theme_shade slds-theme_alert-texture">
+                        <aura:set attribute="title">
+                            <div class="slds-text-heading_medium slds-text-color_destructive">
+                                <aura:unescapedHtml value="Warning" />
+                            </div>
+                        </aura:set>
+                        <lightning:layoutItem class="slds-p-around_small">
+                            <div style="white-space: pre-wrap;">
+                                {!$Label.c.Auto_Loan_Product_holding_Request_Timeout}
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:card>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:if>
+
+
+        <lightning:card>
+            <div class="card-container bg-watermark">
+                <div class="slds-p-around_medium">
+                    <lightning:layout>
+                        <lightning:layoutItem size="4" padding="around-small">
+                            <label class="slds-form-element__label" style="font-weight:900;">{!$Label.c.Account_Number}</label>
+                            <lightning:helptext content="{!$Label.c.TC_HelpText}" />
+                            <lightning:input aura:id="inputAcctNo" type="text" disabled="{!!v.isSearchAble}" value="{!v.displayAccountNo}" messageWhenBadInput="Please input this field." />
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="4" padding="around-small" class="search-btn">
+                            <div style="bottom: 0;position: absolute;padding-bottom: 12px;">
+                                <lightning:button label="Search" disabled="{!!v.isSearchAble}" title="Search" onclick="{!c.searchAccountNo}" />
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+
+                    <lightning:layout>
+                        <lightning:layoutItem size="6" padding="around-small">
+                            <lightning:input class="slds-border_bottom" style="font-weight:900;" name="ProductType" readonly="true" value="{!v.productName}" label="{!$Label.c.Product_Name}" />
+                            <lightning:input class="slds-border_bottom" style="font-weight:900;" name="Limit" type="number" readonly="true" label="{!$Label.c.Loan_Credit_Limit}" value="{!v.creditLimit}" formatter="currency" />
+                            <lightning:input class="slds-border_bottom" style="font-weight:900;" name="ConsentDate" readonly="true" value="{!v.openDate}" label="{!$Label.c.Open_Date}" />
+                        </lightning:layoutItem>
+
+                        <lightning:layoutItem size="6" padding="around-small">
+                            <div style="display: flex;">
+                                <lightning:input class="slds-border_bottom" style="width: 50%; font-weight:900;" name="main" readonly="true" value="{!v.taxForm.coborrower0.name}" label="{!$Label.c.TC_MainBorrower}" />
+                                <lightning:select class="slds-p-left_small" name="select" value="{!v.taxForm.coborrower0.currentFlag}" disabled="{!or(v.isViewForm,!v.taxForm.coborrower0.editable)}">
+                                    <aura:if isTrue="{!v.taxForm.coborrower0.currentFlag==''}">
+                                        <option selected="true" value="">--Select--</option>
+                                    </aura:if>
+                                    <aura:iteration items="{!v.option}" var="opt">
+                                        <option text="{!opt}"></option>
+                                    </aura:iteration>
+                                </lightning:select>
+                                <aura:if isTrue="{!v.isSaveSuccess.co0}">
+                                    <span style="color:green;" class="success">
+                                        {!$Label.c.TC_SaveSuccess}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.getFlag.co0}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.ERR008}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.saveForm.co0}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.TC_ErrorSaveForm}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.consentTimeout.co0}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.Auto_Loan_Product_holding_Request_Timeout}
+                                    </span>
+                                </aura:if>
+                            </div>
+
+                            <div style="display: flex;">
+                                <lightning:input class="slds-border_bottom" style="width: 50%; font-weight:900;" name="co1Name" readonly="true" value="{!v.taxForm.coborrower1.name}" label="{!$Label.c.TC_Coborrower1}" />
+                                <lightning:select class="slds-p-left_small" name="select" value="{!v.taxForm.coborrower1.currentFlag}" disabled="{!or(v.isViewForm,!v.taxForm.coborrower1.editable)}">
+                                    <aura:if isTrue="{!v.taxForm.coborrower1.currentFlag==''}">
+                                        <option selected="true" value="">--Select--</option>
+                                    </aura:if>
+                                    <aura:iteration items="{!v.option}" var="opt">
+                                        <option text="{!opt}"></option>
+                                    </aura:iteration>
+                                </lightning:select>
+                                <aura:if isTrue="{!v.isSaveSuccess.co1}">
+                                    <span style="color:green;" class="success">
+                                        {!$Label.c.TC_SaveSuccess}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.getFlag.co1}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.ERR008}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.saveForm.co1}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.TC_ErrorSaveForm}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.consentTimeout.co1}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.Auto_Loan_Product_holding_Request_Timeout}
+                                    </span>
+                                </aura:if>
+                            </div>
+
+                            <div style="display: flex;">
+                                <lightning:input class="slds-border_bottom" style="width: 50%; font-weight:900;" name="co2Name" readonly="true" value="{!v.taxForm.coborrower2.name}" label="{!$Label.c.TC_Coborrower2}" />
+                                <lightning:select class="slds-p-left_small" name="select" value="{!v.taxForm.coborrower2.currentFlag}" disabled="{!or(v.isViewForm,!v.taxForm.coborrower2.editable)}">
+                                    <aura:if isTrue="{!v.taxForm.coborrower2.currentFlag==''}">
+                                        <option selected="true" value="">--Select--</option>
+                                    </aura:if>
+                                    <aura:iteration items="{!v.option}" var="opt">
+                                        <option text="{!opt}"></option>
+                                    </aura:iteration>
+                                </lightning:select>
+                                <aura:if isTrue="{!v.isSaveSuccess.co2}">
+                                    <span style="color:green;" class="success">
+                                        {!$Label.c.TC_SaveSuccess}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.getFlag.co2}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.ERR008}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.saveForm.co2}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.TC_ErrorSaveForm}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.consentTimeout.co2}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.Auto_Loan_Product_holding_Request_Timeout}
+                                    </span>
+                                </aura:if>
+                            </div>
+
+                            <div style="display: flex;">
+                                <lightning:input class="slds-border_bottom" style="width: 50%; font-weight:900;" name="co3Name" readonly="true" value="{!v.taxForm.coborrower3.name}" label="{!$Label.c.TC_Coborrower3}" />
+                                <lightning:select class="slds-p-left_small" name="select" value="{!v.taxForm.coborrower3.currentFlag}" disabled="{!or(v.isViewForm,!v.taxForm.coborrower3.editable)}">
+                                    <aura:if isTrue="{!v.taxForm.coborrower3.currentFlag==''}">
+                                        <option selected="true" value="">--Select--</option>
+                                    </aura:if>
+                                    <aura:iteration items="{!v.option}" var="opt">
+                                        <option text="{!opt}"></option>
+                                    </aura:iteration>
+                                </lightning:select>
+                                <aura:if isTrue="{!v.isSaveSuccess.co3}">
+                                    <span style="color:green;" class="success">
+                                        {!$Label.c.TC_SaveSuccess}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.getFlag.co3}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.ERR008}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.saveForm.co3}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.TC_ErrorSaveForm}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.consentTimeout.co3}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.Auto_Loan_Product_holding_Request_Timeout}
+                                    </span>
+                                </aura:if>
+                            </div>
+
+                            <div style="display: flex;">
+                                <lightning:input class="slds-border_bottom" style="width: 50%; font-weight:900;" name="co4Name" readonly="true" value="{!v.taxForm.coborrower4.name}" label="{!$Label.c.TC_Coborrower4}" />
+                                <lightning:select class="slds-p-left_small" name="select" value="{!v.taxForm.coborrower4.currentFlag}" disabled="{!or(v.isViewForm,!v.taxForm.coborrower4.editable)}">
+                                    <aura:if isTrue="{!v.taxForm.coborrower4.currentFlag==''}">
+                                        <option selected="true" value="">--Select--</option>
+                                    </aura:if>
+                                    <aura:iteration items="{!v.option}" var="opt">
+                                        <option text="{!opt}"></option>
+                                    </aura:iteration>
+                                </lightning:select>
+                                <aura:if isTrue="{!v.isSaveSuccess.co4}">
+                                    <span style="color:green;" class="success">
+                                        {!$Label.c.TC_SaveSuccess}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.getFlag.co4}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.ERR008}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.saveForm.co4}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.TC_ErrorSaveForm}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.consentTimeout.co4}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.Auto_Loan_Product_holding_Request_Timeout}
+                                    </span>
+                                </aura:if>
+                            </div>
+
+                            <div style="display: flex;">
+                                <lightning:input class="slds-border_bottom" style="width: 50%; font-weight:900;" name="co5Name" readonly="true" value="{!v.taxForm.coborrower5.name}" label="{!$Label.c.TC_Coborrower5}" />
+                                <lightning:select class="slds-p-left_small" name="select" value="{!v.taxForm.coborrower5.currentFlag}" disabled="{!or(v.isViewForm,!v.taxForm.coborrower5.editable)}">
+                                    <aura:if isTrue="{!v.taxForm.coborrower5.currentFlag==''}">
+                                        <option selected="true" value="">--Select--</option>
+                                    </aura:if>
+                                    <aura:iteration items="{!v.option}" var="opt">
+                                        <option text="{!opt}"></option>
+                                    </aura:iteration>
+                                </lightning:select>
+                                <aura:if isTrue="{!v.isSaveSuccess.co5}">
+                                    <span style="color:green;" class="success">
+                                        {!$Label.c.TC_SaveSuccess}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.getFlag.co5}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.ERR008}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.saveForm.co5}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.TC_ErrorSaveForm}
+                                    </span>
+                                </aura:if>
+                                <aura:if isTrue="{!v.isError.consentTimeout.co5}">
+                                    <span style="color:red;" class="error">
+                                        {!$Label.c.Auto_Loan_Product_holding_Request_Timeout}
+                                    </span>
+                                </aura:if>
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+
+                </div>
+            </div>
+            <aura:set attribute="footer">
+                <div style="text-align: center;padding: 10px;">
+                    <aura:if isTrue="{!v.isViewForm}">
+                        <lightning:button label="Edit" title="Edit" onclick="{!c.editForm}" disabled="{!!v.allowEditBtn}" />
+                        <aura:set attribute="else">
+                            <lightning:button variant="brand" label="Save" title="Save" onclick="{!c.saveForm}" />
+                            <lightning:button label="Cancel" title="Cancel" onclick="{!c.cancelEditForm}" />
+                        </aura:set>
+                    </aura:if>
+                </div>
+            </aura:set>
+        </lightning:card>
+    </div>
+
+</aura:component>

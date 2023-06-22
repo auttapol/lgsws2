@@ -1,0 +1,52 @@
+<aura:component controller="MainBankHistoryTableComponent"
+    implements="forceCommunity:availableForAllPageTypes,force:appHostable,flexipage:availableForRecordHome,force:hasRecordId,lightning:actionOverride,lightning:isUrlAddressable,lightning:hasPageReference"
+    access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute type="Customer_Main_Bank_Info__c[]" name="mainBankList"/>
+    <aura:attribute name="columns" type="List"/>
+    <aura:attribute name="fieldLabelsMap" type="Map"/>
+    <aura:attribute name="blankList" type="Boolean" default="false"/>
+    <aura:attribute name="isLoading" type="Boolean" default="true" />
+    
+    <aura:attribute name="permission_no" type="Boolean" default="" />
+    <aura:if isTrue="{!v.isLoading}">
+        <div class="spinner">
+            <lightning:spinner alternativeText="Loading" size="small" />
+        </div>
+    </aura:if>
+    
+    <div>
+        <div class="slds-section slds-is-open">
+            <h3 class="slds-section__title">
+                <div aria-controls="expando-unique-id" aria-expanded="true"
+                    class="slds-button slds-section__title-action">
+                    <span class="slds-truncate" title="{!$Label.c.mainbank_desc_detail}">{!$Label.c.mainbank_desc_detail}</span>
+                </div>
+            </h3>
+
+        </div>
+        <aura:if isTrue="{!v.permission_no}">
+                <div class="slds-notify slds-notify_alert slds-alert_warning">
+                    <lightning:icon iconName="utility:warning" variant="warning" alternativeText="Warning"
+                        title="Warning" />
+                    {!$Label.c.Data_Condition_NotAuthorizedMsg}
+                </div>
+                <aura:set attribute="else">
+                    <aura:if isTrue="{!v.blankList}">
+                        <div class="slds-notify slds-notify_alert slds-alert_warning">
+                            <lightning:icon iconName="utility:warning" variant="warning" alternativeText="Warning"
+                                title="Warning" />
+                                This customer does not have Main Bank History Data.
+                        </div>
+                        <aura:set attribute="else">
+                            <lightning:datatable keyField="id" data="{!v.mainBankList}"
+                                columns="{!v.columns}" hideCheckboxColumn="true" 
+                                showRowNumberColumn="false" />
+                        </aura:set>
+                    </aura:if>
+                </aura:set>
+        </aura:if>
+
+    </div>
+
+</aura:component>

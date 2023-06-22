@@ -1,0 +1,202 @@
+<aura:component controller="T_PerformanceController"
+    implements="force:hasRecordId,lightning:utilityItem,flexipage:availableForAllPageTypes,lightning:isUrlAddressable,force:appHostable">
+
+    <aura:attribute name="userObj" type="Object" />
+    <aura:attribute name="landingPageCriteria" type="String" />
+    <aura:attribute name="searchText" type="String" />
+    <aura:attribute name="channel" type="String" />
+    <aura:attribute name="region" type="String" />
+    <aura:attribute name="zone" type="String" />
+    <aura:attribute name="branchCodeOrNameSearch" type="String" />
+    <aura:attribute name="branchCode_BranchName" type="String" /> 
+    <aura:attribute name="branchCode_BranchNameList" type="List" /> 
+    <aura:attribute name="teamList" type="List" />
+    <aura:attribute name="channelList" type="List" />
+    <aura:attribute name="regionList" type="List" />
+    <aura:attribute name="zoneList" type="List" />
+    <aura:attribute name="defaultChannel" type="String" default="Branch" />
+    <aura:attribute name="searchStatus" type="String" default="do not search" />
+    <aura:attribute name="isChannelDisable" type="Boolean" default="false" />
+    <aura:attribute name="isRegionDisable" type="Boolean" default="false" />
+    <aura:attribute name="isZoneDisable" type="Boolean" default="false" />
+
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+
+    <lightning:card title="">
+
+        <lightning:accordion aura:id="accordion" activeSectionName="A" allowMultipleSectionsOpen="true">
+            <lightning:accordionSection name="A" label="Filter">
+                <div class="slds-grid slds-wrap slds-align_absolute-center" style="margin-bottom: 20px;">
+                    <div class="slds-col slds-size_1-of-4" style="margin-top: 20px;margin-left: 20px;">
+                        <span id="" class="slds-m-right_x-small">Channel</span>
+                    </div>
+                    <div class="slds-col slds-size_2-of-4">
+                        <aura:if isTrue="{!!v.isChannelDisable}">
+                            <lightning:select name="select" value="{!v.channel}" onchange="{!c.handleChannel}"
+                                required="true">
+                                <aura:iteration items="{!v.channelList}" var="channel">
+                                    <option text="{!channel.label}" value="{!channel.value}"
+                                    selected="{!channel.value == v.defaultChannel}" />
+                                </aura:iteration>
+                            </lightning:select>
+                            <aura:set attribute="else">
+                                <lightning:input name="Channel" disabled="true" value="{!v.channel}" required="true" />
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4" style="margin-top: 20px;margin-left: 20px;">
+                        <span id="" class="slds-m-right_x-small">Region</span>
+                    </div>
+                    <div class="slds-col slds-size_2-of-4">
+                        <aura:if isTrue="{!!v.isRegionDisable}">
+                            <lightning:select aura:id="field" name="region" value="" onchange="{!c.handleRegion}">
+                                <option value="">-- None --</option>
+                                <aura:iteration items="{!v.regionList}" var="region">
+                                    <option text="{!region.label}" value="{!region.value}" />
+                                </aura:iteration>
+                            </lightning:select>
+                            <aura:set attribute="else">
+                                <lightning:input name="region" disabled="true" value="{!v.region}" />
+                            </aura:set>
+                        </aura:if>          
+                    </div>
+                    <aura:if isTrue="{!v.channel == 'Branch'}">
+                        <div class="slds-col slds-size_1-of-4" style="margin-top: 20px;margin-left: 20px;">
+                            <span id="" class="slds-m-right_x-small">Zone</span>
+                        </div>
+                        <div class="slds-col slds-size_2-of-4">
+                            <aura:if isTrue="{!!v.isZoneDisable}">
+                                <lightning:select name="zone" value="" onchange="{!c.handleZone}" disabled="{!v.isZoneDisable}">
+                                    <option value="">-- None --</option>
+                                    <aura:iteration items="{!v.zoneList}" var="zone">
+                                        <option text="{!zone.label}" value="{!zone.value}" />
+                                    </aura:iteration>
+                                </lightning:select>
+                                <aura:set attribute="else">
+                                    <lightning:input name="zone" disabled="true" value="{!v.zone}" />
+                                </aura:set>
+                            </aura:if>            
+                        </div>
+                    </aura:if>
+                    <div class="slds-col slds-size_1-of-4" style="margin-top: 20px;margin-left: 20px;">
+                        <span id="" class="slds-m-right_x-small">Branch/Team Code - Branch/Team Name</span>
+                    </div>
+                    <div class="slds-col slds-size_2-of-4">
+                        <lightning:select name="branchCode_BranchName" value=""
+                        onchange="{!c.handleBranchCode_BranchName}">
+                            <option value="">-- None --</option>
+                            <aura:iteration items="{!v.branchCode_BranchNameList}" var="teamCodeAndName">
+                                <option text="{!teamCodeAndName.label}" value="{!teamCodeAndName.value}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <!-- partial search -->
+                    <div class="slds-col slds-size_1-of-4" style="margin-top: 20px;margin-left: 20px;">
+                        <span id="" class="slds-m-right_x-small">Search: Branch/Team Code or Branch/Team Name</span>
+                    </div>
+                    <div class="slds-col slds-size_2-of-4">
+                        <lightning:input name="branchOrTeam" value="{!v.branchOrTeamCode}"
+                        onchange="{!c.handleBranchCodeOrNameSearch}" />
+                    </div>
+                    <div class="slds-col slds-size_1-of-4" style="margin-top: 20px;margin-left: 20px;"></div>
+                        <div class="slds-col slds-size_2-of-4">
+                            <div style="margin-top:10px; margin-bottom: 10px;" class="slds-align_absolute-center">
+                                <lightning:button variant="brand" label="Search" onclick="{!c.searchPerformanceTeam}" />
+                            </div>
+                        </div>
+                    </div>             
+            </lightning:accordionSection>
+        </lightning:accordion>
+        <aura:if isTrue="{!v.teamList.length > 0}">
+            <!-- Scroll -->
+            <div class="slds-table--header-fixed_container" style="height: 430px;">
+                <div class="slds-scrollable_y" style="height:100%;">
+                    <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                        <!-- <table class="slds-table slds-table_bordered slds-table-/-header-fixed"> -->
+                        <thead>
+                            <tr class="slds-line-height_reset">
+                                <!-- <th class="slds-text-title_caps" scope="col"> ทำเป็นตัวพิมพ์ใหญ่ -->
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Branch Code/Team Code">Branch Code/Team Code</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Branch Team Name">Branch/Team Name
+                                    </div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" title="Branch Team Manager">Branch/Team Manager</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" title=""></div>
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <aura:iteration items="{! v.teamList }" var="teamObj" indexVar="index">
+                                <tr class="slds-line-height_reset">
+                                    <th scope="col">
+                                        <div class="slds-truncate slds-p-vertical_xxx-small" title="Branch Code/Team Code">
+                                            {!teamObj.Branch_Team_Code__c}
+                                        </div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate slds-p-vertical_xxx-small" title="Branch Team Name">
+                                            {!teamObj.Branch_Team_Name__c}
+                                        </div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate slds-p-vertical_xxx-small" title="Branch Team Manager">
+                                            {!teamObj.Branch_Team_Manager__c}
+                                        </div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate slds-p-vertical_xxx-small" title="">
+                                            <lightning:button name="{!index}" variant="brand" label="View"
+                                            onclick="{!c.viewP4}" />
+                                        </div>
+                                    </th>
+                                </tr>
+                            </aura:iteration>
+                        </tbody>
+                    </table>
+                        <!-- Scroll -->
+                </div>
+            </div>
+            <aura:set attribute="else">
+                <!-- Scroll -->
+                <div class="slds-table--header-fixed_container" style="height: 100px; margin: 10px">
+                    <div class="slds-scrollable_y" style="height:100%;">
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                            <!-- <table class="slds-table slds-table_bordered slds-table-/-header-fixed"> -->
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Branch Code/Team Code">Branch Code/Team Code
+                                        </div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Branch Team Name">Branch/Team Name
+                                        </div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title="Branch Team Manager">Branch/Team Manager</div>
+                                    </th>
+                                    <th scope="col">
+                                        <div class="slds-truncate" title=""></div>
+                                    </th>
+                                </tr>
+                            </thead>
+                        </table>
+                        <aura:if isTrue="{! v.searchStatus == 'search'}">
+                            <div class = "slds-align_absolute-center slds-text-heading_large">No Result</div>
+                        </aura:if>
+                            <!-- Scroll -->
+                    </div>
+                </div>                 
+            </aura:set>
+        </aura:if>
+            
+    </lightning:card>
+</aura:component>

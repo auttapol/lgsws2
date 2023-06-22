@@ -1,0 +1,311 @@
+<aura:component implements="force:hasRecordId" access="global" controller="PEUpdateHelper">
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="title" type="String" default="New Customer" />
+    <aura:attribute name="recordTypeId" type="Id" />
+    <aura:attribute name="acctRec" type="Account" />
+    <aura:attribute name="theme" type="String" default="Theme4u" />
+    <aura:attribute name="isEdit" type="boolean" default="false" />
+    <aura:attribute name="displaySectionCustInfo" type="boolean" default="false" />
+    <aura:attribute name="displaySectionProdInterest" type="boolean" default="false" />
+    <aura:attribute name="displaySectionCustSource" type="boolean" default="false" />
+    <aura:attribute name="displaySectionReassCust" type="boolean" default="false" />
+    <aura:attribute name="spinner" type="boolean" default="false" />
+    <aura:attribute name="userProfile" type="String"/>
+    <aura:attribute name="error" type="String" default="" />
+    <aura:attribute name="isError" type="boolean" default="false" />
+
+    <aura:attribute name="deviceSize" type="Map" default="{
+                                                          'size': '12',
+                                                          'smallDeviceSize': '12',
+                                                          'mediumDeviceSize': '6',
+                                                          'largeDeviceSize': '6',
+                                                          }" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}" />
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}" />
+
+    <lightning:workspaceAPI aura:id="workspace" />
+
+
+    <ui:scrollerWrapper>
+
+        <aura:if isTrue="{!v.spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container">
+                <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                    <span class="slds-assistive-text">Loading...</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </aura:if>
+        <!--pageHeader-->
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:account" alternativeText="Account" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 class="slds-text-heading_label">
+                        {!v.title}
+                    </h1>
+                    <h2 class="slds-text-heading_medium">
+                        {!v.acctRec.Name}
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+        
+        <!-- Error Message -->
+        <div class="{! !v.isError ? 'slds-hide' : 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error' }"
+            role="alert">
+            <span class="slds-assistive-text">error</span>
+            <span class="slds-icon_container slds-icon-utility-error slds-m-right_x-small"
+                title="Description of icon when needed">
+                <!-- <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
+                      <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#error"></use>
+                    </svg> -->
+                <lightning:icon iconName="utility:error" variant="inverse" size="x-small" />
+            </span>
+            <h2>{!v.error}</h2>
+        </div>
+
+        <!--Customer Information-->
+        <lightning:recordEditForm aura:id="recordCreateForm" recordTypeId="{!v.recordTypeId}" objectApiName="Account" recordId="{!v.recordId}"
+            onsubmit="{!c.handleSubmit}" onsuccess="{!c.handleSuccess}" onerror="{!c.handleError}">
+            <lightning:card>
+
+                <aura:set attribute="actions">
+                    <lightning:button label="Save" type="submit" aura:id="disablebuttonid"/>
+                    <lightning:button label="Cancel" title="Cancel" onclick="{!c.handleCancel}" />
+                </aura:set>
+                <aura:set attribute="footer">
+                    <lightning:button label="Save" type="submit" aura:id="disablebuttonid2"/>
+                    <lightning:button label="Cancel" title="Cancel" onclick="{!c.handleCancel}" />
+                </aura:set>
+
+                <!--General Information-->
+
+                <h3 class="slds-section__title slds-theme_shade" style="margin-top:30px">
+                    <span class="slds-truncate slds-p-horizontal_small" title="Section Title">General Information
+                    </span>
+                </h3>
+
+
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Name" required="true" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Customer_Name_PE_Eng__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:outputField fieldName="Account_Type__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Customer_Type__c" required="true" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:outputField fieldName="Disqualified_Reason__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="ID_Type_PE__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:outputField fieldName="OwnerId" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="NID__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="ID_Number_PE__c" class="slds-hidden" />
+                    </div>
+                </div>
+
+                <!--Detail Information-->
+                <h3 class="slds-section__title slds-theme_shade" style="margin-top:30px">
+                    <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Detail Information
+                    </span>
+                </h3>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Rating" />
+                    </div>
+
+                    <!-- Custom LookUp Industry -->
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Industry__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="ParentId" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Sales_amount_per_year__c" />
+                    </div>
+                    
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Group__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="No_of_years_business_run__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Account_Plan_Flag__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Account_Plan_Form__c" />
+                    </div>
+                </div>
+
+                <aura:if isTrue="{!v.displaySectionCustInfo}">
+                    <h3 class="slds-section__title slds-theme_shade" style="margin-top:30px">
+                        <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Customer Information
+                        </span>
+                    </h3>
+
+                    <div class="slds-grid slds-wrap">
+
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Mobile_Number_PE__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Primary_Address_Line_1_PE__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Phone" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Primary_Address_Line_2_PE__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Primary_Phone_Ext_PE__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Primary_Address_Line_3_PE__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Email_Address_PE__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Province_Primary_PE__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Zip_Code_Primary_PE__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Country_Primary_PE__c" />
+                        </div>
+                        <!-- uan edit -->
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="X4G_Base__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="X4G_Current_month__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Sub_4G__c" />
+                        </div>
+                        <!--end uan edit-->                        
+                    </div>
+                </aura:if>
+
+                <aura:if isTrue="{!v.displaySectionProdInterest}">
+
+                    <h3 class="slds-section__title slds-theme_shade" style="margin-top:30px">
+                        <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Product Interest
+                        </span>
+                    </h3>
+
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Product_Group_1__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Amount_1__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Product_Group_2__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Amount_2__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Product_Group_3__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Amount_3__c" />
+                        </div>
+                    </div>
+                </aura:if>
+
+
+                <aura:if isTrue="{!v.displaySectionCustSource}">
+                    <h3 class="slds-section__title slds-theme_shade" style="margin-top:30px">
+                        <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Customer Source
+                        </span>
+                    </h3>
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Channel__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Other_Channel__c" />
+                        </div>
+            
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Branch_Referred__c" />
+                        </div>
+
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Campaign_ID__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="TMB_Employee_ID__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Remark__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="TMB_Employee_Name__c" />
+                        </div>
+                    </div>
+                </aura:if>
+
+                <aura:if isTrue="{!v.displaySectionReassCust}">
+                    <h3 class="slds-section__title slds-theme_shade" style="margin-top:30px">
+                        <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Re-assignment Customer
+                        </span>
+                    </h3>
+
+                    <div class="slds-grid slds-wrap">
+
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="Branch_and_Zone__c" />
+                        </div>
+                        
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:outputField fieldName="Suggested_Segment__c" />
+                        </div>
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:outputField fieldName="Suggested_Sub_Segment__c" />
+                        </div>
+                    </div>
+                </aura:if>
+
+            </lightning:card>
+        </lightning:recordEditForm>
+    </ui:scrollerWrapper>
+</aura:component>

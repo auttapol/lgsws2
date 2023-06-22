@@ -1,0 +1,155 @@
+<aura:component controller="CreditCardDetailControl" implements="lightning:isUrlAddressable" access="global">
+    <lightning:workspaceAPI aura:id="workspace" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="fields" type="Map" default="{}" />
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="account_id" type="String" />
+    <aura:attribute name="tmbCustId" type="String" />
+    <aura:attribute name="CardNumber" type="String" />
+    <aura:attribute name="CreditCardType" type="String" />
+    <aura:attribute name="product" type="Object" />
+    <aura:attribute name="errMsgGetcard" type="String" />
+
+    <!-- Water Mark -->
+    <aura:attribute name="waterMarkImage" type="String" />
+
+    <aura:attribute name="error" type="Map" default="{'state':false,'message':''}" />
+
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+    <aura:attribute name="unmasked" type="Map" default="{}"/>
+    <ui:scrollerWrapper>
+        <div class="slds-no-print">
+            <aura:if isTrue="{! v.isLoading }">
+                <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+            </aura:if>
+
+            <lightning:layout class="slds-page-header slds-page-header_object-home">
+                <lightning:layoutItem>
+                    <lightning:icon size="large" iconName="standard:product" />
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="page-section page-header">
+                        <h1 class="slds-text-heading_label">
+                            Credit Card
+                        </h1>
+                        <h2 class="slds-text-heading_medium">
+                            {!$Label.c.Credit_Card_RDC_Product_Details}
+                        </h2>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+
+            <aura:if isTrue="{! v.error.state }">
+                <lightning:layout>
+                    <lightning:layoutItem size="12" class="slds-is-relative slds-p-top_small">
+                        <lightning:card class="slds-theme_shade slds-theme_alert-texture">
+                            <aura:set attribute="title">
+                                <div class="slds-text-heading_medium slds-text-color_destructive">{!v.error.title}</div>
+                            </aura:set>
+                            <lightning:layoutItem class="slds-p-around_small">
+                                {! v.error.message }
+                            </lightning:layoutItem>
+                        </lightning:card>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+
+            <lightning:layout multipleRows="true">
+
+                <lightning:layoutItem size="12" class="slds-p-top_small">
+                    <lightning:card>
+                        <aura:set attribute="title">
+                            {! $Label.c.Credit_Card_RDC_Information }
+                        </aura:set>
+
+                        <!-- Water Mark -->
+                        <div style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                            <lightning:layout verticalAlign="stretch" multipleRows="true">
+                                <aura:iteration items="{!v.fields.CreditCardInfo}" var="field" indexVar="index">
+                                    <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                                        padding="horizontal-small" class="{! 'slds-p-bottom_small ' + (field.fieldName != '' ? '' : 'hideMinWidth') }">
+                                        <div
+                                            class="{!'slds-form-element slds-form-element_horizontal ' + (or(field.fieldName, field.label) ? 'slds-form-element_readonly ' : '') }">
+                                            <span class="slds-form-element__label">
+                                                {!field.label}
+                                                <aura:if isTrue="{! field.inlineHelpText }">
+                                                    <lightning:helptext class="helptext" content="{! field.inlineHelpText }" />
+                                                </aura:if>
+                                            </span>
+                                            <div class="slds-form-element__control customField">
+                                                <aura:if isTrue="{!and(field.isAccessible,v.isLoading == false)}">
+                                                    <aura:if isTrue="{!field.value}">
+                                                        <div aura:id="{!field.id}" class="slds-form-element__static">
+                                                            <c:CallCenterCSV_PillOutput type="{!field.type}" value="{!field.value}" />
+                                                        </div>
+                                                    </aura:if>
+                                                    <aura:if isTrue="{!field.value == null}">
+                                                        <div aura:id="{!field.id}" class="slds-form-element__static" style="color: red;">
+                                                            <c:CallCenterCSV_PillOutput type="{!field.type}" value="{!field.ErrorMsg}" />
+                                                        </div>
+                                                    </aura:if>
+                                                    <aura:set attribute="else">
+                                                        <lightning:formattedText value="&nbsp;" />
+                                                    </aura:set>
+                                                </aura:if>
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                </aura:iteration>
+                            </lightning:layout>
+                        </div>
+
+                    </lightning:card>
+                </lightning:layoutItem>
+
+                <lightning:layoutItem size="12" class="slds-p-vertical_small">
+                    <lightning:card>
+                        <aura:set attribute="title">
+                            {! $Label.c.So_Good_Pay_Plan_Record_In_Last_Statement }
+                        </aura:set>
+
+                        <!-- Water Mark -->
+                        <div style = "{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                            <lightning:layout verticalAlign="stretch" multipleRows="true">
+                                <aura:iteration items="{!v.fields.PayPlanRecord}" var="field" indexVar="index">
+                                    <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6"
+                                        padding="horizontal-small" class="{! 'slds-p-bottom_small ' + (field.fieldName != '' ? '' : 'hideMinWidth') }">
+                                        <div
+                                            class="{!'slds-form-element slds-form-element_horizontal ' + (or(field.fieldName, field.label) ? 'slds-form-element_readonly ' : '') + (field.class ? field.class : '') }">
+                                            <span class="slds-form-element__label">
+                                                {!field.label}
+                                                <aura:if isTrue="{! field.inlineHelpText }">
+                                                    <lightning:helptext class="helptext" content="{! field.inlineHelpText }" />
+                                                </aura:if>
+                                            </span>
+                                            <div class="slds-form-element__control customField">
+                                                <aura:if isTrue="{!and(field.isAccessible,v.isLoading == false)}">
+                                                    <aura:if isTrue="{!field.value}">
+                                                        <div aura:id="{!field.id}" class="slds-form-element__static">
+                                                            <c:CallCenterCSV_PillOutput type="{!field.type}" value="{!field.value}" />
+                                                        </div>
+                                                    </aura:if>
+                                                    <aura:if isTrue="{!field.value == null}">
+                                                        <div aura:id="{!field.id}" class="slds-form-element__static" style="color: red;">
+                                                            <c:CallCenterCSV_PillOutput type="{!field.type}" value="{!field.ErrorMsg}" />
+                                                        </div>
+                                                    </aura:if>
+                                                    <aura:set attribute="else">
+                                                        <lightning:formattedText value="&nbsp;" />
+                                                    </aura:set>
+                                                </aura:if>
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                </aura:iteration>
+                            </lightning:layout>
+                        </div>
+                    </lightning:card>
+                </lightning:layoutItem>
+
+            </lightning:layout>
+        </div>
+    </ui:scrollerWrapper>
+
+</aura:component>

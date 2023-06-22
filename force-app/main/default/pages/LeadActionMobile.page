@@ -1,0 +1,391 @@
+<apex:page standardController="Lead" extensions="LeadActionExtension" showChat="false" showHeader="false" sidebar="false"
+    standardStylesheets="true" applyHtmlTag="true" title="{!action}" lightningStylesheets="true">
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+
+    <head>
+
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}" />
+        <apex:stylesheet value="{!URLFOR($Resource.AccountPlanEditTable)}" />
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+    </head>
+
+    <style>
+        .depend select {
+            display: block;
+            width: 100%;
+            height: 34px;
+            padding: 6px 14px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #000000;
+            background-color: #ffffff;
+            background-image: none;
+            border: 1px solid #cfd0d2;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+
+            border-color: #bfc0c2;
+            outline: 0;
+            background-color: #fff;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(191, 192, 194, 0.6);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(191, 192, 194, 0.6);
+        }
+    </style>
+    <!-- svg loader style -->
+    <style>
+        .Indicator {
+            /*position : relative;*/
+        }
+
+        .Indicator.hidden {
+            display: none;
+        }
+
+        .Indicator .modal-glass {
+            background-color: #000000;
+            bottom: 0;
+            display: block;
+            left: 0;
+            margin-left: 0px;
+            opacity: 0.3;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100%;
+            z-index: 1999;
+        }
+
+        .Indicator .hideEl {
+            display: none;
+        }
+
+        .Indicator .indicatorContainer {
+            background: none repeat scroll 0 0 #354452;
+            border-radius: 5px;
+            color: #FFFFFF;
+            display: block;
+            height: 82px;
+            left: 0;
+            margin: -65px auto;
+            opacity: 0.9;
+            padding-top: 22px;
+            position: fixed;
+            right: 0;
+            text-align: center;
+            top: 250px;
+            width: 110px;
+            z-index: 2000;
+        }
+
+        /*Set the color of the icon*/
+
+        svg path,
+        svg rect {
+            fill: #2A94D6;
+        }
+
+        .text-blue-color {
+            color: #2a94d6;
+        }
+    </style>
+
+    <body>
+        <div id="SF1" class="bootstrap-sf1" style="display:none">
+            <div>
+                <div class="page-header page-header-anchor context-lead">
+                    <div class="container">
+                        <h1>{!action}</h1>
+                    </div>
+                </div>
+
+                <apex:outputPanel rendered="{!if(clicksave && !isReassign,true,false)}" id="launchPanel">
+                    <apex:outputPanel >
+                        <script>sforce.one.navigateToSObject('{!tempLead.Id}');</script>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+
+                <apex:form id="frm">
+                    <apex:actionStatus onstart="startLoading();" onstop="endLoading();" id="loadStatus" />
+                    <apex:outputPanel rendered="{!if(clicksave && isReassign,true,false)}">
+                        Lead has been assign to Queue/Person : {!if(tempLead.Suggested_Person__c!=null,tempLead.Suggested_Person__c,tempLead.Suggested_Team__c)}
+                        <br/>
+                        <apex:commandButton value="Return" onclick="sforce.one.navigateToURL('/00Q');return false;" />
+                    </apex:outputPanel>
+
+
+                    <apex:outputPanel rendered="{! !isReassign}">
+
+                        <apex:pageMessages id="messages" escape="false" />
+
+                        <apex:outputPanel rendered="{!isDuplicated}" id="redirectpanel">
+                            <script type="text/javascript">
+                                window.setTimeout("redirectpage();", 3000);
+                                function redirectpage() {
+                                    sforce.one.navigateToSObject('{!tempLead.Id}');
+                                }
+                            </script>
+                        </apex:outputPanel>
+
+                        <apex:actionFunction action="{!saveMobile}" name="gosave" />
+                        <apex:actionFunction action="{!checkDupAction}" name="checkDup">
+                            <apex:param name="mode" value="1" />
+                        </apex:actionFunction>
+
+                        <div style="margin-bottom:10px;" class='text-center'>
+                            <apex:commandbutton value="Check Duplication" rendered="{!isbyPassDuplicateCheck && !isDuplicated && action!='' && $CurrentPage.parameters.prescreen != '1' }"
+                                onclick="checkDup();" rerender="theBlock,PreScreenBlock,messages" status="loadStatus" styleClass="btn-lg btn-default"
+                            />
+
+                            <apex:commandButton value="{!buttonValue}" onclick="gosave();" styleClass="btn-lg btn-default" status="loadStatus" reRender="launchPanel,frm"
+                                rendered="{!if(action!=''&& $CurrentPage.parameters.prescreen != '1' && !isbyPassDuplicateCheck,true,false)}"
+                            /> &nbsp;
+                            <apex:commandButton value="Cancel" status="loadStatus" onclick="sforce.one.navigateToSObject('{!tempLead.Id}');" styleClass="btn-lg btn-default"
+                                reRender="launchPanel" />
+                        </div>
+
+                        <apex:actionFunction immediate="true" action="{!preScreenAction}" name="resultChange" reRender="PreScreenBlock,messages">
+                            <!-- //Fixed: 2018Jan -->
+                            <apex:param value="" name="inpPreScreenResult" />
+                        </apex:actionFunction>
+                        <!--<apex:actionFunction action="{!PreScreenResultChange}" name="PreScreenResultChange" reRender="PreScreenBlock"/>-->
+                        <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner" style="display: {!if(action=='Pre-Screen' 
+                                             && $CurrentPage.parameters.prescreen != '1' 
+                                             && !isbyPassDuplicateCheck ,'block','none')}">
+                            <div class="container panel-heading">
+                                <div class="navbar-header ">
+                                    <a data-toggle="collapse" aria-expanded="true" href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                                        {!action}
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+
+                        <!--
+                <apex:outputPanel rendered="{!if(action=='Pre-Screen' 
+                                             && $CurrentPage.parameters.prescreen != '1' 
+                                             && !isbyPassDuplicateCheck ,'true','false')}" id="PreScreenBlock">
+                    
+                <div class="card collapse in panel-collapse" id="collapse1">
+                    <div class="card-detail">
+                        <div class="row">
+                        
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Pre-Screening Result</label>
+                                    <apex:inputField styleClass="form-control" value="{!tempLead.Pre_screening_Result__c}" onchange="PreScreenResultChange()"/>
+                                </div>
+                            </div>
+                            <apex:inputField id="rl1" value="{!tempLead.Unqualified_Action__c}" style="display:none;"/>
+                                                   
+                            <div class="col-md-12 UnqualifiedReason">
+                                <div class="form-group">
+                                    <apex:outputLabel rendered="{!isFailedPreScreening}" styleClass="control-label"> Unqualified Reason : </apex:outputLabel>
+                                    <div class="depend">
+                                        <apex:inputField styleClass="form-control" value="{!tempLead.Unqualified_Reasons__c}" rendered="{!isFailedPreScreening}" required="true"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12 UnqualifiedReason">
+                                <div class="form-group">
+                                    <apex:outputLabel rendered="{!isFailedPreScreening}" styleClass="control-label">Sub Unqualified Reason :</apex:outputLabel>
+                                    <div class="depend">
+                                        <apex:inputField styleClass="form-control" value="{!tempLead.Sub_Unqualified_Reason__c}" rendered="{!isFailedPreScreening}" required="true"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                     <apex:outputLabel styleClass="control-label">Other Reason</apex:outputLabel>                                   
+                                    <apex:inputField styleClass="form-control" value="{!tempLead.Other_Reason__c}" />
+                                </div>
+                            </div>
+                            
+                        </div>
+                    </div>
+                </div>
+                </apex:outputPanel>
+                -->
+                        <apex:inputField id="rl1" value="{!tempLead.Unqualified_Action__c}" style="display:none;" />
+                        <apex:pageblock mode="Edit" id="pageblock">
+                            <apex:pageblocksection columns="1" rendered="{!if(action=='Pre-Screen' 
+                                             && $CurrentPage.parameters.prescreen != '1' 
+                                             && !isbyPassDuplicateCheck ,'true','false')}" id="PreScreenBlock">
+
+                                <!-- #### 
+                            Edit By: I&I Narathip 
+                            Date: 26-10-2018
+                            CR: Fail Prescreen
+                        -->
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel rendered="{!isFailedPreScreening}">{!$ObjectType.Lead.Fields.Lead_Segment__c.label}</apex:outputLabel>
+                                    <apex:outputText value="{!tempLead.Lead_Segment__c}" rendered="{!isFailedPreScreening}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel >Pre-Screening Result</apex:outputLabel>
+                                    <apex:inputfield value="{!tempLead.Pre_screening_Result__c}" onchange="LeadPreScreenResultChange(this)" required="true" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel rendered="{!isFailedPreScreening}" styleClass="control-label">Unqualified Reason</apex:outputLabel>
+                                    <apex:inputfield styleClass="form-control" value="{!tempLead.Unqualified_Reasons__c}" rendered="{!isFailedPreScreening}"
+                                        required="true" />
+                                </apex:pageBlockSectionItem>
+                                <!-- #### 
+                            Edit By: Danudath
+                            Date: 27-02-2017
+                            CR: Modify ‘Reason List’ in Lead Management
+                            -->
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel rendered="{!isFailedPreScreening}" styleClass="control-label">Sub Unqualified Reason</apex:outputLabel>
+                                    <apex:inputfield styleClass="form-control" value="{!tempLead.Sub_Unqualified_Reason__c}" rendered="{!isFailedPreScreening}"
+                                        required="true" />
+                                </apex:pageBlockSectionItem>
+                                <!-- ### Edn edit by Danudath -->
+
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel >Other Reason </apex:outputLabel>
+                                    <apex:inputfield value="{!tempLead.Other_Reason__c}" />
+                                </apex:pageBlockSectionItem>
+
+                            </apex:pageblocksection>
+                        </apex:pageblock>
+
+                        <apex:outputPanel rendered="{!if(action=='Reassign' && !isbyPassDuplicateCheck,'true','false')}">
+                            <div class="card collapse in panel-collapse" id="collapse1">
+                                <div class="card-detail">
+                                    <div class="row">
+
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label" for="focusedInput">Suggested Segment</label>&nbsp;&nbsp; &nbsp;&nbsp;
+                                                <apex:outputField styleClass="form-control" value="{!tempLead.Suggested_Segment__c}" />
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label" for="focusedInput">Suggested Team</label>&nbsp;&nbsp; &nbsp;&nbsp;
+                                                <apex:outputField styleClass="form-control" value="{!tempLead.Suggested_Team__c}" />
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label" for="focusedInput">Suggested Person</label>&nbsp;&nbsp; &nbsp;&nbsp;
+                                                <apex:outputField styleClass="form-control" value="{!tempLead.Suggested_Person__c}" />
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-12">
+                                            <div class="form-group">
+                                                <label class="control-label" for="focusedInput">{!$ObjectType.Lead.Fields.Remark__c.label}</label>&nbsp;&nbsp; &nbsp;&nbsp;
+                                                <apex:inputField styleClass="form-control" value="{!tempLead.Remark__c}" />
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+
+                    </apex:outputPanel>
+                    <!-- /Loadding ajax -->
+                    <div id="loadingImage" class="Indicator">
+                        <div class="modal-glass">&nbsp;</div>
+                        <div class="indicatorContainer" role="alert">
+                            <div class="loader" title="0">
+                                <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                                    width="40px" height="40px" viewBox="0 0 40 40" enable-background="new 0 0 40 40" xml:space="preserve">
+                                    <path opacity="0.2" fill="#000" d="M20.201,5.169c-8.254,0-14.946,6.692-14.946,14.946c0,8.255,6.692,14.946,14.946,14.946
+                                                           s14.946-6.691,14.946-14.946C35.146,11.861,28.455,5.169,20.201,5.169z M20.201,31.749c-6.425,0-11.634-5.208-11.634-11.634
+                                                           c0-6.425,5.209-11.634,11.634-11.634c6.425,0,11.633,5.209,11.633,11.634C31.834,26.541,26.626,31.749,20.201,31.749z">
+                                    </path>
+                                    <path fill="#000" d="M26.013,10.047l1.654-2.866c-2.198-1.272-4.743-2.012-7.466-2.012h0v3.312h0
+                                             C22.32,8.481,24.301,9.057,26.013,10.047z">
+                                        <animateTransform attributeType="xml" attributeName="transform" type="rotate" from="0 20 20" to="360 20 20" dur="0.5s" repeatCount="indefinite">
+                                        </animateTransform>
+                                    </path>
+                                </svg>
+                            </div>
+                            <div id="Indicator-message">Loading ...</div>
+                        </div>
+                    </div>
+                    <!-- Loading ajax -->
+                </apex:form>
+                <script type="text/javascript">
+                    var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+                    var theme = '{!$User.UIThemeDisplayed}';
+                    if((theme == 'Theme4u' || theme == 'Theme4t') && isLightningMode){
+                        // console.log('{!action}');
+                        var action = '{!action}';
+                        if(action == 'Reassign'){
+                            sforce.one.navigateToURL('/apex/LeadAction?id={!Lead.Id}&action=reassign',true);
+                        } else if(action == 'Pre-Screen'){
+                            sforce.one.navigateToURL('/apex/LeadAction?id={!Lead.Id}&action=prescreen',true);
+                        }
+                    } else {
+                        $('#SF1').show();
+                    }
+                    $j = jQuery.noConflict();
+                    $j(document).ready(function () {
+                        setTimeout(function () { sfView.onComplete(); }, 1000);
+                    });
+                    function navigateTo(sObjectId) {
+                        if ((typeof sforce != 'undefined') && sforce && (!!sforce.one)) {
+                            // Salesforce1 navigation                 
+                            sforce.one.navigateToSObject(sObjectId, 'detail');
+                        } else {
+                            // Set the window's URL using a Visualforce expression
+                            window.location.href = '{!$Site.Prefix}' + '/' + sObjectId;
+                            // site prefix helps when navigation in community
+                        }
+                    }
+
+                    var sfView = (function () {
+                        var indicator = $j("#loadingImage");
+                        var msg = $j("#Indicator-message");
+                        // All functions now have direct access to each other
+                        var onProcess = function (strmessage) {
+                            msg.text(strmessage);
+                            indicator.removeClass('hidden');
+                        };
+                        var onComplete = function () {
+                            indicator.addClass('hidden');
+                        };
+                        // Return the object that is assigned to Module
+                        return {
+                            onProcess: onProcess,
+                            onComplete: onComplete
+                        };
+                    }());
+
+
+                    function startLoading() {
+                        sfView.onProcess('Loading ...');
+                    }
+
+                    function endLoading() {
+                        sfView.onComplete();
+                    }
+
+                    function LeadPreScreenResultChange(e) {
+                        var PreScreenResult = $(e).val();
+
+                        //Fixed: 2018Jan
+                        resultChange(PreScreenResult);
+                        document.getElementById("{!$Component.messages}").hidden = true;
+                    }
+                    
+                </script>
+            </div>
+        </div>
+    </body>
+</apex:page>

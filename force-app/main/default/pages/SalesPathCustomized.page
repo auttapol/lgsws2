@@ -1,0 +1,177 @@
+<apex:page standardController="Lead" standardStylesheets="true" extensions="SalesPathEx" sidebar="false" docType="html-5.0" lightningStylesheets="true">
+  <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w4.org/1999/xlink" >
+
+  <head>
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+    <style>
+      #appearOnSF1 {
+        margin: 10px 5px;
+      }
+
+      #appearOnSF1 .slds-wizard__label {
+        margin: 3px 0 !important;
+        font-size: 7px !important;
+      }
+
+      .slds .slds-box {
+        padding: 5px;
+        font-size: 12px;
+      }
+
+      @media (max-width: 500px) {
+        #appearOnSF1 .slds-wizard__label {
+          margin: 3px 0 !important;
+          letter-spacing: 0px !important;
+          overflow: inherit !important;
+        }
+        #appearOnSF1 .slds-wizard__marker {
+          width: 20px !important;
+          height: 20px !important;
+        }
+        .slds .slds-box {
+          padding: 3px;
+          font-size: 9px;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <apex:form id="frm">
+      <apex:outputPanel rendered="{!isBypassDuplicateCheck}" styleClass="slds">
+        <div class="slds-box slds-theme--error">
+          <p>{!BypassDuplicateCheckMsg}</p>
+        </div>
+      </apex:outputPanel>
+      <div class="slds" id="appearOnDesktop" style="margin-top: 10px;">
+        <div class="slds-wizard" role="navigation">
+          <ol class="slds-wizard__list">
+            <li class="slds-wizard__item slds-is-active">
+              <span href="#void" class="slds-wizard__link">
+                <span class="slds-wizard__marker"></span>
+                <span class="slds-wizard__label slds-text-heading--label slds-truncate">Accept Lead</span>
+              </span>
+            </li>
+            <li class="slds-wizard__item slds-is-active">
+              <span href="#void" class="slds-wizard__link">
+                <span class="slds-wizard__marker" style="background-color:
+                                                                   {!if(isPrescreen,COMPLETE_COLOR,
+                                                                   INCOMPLETE_COLOR)} !important;"></span>
+                <span class="slds-wizard__label slds-text-heading--label slds-truncate">Pre-screen</span>
+              </span>
+            </li>
+            <li class="slds-wizard__item slds-is-active">
+              <span href="#void" class="slds-wizard__link">
+                <span class="slds-wizard__marker" style="background-color:
+                                                                   {!if(isContactLead,COMPLETE_COLOR,
+                                                                   if(Progress==50,INCOMPLETE_COLOR,'#E0E5EE'))} !important;"></span>
+                <span class="slds-wizard__label slds-text-heading--label slds-truncate">Contact Lead</span>
+              </span>
+            </li>
+            <li class="slds-wizard__item">
+              <span href="#void" class="slds-wizard__link">
+                <span class="slds-wizard__marker" style="background-color:
+                                                                   {!if(isConvertLead,COMPLETE_COLOR,
+                                                                   if(Progress==75,INCOMPLETE_COLOR,''))} !important;"></span>
+                <span class="slds-wizard__label slds-text-heading--label slds-truncate">Convert Lead</span>
+              </span>
+            </li>
+            <li class="slds-wizard__item">
+              <span href="#void" class="slds-wizard__link">
+                <span class="slds-wizard__marker" style="background-color:{!if(isUnqualified,ERROR_COLOR,if(progress == 100,COMPLETE_COLOR,INCOMPLETE_COLOR))} !important;"></span>
+                <span class="slds-wizard__label slds-text-heading--label">
+                  <apex:outputText value="DUPLICATED LEAD" rendered="{!isUnqualified}" />
+                  <apex:outputText value="Mark as Complete" rendered="{! !isUnqualified}" />
+                </span>
+              </span>
+            </li>
+          </ol>
+          <span class="slds-wizard__progress">
+            <span class="slds-wizard__progress-bar" style="width:{!Progress}%;"></span>
+          </span>
+        </div>
+      </div>
+      <div class="slds" id="appearOnSF1" style="margin-top: 10px;">
+        <div class="slds-wizard" role="navigation">
+          <ol class="slds-wizard__list">
+            <li class="slds-wizard__item slds-is-active">
+              <span href="#void" class="slds-wizard__link">
+                <span class="slds-wizard__marker"></span>
+                <span class="slds-wizard__label slds-text-heading--label slds-truncate" style="visibility:hidden;" >Accept Lead</span>
+                <div style="font-size:67%">ACCEPT LEAD </div>
+              </span>
+            
+            </li>
+            <li class="slds-wizard__item slds-is-active">
+              <span href="#void" class="slds-wizard__link">
+                <span class="slds-wizard__marker" style="background-color:
+                                                                   {!if(isPrescreen,COMPLETE_COLOR,
+                                                                   INCOMPLETE_COLOR)} !important;"></span>
+                <span class="slds-wizard__label slds-text-heading--label slds-truncate" style="visibility:hidden;">Pre-screen</span>
+                <div style="font-size:67%">PRE-SCREEN</div>
+              </span>
+            </li>
+            <li class="slds-wizard__item slds-is-active">
+              <span href="#void" class="slds-wizard__link">
+                <span class="slds-wizard__marker" style="background-color:
+                                                                   {!if(isContactLead,COMPLETE_COLOR,
+                                                                   if(Progress==50,INCOMPLETE_COLOR,'#E0E5EE'))} !important;"></span>
+                <span class="slds-wizard__label slds-text-heading--label slds-truncate" style="visibility:hidden;">Contact Lead</span>
+                <div style="font-size:67%">CONTACT LEAD </div>
+              </span>
+            </li>
+            <li class="slds-wizard__item">
+              <span href="#void" class="slds-wizard__link">
+                <span class="slds-wizard__marker" style="background-color:
+                                                                   {!if(isConvertLead,COMPLETE_COLOR,
+                                                                   if(Progress==75,INCOMPLETE_COLOR,''))} !important;"></span>
+                <span class="slds-wizard__label slds-text-heading--label slds-truncate" style="visibility:hidden;">Convert Lead</span>
+                <div style="font-size:67%">CONVERT LEAD </div>
+              </span>
+            </li>
+            <li class="slds-wizard__item">
+              <span href="#void" class="slds-wizard__link">
+                <span class="slds-wizard__marker" style="background-color:{!if(isUnqualified,ERROR_COLOR,if(progress == 100,COMPLETE_COLOR,INCOMPLETE_COLOR))} !important;"></span>
+                <span class="slds-wizard__label slds-text-heading--label slds-truncate" style="visibility:hidden;">
+                  <apex:outputText value="DUPLICATED" rendered="{!isUnqualified}" />
+                  <apex:outputText value="Mark as Complete" rendered="{! !isUnqualified}" />
+                </span>
+                <div style="font-size:67%; text-transform:uppercase">
+                  <apex:outputText value="DUPLICATED" rendered="{!isUnqualified}" />
+                  <apex:outputText value="Mark as Complete" rendered="{! !isUnqualified}" />
+                </div>
+              </span>
+            </li>
+          </ol>
+          <span class="slds-wizard__progress">
+            <span class="slds-wizard__progress-bar" style="width:{!Progress}%;"></span>
+          </span>
+        </div>
+      </div>
+
+    </apex:form>
+  </body>
+  <script type="text/javascript">
+    $(document).ready(function () {
+      var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")
+    };
+    var theme = '{!$User.UIThemeDisplayed}';
+    if (theme == 'Theme4u' && isLightningMode) {
+      
+      $('#appearOnSF1').hide();
+      $('#appearOnDesktop').show();
+    }
+    if ((typeof sforce != 'undefined') && (sforce != null)) {
+      $('#appearOnSF1').show();
+      $('#appearOnDesktop').hide();
+    } else {
+      $('#appearOnSF1').hide();
+      $('#appearOnDesktop').show();
+    }    
+        });
+
+  </script>
+
+  </html>
+</apex:page>

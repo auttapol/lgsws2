@@ -1,0 +1,203 @@
+<apex:page standardcontroller="Lead" title="Convert Lead" id="thePage" showHeader="false" extensions="LeadActionController" lightningStylesheets="true" doctype="html-5.0">
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Inserting ...');" id="InsertStatus" onstop="endLoading();" />
+    <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+
+    <style>
+        .slds-scope img {
+            height: fit-content;
+        }
+        @media (max-width: 640px) {
+            input {
+                width: fit-content;
+            }
+            h1.pageType{
+                width: 200% !important;
+            }           
+        }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+    <apex:sectionheader title="Convert Lead" subtitle="{!leadobj.Name}" />
+    <!-- noenter : used to auto click button dave -->
+    <apex:form onkeypress="return noenter(event)">
+        <apex:actionstatus id="status">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                    <div class="slds">
+                        <div id="spin" class="slds-spinner_container">
+                            <div class="slds-spinner slds-spinner--medium" aria-hidden="false" role="alert">
+                                <div class="slds-spinner__dot-a"></div>
+                                <div class="slds-spinner__dot-b"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+            </apex:facet>
+        </apex:actionstatus>
+
+
+        <apex:outputPanel id="PageMessagesPanel">
+            <div style="color:#CC0000 !important;margin-left:20px !important;">
+                <b>
+                    <apex:outputText value="{!convertLeadWarning}" rendered="{! !(isRequiredOpp && IsAllowToConvert)}" />
+                    <apex:outputText value="{!convertOppornuityMessage}" rendered="{!isRequiredOpp && IsAllowToConvert}" />
+                </b>
+            </div>
+            <br />
+            <br />
+            <script>
+                function afterConvert(){
+                    var theme = '{!$User.UIThemeDisplayed}';
+                    if(theme=='Theme4t'){
+                        sforce.one.navigateToSObject('{!leadobj.Account__c}' );
+                    }
+                }
+            </script>
+        </apex:outputPanel>
+
+        <apex:pageblock mode="Edit" id="pageblock">
+
+            <apex:outputpanel id="statusMessage">
+                <apex:pagemessages ></apex:pagemessages>
+            </apex:outputpanel>
+            <apex:pageblockbuttons >
+
+                <apex:commandbutton action="{!confirmContacted}" value="Confirm" rendered="{! IsAllowToConvert && !isRequiredOpp && isNeedtoConfirmContacted }"
+                    status="status" rerender="pageblock,convertsection,opptySection,opptySectionInput,statusMessage,PageMessagesPanel,launchPanel"
+                    id="confirmButton" styleClass="btn btn-default actionButton" style="margin-right:5px;"/>
+
+
+
+                <apex:commandbutton action="{!convertLead}" value="Save" rendered="{!IsAllowToConvert && !isRequiredOpp && !isNeedtoConfirmContacted }"
+                    status="status" rerender="pageblock,convertsection,opptySection,opptySectionInput,statusMessage,PageMessagesPanel,launchPanel"
+                    id="convertButton" styleClass="btn btn-default actionButton" style="margin-right:5px;"/>
+                <apex:commandbutton action="{!ConvertAction}" value="Create Opportunity" rendered="{!IsAllowToConvert && isRequiredOpp && !isNeedtobeMember}"
+                status="status" id="actionButton" rerender="pageblock,convertsection,opptySection,opptySectionInput,statusMessage,PageMessagesPanel,launchPanel" style="margin-right:5px;" oncomplete="afterConvert();"/>
+
+                <apex:commandbutton onclick="pathCancel();return false;" value="Cancel" style="margin-right:5px;"/>
+            </apex:pageblockbuttons>
+            <apex:actionFunction name="doCancel" action="{!cancel}" />
+            <apex:actionFunction immediate="true" name="resultChange" action="{!interestAction}" status="status" rerender="convertsection,statusMessage">
+                <!-- //Fixed: 2018Jan -->
+                <apex:param value="" name="inpInterestResult" />
+            </apex:actionFunction>
+            <!-- Detail 1 -->
+            <!-- #### 
+                Edit By: Danudath
+                Date: 27-02-2017
+                CR: Modify ‘Reason List’ in Lead Management
+            -->
+            <apex:pageblocksection columns="1" title="Convert Lead" id="convertsection" rendered="{! !isRequiredOpp && IsAllowToConvert && !isNeedtoConfirmContacted }">
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel styleClass="labelCustom">Convert to Opportunity</apex:outputLabel>
+                    <apex:inputfield value="{!leadobj.Interest_result__c}" required="true" onchange="InterestResultChange(this)" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel styleClass="labelCustom" rendered="{!if(leadobj.Interest_result__c=='No',true,false)}" id="UninterestedReason1">Unqualified Reason</apex:outputLabel>
+                    <apex:inputfield value="{!leadobj.Unqualified_Reasons__c}" rendered="{!if(leadobj.Interest_result__c=='No',true,false)}"
+                        id="UninterestedReason2" required="true" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel styleClass="labelCustom" rendered="{!if(leadobj.Interest_result__c=='No',true,false)}" id="UninterestedReason3">Sub Unqualified Reason</apex:outputLabel>
+                    <apex:inputfield value="{!leadobj.Sub_Unqualified_Reason__c}" rendered="{!if(leadobj.Interest_result__c=='No',true,false)}"
+                        id="UninterestedReason4" required="true" />
+                </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel styleClass="labelCustom">Other Reason</apex:outputLabel>
+                    <apex:inputfield value="{!leadobj.Other_Reason__c }" style="width: 70%" />
+                </apex:pageBlockSectionItem>
+                <!-- ### Edn edit by Danudath-->
+
+                <apex:pageBlockSectionItem >
+                    <apex:outputLabel styleClass="labelCustom" style="display:none;" id="UninterestedAction1">Uninterested Action</apex:outputLabel>
+                    <apex:inputfield value="{!leadobj.Unqualified_Action__c}" style="display:none;" id="UninterestedAction2" />
+                </apex:pageBlockSectionItem>
+
+
+            </apex:pageblocksection>
+
+            <apex:pageblocksection columns="1" title="Convert Lead" id="opptySection" rendered="{! isRequiredOpp && IsAllowToConvert }">
+                <apex:inputfield type="date" showDatePicker="false" value="{!oppty.Expected_submit_date__c}" required="true" />
+                <apex:inputfield type="date" showDatePicker="false" value="{!oppty.CloseDate}" required="true"/>       
+                <apex:outputfield value="{!leadobj.Account__c}" rendered="{!leadobj.Account__c!=null}" />
+                <br />
+                <apex:outputPanel id="result" rendered="{!ProductWrapperList.size>0}">
+                    <table class="list " border="0" cellpadding="0" cellspacing="0">
+                        <tr class="headerRow">
+                            <th class="headerRow" style="width:100px;"> Selection </th>
+                            <th class="headerRow"> Product Name </th>
+                            <th class="headerRow"> Opportunity Type </th>
+                            <th class="headerRow"> Link to Opportunity </th>
+                        </tr>
+                        <apex:repeat value="{!ProductWrapperList}" var="prod">
+                            <tr class="dataRow">
+                                <td class="dataCell lb-center">
+                                    <apex:inputCheckbox value="{!prod.Isselected}" />
+                                </td>
+                                <td class="dataCell">
+                                    <apex:outputfield value="{!prod.ProductIN.Product__c }" />
+                                </td>
+                                <td class="dataCell">
+                                    <apex:outputfield value="{!prod.ProductIN.Opportunity_Type__c}" />
+                                </td>
+                                <td class="dataCell">
+                                    <apex:inputfield value="{!prod.ProductIN.Opportunity__c  }" rendered="{!prod.ProductIN.Opportunity_Type__c !='No Opp' && !isCommercialLead}"
+                                    />
+                                </td>
+                            </tr>
+                        </apex:repeat>
+                    </table>
+                    <!-- <apex:panelGrid columns="4"  >
+    <apex:commandLink action="{!first}" rendered="{!hasPrevious}" reRender="resultblock" status="loadStatus" >First</apex:commandlink>
+    <apex:commandLink action="{!previous}" rendered="{!hasPrevious}" reRender="resultblock" status="loadStatus" >Previous</apex:commandlink>
+    <apex:commandLink action="{!next}" rendered="{!hasNext}" reRender="resultblock" status="loadStatus" >Next</apex:commandlink>
+    <apex:commandLink action="{!last}" rendered="{!hasNext}" reRender="resultblock" status="loadStatus" >Last</apex:commandlink>
+    </apex:panelGrid> -->
+                </apex:outputPanel>
+            </apex:pageblocksection>
+
+        </apex:pageblock>
+
+
+    </apex:form>
+    <script type="text/javascript">
+        sforce.console.setTabTitle('Convert Lead');
+        $(document).ready(function () {
+            //$('[id$=UninterestedAction1]').hide();
+            //$('[id$=UninterestedAction2]').hide();
+        });
+
+        function pathCancel(){
+                var theme = '{!$User.UIThemeDisplayed}';
+                if(theme=='Theme4u'){
+                    doCancel();
+                }else{
+                    sforce.one.navigateToSObject('{!leadObj.Id}' );
+                }
+        }
+
+        function InterestResultChange(e) {
+            var InterestResult = $(e).val();
+
+            //Fixed: 2018Jan
+            resultChange(InterestResult);
+
+            document.getElementById("{!$Component.statusMessage}").hidden = true;
+
+            /*if(InterestResult == 'No'){
+                //$('[id$=UninterestedReason1]').show();
+                //$('[id$=UninterestedReason2]').show();
+                resultChange();
+            }else{
+                // $('[id$=UninterestedReason1]').hide();
+                //$('[id$=UninterestedReason2]').hide();
+                resultChange();
+            }*/
+        }
+
+    </script>
+
+</apex:page>

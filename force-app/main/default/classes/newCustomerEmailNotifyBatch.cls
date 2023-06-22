@@ -1,0 +1,130 @@
+public class newCustomerEmailNotifyBatch implements Database.Batchable<sObject>, Database.Stateful {
+    final String SEMICO = ',';
+
+    private Map<Id /*OwnerId */, List<Account>> mapAccountLst;
+    private OrgWideEmailAddress orgWideEmail;
+    // private List<Messaging.SingleEmailMessage> sendMailList;
+
+    private Integer emailSuccessful = 0;
+    private Integer emailFailed = 0;
+
+    private String query;
+    
+    private Datetime batchDate = datetime.now();
+    private Datetime batchStartTime;
+    private Datetime batchExcuteTime;
+    
+    public newCustomerEmailNotifyBatch(String q) {
+        this.mapAccountLst = new Map<Id, List<Account>>();
+        // sendMailList = new List<Messaging.SingleEmailMessage>();
+        this.orgWideEmail = [SELECT Id, Address FROM OrgWideEmailAddress WHERE Address = 'sf_admin@tmbbank.com' LIMIT 1];
+        System.debug('QUERY : '  + q);
+        query = q;
+    }
+
+    public Database.QueryLocator start(Database.BatchableContext BC) {
+        System.debug(':::::::::::::::start:::::::::::::::');
+        batchStartTime = datetime.now();
+        return Database.getQueryLocator(query);
+    }
+    
+    public void execute(Database.BatchableContext BC, List<Account> scope) {
+        System.debug(':::::::::::::::execute:::::::::::::::');
+        
+        if(batchExcuteTime == null){
+            batchExcuteTime = datetime.now();
+        }
+
+        for (Account a : scope) {
+            if(mapAccountLst.containsKey(a.OwnerId)) {
+                mapAccountLst.get(a.OwnerId).add(a);
+            }
+            else {
+                mapAccountLst.put(a.OwnerId, new List<Account>{ a });
+            }
+        }
+    }
+    
+    public void finish(Database.BatchableContext BC) {
+        System.debug(':::::::::::::::finish:::::::::::::::');
+        System.debug('batchDate : ' + batchDate);
+        System.debug('batchStartTime : ' + batchStartTime);
+        System.debug('batchExcuteTime : ' + batchExcuteTime);
+        System.debug('batchFinishTime : ' + datetime.now());
+
+        List<Messaging.SingleEmailMessage> sendMailList = new List<Messaging.SingleEmailMessage>();
+
+        String Header_CSV = 'TMB Customer ID, Customer Name/Company (TH), Segment, Customer Owner, Current Owner Name, Previous Owner\n';
+
+        ApexPages.PageReference objPage = new ApexPages.PageReference('/');
+
+        try {
+            Report rpt = [SELECT Id, Name, DeveloperName FROM Report WHERE DeveloperName =: 'CRM_New_Customer_Summary'];
+            objPage = new ApexPages.PageReference('/' + rpt.Id);
+        } catch (Exception e) {
+            System.debug(e.getMessage());
+        }
+
+        for (Id OwnerId : mapAccountLst.keySet()) {  
+            String CSV_BODY = '';
+
+            for (Account acct : mapAccountLst.get(OwnerId)) {
+                CSV_BODY += '"=""' + acct.TMB_Customer_ID_PE__c + '"""' + SEMICO + '"=""' + acct.Name + '"""' + SEMICO + '"=""' + acct.Core_Banking_Suggested_Segment__c + '"""' + SEMICO + '"=""' + acct.Owner.Employee_ID__c + '"""' + SEMICO + '"=""' + acct.Owner.Name + '"""' + SEMICO + '"=""' + acct.Previous_Owner_Name__c + '"""' + '\n';
+            }
+
+            List<Messaging.Emailfileattachment> efaList = new List<Messaging.Emailfileattachment> ();
+
+            Messaging.EmailFileAttachment csvAttc = new Messaging.EmailFileAttachment();
+            
+            String CSV_SUMMARY = Header_CSV + CSV_BODY;
+            System.debug('CSV_SUMMARY');
+            System.debug(CSV_SUMMARY);
+            Blob csvBlob = Blob.valueOf(CSV_SUMMARY);
+
+            csvAttc.setFileName('Account_List.csv');
+            csvAttc.setBody(csvBlob);
+            csvAttc.setContentType('text/csv; charset=UTF-8');
+            efaList.add(csvAttc);
+            
+
+            System.debug(OwnerId + ' | ' + mapAccountLst.get(OwnerId).size());
+
+            Messaging.SingleEmailMessage mail = new Messaging.SingleEmailMessage();
+            mail.setToAddresses(new List<String>{ mapAccountLst.get(OwnerId).get(0).Owner.Email });
+            mail.setSubject('CRM:  New Customer Summary');
+            mail.setHtmlBody(
+                'เรียน ' + mapAccountLst.get(OwnerId).get(0).Owner.Name 
+                + '<br/><br/>'
+                + '&nbsp;&nbsp;&nbsp;&nbsp;ระบบได้โอนลูกค้าตามรายชื่อไฟล์แนบด้านล่างมาเป็นของท่าน เพื่อดูรายละเอียดโปรดคลิกไฟล์แนบหรือคลิกลิงค์ด้านล่าง'
+                + '<br/><br/>'
+                + 'ลิงค์: ' + + URL.getSalesforceBaseUrl().toExternalForm() + objPage.getUrl()
+                + '<br/><br/>'
+                + 'Dear ' + mapAccountLst.get(OwnerId).get(0).Owner.Name 
+                + '<br/><br/>'
+                + '&nbsp;&nbsp;&nbsp;&nbsp;Please be notified that the customers below were changed to you. For detail, please click attachment or link below.'
+                + '<br/><br/>'
+                + 'Link: ' + URL.getSalesforceBaseUrl().toExternalForm() + objPage.getUrl()
+                + '<br/><br/>'
+                + '* Note that the email is automatic generated by the system. Please do not reply to this email. Please contact Sales Management if there is any questions.'
+                + '<br/><br/>' 
+            );
+            mail.setCharset('UTF-8');
+            mail.setOrgWideEmailAddressId(orgWideEmail.Id);
+            mail.setFileAttachments(efaList);
+            sendMailList.add(mail);
+
+        }
+
+        Messaging.SendEmailResult[] results = Messaging.sendEmail(sendMailList);
+        for (Messaging.SendEmailResult result : results) {
+            if(result.isSuccess()){
+                emailSuccessful++;
+            }
+            else {
+                System.debug(logginglevel.ERROR, 'There is error on newCustomerEmailNotifyBatch. Error Message is: ' + result.getErrors());
+                emailFailed++;
+            }
+        }
+    }
+
+}

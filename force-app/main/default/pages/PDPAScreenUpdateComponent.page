@@ -1,0 +1,201 @@
+<apex:page showHeader="false" sidebar="false" cache="false" standardController="Account" 
+    tabStyle="Account" extensions="PDPAWebserviceCtl" standardStylesheets="true" lightningStylesheets="true" action="{!viewPDPA}"
+    doctype="html-5.0">
+
+	<apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+	<apex:includeScript value="/support/console/43.0/integration.js"/>
+	<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+    
+    <style>
+        .th-background{
+            background-color: rgb(12, 204, 194)  !important; 
+        }
+    </style>
+
+    <script type="text/javascript">
+        $(document).ready(function(){
+                    if({!endProcess}){
+                        setTimeout(function(){
+                            closeTab();
+                        }, 2000);
+                    }
+            
+            });
+            
+            function closeTab() {
+                
+                HideSpin();
+                // if(sforce.console.isInConsole() && '{!$User.UIThemeDisplayed}' != 'Theme4u'){                    
+                //     doPrimaryTabRefresh();
+                //     sforce.console.getEnclosingTabId(callCloseTab);
+                    
+                // }
+                if(sforce.console.isInConsole()){
+                    if('{!$User.UIThemeDisplayed}' == 'Theme4u'){
+                        sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                            "componentDef": "c:workspaceAPIforVF",
+                            "attributes": {
+                                "action": 'closeAndRefresh',
+                                "recordId": '{!accountObj.Id}',
+                                "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                                    return v.toString(16);
+                                }),
+                            }
+                        })), true);
+                    }else{
+                        sforce.console.getEnclosingTabId(callCloseTab);
+                    }
+                }
+                else{
+                    window.close();                 
+                    
+                }
+            }     
+            /*
+            function closeSubTab() {
+                
+                HideSpin();
+               
+                    doPrimaryTabRefresh();                
+                    sforce.console.getEnclosingTabId(callCloseTab);
+                    
+               
+            }
+           */
+            
+            function closeSubTab() {
+                
+                HideSpin();
+                if(sforce.console.isInConsole()){
+                    if('{!$User.UIThemeDisplayed}' == 'Theme4u'){
+                        sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                            "componentDef": "c:workspaceAPIforVF",
+                            "attributes": {
+                                "action": 'closeAndRefresh',
+                                "recordId": '{!accountObj.Id}',
+                                "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                                    return v.toString(16);
+                                }),
+                            }
+					    })), true);
+                    }else{
+                        sforce.console.getEnclosingTabId(callCloseTab);
+                    }
+                }
+                else{
+                    window.close();                 
+                    
+                }
+            }
+            
+            var callCloseTab= function callCloseTab(result) {
+                var tabId = result.id;
+                sforce.console.closeTab(result.id);
+            }
+            function ShowSpin(){
+                $('#spin').show();
+               
+            }
+            function HideSpin(){
+                $('#spin').hide(); 
+                       
+                } 
+            
+            var refreshPrimaryTab = function showTabId(result) {
+                var tabId = result.id;
+                console.log(tabId);
+                sforce.console.refreshPrimaryTabById(tabId, true);
+            };
+
+            function doPrimaryTabRefresh() {
+                sforce.console.getEnclosingPrimaryTabId(refreshPrimaryTab);            
+            }        
+ 
+    </script>
+<div class="onIPhone">
+    <apex:form id="form">
+        <div id="spin" style="display:none;" >
+            <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                   &nbsp;
+            </div>
+            <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                <img src="/img/loading32.gif" />
+            </div>
+        </div>
+        
+        <apex:outputPanel id="showerror">
+            <apex:pageMessages />
+
+            
+        </apex:outputPanel>
+        
+        <div align="center" >
+            <apex:outputPanel rendered="{!isErrorResponse == true }" >
+                <br/>
+                <!--
+                <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom">
+                    <apex:outputText value="{!$Label.PDPA_Error_Response}"  styleClass="noRowsHeader" />
+                </div>
+                -->
+                <br/><br/>
+                <apex:commandButton onclick="closeSubTab();return false;" value="Cancel"/>
+                <apex:actionFunction action="{!cancel}" name="closeSaleMode"/>
+            </apex:outputPanel> 
+        </div>
+        
+        <apex:PageBlock id="main" rendered="{!isErrorResponse == false }">
+  
+                <div align="center" >
+                <apex:outputPanel id="editTable"  > 
+                    <table class="slds-table slds-table--bordered" style="text-align: left;font-size: 12px; width: 40%;">
+                        <thead class="th-background">
+                            <tr class="slds-text-title--caps slds-section-title--divider">
+                                <th class=""  colspan="1">
+                                    <h1 style="font-size:18px">  {!$Label.PDPA_Update_Consent_Flag} - {!pdpaViewBeforeEdit.type} </h1>                                    
+                                </th>
+                            </tr>
+                        </thead>
+                    
+                        <tbody> 
+                                        
+                            <tr>
+                                <td >                                    
+                                    <br/>
+                                    <apex:outputText value="{!pdpaViewBeforeEdit.type} : "  />
+                                    <apex:selectList size="1" value="{!pdpaViewBeforeEdit.flag}" id="selectflag" multiselect="false">
+                                        <apex:selectOptions value="{!Flag}"/>                                        
+                                    </apex:selectList>
+
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <apex:outputText value="{!$Label.PDPA_Consent_Sign_Date} : "  />
+                                    <apex:input value="{!pdpaViewBeforeEdit.consentSignDate}" html-placeholder="Consent Sign Date" type="date" />
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <br/>
+                                    <apex:commandButton id="saveButton" value="Save" onclick="ShowSpin();" action="{!saveForm}"/>
+                                    <apex:commandButton onclick="closeSubTab();return false;" value="Cancel"/>
+                                    <apex:actionFunction action="{!cancel}" name="closeSaleMode"/>
+                                </td>
+                            </tr>
+                           
+                        </tbody>
+                    </table>    
+                    <br/>                          
+                </apex:outputPanel>                
+
+            </div>    
+        </apex:PageBlock>
+ 
+    </apex:form>
+</div>
+
+</apex:page>

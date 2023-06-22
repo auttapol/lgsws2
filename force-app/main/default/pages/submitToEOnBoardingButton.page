@@ -1,0 +1,146 @@
+<apex:page standardController="Opportunity" extensions="submitToEOnBoardingButtonController" lightningStylesheets="true">
+    <apex:includeScript value="/support/console/44.0/integration.js"/>      
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+    <apex:includeScript value="/support/console/48.0/integration.js"/>
+    <apex:actionStatus onstart="startLoading('Loading...');"  id="InsertStatus" onstop="endLoading();" />
+
+    <style>
+        .overlay {
+        display: none;
+        height: 100%;
+        left: 0;
+        position: fixed;
+        top: 0;
+        opacity: 0.3;
+        -moz-opacity: 0.3;
+        width: 100%;
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        filter: alpha(opacity=30);
+        background: #000;
+        -khtml-opacity: 0.3;
+        z-index: 1000;
+        }
+        .loader {
+        background: url('/img/loading32.gif') scroll no-repeat 0 0;
+        width: 32px;
+        height: 32px;
+        position: absolute;
+        left: 50%;
+        }
+        .red-label {
+        list-style: none;
+        color: #f00;
+        }
+    </style>
+
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+        
+    <div class="loadingBox overlay"> </div>
+    <script type="text/javascript">
+
+        function testGetSubtabIds() {
+            //Get the subtabs of the primary tab 'scc-pt-0'
+            //This value is for example purposes only
+            sforce.console.getSubtabIds(null , showTabId);
+        }
+        
+        function startLoading(text){
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading(){
+            $('.loadingBox').hide();
+        }
+        $(document).ready(function () {
+            
+    window.setTimeout(function(){
+            Validate();
+    }, 3000);
+            // testGetPrimaryTabIds();
+            // testCloseTab();
+            // testGetSubtabIds();
+        });
+
+        var showTabId = function showTabId(result) {
+            //Display the subtab IDs
+            // console.log('Subtab IDs: ' + result.ids);
+            var subtabId = result.ids;
+            
+            
+            sforce.console.refreshSubtabById(subtabId[0], false);
+            sforce.console.refreshSubtabById(subtabId[1], false);
+            sforce.console.refreshPrimaryTabById(subtabId[0], true);
+            // sforce.console.refreshPrimaryTabById(subtabId[1], false);
+            sforce.console.closeTab(subtabId[1]);
+            // console.log('Done');
+            // sforce.console.refreshPrimaryTabById(subtabId[0], true, refreshSuccess);
+        };
+
+        function redirectPage(){
+            // testRefreshPrimaryTabByName();
+            
+            // console.log('submitPass :: {!submitPass}');
+            
+            if('{!submitPass}' == 'true'){
+                var theme = '{!$User.UIThemeDisplayed}';
+                var url;
+    
+                url = '/{!recID}';
+                // url = 'lightning/r/Opportunity/0061s000004JrSSAA0/view';
+                // console.log('URL : ' + url);
+                // console.log('theme :: ' + theme);
+                
+                //Salesforce1 mobile theme
+                if(theme == 'Theme4t'|| theme == 'Theme4u'){
+                    // console.log('new window mobile theme');
+                    
+                    // sforce.one.navigateToURL(url,true);
+                    
+                    // sforce.one.navigateToSObject('{!recID}')
+                    // getPage();
+                    // sforce.one.back(true);
+                    // sforce.one.navigateToSObject
+                    // window.location =url;
+                    // window.location.reload();
+                    // window.top.location = '{!URLFOR($Action.Opportunity.View, recID)}';
+                    // window.top.location.reload();
+                }
+                //Salesforce classic theme OR Lightning Expericence theme
+                else if(theme == 'Theme3' || theme == 'Theme4d'){
+                    // console.log('new window in classic');
+                    window.location = url;
+                }
+                //Salesforce console mode
+                else if(sforce.console.isInConsole()){
+                    // console.log('new window in console mode');
+                    getPage();
+                }
+            }
+
+        }
+    </script>
+
+
+    <apex:form >
+        <apex:actionFunction name="getPage" action="{!optyPage}"/>
+        <apex:actionFunction name="cancel" action="{!cancel}"/>
+        <apex:actionFunction name="Validate" action="{! ValidateEBoarding}"  status="InsertStatus" oncomplete="testGetSubtabIds();return false;" reRender="showErrorMsg"/>
+    </apex:form>
+
+    <apex:outputPanel id="showErrorMsg" rendered="{! !submitPass}">
+        <apex:sectionHeader title="Submit to e-Onboarding" subtitle="{!Opportunity.name}"/>
+
+        <apex:form >
+            <apex:pageBlock >
+                <apex:outputPanel id="statusMessage">
+                    <apex:pageMessages escape="false"></apex:pageMessages>
+                </apex:outputPanel>
+    
+                <apex:outputPanel layout="block" style="text-align: center;">
+                    <apex:commandButton value="Back" onclick="getPage(); return false;"/>
+                </apex:outputPanel>
+            </apex:pageBlock>
+        </apex:form>
+    </apex:outputPanel>
+
+</apex:page>

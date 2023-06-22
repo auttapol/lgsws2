@@ -1,0 +1,594 @@
+<apex:page standardController="Call_Report__c" extensions="VisitPlanController"
+id="thePage" applybodytag="false" sidebar="false" standardstylesheets="true" doctype="html-5.0" showHeader="false">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>  
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}"  />
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+     <apex:actionStatus onstart="startLoading();" onstop="endLoading();" id="loadStatus"/>
+    <style>
+        .errorMsg{
+        display:none !important;
+        }
+        @font-face {
+            font-family: 'ProximaNovaSoft-Regular';
+            font-weight: normal;
+            font-style: normal;
+            
+            src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}');
+            src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}?#iefix') format('embedded-opentype'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.woff')}') format('woff'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.ttf')}') format('truetype'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.svg')}#proxima_nova_softregular') format('svg');
+        }
+        @font-face {
+            font-family: 'ProximaNovaSoft-Medium';
+            font-weight: normal;
+            font-style: normal;
+            src: url('../fonts/proximanovasoft-regular.eot');
+            src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}?#iefix') format('embedded-opentype'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.woff')}') format('woff'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.ttf')}') format('truetype'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.svg')}#proxima_nova_softmedium') format('svg');
+        }
+        @font-face {
+            font-family: 'icomoon';        
+            src: url('{!URLFOR($Resource.fonts, 'icon-utility.eot')}');
+        }      
+        @font-face {
+            font-family: 'icomoon';
+            src: url("{!URLFOR($Resource.fonts, 'icon-utility.eot')}?#iefix") format("embedded-opentype"), url("{!URLFOR($Resource.fonts, 'icon-utility.woff')}") format("woff"), url("{!URLFOR($Resource.fonts, 'icon-utility.ttf')}") format("truetype"), url("{!URLFOR($Resource.fonts, 'icon-utility.svg')}#icomoon") format("svg");
+            font-weight: normal;
+            font-style: normal;
+        }
+
+
+        .depend2 select{
+            display: block;
+            width:50%;
+        }
+        
+        .depend select {
+            display: block;
+            width: 100%;
+            height: 34px;
+            padding: 6px 14px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #000000;
+            background-color: #ffffff;
+            background-image: none;
+            border: 1px solid #cfd0d2;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+        }
+        
+        .depend select{
+            border-color: #bfc0c2;
+            outline: 0;
+            background-color: #fff;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(191, 192, 194, 0.6);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(191, 192, 194, 0.6);
+        }
+        
+        @media (max-width: 500px) {
+        
+            .bootstrap-sf1 .form-horizontal .form-group {
+                margin-left: -10px;
+                margin-right: -10px;
+            }
+            .bootstrap-sf1{
+                overflow: hidden;
+            }
+            .bootstrap-sf1 .container{
+                padding-left :0px;
+                padding-right:0px;
+            }
+            .bootstrap-sf1 {
+                position: relative;
+                padding-top: 14px;
+                //margin: -15px -15px 10px -15px;
+            }
+            .bootstrap-sf1{
+                background-color: #FFF;
+            }
+            
+        }
+        
+        li {
+            text-align:left !important;
+        }
+        
+        
+
+    </style>
+    
+    <!-- svg loader style -->
+        <style>
+            .Indicator{
+            /*position : relative;*/
+            }
+            .Indicator.hidden {
+            display: none;
+            }
+            .Indicator .modal-glass {
+            background-color: #000000;
+            bottom: 0;
+            display: block;
+            left: 0;
+            margin-left: 0px;
+            opacity: 0.3;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height : 100%;
+            z-index: 1999;
+            
+            }            
+            .Indicator .hideEl {
+            display: none;
+            }
+            .Indicator .indicatorContainer {
+            background: none repeat scroll 0 0 #354452;
+            border-radius: 5px;
+            color: #FFFFFF;
+            display: block;
+            height: 82px;
+            left: 0;
+            margin: -65px auto;
+            opacity: 0.9;
+            padding-top: 22px;
+            position: fixed;
+            right: 0;
+            text-align: center;
+            top: 250px;
+            width: 110px;
+            z-index: 2000;
+            }
+            
+            /*
+            Set the color of the icon
+            */
+            svg path,
+            svg rect {
+            fill: #2A94D6;
+            }
+            
+        </style>
+    
+</head>
+
+<body>
+    <div class="bootstrap-sf1">
+        <div class="container">
+            <div class="page-header page-header-anchor context-report">
+                <div class="container">
+                    <h1>{!displayMode} Visit Plan / Report</h1>
+                </div>
+            </div>
+            
+            <apex:Form id="theForm" styleClass="form-horizontal">
+                <apex:actionFunction name="onChangemainpurpose" action="{!dependentPicklist}"
+                                 reRender="subpurpose,outcome,statusMessage"
+                                      />
+                <apex:actionFunction action="{!viewPage}"  name="viewVisitPlan" />
+            
+                
+                <apex:outputPanel id="statusMessage">
+                    <apex:pageMessages ></apex:pageMessages>
+                </apex:outputPanel>
+                <apex:actionFunction name="purposeChange" reRender="subPurpose" action="{!dependentPicklist}" />
+                <apex:actionFunction action="{!modalsaveMobile}" Rerender="statusMessage,panelRedirect" status="Status1" 
+                                            name="doSave"
+                                            oncomplete="if({!isSuccess}) callViewPage();else endLoading();"/>
+                
+                <apex:outputPanel id="panelRedirect">
+                    <apex:outputPanel rendered="{!isSuccess}">
+                        <script>sforce.one.navigateToSObject('{!visitplanIdRedirect}');</script>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+                
+                <div class="text-center" style="margin-bottom:10px">
+                        <!-- apex:commandButton value="Save" onclick="save();return false;" rendered="{! !isClosed}" styleclass="btn-lg btn-default" / -->
+                        <apex:commandButton value="Save" action="{!modalsaveMobile}" rendered="{! !isClosed}" styleclass="btn-lg btn-default" 
+                                            status="Status1"/>
+                        &nbsp;
+                        <apex:commandButton value="Cancel" onclick="sforce.one.navigateToSObject('{!IdForCancel}');return false;" 
+                                            styleclass="btn-lg btn-default" 
+                                            rendered="{!if(len(IdForCancel) > 0,true,false)}"/>
+                        <apex:commandButton value="Cancel" onclick="sforce.one.navigateToURL('/a0A/o');return false;"
+                                            styleclass="btn-lg btn-default" 
+                                            rendered="{!if(len(IdForCancel) == 0,true,false)}"/>
+                        <!-- apex:commandButton value="Cancel" onclick="sforce.one.navigateToSObject('{!IdForCancel}');return false;" styleclass="btn-lg btn-default" / -->
+                        <!-- apex:commandButton value="Cancel" action="{!cancel}" styleclass="btn-lg btn-default" oncomplete="cancelRedirect();"/ -->
+                    </div>
+                
+                <header class="navbar navbar-default" role="navigation">
+                    <div class="container panel-heading">
+                        <div class="navbar-header ">
+                            <a data-toggle="collapse" aria-expanded="true" href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                                Information
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                
+                <div class="card collapse in panel-collapse" id="collapse1">
+                    <div class="card-detail">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Customer_name__c.Label}" for="cbxlevel1" rendered="{! !IsCreate && !IsLead}"/>&nbsp;<br/>
+                                    <apex:outputField value="{!CallReport.Customer_name__c }" styleclass="form-control nodisplay" rendered="{! !IsCreate && !IsLead}"/>
+                                        
+                                    <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Lead__c.Label}" for="cbxlevel1" rendered="{! !IsCreate && IsLead}"/>&nbsp;<br/>
+                                    <apex:outputField value="{!CallReport.Lead__c }" styleclass="form-control nodisplay" rendered="{! !IsCreate && IsLead}" />
+                                    
+                                        
+                                    <apex:outputPanel rendered="{!IsCreate && !IsLead}" >  
+                                        <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Customer_name__c.Label}" for="cbxlevel1"/>&nbsp;<br/>
+                                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                                            <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                                            <apex:Inputfield value="{!CallReport.Customer_name__c }" styleclass="form-control nodisplay" rendered="{!IsCreate && !ISLead}"  />
+                                        </apex:outputPanel>
+                                    </apex:outputPanel> 
+                                        
+                                    <apex:outputPanel rendered="{!IsCreate && IsLead}" >  
+                                        <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Lead__c.Label}" for="cbxlevel1"/>&nbsp;<br/>
+                                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                                            <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                                            <apex:Inputfield value="{!CallReport.Lead__c }" styleclass="form-control nodisplay" rendered="{!IsCreate && IsLead}"  />
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                        
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                       <apex:outputPanel rendered="{! !isCreate}">
+                                            <div class="depend">
+                                                <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Date_of_Visit__c.Label}" for="cbxlevel1"/>&nbsp;<br/>
+                                                <apex:outputField value="{!CallReport.Date_of_Visit__c }" styleclass="form-control nodisplay"/>
+                                            </div>
+                                        </apex:outputPanel> 
+                        
+                                         <apex:outputPanel rendered="{!isCreate}"  >  
+                                            <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Date_of_Visit__c.Label}" for="cbxlevel1"/>&nbsp;<br/>
+                                            <apex:outputPanel styleClass="requiredInput" layout="block">
+                                            <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                                        	<apex:inputfield type="date" value="{!CallReport.Date_of_Visit__c }"  html-data-skipFocus="true" styleclass="form-control nodisplay"/>
+                                            </apex:outputPanel>
+                                        </apex:outputPanel> 
+
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Start Visit Time</label>
+                                    <apex:inputfield value="{!CallReport.Start_Visit_Time__c }" html-data-skipFocus="true" styleclass="form-control nodisplay"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">End Visit Time</label>
+                                    <apex:inputfield value="{!CallReport.End_Visit_Time__c }" html-data-skipFocus="true" styleclass="form-control nodisplay"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Categories</label>
+                                    <apex:inputField value="{!CallReport.Categories__c }" styleclass="form-control nodisplay"  />
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Main_purpose__c.Label}"
+                                                     for="cbxlevel1"/>
+                                    <apex:outputPanel styleClass="requiredInput" layout="block">
+                                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+                                    <div class="depend">
+                                        <apex:inputField value="{!CallReport.Main_purpose__c}"
+                                              id="mainpurpose"
+                                              onchange="onChangemainpurpose();" />
+                                    </div>
+                                    </apex:outputPanel>
+                                </div>
+                            </div>
+                            <div class="col-md-12" id="subPurposeOuterDiv">
+                                <div class="form-group" id="subPurposeinnerDiv" >
+                                    <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Sub_Purpose__c.Label}"
+                                        style="text-align: center;vertical-align: middle;"
+                                        for="subpurpose"/>
+                                    <br /> 
+                                    <c:multiselectpicklist leftlabel="Available"
+                                   leftoption="{!subpurposeAvailableList}"
+                                   rightlabel="Selected"
+                                   rightoption="{!subpurposeSelectedList}"
+                                   size="5" width="{!if(maxLength<30,'150px',
+                                                   if(maxLength<50,'200px','250px'))}" id="subpurpose">
+                    </c:multiselectpicklist>       
+                                </div>
+                            </div>
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Customer Counterparty</label>
+                                    <apex:inputField value="{!CallReport.Customer_Counterparty__c}" html-data-skipFocus="true" styleclass="form-control nodisplay"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group" style="margin-bottom: 0px;">
+                                    <label class="control-label" for="focusedInput">TMB Counterparty</label>
+                                    
+                                    <apex:outputPanel id="thesection">
+                                        <apex:repeat value="{!VisitPlanInviteeList}" var="invitee">
+                                            <div class="col-md-12">
+                                                <div class="form-group">
+                                                    <apex:inputField value="{!invitee.TMB_Person__c}" styleclass="form-control nodisplay"/>
+                                                    <apex:commandLink value="Delete" action="{!removeTMBPerson}" reRender="thesection" style="padding-top: 10px;clear: both;float: left;">
+                                                        <apex:param name="removeIndex" assignTo="{!removeIndex}" value="{!invitee.SEQ__c}" />
+                                                    </apex:commandLink>
+                                                </div>
+                                            </div>
+                                        </apex:repeat>  
+                                    </apex:outputPanel>
+                                    
+                                </div>
+                            </div>
+                            <apex:commandButton value="Add" action="{!AddTMBPerson}" reRender="thesection" style="margin: 10px 5px;"/>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Additional Party</label>
+                                    <apex:inputField value="{!CallReport.Additional_Party__c}" html-data-skipFocus="true" styleclass="form-control nodisplay"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Record Type</label>
+                                    <apex:inputText value="{!MobileRecordTypeName}" styleclass="form-control nodisplay" id="recordtype"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Status</label>
+                                    <apex:inputText value="{!CallReport.Status__c }" styleclass="form-control nodisplay" id="status"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Owner</label>
+                                    <apex:inputText value="{!MobileOwnerName}" styleclass="form-control nodisplay" id="owner"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12" style="display: {!IF(isLead,'block','none')};">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Customer Name</label>
+                                    <apex:inputText value="{!CallReport.Customer_name__c}" styleclass="form-control nodisplay" id="customerName"/>
+                                </div>
+                            </div>            
+                        </div>
+                    </div>
+                </div>
+                
+                <header class="navbar navbar-default" role="navigation">
+                    <div class="container panel-heading">
+                        <div class="navbar-header ">
+                            <a data-toggle="collapse" aria-expanded="false" href="#collapse2" class="navbar-brand navbar-foundation-logo collapsed">
+                                Visit Result
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                <div class="card collapse" id="collapse2">
+                    <div class="card-detail">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Complete Date / Cancel Date</label>
+                                    <apex:outputField value="{!CallReport.Complete_Date__c  }" styleclass="form-control nodisplay"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Actual Visit Date</label>
+                                    <apex:inputField type="date" value="{!CallReport.Actual_Visit_Date__c   }" styleclass="form-control nodisplay"/>
+                                </div>
+                            </div>
+                            <!-- Edit by Danudath  -->
+                             <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Meeting Place</label>
+                                    <apex:inputField value="{!CallReport.Meeting_Place__c}" styleclass="form-control nodisplay"/>
+                                </div>
+                            </div>
+                            <!-- End edit by Danudath  -->
+                            
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Business talk and opportunity</label>
+                                    <apex:inputField value="{!CallReport.Business_talk_and_opportunity__c   }" styleclass="form-control nodisplay"/>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Outcome</label>
+                                    <div class="depend">
+                                        <apex:inputField value="{!CallReport.Outcome__c }" id="outcome" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Loss / Incomplete reason</label>
+                                    <apex:inputField value="{!CallReport.Loss_Incomplete_reason__c   }" styleclass="form-control nodisplay"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <br/>
+                <div class="text-center" style="margin-bottom:10px">
+                    <!-- apex:commandButton value="Save" onclick="save();return false;" rendered="{! !isClosed}" styleclass="btn-lg btn-default" / -->
+                    <apex:commandButton value="Save" action="{!modalsaveMobile}" rendered="{! !isClosed}" styleclass="btn-lg btn-default" 
+                                        status="Status1"/>
+                    &nbsp;
+                    <apex:commandButton value="Cancel" onclick="sforce.one.navigateToSObject('{!IdForCancel}');return false;" 
+                                        styleclass="btn-lg btn-default" 
+                                        rendered="{!if(len(IdForCancel) > 0,true,false)}"/>
+                    <apex:commandButton value="Cancel" onclick="sforce.one.navigateToURL('/a0A/o');return false;"
+                                        styleclass="btn-lg btn-default" 
+                                        rendered="{!if(len(IdForCancel) == 0,true,false)}"/>
+                    <!-- apex:commandButton value="Cancel" onclick="sforce.one.navigateToSObject('{!IdForCancel}');return false;" styleclass="btn-lg btn-default" / -->
+                </div>
+                    
+            </apex:Form>
+        </div>
+    </div>
+    
+     <!-- /Loadding ajax -->
+        <div id="loadingImage" class="Indicator">
+            <div class="modal-glass">&nbsp;</div>
+            <div class="indicatorContainer" role="alert">
+                <div class="loader" title="0">
+                    <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="40px" height="40px" viewBox="0 0 40 40" enable-background="new 0 0 40 40" xml:space="preserve">
+                        <path opacity="0.2" fill="#000" d="M20.201,5.169c-8.254,0-14.946,6.692-14.946,14.946c0,8.255,6.692,14.946,14.946,14.946
+                                                           s14.946-6.691,14.946-14.946C35.146,11.861,28.455,5.169,20.201,5.169z M20.201,31.749c-6.425,0-11.634-5.208-11.634-11.634
+                                                           c0-6.425,5.209-11.634,11.634-11.634c6.425,0,11.633,5.209,11.633,11.634C31.834,26.541,26.626,31.749,20.201,31.749z">
+                        </path>
+                        <path fill="#000" d="M26.013,10.047l1.654-2.866c-2.198-1.272-4.743-2.012-7.466-2.012h0v3.312h0
+                                             C22.32,8.481,24.301,9.057,26.013,10.047z">
+                            <animateTransform attributeType="xml" attributeName="transform" type="rotate" from="0 20 20" to="360 20 20" dur="0.5s" repeatCount="indefinite">
+                            </animateTransform>
+                        </path>
+                    </svg>
+                </div>
+                <div id="Indicator-message">Loading ...</div>
+            </div>
+        </div>
+        <!-- Loadding ajax --> 
+
+ <script type="text/javascript">
+    $j = jQuery.noConflict();
+    $j(document).ready(function () {
+        $j("[id$=recordtype]").attr('disabled', 'disabled');
+        $j("[id$=owner]").attr('disabled', 'disabled');
+        $j("[id$=status]").attr('disabled', 'disabled');
+        $j("[id$=customerName]").attr('disabled', 'disabled');
+        setTimeout(function(){ sfView.onComplete()}, 2000);
+        
+         
+    });
+
+    
+    var sfView = (function() {
+                var indicator =  $j("#loadingImage");
+                var msg = $j("#Indicator-message");
+                // All functions now have direct access to each other
+                var onProcess = function(strmessage) { 
+                    msg.text(strmessage);
+                    indicator.removeClass('hidden');
+                };
+                var onComplete = function() {
+                    indicator.addClass('hidden');
+                };      
+                // Return the object that is assigned to Module
+                return {
+                    onProcess: onProcess,
+                    onComplete: onComplete
+                };
+            }());
+        
+    
+    
+   
+    function startLoading(text){
+                sfView.onProcess(text);
+            }
+    function endLoading(){
+                sfView.onComplete();
+            }    
+    
+    
+    function noenter(ev)  {
+                if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+                    save();
+                    return false;
+                } else {
+                    return true;
+                }
+            }  
+    
+    function save(){
+                startLoading('{!actionDisplay}...');
+                //alert('test');
+                doSave();
+                //callViewPage();
+            } 
+    
+    
+            function callViewPage(){
+                    endLoading();    
+
+                    //window.setTimeout(viewVisitPlan,3000);  
+                      
+            }
+    
+    
+   
+function setFocusOnLoad(){ 
+
+
+}
+
+    
+    
+  function cancelRedirect(){          
+                startLoading('Loading ...');
+                // Go back to the Account detail page
+                if( (typeof sforce != 'undefined') && (sforce != null) ) {
+                    // Salesforce1 navigation
+                    //sforce.one.navigateToSObject('{!$CurrentPage.parameters.accid}');
+                    //sforce.one.navigateToURL('/apex/searchProspectMobile');
+                    //window.history.back();
+                    /*var IsLead = '{!IsLead}';
+                    
+                   if('{!displayMode}' == 'New' && IsLead){
+                       sforce.one.navigateToSObject('{!CallReport.Lead__c}');
+                   }else if('{!displayMode}' == 'New' && !IsLead){
+                       sforce.one.navigateToSObject('{!CallReport.Customer_name__c}');
+                   }else if ('{!displayMode}' == 'Edit' ){
+                       //sforce.one.navigateToURL('/a0A/o');
+                       sforce.one.navigateToSObject('{!Callreport.id}');
+                    }else{
+                        sforce.one.navigateToSObject('{!Callreport.id}');
+                    }*/
+                    
+                    /*if('{!sObjectID}'!=null){
+                        if('{!displayMode}' == 'New' && IsLead){
+                               sforce.one.navigateToSObject('{!CallReport.Lead__c}');
+                           }else if('{!displayMode}' == 'New' && !IsLead){
+                               sforce.one.navigateToSObject('{!CallReport.Customer_name__c}');
+                           } 
+                    }else{ 
+                        if ('{!displayMode}' == 'Edit' ){
+                           sforce.one.navigateToSObject('{!Callreport.id}');
+                        }else{
+                           sforce.one.navigateToURL('/a0A/o');
+                        }
+                    }  */   
+                    sforce.one.navigateToURL('/a0A');
+                }
+                //sforce.one.navigateToURL('/a0A/o');
+                //sforce.one.back(true);
+            }   
+        
+    
+   
+</script>  
+  
+</body>
+
+</apex:page>

@@ -1,0 +1,235 @@
+<aura:component implements="force:hasRecordId,force:lightningQuickActionWithoutHeader" access="global"
+    controller="RequestToAddSLLGroupController">
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <aura:attribute name="acctRec" type="Account" />
+    <aura:attribute name="groupRec" type="SLL_Group__c" />
+    <aura:attribute name="onInit" type="boolean" default="true" />
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+    <aura:attribute name="hasApprover" type="boolean" default="false" />
+    <aura:attribute name="approverlst1" type="Object" />
+    <!-- <aura:attribute name="approverlst2" type="Object" /> -->
+    <aura:attribute name="searchGroup" type="Object" default="" />
+    <aura:attribute name="searchGroupId" type="Id" default="" />
+    <aura:attribute name="searchCustomer" type="Object" default="" />
+    <aura:attribute name="searchCustomerId" type="Id" default="" />
+    <aura:attribute name="SLL_Group" type="SLL_Group__c" />
+    <aura:attribute name="PAM_Name" type="String" default="-" />
+    <aura:attribute name="PAM_Id" type="String" default="" />
+    <aura:attribute name="isAccount" type="boolean" default="" />
+    <aura:attribute name="errMsg" type="String" default="{!$Label.c.SLLGroupMessage8}" />
+    <aura:attribute name="errHeaderMsg" type="String" default="" />
+    <aura:attribute name="picklistValues" type="Object" />
+    <aura:attribute name="selectedReason" type="String" default="" />
+    <aura:attribute name="isError" type="boolean" />
+    <aura:attribute name="isGroupInActive" type="boolean" default="false" />
+
+    <aura:html tag="style">
+        .slds-modal__container{
+        width: 60%;
+        max-width: 65rem;
+        }
+    </aura:html>
+
+    <aura:if isTrue="{! v.isLoading }">
+        <div class="slds-is-relative">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+
+    <aura:if isTrue="{!not(v.onInit)}">
+        <aura:if isTrue="{!v.isAccount}">
+            <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+                <lightning:layoutItem>
+                    <div class="slds-is-relative">
+                        <lightning:icon size="large" iconName="standard:account" alternativeText="Account" />
+                    </div>
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="page-section page-header">
+                        <h1 class="slds-text-heading_label">
+                            Request to add SLL Group member
+                        </h1>
+                        <h2 class="slds-text-heading_medium">
+                            {!v.acctRec.Name}
+                        </h2>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+            <aura:set attribute="else">
+                <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+                    <lightning:layoutItem>
+                        <div class="slds-is-relative">
+                            <lightning:icon size="large" iconName="custom:custom15" alternativeText="Account" />
+                        </div>
+                    </lightning:layoutItem>
+                    <lightning:layoutItem padding="horizontal-small">
+                        <div class="page-section page-header">
+                            <h1 class="slds-text-heading_label">
+                                Request to add SLL Group member
+                            </h1>
+                            <h2 class="slds-text-heading_medium">
+                                {!v.groupRec.Name}
+                            </h2>
+                        </div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:set>
+        </aura:if>
+    </aura:if>
+
+    <lightning:card>
+        <div class="{! !v.isError ? 'slds-hide' : 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error'}"
+            role="alert">
+            <span class="slds-assistive-text">error</span>
+            <span class="slds-icon_container slds-icon-utility-error slds-m-right_x-small">
+                <lightning:icon iconName="utility:error" variant="inverse" size="x-small" />
+            </span>
+            <h2>{!v.errHeaderMsg}</h2>
+        </div>
+
+        <aura:if isTrue="{!not(v.onInit)}">
+            <aura:if isTrue="{!v.isAccount}">
+                <div style="margin: 0px 10%;">
+                    <lightning:recordEditForm objectApiName="SLL_Group_Member__c">
+                        <lightning:layout>
+                            <lightning:layoutItem size="12" class="custom-input-box">
+                                <label class="custom-label" for="sllGroupLookup">SLL Group Name</label>
+                                <lightning:inputField fieldName="SLL_Group__c" name="lookup-cus" class="err-msg-margin2 custom-label-input"
+                                    value="{!v.searchGroupId}" aura:id="sllGroupLookup" required="true" variant="label-hidden" onchange="{!c.selectGroup}"/>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:recordEditForm>
+                    <!-- <c:CustomLookup aura:id="customLookupGroup" objectAPIName="SLL_Group__c" label="SLL Group Name"
+                        selectedRecord="{!v.searchGroup}" nameField="Id, Name WHERE Is_Active__c = true"
+                        IconName="custom:custom15" queryType="SOSL" SearchKeyWord="" onchange="{!c.selectGroup}"
+                        required="true" /> -->
+                </div>
+                <div style="margin: 0px 10%;">
+                    <lightning:input name="Customer" disabled="true" value="{!v.acctRec.Name}" label="Customer" />
+                </div>
+                <aura:set attribute="else">
+                    <div style="margin: 0px 10%;">
+                        <lightning:input name="SLL Group Name" disabled="true" value="{!v.groupRec.Name}"
+                            label="SLL Group Name" />
+                    </div>
+                    <div style="margin: 0px 10%;">
+                        <lightning:recordEditForm objectApiName="SLL_Group__c">
+                            <lightning:layout>
+                                <lightning:layoutItem size="12" class="custom-input-box">
+                                    <label class="custom-label" for="custLookup">Customer</label>
+                                    <lightning:inputField fieldName="Primary_Customer__c" name="lookup-cus" class="err-msg-margin2 custom-label-input"
+                                        value="{!v.searchCustomerId}" aura:id="custLookup" required="true" variant="label-hidden" disabled="{!v.isGroupInActive}"/>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </lightning:recordEditForm>
+
+                        <!-- <c:CustomLookup aura:id="customLookupGroup" objectAPIName="Account" label="Customer"
+                            selectedRecord="{!v.searchCustomer}" nameField="Id, Name" IconName="standard:account"
+                            queryType="SOSL" SearchKeyWord="" onchange="{!c.selectCustomer}"
+                            disabled="{!v.isGroupInActive}" required="true" /> -->
+                    </div>
+                </aura:set>
+            </aura:if>
+            <div style="margin: 0px 10%;">
+                <lightning:input name="PAM" disabled="true" value="{!v.PAM_Name}" label="PAM" />
+            </div>
+            <div style="margin: 0px 10%;">
+                <lightning:select name="select" label="Reason" aura:id="reason" value="{!v.selectedReason}"
+                    onchange="{!c.selectReason}" required="true" disabled="{!v.isGroupInActive}">
+                    <option value="" text="--None--"></option>
+                    <aura:iteration items="{!v.picklistValues}" var="reason">
+                        <option value="{!reason}" text="{!reason}"></option>
+                    </aura:iteration>
+                </lightning:select>
+            </div>
+        </aura:if>
+
+        <div class="slds-form-element" style="min-height: 100px; margin-top:25px">
+            <table
+                class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_fixed-layout slds-table_striped slds-table_resizable-cols">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col" style="width:20%">
+                            <div class="slds-truncate slds-text-align_center" title="APPROVER">APPROVER</div>
+                        </th>
+                        <th class="" scope="col" style="width:20%">
+                            <div class="slds-truncate slds-text-align_center" title="Name">Name</div>
+                        </th>
+                        <th class="" scope="col" style="width:20%">
+                            <div class="slds-truncate slds-text-align_center" title="Surname">Surname</div>
+                        </th>
+                        <th class="" scope="col" style="width:40%;">
+                            <div class="slds-truncate slds-text-align_center" title="TITLE">Title</div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <aura:if isTrue="{!v.hasApprover}">
+                        <!-- <aura:iteration items="{!v.approverlst}" var="approver" indexVar="index"> -->
+                        <tr class="slds-hint-parent">
+                            <th data-label="Approver No" scope="row">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approverlst1.No}">
+                                    {!v.approverlst1.No}
+                                </div>
+                            </th>
+                            <td data-label="Approver FName">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approverlst1.FirstName}">
+                                    {!v.approverlst1.FirstName}</div>
+                            </td>
+                            <td data-label="Approver LName">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approverlst1.LastName}">
+                                    {!v.approverlst1.LastName}</div>
+                            </td>
+                            <td data-label="Title">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approverlst1.Title}">
+                                    {!v.approverlst1.Title}</div>
+                            </td>
+                        </tr>
+                        <!-- <tr class="slds-hint-parent">
+                            <th data-label="Approver No" scope="row">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approverlst2.No}">
+                                    {!v.approverlst2.No}
+                                </div>
+                            </th>
+                            <td data-label="Approver FName">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approverlst2.FirstName}">
+                                    {!v.approverlst2.FirstName}</div>
+                            </td>
+                            <td data-label="Approver LName">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approverlst2.LastName}">
+                                    {!v.approverlst2.LastName}</div>
+                            </td>
+                            <td data-label="Title">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approverlst2.Title}">
+                                    {!v.approverlst2.Title}</div>
+                            </td>
+                        </tr> -->
+
+                        <aura:set attribute="else">
+                            <td class="" scope="col" colspan="4">
+                                <aura:if isTrue="{!not(empty(!v.errMsg))}">
+                                    <div class="slds-text-align_center slds-m-around_medium slds-text-color_inverse-weak"
+                                        style="font-size: 14px; ">
+                                        <lightning:formattedText value="{!v.errMsg}" />
+                                    </div>
+                                </aura:if>
+                            </td>
+                        </aura:set>
+                    </aura:if>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="slds-form-element" style="text-align:center;margin: 15px;">
+            <lightning:button aura:id="cbutton" label="Confirm" onclick="{!c.handleConfirm}" disabled="{!v.isGroupInActive}" />
+            <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.handleCancel}" />
+        </div>
+    </lightning:card>
+
+
+
+</aura:component>

@@ -1,0 +1,118 @@
+<aura:component controller="CSEClientController"  implements="force:lightningQuickActionWithoutHeader,flexipage:availableForRecordHome,force:hasRecordId,lightning:actionOverride">
+
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+	<aura:handler name="oSelectedAccountEvent" event="c:selectedAccountEvent" action="{!c.handleComponentEvent}"/>
+
+	<aura:attribute name="selectedRecord" type="Account" default="{}" description="Use,for store SELECTED sObject Record"/>
+	<aura:attribute name="eClientObj" type="E_Client_Suitability__c" />
+	<aura:attribute name="hasEclient" type="Boolean" default="false" />
+	<aura:attribute name="stepName" type="Boolean" default="VerifyCustomer" />
+	<aura:attribute name="selectedRm" type="Account" default="{}" description="Use,for store SELECTED RM Record"/>
+	<aura:attribute name="selectedFx" type="Account" default="{}" description="Use,for store SELECTED FX Record"/>
+
+	 <aura:attribute name="isChecked" type="Boolean" default="false" />
+
+	  <aura:registerEvent name="CSReviewEClientEvent" type="c:CSReviewEClientEvent" />
+	
+	 <lightning:card iconName="action:record" title="Verify Customer">
+
+	 	
+	 	<aura:if isTrue="{!v.hasEclient}">
+
+	 		<aura:if isTrue="{!v.stepName == 'VerifyCustomer'}">
+			 	 <div class="slds-card slds-has-top-magnet">
+		            <div class="slds-p-around_small" >
+
+		            	<div class="slds-grid slds-wrap " >
+		                    <div class="slds-text-align_center slds-size_2-of-2">{!$Label.c.E_Client_VerifyCustomer_Title_Text}</div>
+						</div> 
+						<div class="slds-form-element" >
+							<div class="slds-form-element__control">
+							  <div class="slds-checkbox slds-m-around_xx-large slds-text-align_center">						
+
+								<input type="checkbox" name="options" id="checkbox-2" value="checkbox-2" checked="{!v.isChecked}" onclick="{!c.updateCheckboxChoice}"/>
+								<label class="slds-checkbox__label" for="checkbox-2">
+									<span class="slds-checkbox_faux"></span>
+									<span class="slds-form-element__label">{!$Label.c.E_Client_VerifyCustomer_NewCustomer_Text}</span>
+								</label>
+
+							  </div>
+							</div>
+						</div>
+		                <div class="slds-grid slds-wrap slds-m-around_xx-large slds-text-align_center" >
+		                	<div class="slds-col slds-size_1-of-2">
+		                    	<lightning:button label="{!$Label.c.E_Client_VerifyCustomer_Yes_Button_Text}" variant="brand" onclick="{!c.verifyYes}" />
+		                    </div>
+		                    <div class="slds-col slds-size_1-of-2">
+		                    	<lightning:button label="{!$Label.c.E_Client_VerifyCustomer_No_Button_Text}" variant="brand" onclick="{!c.verifyNo}" />
+		                    </div>
+		                </div>
+		                
+		            </div>
+		        </div>
+			</aura:if>
+			
+			<aura:if isTrue="{!v.stepName == 'GetError'}">
+			 	 <div class="slds-card slds-has-top-magnet">
+		            <div class="slds-p-around_small" >
+
+		            	<div class="slds-grid slds-wrap" >
+		                    <div class="slds-text-align_center slds-size_2-of-2">{!$Label.c.E_Client_VerifyCustomer_Error_Text}</div>
+		                </div>
+		                <div class="slds-grid slds-wrap" >		                	
+		                    <div class="slds-text-align_center slds-size_2-of-2 slds-m-top_xx-large">
+		                    	<lightning:button label="{!$Label.c.E_Client_VerifyCustomer_Close_Button_Text}" variant="brand" onclick="{!c.reviewerCancel}" />
+		                    </div>
+		                </div>
+		                
+		            </div>
+		        </div>
+		    </aura:if>
+
+		    <aura:if isTrue="{! v.stepName == 'ConfirmReviewer' }">
+		    	<div class="slds-card slds-has-top-magnet">
+		            <div class="slds-p-around_small">					
+		            	<div class="slds-grid slds-wrap">
+		                    <div class="slds-text-align_center slds-size_2-of-2">{!$Label.c.E_Client_VerifyCustomer_RMandSale_Title_Text}</div>
+		                </div>
+		        
+		                <div class="slds-grid slds-wrap">
+		                	<div class="slds-col slds-size_1-of-4 slds-m-top_x-large"  >
+		                		{!$Label.c.E_Client_VerifyCustomer_RM_Text}
+		                    </div>
+		                    <div class="slds-col slds-size_3-of-4">
+								<c:CScustomLookup checkNameLookup="RM" SearchKeyWord="{!v.eClientObj.CS_RM__c}" accountId="{!v.eClientObj.CS_Customer__c}"/>					
+								
+							</div>
+			
+		                </div>
+
+		                <div class="slds-grid slds-wrap">
+		                	<div class="slds-col slds-size_1-of-4 slds-m-top_x-large" >
+		                		{!$Label.c.E_Client_VerifyCustomer_FxSale_Text}
+		                    </div>
+		                    <div class="slds-col slds-size_3-of-4">
+								<c:CScustomLookup checkNameLookup="FX" SearchKeyWord="{!v.eClientObj.OwnerId}"/>
+							</div>
+		                </div>
+						
+						<div class="slds-grid slds-wrap slds-m-around_xx-large slds-text-align_center" >
+								<div class="slds-col slds-size_1-of-2">
+									<lightning:button label="{!$Label.c.E_Client_VerifyCustomer_Confirm_Button_Text}" variant="brand" onclick="{!c.reviewerConfirm}" aura:id="surveyCmp" />
+								</div>
+								<div class="slds-col slds-size_1-of-2">
+									<lightning:button label="{!$Label.c.E_Client_VerifyCustomer_Cancel_Button_Text}" variant="brand" onclick="{!c.reviewerCancel}" />
+								</div>
+						</div>
+		            </div>
+		        </div>
+		    </aura:if>
+
+	        <aura:set attribute="else">
+		        {!$Label.c.E_Client_VerifyCustomer_CannotEdit_Text}
+		    </aura:set>
+
+	    </aura:if>
+
+	 </lightning:card>
+</aura:component>

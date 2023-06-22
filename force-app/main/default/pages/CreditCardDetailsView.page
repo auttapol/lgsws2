@@ -1,0 +1,306 @@
+<apex:page controller="CreditCardDetailsCtrl" showchat="false" sidebar="false" showheader="true" standardstylesheets="true" tabstyle="Account">
+    <!-- Includes Js -->
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    <!-- Style for Ajax Request -->
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+            /* width: 32px;*/
+            height: 32px;
+            position: absolute;
+            left: 48%;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+
+        .bootstrap-sf1 {
+            overflow: hidden;
+        }
+
+            .bootstrap-sf1 .container {
+                padding-left: 0px;
+                padding-right: 0px;
+            }
+
+        .bootstrap-sf1 {
+            background-color: #FFF;
+        }
+
+            .bootstrap-sf1 .btn-block {
+                display: block;
+                width: 100%;
+                text-align: center;
+            }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+    <div class="bootstrap-sf1 sf1_bk" style="display:none;">
+        <div class="container">
+            <a href="javascript:sforce.one.back();" class="btn-lg btn-default btn-block">Back</a>
+        </div>
+    </div>
+    <!-- // End Ajax Request -->
+    <apex:sectionheader title="Credit Card" subtitle="{!$Label.Details_of_Credit_Card}" />
+    <!-- Main form -->
+    <apex:form onkeypress="return noenter(event)">
+        <apex:actionfunction action="{!startRequest}"
+                             rerender="section1,section2,section3,alertbox"
+                             status="status"
+                             name="doRest" />
+        
+        <!-- Alert Box -->
+        <apex:outputPanel id="alertbox">
+        <div class="bootstrap-sf1" style="{!IF(PageMessage == '','display:none','')}" >
+            <div class="alert alert-dismissible alert-danger">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <h4>Warning!</h4>
+                <p>{!PageMessage}</p>
+            </div>
+        </div>
+        </apex:outputPanel>
+        
+        <!-- Credit Card Information  -->
+        <apex:pageblock id="section1" mode="maindetail">
+            <apex:pageblocksection title="{!$Label.Credit_Card_RDC_Information}" columns="2">
+                <!-- Row 1 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Card_Number}" />
+                    <apex:outputtext value="{!Viewstate.CreditCardInformation.MarkedCardNumber}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Product_Name}" />
+                    <apex:outputtext value="{!Viewstate.CreditCardInformation.ProductName}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 2 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Activated_Date}" />
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.OpenedDate}" />
+                    </apex:outputtext>-->
+                    <apex:outputText value="{!Viewstate.CreditCardInformation.ConvertedOpenedDate}"></apex:outputText>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Product_Type}" />
+                    <apex:outputtext value="{!Viewstate.CreditCardInformation.ProductType}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 3 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Status}" />
+                    <apex:outputtext value="{!Viewstate.CreditCardInformation.translatedStatusCode}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Outstanding_Credit}" /> <!--Current Balance-->
+                    <apex:outputtext style="padding-right:5px;" value="{!Viewstate.CreditCardInformation.MarkedCurrentBalance}">
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!-- Row 4 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Block_Code}" />
+                    <apex:outputtext value="{!Viewstate.CreditCardInformation.translatedBlockCode}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Credit_Limit}" />
+                    <apex:outputPanel >
+                        <apex:outputtext style="{!IF(isEmployee == true,'display:none;','')}" value="{0, number, ###,###}">
+                            <apex:param value="{!Viewstate.CreditCardInformation.CreditLimit}" />
+                        </apex:outputtext>
+                        <apex:outputtext style="{!IF(isEmployee == true,'','display:none;')}" value="xxx" />
+                    </apex:outputPanel>
+                </apex:pageblocksectionitem>
+                <!-- Row 5 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Last_Payment_Date}" />
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.LastPaymentDate}" />
+                    </apex:outputtext>-->
+                    <apex:outputText value="{!Viewstate.CreditCardInformation.ConvertedLastPaymentDate}"></apex:outputText>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Temporary_Line}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.TemporaryLine}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!-- Row 6 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Cycle_Cut}" />
+                    <apex:outputtext value="{!Viewstate.CreditCardInformation.CycleCut}">
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!--<apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Temporary_Line_Period}" />
+                    <apex:outputtext style="padding-right:5px;" value="{!Viewstate.CreditCardInformation.TemporaryLinePeriod}" />
+                </apex:pageblocksectionitem> -->
+                <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>               
+                <!-- Row 7 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Payment_Due}" />
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.PaymentDue}" />
+                    </apex:outputtext>-->
+                    <apex:outputText value="{!Viewstate.CreditCardInformation.ConvertedPaymentDue}"></apex:outputText>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Cash_Chill_Chill}" /><!-- Temperary Line -->
+                    <apex:outputtext style="padding-right:5px;" value="{!Viewstate.CreditCardInformation.CashChillChill}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 8 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Payment_Behavior}" />
+                    <apex:outputtext value="{!Viewstate.CreditCardInformation.PaymentBehavior}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Cash_Chill_Chill_Status}" />
+                    <apex:outputtext style="padding-right:5px;" value="{!Viewstate.CreditCardInformation.CashChillChillStatus}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 9 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Reward_Points}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.RewardPoints}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Cash_Withdrawal_Account_number}" />
+                    <apex:outputtext style="padding-right:5px;" value="{!IF(Viewstate.CreditCardInformation.MarkedCashWithdrawalAccountNumber!='xxx-0-00000-x',Viewstate.CreditCardInformation.MarkedCashWithdrawalAccountNumber,'')}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 10 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Next_Expired_Points}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.NextExpiredPoints}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Direct_Debit_Account_Number}" />
+                    <apex:outputtext style="padding-right:5px;" value="{!Viewstate.CreditCardInformation.MarkedDirectDebitAccountNumber}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 11 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Next_Expired_Point_On}" />
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.NextExpiredPointOn}" />
+                    </apex:outputtext>-->
+                    <apex:outputText value="{!Viewstate.CreditCardInformation.ConvertedNextExpiredPointOn}"></apex:outputText>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Last_6_Months_Transactor_Revolver}" />
+                    <apex:outputtext style="padding-right:5px;" value="{!Viewstate.CreditCardInformation.UsageBehavior}" />
+                </apex:pageblocksectionitem>
+            </apex:pageblocksection>
+        </apex:pageblock>
+        <!--/Credit Card Information  -->
+        <!-- Supplementary Information  -->
+        <!--<apex:pageblock id="section2" mode="maindetail">
+            <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+                <img src="/s.gif" alt="Hide Section - Supplementary Information" class="hideListButton"
+                     id="img_j_id0:j_id4:section4:j_id63" name="Supplementary Information" onclick="twistSection(this);" onkeypress="if (event.keyCode=='13')twistSection(this);" style="cursor:pointer;" tabindex="0" title="Hide Section - Supplementary Information" />
+                <h3>{!$Label.Supplementary_Info}</h3>
+            </div>
+            <div class="pbSubsection">
+                <table class="detailList" border="0" cellpadding="0" cellspacing="0">
+                    <apex:variable var="loop" value="{!1}" />
+                    <apex:repeat id="rpben" var="sp" value="{!ViewState.CreditCardInformation.SupplementaryInformations}">
+                        <!-- Data 1 -->
+           <!--             <tr>
+                            <th class="labelCol vfLabelColTextWrap first" scope="row"><label>{!$Label.Supplementary_Card_Number} {!loop}</label></th>
+                            <td class="dataCol first"><span style="padding-right:5px;">{!sp.SupplementaryCardNumber}</span></td>
+                            <th class="labelCol vfLabelColTextWrap first" scope="row"><label>{!$Label.Supplementary_Cardholder_Name_1} {!loop}</label></th>
+                            <td class="dataCol first"><span style="padding-right:5px;">{!sp.SupplementaryCardholderName}</span></td>
+                        </tr>
+
+                        <apex:variable var="loop" value="{!loop + 1}" />
+                    </apex:repeat>
+                </table>
+            </div>
+        </apex:pageblock> -->
+        <!--/Supplementary Information  -->
+        <!-- So Good / Pay Plan Record In Last Statement -->
+        <apex:pageblock id="section3" mode="maindetail">
+            <apex:pageblocksection title="{!$Label.So_Good_Pay_Plan_Record_In_Last_Statement}" columns="2">
+
+                <!-- Row 1 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Txn_of_Non_Interest_Charged}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.SoGoodPayPlan.LastCycleTransactionNonInterestCharge}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Amount_of_Non_Interest_Charged}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.SoGoodPayPlan.LastCycleAmountInTHBNonInterestCharge}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+
+                <!-- Row 2 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Txn_of_Interest_Charged}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.SoGoodPayPlan.LastCycleTransactionInterestCharge}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Amount_of_Interest_Charged}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.SoGoodPayPlan.LastCycleAmountInTHBInterestCharge}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!-- Row 3 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Total_Txn}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.SoGoodPayPlan.TotalTransaction}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Total_Amount}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!Viewstate.CreditCardInformation.SoGoodPayPlan.TotalTHB}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+            </apex:pageblocksection>
+        </apex:pageblock>
+        <!--/So Good / Pay Plan Record In Last Statement -->
+    </apex:form>
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+    <script>
+        function startLoading(text){
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading(){
+            $('.loadingBox').hide();
+        }
+        $(document).ready(function () {
+            startLoading("SendingRequest ...");
+           // On Pageload send ajax request
+            if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+                $('.sf1_bk').show();
+
+            }
+            doRest();
+        });
+    </script>
+</apex:page>

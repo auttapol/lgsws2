@@ -1,0 +1,1049 @@
+<apex:page standardController="AcctPlanWallet__c" extensions="AccountPlanWalletDomainIICtrl" docType="html-5.0"
+    showChat="false" showHeader="{! !isConsoleMode}" sidebar="false" applyBodyTag="false" applyHtmlTag="true"
+    standardStylesheets="true">
+
+    <head>
+        <title>Wallet Information</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <!-- Static Resource -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->
+
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+    </head>
+
+    <body>
+        <c:AccountPlanHeader activetab="3" activesubtab="2" Groupid="{!GroupID}" CompanyID="{!CompanyID}"
+            WalletID="{!WalletID}" Percentage="{!Acctplancompletion.Account_Plan_Completion_Percentage__c }"
+            WalletPercentage="{!Acctplancompletion.Step_3_Percentage__c }" IsMiniView="{!isMiniView}"
+            isHasProdStrategy="{!ishasProdStrategy}" isHasActionPlan="{!isHasActionPlan}" />
+        <div class="bootstrap-sf1 ">
+            <div id="responseErrors"></div>
+            <apex:form styleClass="form-horizontal">
+                <apex:pageBlock >
+                    <fieldset>
+                        <legend>Wallet by domain</legend>
+                    </fieldset>
+                    <div style="text-align: center;">
+                        <apex:pageBlockButtons location="both" style="float:left;margin-left:250px;" rendered="{! 
+                         isHasPermission
+                         && if(companyProfile.OwnerID == $User.id
+                               || isSystemAdmin
+                               || companyProfile.Account__r.OwnerID == $User.id
+                               ,true,
+                               if(isAccountTeamReadWrite,true,false) 
+                         )}">
+                            <apex:commandButton value="Edit" action="{!editpage}" styleclass="btn btn-success"
+                                rendered="{! !companyprofile.isPendingForApproval__c}" />
+
+                            <span class="btn btn-default glyphicon glyphicon-lock" rel="tooltip"
+                                title="This record has been locked while pending Approval Process"
+                                style="display:{!if(companyprofile.isPendingForApproval__c,'grid','none')};">
+                                Edit</span>
+
+                        </apex:pageBlockButtons>
+                    </div>
+                    <div>
+                        <table class="table">
+                            <tbody>
+
+                                <tr>
+                                    <td class="forceBackground" style="border: none;text-align:left;" width="180px">
+                                        Year
+                                        <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip"
+                                            data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                            data-animation="false" data-placement="bottom"
+                                            title="{!$ObjectType.AcctPlanCompanyProfile__c.Fields.Year__c.inlineHelpText}" />
+
+                                    </td>
+                                    <td style="border: none;">
+                                        <span class="form-control text-center calculate" style="width:400px;">
+                                            <apex:outputfield value="{!companyprofile.Year__c}" />
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="forceBackground" style="border: none;text-align:left;">
+                                        Customer Name
+                                        <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip"
+                                            data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                            data-animation="false" data-placement="bottom"
+                                            title="{!$ObjectType.AcctPlanCompanyProfile__c.Fields.AccountName__c.inlineHelpText}" />
+
+                                    </td>
+                                    <td style="border: none;">
+                                        <span class="form-control text-center calculate" style="width:400px;">
+                                            <apex:outputfield value="{!companyprofile.AccountName__c}" />
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <apex:actionstatus id="status">
+                        <apex:facet name="start">
+                            <div class='overlay'
+                                style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                                &nbsp;
+                            </div>
+                            <div
+                                style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                                <img src="/img/loading32.gif" />
+                            </div>
+                        </apex:facet>
+                    </apex:actionstatus>
+                    <div class="card-detail">
+                        <!--  Section 1 -->
+                        <fieldset>
+                            <div>
+                                <apex:outputpanel rendered="{!isHasPermission && if(companyProfile.OwnerID == $User.Id ,true,if(isAccountTeamReadWrite,true,false))}">
+                                    <apex:outputpanel rendered="{! !companyprofile.isPendingForApproval__c}">
+                                        <div style="margin-bottom: 15px;">
+                                            <apex:commandlink action="{!Refresh}"
+                                                reRender="RefreshDomesticTable,RefreshInternationalTable,RefreshDateAsOf"
+                                                styleclass="btn btn-primary glyphicon glyphicon-repeat" status="status"
+                                                id="Refresh"> Refresh </apex:commandlink>
+
+                                            <apex:outputpanel id="RefreshDateAsOf" style="margin-left: 10px;">
+                                                Data as of <label>
+                                                    <apex:outputfield value="{!acctplanwallet.DataAsOfDeposit__c}" />
+                                                </label>
+                                            </apex:outputpanel>
+                                        </div>
+                                    </apex:outputpanel>
+                                </apex:outputpanel>
+                                <header class="navbar navbar-default navbar-branded" role="banner">
+                                    <div class="panel-heading">
+
+                                        <div class="navbar-header ">
+                                            <a data-toggle="collapse" aria-expanded="true" href="#collapse1"
+                                                class="navbar-brand navbar-foundation-logo">1) Operating transaction</a>
+                                        </div>
+                                    </div>
+                                </header>
+                                <div class="card collapse in panel-collapse" id="collapse1">
+                                    <div class="card-detail">
+                                        <fieldset>
+                                            <div class="col-sm-12 col-md-6 col-lg-6" style="width: 60%">
+                                                <div class="form-group">
+
+                                                    <div>
+                                                        <table class="table table-striped">
+                                                            <tr>
+                                                                <td class="text-left"
+                                                                    style="border: none;width:50%;background-color:#fff !important;">
+                                                                    <label class="control-label">Unit: THB</label>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="text-left forceBackground"
+                                                                    style="border: none;">
+
+                                                                </td>
+                                                                <td class="text-center forceBackground"
+                                                                    style="border: none;">
+                                                                    <label class="control-label">Sale portion
+                                                                        (%)</label>
+                                                                </td>
+                                                                <td class="text-center forceBackground"
+                                                                    style="border: none;">
+                                                                    <label class="control-label">Amount/Year</label>
+                                                                </td>
+                                                                <td style="border: none;">&nbsp;</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="padding15 text-left forceBackground"
+                                                                    style="border: none;">
+                                                                    <label for="EstimatedSalesPortion__c"
+                                                                        class="control-label" style="padding-top: 0;">
+                                                                        Estimated Sales :
+                                                                        <!--<span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanCompanyProfile__c.Fields.AccountName__c.inlineHelpText}" />-->
+
+                                                                    </label>
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputField value="{!acctplanwallet.EstimatedSalesPercent__c}"
+                                                                        styleClass="form-control"
+                                                                        id="EstimatedSalesPortion__c" />
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanWallet__c.Fields.EstimatedSalesPercent__c.inlineHelpText}" />
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputtext value="{0, number, ###,##0}"
+                                                                        style="border: none;"
+                                                                        id="EstimatedSalesAmount__c">
+                                                                        <apex:param value="{!acctplanwallet.EstimatedSalesAmtPerYear__c}" />
+                                                                    </apex:outputtext>
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanWallet__c.Fields.EstimatedSalesAmtPerYear__c.inlineHelpText}" />
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="padding15 text-left forceBackground"
+                                                                    style="border: none;">
+                                                                    <label for="FundingDomesticPercent__c"
+                                                                        class="control-label"
+                                                                        style="padding-top: 0;">Total Sales Domestic
+                                                                        :</label>
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputField value="{!acctplanwallet.TotalDomesticPercent__c}"
+                                                                        styleClass="form-control"
+                                                                        id="FundingDomesticPercent__c" />
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalDomesticPercent__c.inlineHelpText}" />
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputField value="{!acctplanwallet.TotalDomesticAmtPerYear__c}"
+                                                                        styleClass="form-control"
+                                                                        id="FundingDomesticAmount__c" />
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalDomesticAmtPerYear__c.inlineHelpText}" />
+                                                                </td>
+
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="padding15 text-left forceBackground"
+                                                                    style="border: none;">
+                                                                    <label for="FundingImportExportPercent__c"
+                                                                        class="control-label"
+                                                                        style="padding-top: 0;">Total Sales Export
+                                                                        :</label>
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputField value="{!acctplanwallet.TotalExportPercent__c}"
+                                                                        styleClass="form-control"
+                                                                        id="FundingImportExportPercent__c" />
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalExportPercent__c.inlineHelpText}" />
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputField title="Data from wallet domain I"
+                                                                        value="{!acctplanwallet.TotalExportAmtPerYear__c}"
+                                                                        styleClass="form-control"
+                                                                        id="FundingImportExportAmount__c" />
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalExportAmtPerYear__c.inlineHelpText}" />
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="padding15 text-left forceBackground"
+                                                                    style="border: none;font-weight:bold">
+                                                                    Cash cycle (calculated by different between
+                                                                    collection and payment period):
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputField value="{!acctplanwallet.CashCycle__c}"
+                                                                        styleClass="form-control" />
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanWallet__c.Fields.CashCycle__c.inlineHelpText}" />
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="padding15 text-left forceBackground"
+                                                                    style="border: none;font-weight:bold">
+                                                                    Average operating deposit balance (Unit : THB):
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputField value="{!acctplanwallet.AvgOperatingDepBalance__c}"
+                                                                        styleClass="form-control" />
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanWallet__c.Fields.AvgOperatingDepBalance__c.inlineHelpText}" />
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="padding15 text-left forceBackground"
+                                                                    style="border: none;">
+                                                                    <label class="control-label"
+                                                                        style="padding-top: 0;">NIMd (%) :</label>
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputField value="{!acctplanwallet.NimdPercent_OperatingTransaction__c}"
+                                                                        styleClass="form-control" />
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanWallet__c.Fields.NimdPercent_OperatingTransaction__c.inlineHelpText}" />
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="padding15 text-left forceBackground"
+                                                                    style="border: none;">
+                                                                    <label class="control-label"
+                                                                        style="padding-top: 0;">Wallet NIId (Yearly)
+                                                                        :</label>
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputField value="{!acctplanwallet.WalletNiid_OperatingTransaction__c}"
+                                                                        styleClass="form-control" />
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanWallet__c.Fields.WalletNiid_OperatingTransaction__c.inlineHelpText}" />
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </fieldset>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <header class="navbar navbar-default navbar-branded" role="banner">
+                                <div class="panel-heading">
+                                    <div class="navbar-header ">
+                                        <a data-toggle="collapse" aria-expanded="true" href="#collapse2"
+                                            class="navbar-brand navbar-foundation-logo">2) Cash on Hand / Cash at Bank or Investment</a>
+                                    </div>
+                                </div>
+                            </header>
+                            <div class="card collapse in panel-collapse" id="collapse2">
+                                <div class="card-detail">
+                                    <fieldset>
+                                        <div class="row" style="padding-left: 15px;">
+                                            <div class="col-sm-12 col-md-6 col-lg-4" style="width: 50%">
+                                                <div class="form-group">
+                                                    <div>
+                                                        <table class="table table-striped">
+                                                            <tr>
+                                                                <td class="text-left forceBackground"
+                                                                    style="border: none; width: 45%;">
+                                                                </td>
+                                                                <td class="text-center forceBackground"
+                                                                    style="border: none; width: 30%;">
+                                                                    <label class="control-label"
+                                                                        style="padding-top: 0;">Amount per Year/Avg.
+                                                                        Balance</label>
+                                                                </td>
+                                                                <td class="text-center forceBackground"
+                                                                    style="border: none; width: 25%;">
+                                                                    <label class="control-label"
+                                                                        style="padding-top: 0;">NIMd (%)</label>
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="padding15 text-left forceBackground"
+                                                                    style="border: none;">
+                                                                    <label for="EstimatedSalesPortion__c"
+                                                                        style="padding-top: 0;" class="control-label">
+                                                                        Cash on hand and/ or Cash at Bank :
+                                                                        <span class="glyphicon glyphicon-question-sign"
+                                                                            data-toggle="tooltip"
+                                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                                            data-animation="false" data-placement="bottom"
+                                                                            title="{!$ObjectType.AcctPlanWallet__c.Fields.CashOnHand__c.inlineHelpText}" />
+                                                                    </label>
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputField value="{!acctplanwallet.CashOnHand__c}"
+                                                                        styleClass="form-control" />
+                                                                </td>
+                                                                <td class="text-right" style="border: none;">
+                                                                    <apex:outputfield value="{!acctplanwallet.CashOnHand_Nimd__c}"
+                                                                        styleClass="form-control" />
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="padding15 text-left forceBackground"
+                                                                    style="border: none;">
+                                                                    <label class="control-label"
+                                                                        style="padding-top: 0;">Investment amount :
+                                                                        <span class="glyphicon glyphicon-question-sign"
+                                                                            data-toggle="tooltip"
+                                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                                            data-animation="false" data-placement="bottom"
+                                                                            title="{!$ObjectType.AcctPlanWallet__c.Fields.InvestmentAmount__c.inlineHelpText}" />
+                                                                    </label>
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputField value="{!acctplanwallet.InvestmentAmount__c}"
+                                                                        styleClass="form-control" />
+                                                                </td>
+                                                                <td class="text-right" style="border: none;">
+                                                                    <apex:outputfield value="{!acctplanwallet.InvestmentAmount_NIMd__c }"
+                                                                        styleClass="text-right form-control fillin " />
+                                                                </td>
+                                                            </tr>
+    
+                                                            <tr>
+                                                                <td class="padding15 text-left forceBackground"
+                                                                    style="border: none;">
+                                                                    <label class="control-label"
+                                                                        style="padding-top: 0;">Wallet NIId (Yearly) :
+                                                                        <span class="glyphicon glyphicon-question-sign"
+                                                                            data-toggle="tooltip"
+                                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                                            data-animation="false" data-placement="bottom"
+                                                                            title="{!$ObjectType.AcctPlanWallet__c.Fields.WalletNiid_CashOnHand__c.inlineHelpText}" />
+                                                                    </label>
+                                                                </td>
+                                                                <td class="padding15 text-right" style="border: none;"></td>
+                                                                <td class="padding15 text-right" style="border: none;">
+                                                                    <apex:outputField value="{!acctplanwallet.WalletNiid_CashOnHand__c}"
+                                                                        styleClass="form-control" />
+                                                                </td>
+                                                            </tr>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+
+                                        <!-- -------------------------------------------------------------- -->
+                                        
+                                        <div>
+                                            <br />
+                                            <apex:outputpanel id="RefreshDomesticTable">
+                                                <div style="overflow-x: scroll;">
+                                                    <table class="table table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Deposit : Domestic</th>
+                                                                <!--<td >
+                                                <apex:commandlink action="{!RefreshDomestic}" reRender="RefreshDomesticTable"
+                                                    styleclass="btn btn-primary glyphicon glyphicon-repeat"  status="status"
+                                                    id="RefreshDepositDomestic" > Refresh </apex:commandlink>
+                                            </td> -->
+                                                                <td colspan="16" style="text-align: right;">Unit : THB
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th rowspan="3" style="vertical-align:middle">Deposit
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.Label__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th rowspan="3" style="vertical-align:middle">
+                                                                    Average<br />rate(%)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.AvgRatePercent__c.inlineHelpText}" />
+                                                                </th>
+                                                                <th colspan="15">%TMB Share vs %Other Banks share</th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th colspan="3" style="border-style:solid">TMB</th>
+                                                                <th colspan="3" style="border-style:solid">
+                                                                    {!IF(otherBankDomestic.SharedBank1__c == null ||
+                                                                    otherBankDomestic.SharedBank1__c == '',
+                                                                    'none',otherBankDomestic.SharedBank1__r.Name)}</th>
+                                                                <th colspan="3" style="border-style:solid">
+                                                                    {!IF(otherBankDomestic.SharedBank2__c == null ||
+                                                                    otherBankDomestic.SharedBank2__c == '',
+                                                                    'none',otherBankDomestic.SharedBank2__r.Name)}</th>
+                                                                <th colspan="3" style="border-style:solid">
+                                                                    {!IF(otherBankDomestic.SharedBank3__c == null ||
+                                                                    otherBankDomestic.SharedBank3__c == '',
+                                                                    'none',otherBankDomestic.SharedBank3__r.Name)}</th>
+                                                                <th colspan="3" style="border-style:solid">
+                                                                    {!IF(otherBankDomestic.SharedBank4__c == null ||
+                                                                    otherBankDomestic.SharedBank4__c == '',
+                                                                    'none',otherBankDomestic.SharedBank4__r.Name)}</th>
+
+                                                            </tr>
+                                                            <tr>
+                                                                <th style="border-left-style:solid">%share
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.ShareTMBPercent__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>Amount<br />(THB)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.TMBAmount__c.inlineHelpText}" />
+                                                                </th>
+                                                                <th style="border-right-style:solid">Rate(%)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.TMBRate__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>%share
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.SharePercentBank1__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>Amount<br />(THB)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.AmountBank1__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th style="border-right-style:solid">Rate(%)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.RateBank1__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>%share
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.SharePercentBank2__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>Amount<br />(THB)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.AmountBank2__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th style="border-right-style:solid">Rate(%)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.RateBank2__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>%share
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.SharePercentBank3__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>Amount<br />(THB)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.AmountBank3__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th style="border-right-style:solid">Rate(%)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.RateBank3__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>%share
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.SharePercentBank4__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>Amount<br />(THB)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.AmountBank4__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th style="border-right-style:solid">Rate(%)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositDomestic__c.Fields.RateBank4__c.inlineHelpText}" />
+
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <apex:repeat value="{!APDepositDomesticLabel}" var="label">
+                                                                <tr>
+                                                                    <apex:repeat value="{!APDepositDomesticList[label]}"
+                                                                        var="item">
+                                                                        <td
+                                                                            class="forceBackground {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','','text-left')}">
+                                                                            {!item.label__c}
+                                                                        </td>
+                                                                        <td class="text-right">
+                                                                            <apex:outputField value="{!item.AvgRatePercent__c}" />
+                                                                        </td>
+                                                                        <td class="text-right leftCol">
+                                                                            <apex:outputField value="{!item.ShareTMBPercent__c}" />
+                                                                        </td>
+                                                                        <td
+                                                                            class="text-right {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','font-bold','')}">
+                                                                            <apex:outputField value="{!item.TMBAmount__c}" />
+                                                                        </td>
+                                                                        <td class="text-right rightCol">
+                                                                            <apex:outputField value="{!item.TMBRate__c}" />
+                                                                        </td>
+                                                                        <td class="text-right">
+                                                                            <apex:outputField value="{!item.SharePercentBank1__c}" />
+                                                                        </td>
+                                                                        <td
+                                                                            class="text-right {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','font-bold','')}">
+                                                                            <apex:outputField value="{!item.AmountBank1__c}" />
+                                                                        </td>
+                                                                        <td class="text-right rightCol">
+                                                                            <apex:outputField value="{!item.RateBank1__c}" />
+                                                                        </td>
+                                                                        <td class="text-right">
+                                                                            <apex:outputField value="{!item.SharePercentBank2__c}" />
+                                                                        </td>
+                                                                        <td
+                                                                            class="text-right {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','font-bold','')}">
+                                                                            <apex:outputField value="{!item.AmountBank2__c}" />
+                                                                        </td>
+                                                                        <td class="text-right rightCol">
+                                                                            <apex:outputField value="{!item.RateBank2__c}" />
+                                                                        </td>
+                                                                        <td class="text-right">
+                                                                            <apex:outputField value="{!item.SharePercentBank3__c}" />
+                                                                        </td>
+                                                                        <td
+                                                                            class="text-right {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','font-bold','')}">
+                                                                            <apex:outputField value="{!item.AmountBank3__c}" />
+                                                                        </td>
+                                                                        <td class="text-right rightCol">
+                                                                            <apex:outputField value="{!item.RateBank3__C}" />
+                                                                        </td>
+                                                                        <td class="text-right">
+                                                                            <apex:outputField value="{!item.SharePercentBank4__c}" />
+                                                                        </td>
+                                                                        <td
+                                                                            class="text-right {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','font-bold','')}">
+                                                                            <apex:outputField value="{!item.AmountBank4__c}" />
+                                                                        </td>
+                                                                        <td class="text-right">
+                                                                            <apex:outputField value="{!item.RateBank4__c}" />
+                                                                        </td>
+                                                                    </apex:repeat>
+                                                                </tr>
+                                                            </apex:repeat>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </apex:outputpanel>
+                                        </div>
+
+                                        <br />
+                                        <div>
+                                            <apex:outputpanel id="RefreshInternationalTable">
+                                                <div style="overflow-x: scroll;">
+                                                    <table class="table table-striped">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Deposit : International</th>
+                                                                <td>
+                                                                    <!-- <apex:commandlink action="{!RefreshInternational}" reRender="RefreshInternationalTable"
+                                                    styleclass="btn btn-primary glyphicon glyphicon-repeat"  status="status"
+                                                    id="RefreshDepositInternational" > Refresh </apex:commandlink>-->
+                                                                </td>
+                                                                <td colspan="18" style="text-align: right;">Unit : THB
+                                                                </td>
+                                                            </tr>
+                                                            <tr>
+                                                                <th rowspan="3" style="vertical-align:middle">Deposit
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.Label__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th rowspan="3" style="vertical-align:middle">Currency
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.CCY__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th rowspan="3" style="vertical-align:middle">
+                                                                    Average<br />rate(%)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.AvgRatePercent__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th rowspan="3" style="vertical-align:middle">
+                                                                    Amount/Month<br />(THB equivalent)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.AmtPerMonth__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th rowspan="3" style="vertical-align:middle">
+                                                                    Tenor/<br />Period<br />(days)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.TenorPerPeriod__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th colspan="15">%TMB Share vs %Other Banks share
+                                                                </th>
+                                                            </tr>
+                                                            <tr>
+                                                                <th style="border-left-style: solid;" colspan="3">TMB
+                                                                </th>
+                                                                <th colspan="3" style="border-style:solid">
+                                                                    {!IF(otherBankInternational.SharedBank1__c == null
+                                                                    ||
+                                                                    otherBankInternational.SharedBank1__c == '',
+                                                                    'none',otherBankInternational.SharedBank1__r.Name)}
+                                                                </th>
+                                                                <th colspan="3" style="border-style:solid">
+                                                                    {!IF(otherBankInternational.SharedBank2__c == null
+                                                                    ||
+                                                                    otherBankInternational.SharedBank2__c == '',
+                                                                    'none',otherBankInternational.SharedBank2__r.Name)}
+                                                                </th>
+                                                                <th colspan="3" style="border-style:solid">
+                                                                    {!IF(otherBankInternational.SharedBank3__c == null
+                                                                    ||
+                                                                    otherBankInternational.SharedBank3__c == '',
+                                                                    'none',otherBankInternational.SharedBank3__r.Name)}
+                                                                </th>
+                                                                <th colspan="3" style="border-style:solid">
+                                                                    {!IF(otherBankInternational.SharedBank4__c == null
+                                                                    ||
+                                                                    otherBankInternational.SharedBank4__c == '',
+                                                                    'none',otherBankInternational.SharedBank4__r.Name)}
+                                                                </th>
+
+                                                            </tr>
+                                                            <tr>
+                                                                <th style="border-left-style: solid;">%share
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.ShareTMBPercent__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>Amount<br />(THB)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.TMBAmount__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th style="border-right-style: solid;">Rate(%)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.TMBRate__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>%share
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.SharePercentBank1__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>Amount<br />(THB)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.AmountBank1__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th style="border-right-style: solid;">Rate(%)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.RateBank1__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>%share
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.SharePercentBank2__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>Amount<br />(THB)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.AmountBank2__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th style="border-right-style: solid;">Rate(%)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.RateBank2__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>%share
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.SharePercentBank3__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>Amount<br />(THB)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.AmountBank3__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th style="border-right-style: solid;">Rate(%)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.RateBank3__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>%share
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.SharePercentBank4__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th>Amount<br />(THB)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.AmountBank4__c.inlineHelpText}" />
+
+                                                                </th>
+                                                                <th style="border-right-style: solid;">Rate(%)
+                                                                    <span class="glyphicon glyphicon-question-sign"
+                                                                        data-toggle="tooltip"
+                                                                        data-delay='{"show":"0", "hide":"100"}'
+                                                                        data-animation="false" data-placement="bottom"
+                                                                        title="{!$ObjectType.AcctPlanDepositInternational__c.Fields.RateBank4__c.inlineHelpText}" />
+
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+
+                                                            <apex:repeat value="{!APDepositInternationalLabel}"
+                                                                var="label">
+                                                                <tr>
+                                                                    <apex:repeat value="{!APDepositInternationalList[label]}"
+                                                                        var="item">
+                                                                        <td
+                                                                            class="forceBackground {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','font-bold','text-left')}">
+                                                                            <div
+                                                                                style="{!IF(item.label__c == 'Current - Other Currency' || item.label__c == 'Saving - Other Currency','padding-left: 17px;','')} width: 200px;">
+                                                                                {!item.label__c}
+                                                                            </div>
+                                                                        </td>
+                                                                        <td class="text-center">
+                                                                            <apex:outputField value="{!item.CCY__r.Name}" />
+                                                                        </td>
+                                                                        <td class="text-right">
+                                                                            <apex:outputField value="{!item.AvgRatePercent__c}" />
+                                                                        </td>
+                                                                        <td class="text-right {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','font-bold','')}"
+                                                                            style="width: 120px">
+                                                                            <apex:outputField value="{!item.AmtPerMonth__c}" />
+                                                                        </td>
+                                                                        <td class="text-center">
+                                                                            <apex:outputField value="{!item.TenorPerPeriod__c}" />
+                                                                        </td>
+                                                                        <td class="text-right leftCol">
+                                                                            <apex:outputField value="{!item.ShareTMBPercent__c}" />
+                                                                        </td>
+                                                                        <td
+                                                                            class="text-right {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','font-bold','')}">
+                                                                            <apex:outputField value="{!item.TMBAmount__c}" />
+                                                                        </td>
+                                                                        <td class="text-right rightCol">
+                                                                            <apex:outputField value="{!item.TMBRate__c}" />
+                                                                        </td>
+                                                                        <td class="text-right">
+                                                                            <apex:outputField value="{!item.SharePercentBank1__c}" />
+                                                                        </td>
+                                                                        <td
+                                                                            class="text-right {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','font-bold','')}">
+                                                                            <apex:outputField value="{!item.AmountBank1__c}" />
+                                                                        </td>
+                                                                        <td class="text-right rightCol">
+                                                                            <apex:outputField value="{!item.RateBank1__c}" />
+                                                                        </td>
+                                                                        <td class="text-right">
+                                                                            <apex:outputField value="{!item.SharePercentBank2__c}" />
+                                                                        </td>
+                                                                        <td
+                                                                            class="text-right {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','font-bold','')}">
+                                                                            <apex:outputField value="{!item.AmountBank2__c}" />
+                                                                        </td>
+                                                                        <td class="text-right rightCol">
+                                                                            <apex:outputField value="{!item.RateBank2__c}" />
+                                                                        </td>
+                                                                        <td class="text-right">
+                                                                            <apex:outputField value="{!item.SharePercentBank3__c}" />
+                                                                        </td>
+                                                                        <td
+                                                                            class="text-right {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','font-bold','')}">
+                                                                            <apex:outputField value="{!item.AmountBank3__c}" />
+                                                                        </td>
+                                                                        <td class="text-right rightCol">
+                                                                            <apex:outputField value="{!item.RateBank3__c}" />
+                                                                        </td>
+                                                                        <td class="text-right">
+                                                                            <apex:outputField value="{!item.SharePercentBank4__c}" />
+                                                                        </td>
+                                                                        <td
+                                                                            class="text-right {!IF(item.label__c == 'Transactional' || item.label__c == 'Non Transactional' || item.label__c == 'Total','font-bold','')}">
+                                                                            <apex:outputField value="{!item.AmountBank4__c}" />
+                                                                        </td>
+                                                                        <td class="text-right ">
+                                                                            <apex:outputField value="{!item.RateBank4__c}" />
+                                                                        </td>
+                                                                    </apex:repeat>
+                                                                </tr>
+                                                            </apex:repeat>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </apex:outputpanel>
+                                        </div>
+
+                                        <table class="table table-striped " style="width: 30%">
+                                            <tbody>
+                                                <tr>
+                                                    <td class="padding15 forceBackground">Total Wallet NIId (yearly)
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalWalletNIID__c.inlineHelpText}" />
+                                                    </td>
+                                                    <td class="padding15">
+                                                        <apex:outputField value="{!acctplanwallet.TotalWalletNIID__c}"
+                                                            styleClass="form-control" />
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </fieldset>
+                                </div>
+                            </div>
+
+                            <br />
+
+
+                        </fieldset>
+                    </div>
+                </apex:pageBlock>
+            </apex:form>
+        </div>
+        <apex:includeScript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includeScript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:includeScript value="{!$Resource.AccountPlan_Mustache}" />
+        <apex:includeScript value="{!$Resource.approvals_underscore_1_5_1}" />
+        <apex:includeScript value="/support/console/22.0/integration.js" />
+        <script>
+            // <!--  editable   SECTION -->
+            var $j = jQuery.noConflict();
+            $j(document).ready(function () {
+
+                $j("[rel=tooltip]").tooltip({ placement: 'right' });
+
+                $j('[data-toggle="tooltip"]').tooltip();
+            });
+            //Sets the title of the current tab to "Case Transactions Detail"
+            window.onload = function setTitleConsole() {
+                setTitle();
+            }
+            //Sets the title of the current tab to "Case Transactions Detail"
+            function setTitle() {
+                sforce.console.setTabTitle('Wallet by Domain');
+            }
+        </script>
+    </body>
+
+</apex:page>

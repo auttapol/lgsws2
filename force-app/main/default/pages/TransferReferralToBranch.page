@@ -1,0 +1,275 @@
+<apex:page cache="false" standardController="RTL_Referral__c" extensions="TransferToBranchExtension" standardStylesheets="true" action="{!ValidateReferral}" lightningStylesheets="true" title="Transfer Referral">
+    
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <!-- Import the Design System style sheet -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+
+        <!-- Includes Js -->
+        <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+        <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+        <!-- Salesconsole JS API -->
+        <apex:includescript value="/support/console/39.0/integration.js" />
+        
+        
+        <!-- Style for Ajax Request -->
+        <style>
+            @media (max-width: 640px) {
+                input.btn{
+                    margin-left: 10px;
+                    margin-right: 10px;
+                }
+                select{
+                    width: auto !important;
+                    height: auto !important;
+                }
+                table{
+                    width: fit-content !important ;
+                }
+            }
+            @media only screen and (min-device-width : 768px) and (max-device-width : 1024px)  { 
+                select{
+                    width: max-content !important;
+                    height: auto !important;
+                }
+                table{
+                    width: fit-content !important ;
+                }
+                input.btn{
+                    margin-left: 10px;
+                    margin-right: 10px;
+                }
+            }
+            .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+            }
+            
+            .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+            /* width: 32px;*/
+            height: 32px;
+            position: absolute;
+            left: 48%;
+            }
+            
+            .red-label {
+            list-style: none;
+            color: #f00;
+            }
+            .bootstrap-sf1{
+            overflow: hidden;
+            }
+            .bootstrap-sf1 .paddingline{
+                padding-top :5px;
+            }
+            .bootstrap-sf1{
+            background-color: #FFF;
+            
+            }
+            .bootstrap-sf1 .btn-block {
+            display: block;
+            width: 100%;
+            text-align: center;
+            }
+            .bootstrap-sf1 .padding-label {
+                padding-right: 20px;
+                float: left; 
+                width: 40%; 
+                text-align: right;
+            }
+            .bootstrap-sf1 .padding-values {
+                float: right; 
+                text-align: left; 
+                width: 60%;
+            }
+            .slds-button-block{
+                text-align: center;
+                margin : 10px;
+            }
+            .slds-scope table{
+                width: auto;
+            }
+            .slds-scope img {
+                max-width: 100%;
+                height: 20px;
+            }
+          
+        </style>
+
+    </head>
+
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+    <apex:sectionHeader title="Referral" subtitle="New Referral"/>
+    <!-- // End Ajax Request -->
+    <apex:form >
+    
+    <apex:pageBlock title="Transfer Referral to Branch" mode="edit">
+    	<apex:outputPanel id="statusMessage">
+    		<apex:pageMessages ></apex:pageMessages>
+    	</apex:outputPanel>
+    	<apex:pageBlockButtons id="detail">
+    		<apex:commandButton action="{!save}" value="Save" rendered="{!isValid}" rerender="detail,script,statusMessage" />
+    		<apex:commandButton action="{!cancel}" value="Cancel" rendered="{!isValid}"/>
+    		<apex:commandButton action="{!cancel}" value="Back"  rendered="{!!isValid}" />
+    	</apex:pageBlockButtons>
+    	<apex:pageBlockSection title="Referral Information" rendered="{!isValid}">
+    		<apex:inputField value="{!newReferral.RTL_Interested_Product__c}" required="true"/>
+    		<apex:outputPanel style="display:none">
+				<apex:inputField value="{!newReferral.RTL_Type__c}" ></apex:inputField>
+			</apex:outputPanel>
+    	</apex:pageBlockSection>
+    </apex:pageBlock>
+    </apex:form>
+<apex:outputPanel id="script">
+<script type="text/javascript">
+
+    var _primaryTabId;
+    var _isInConsole = false;
+    var _isInSF1 = false;
+    var _tabId;
+
+    function handleAfterSave(url,pageName){
+    	console.log('After Save');
+        console.log('{!hasError}');
+        if ({!NOT(hasError)}) {
+            redirectURL(url,pageName);
+            
+            if(sforce.console.isInConsole()){
+            	sforce.console.refreshPrimaryTabById(_primaryTabId, true);
+            	sforce.console.closeTab(_tabId);
+
+    		}
+        }
+    	
+    	
+    	
+    }
+
+    function IsInConsole() {
+
+        // console.log(theme);
+        // if (sforce.console.isInConsole()) {
+        //     _isInConsole = true;
+        //     _isInSF1 = false;
+        //     // Then get primary tab id
+        //     sforce.console.getEnclosingPrimaryTabId(MainTabId);
+        //     sforce.console.getEnclosingTabId(showTabId);            
+        //     sforce.console.setTabTitle('Transfer');
+
+        // }
+        // // Ref. https://developer.salesforce.com/docs/atlas.en-us.salesforce1.meta/salesforce1/vf_dev_best_practices_pages_multipurpose.htm
+        // else if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+        //     _isInConsole = false;
+        //     _isInSF1 = true;
+
+        // }
+        // else {
+        //     _isInConsole = false;
+        //     _isInSF1 = false;
+        // }
+
+        // console.log('_isInConsole = ' +  _isInConsole);
+        // console.log('_isInSF1 = ' +  _isInSF1);
+
+        var theme = '{!$User.UIThemeDisplayed}';
+        console.log(theme);
+        // if( theme == 'Theme4t' ){
+        //     console.log("IN");
+        //     var mobile_url = '/apex/TransferReferralToBranchMobile?id='+'{!(referral.Id)}';
+        //     redirectURL(mobile_url,'Transfer');
+        // } else
+         if (sforce.console.isInConsole()) {
+            _isInConsole = true;
+            _isInSF1 = false;
+            // Then get primary tab id
+            sforce.console.getEnclosingPrimaryTabId(MainTabId);
+            sforce.console.getEnclosingTabId(showTabId);            
+            sforce.console.setTabTitle('Transfer');
+
+        }
+        // Ref. https://developer.salesforce.com/docs/atlas.en-us.salesforce1.meta/salesforce1/vf_dev_best_practices_pages_multipurpose.htm
+        else if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+            _isInConsole = false;
+            _isInSF1 = true;
+
+        }
+        else {
+            _isInConsole = false;
+            _isInSF1 = false;
+        }
+
+        console.log('_isInConsole = ' +  _isInConsole);
+        console.log('_isInSF1 = ' +  _isInSF1);
+    }
+
+    function redirectURL(url,pageName){
+    		console.log('url '+ url);
+            if(_isInConsole){
+                // In Sales Console
+                OpenTabPage(url,pageName);
+                
+            }else if(_isInSF1){
+                //In Salesforce1
+                sforce.one.navigateToURL(url);
+            }else{
+                //Desktop Version
+                window.location.href = url;
+            }
+            //endLoading();
+    }
+
+    function OpenTabPage(url,pagename){
+
+        // Open new sub tab
+        sforce.console.openSubtab(_primaryTabId , url, true, pagename, null, openSuccess, pagename);
+    }
+
+
+    var MainTabId = function MainTabId(result){
+    	_primaryTabId = result.id;
+    	console.log('maintab'+_primaryTabId); 
+    }
+
+    var showTabId = function showTabId(result) {
+        // Display the tab ID
+            
+        _tabId = result.id;
+        console.log('tab id :'+_tabId);
+    };
+
+    var openSuccess = function openSuccess(result) {
+        //Report whether we succeeded in opening the subtab
+        if (result.success == true) {
+
+        } else {
+
+        }
+    };
+    
+    $(document).ready(function(){
+    	IsInConsole(); 
+
+    });
+    
+
+
+
+</script>
+</apex:outputPanel>
+</apex:page>

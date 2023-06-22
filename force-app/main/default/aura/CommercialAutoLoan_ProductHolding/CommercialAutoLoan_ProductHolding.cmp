@@ -1,0 +1,84 @@
+<aura:component controller="CommercialAutoLoanController" access="global">
+
+    <lightning:navigation aura:id="navService" />
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="tmbCustId" type="String" />
+    <aura:attribute name="error" type="Map"
+        default="{'state':false,'isTimeout':false,'isError':false,'title':'Warning!','messages':{},message:'','herfLink':'','retry':''}" />
+    <aura:attribute name="theme" type="String" default="{!$Browser.formFactor == 'DESKTOP' ? 'Theme4u' : 'Theme4t'}" />
+    <aura:attribute name="accessibleCusHold" type="Map" default="{
+        'isAccessibleCusHoldLow' : false,
+        'isAccessibleCusHoldMid' : false,
+        'isAccessibleCusHoldHig' : false,
+    }" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler name="eCommercialAutoLoan_ProductHoldingEvent" event="c:CommercialAutoLoan_ProductHoldingEvent" action="{!c.handleEvent}" />
+
+    <c:watermark aura:id="watermark" oninit="{!c.waterMark}" />
+    <aura:attribute name="waterMarkImage" type="String" />
+    <aura:html tag="style">
+        :root {
+        --backgroundImage: {!v.waterMarkImage};
+        }
+    </aura:html>
+
+    <ui:scrollerWrapper aura:id="scrollerWrapper" class="container slds-no-print slds-is-relative">
+        <lightning:layout multipleRows="true">
+
+            <aura:if isTrue="{!v.error.state}">
+                <lightning:layoutItem size="12" class="slds-var-p-top_small">
+                    <lightning:card class="slds-theme_shade slds-theme_alert-texture">
+                        <aura:set attribute="title">
+                            <div class="slds-text-heading_medium slds-text-color_destructive">
+                                <aura:unescapedHtml value="{!v.error.title}" />
+                            </div>
+                        </aura:set>
+
+                        <lightning:layoutItem aura:id="hrefComponent" class="slds-var-p-horizontal_large">
+                            <div style="white-space: pre-wrap;">
+                                <aura:if isTrue="{!v.error.herfLink}">
+                                    <div>
+                                        {!v.error.herfLink}
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!v.error.retry}">
+                                    <div>
+                                        {!v.error.retry}
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!v.error.message}">
+                                    <div>
+                                        {!v.error.message}
+                                    </div>
+                                </aura:if>
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:card>
+                </lightning:layoutItem>
+            </aura:if>
+
+            <lightning:layoutItem size="12" class="slds-var-p-top_small">
+                <div aura:id="CommercialAutoLoan_FloorPlanListHref"></div>
+                <c:CommercialAutoLoan_FloorPlanList aura:id="CommercialAutoLoan_FloorPlanList" recordId="{!v.recordId}" tmbCustId="{!v.tmbCustId}"
+                    theme="{!v.theme}" accessibleCusHold="{!v.accessibleCusHold}" />
+            </lightning:layoutItem>
+
+            <lightning:layoutItem size="12" class="slds-var-p-top_small">
+                <div aura:id="CommercialAutoLoan_LeasingListHref"></div>
+                <c:CommercialAutoLoan_LeasingList aura:id="CommercialAutoLoan_LeasingList" recordId="{!v.recordId}" tmbCustId="{!v.tmbCustId}"
+                    theme="{!v.theme}" accessibleCusHold="{!v.accessibleCusHold}" />
+            </lightning:layoutItem>
+
+            <lightning:layoutItem size="12" class="slds-var-p-top_small">
+                <div aura:id="CommercialAutoLoan_HPFeetHPListHref"></div>
+                <c:CommercialAutoLoan_HPFeetHPList aura:id="CommercialAutoLoan_HPFeetHPList" recordId="{!v.recordId}" tmbCustId="{!v.tmbCustId}"
+                    theme="{!v.theme}" accessibleCusHold="{!v.accessibleCusHold}" />
+            </lightning:layoutItem>
+
+        </lightning:layout>
+    </ui:scrollerWrapper>
+
+</aura:component>

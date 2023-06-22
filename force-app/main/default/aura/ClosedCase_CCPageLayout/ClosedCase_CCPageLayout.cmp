@@ -1,0 +1,197 @@
+<aura:component controller="RTL_CaseLightningUtil" implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="fields" type="Map" default="{}" />
+    <aura:attribute name="errorsDisplay" type="Map" default="{}" />
+    <aura:attribute name="errorsDisplay2" type="Map" default="{}" />
+    <aura:attribute name="warningMessageMap" type="Map" default="{}" />
+    <aura:attribute name="isWarning" type="Boolean" default="false" />
+    <aura:attribute name="isClosed" type="Boolean" default="false" />
+    <aura:attribute name="warningMessage" type="String" default="" />
+    <aura:attribute name="oldStatus" type="String" default="" />
+    <aura:attribute name="case" type="Object" />
+    <aura:attribute name="StatusPicklist" type="Object[]" />
+    <aura:attribute name="statusChoose" type="String"/>
+    <aura:attribute name="recordLoadError" type="String" />
+    <aura:attribute name="isCaseRecordAccess" type="Boolean" default="false" />
+    <aura:attribute name="allowEdit" type="Boolean" default="true" />
+    <aura:attribute name="isRerender" type="Boolean" default="false" />
+    <aura:if isTrue="{! v.isRerender }">
+        <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+    </aura:if>
+    <force:recordData aura:id="recordLoader" recordId="{!v.recordId}" fields="CaseNumber, Status, Category__c" targetFields="{!v.case}" targetError="{!v.recordLoadError}" />
+    <aura:if isTrue="{!!v.allowEdit}">
+        <aura:renderIf isTrue="{! v.errorsDisplay2.isDisplay }">
+            <div class="slds-notify_container slds-is-relative">
+                <div role="alert" class="slds-notify slds-notify_toast slds-theme_error">
+                    <div class="slds-notify__content">
+                        <aura:iteration items="{! v.errorsDisplay.errors }" var="e">
+                            <h2 class="slds-text-heading_small">
+                                {! e.errorHeader }
+                            </h2>
+                            <div class="slds-text-body_regular">
+                                {! e.errorMessage }
+                            </div>
+                        </aura:iteration>
+                    </div>
+                </div>
+            </div>
+        </aura:renderIf>
+    <aura:set attribute="else">
+    <lightning:card>
+        <aura:set attribute="title">
+            <lightning:layout class="slds-page-header slds-page-header_object-home">
+                <lightning:layoutItem>
+                    <lightning:icon size="large" iconName="standard:case" alternativeText="Closed Case" />
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="page-section page-header">
+                        <h1 class="slds-text-heading_label">
+                            {!$Label.c.Closed_Case}
+                        </h1>
+                        <h2 class="slds-text-heading_medium">
+                            {!v.case.CaseNumber}
+                        </h2>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:set>
+
+        <aura:If isTrue="{! v.isWarning }">
+        <!-- <div class="slds-float_right">   -->
+        <div class="slds-is-relative" style="text-align: right;right: 5px;">
+                <div class="slds-notify slds-notify_toast slds-theme_warning">
+                        <div class="slds-text-body_regular">
+                            {! v.warningMessage }
+                        </div>
+                </div>
+            </div>
+        <!-- </div>   -->
+        </aura:If>
+        <aura:renderIf isTrue="{! v.errorsDisplay.isDisplay }">
+            <div class="slds-notify_container slds-is-relative">
+                <div role="alert" class="slds-notify slds-notify_toast slds-theme_error">
+                    <div class="slds-notify__content">
+                        <aura:iteration items="{! v.errorsDisplay.errors }" var="e">
+                            <h2 class="slds-text-heading_small">
+                                {! e.errorHeader }
+                            </h2>
+                            <div class="slds-text-body_regular">
+                                {! e.errorMessage }
+                            </div>
+                        </aura:iteration>
+                    </div>
+                </div>
+            </div>
+        </aura:renderIf>
+
+        <aura:renderIf isTrue="{! v.isCaseRecordAccess }">
+            <lightning:recordEditForm density="compact" aura:id="recordEditForm" recordId="{!v.recordId}" objectApiName="Case" onload="{! c.onLoad }"
+                onsubmit="{! c.onSubmit }" onsuccess="{! c.onSuccess }" onerror="{! c.onError }">
+
+                <lightning:layout>
+                    <lightning:layoutItem size="12" padding="horizontal-small">
+                        <lightning:buttonGroup class="slds-float_right">
+                            <lightning:button type="submit" variant="brand" label="{!$Label.c.Save}" />
+                            <lightning:button type="button" label="{!$Label.c.Cancel}" onclick="{! c.onCloseTab }" />
+                        </lightning:buttonGroup>
+                    </lightning:layoutItem>
+                </lightning:layout>
+
+                <lightning:messages />
+
+                <lightning:card>
+                    <aura:set attribute="title">
+                        <div class="slds-p-around_xxx-small slds-section__title slds-theme_shade">Case Information</div>
+                    </aura:set>
+                    <lightning:layout verticalAlign="stretch" multipleRows="true">
+                        <!-- <aura:iteration items="{!v.fields.inputField}" var="field"> -->
+                            <!-- <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="12" mediumDeviceSize="6" largeDeviceSize="6"
+                                padding="horizontal-small" class="slds-p-bottom_x-small"> -->
+                                <!-- <lightning:inputField aura:id="inputField" required="{! field.required }" fieldName="{! field.fileName }"
+                                    value="{! field.value }" /> -->
+                            <div class="slds-p-bottom_x-small slds-size_1-of-2" style="padding-left:20px;">
+                                <lightning:select class="slds-form-element slds-form-element_horizontal" value="{!v.statusChoose}" required="true" label="Status">       
+                                    <option value="">--None--</option> 
+                                    <aura:iteration items="{!v.StatusPicklist}" var="item">
+                                        <option value="{!item.label}">{!item.label}</option>
+                                    </aura:iteration>
+                                </lightning:select>
+                                <lightning:inputField aura:id="Root_Cause_List__c" required="true" fieldName="Root_Cause_List__c"/>
+                                <lightning:inputField aura:id="Root_Cause__c" fieldName="Root_Cause__c"/>
+                            </div>
+                            <div class="slds-p-bottom_x-small slds-size_1-of-2" style="padding-right:20px;">
+                                <lightning:inputField aura:id="thisInput" value="{!v.statusChoose}" fieldName="Status" style="display: none;"/>
+                                <lightning:inputField style="padding-top: 50px;" aura:id="Resolution_LIst__c" required="true" fieldName="Resolution_LIst__c"/>
+                                <lightning:inputField aura:id="Resolution__c" fieldName="Resolution__c"/>
+                            </div>
+                            
+                            <!-- </lightning:layoutItem> -->
+                        <!-- </aura:iteration> -->
+                    </lightning:layout>
+                </lightning:card>
+
+                <lightning:card>
+                    <aura:set attribute="title">
+                        <div class="slds-p-around_xxx-small slds-section__title slds-theme_shade">Service Request Details</div>
+                    </aura:set>
+                    <lightning:layout verticalAlign="stretch" multipleRows="true">
+                        <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="12" mediumDeviceSize="6" largeDeviceSize="6"
+                            padding="horizontal-small" class="slds-p-bottom_x-small">
+                            <aura:iteration items="{!v.fields.outputField}" var="field">
+                                <lightning:layoutItem flexibility="auto" size="12" class="slds-p-bottom_small">
+                                    <lightning:outputField aura:id="outputField" class="slds-form-element_readonly" fieldName="{! field.fileName }" />
+                                </lightning:layoutItem>
+                            </aura:iteration>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </lightning:card>
+
+                <lightning:card>
+                    <aura:set attribute="title">
+                        <div class="slds-p-around_xxx-small slds-section__title slds-theme_shade">More Detail</div>
+                    </aura:set>
+                    <lightning:layout verticalAlign="stretch" multipleRows="true">
+                        <!-- <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="12" mediumDeviceSize="6" largeDeviceSize="6"
+                            padding="horizontal-small" class="slds-p-bottom_x-small">
+                            <aura:iteration items="{!v.fields.outputField}" var="field">
+                                <lightning:layoutItem flexibility="auto" size="12" class="slds-p-bottom_small">
+                                    <lightning:outputField aura:id="outputField" class="slds-form-element_readonly" fieldName="{! field.fileName }" />
+                                </lightning:layoutItem>
+                            </aura:iteration>
+                        </lightning:layoutItem> -->
+                        <div class="slds-p-bottom_x-small slds-size_1-of-2" style="padding-left:20px;">
+                            <lightning:layoutItem flexibility="auto" size="12" class="slds-p-bottom_small">
+                                <lightning:outputField aura:id="outputField" class="slds-form-element_readonly" fieldName="KYC_Data_type__c" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem flexibility="auto" size="12" class="slds-p-bottom_small">
+                                <lightning:outputField aura:id="outputField" class="slds-form-element_readonly" fieldName="KYC_Number__c" />
+                            </lightning:layoutItem>
+                        </div>
+                        <div class="slds-p-bottom_x-small slds-size_1-of-2" style="padding-right:20px;">
+                            <lightning:layoutItem flexibility="auto" size="12" class="slds-p-bottom_small">
+                                <lightning:outputField aura:id="outputField" class="slds-form-element_readonly" fieldName="KYC_Risk_Level__c" />
+                            </lightning:layoutItem>
+                            <!-- <lightning:layoutItem flexibility="auto" size="12" class="slds-p-bottom_small">
+                                <lightning:outputField aura:id="outputField" class="slds-form-element_readonly" fieldName="Description" />
+                            </lightning:layoutItem> -->
+                        </div>
+                    </lightning:layout>
+                </lightning:card>
+
+                <lightning:layout>
+                    <lightning:layoutItem class="slds-text-align_center" size="12" padding="horizontal-small">
+                        <lightning:buttonGroup>
+                            <lightning:button type="submit" variant="brand" label="{!$Label.c.Save}" />
+                            <lightning:button type="button" label="{!$Label.c.Cancel}" onclick="{! c.onCloseTab }" />
+                        </lightning:buttonGroup>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </lightning:recordEditForm>
+        </aura:renderIf>
+    </lightning:card>
+    </aura:set>
+    </aura:if>
+</aura:component>

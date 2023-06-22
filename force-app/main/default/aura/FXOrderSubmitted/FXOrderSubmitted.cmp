@@ -1,0 +1,291 @@
+<aura:component controller="FX_Order_Summary_Controller" implements="flexipage:availableForAllPageTypes,force:hasRecordId"
+    access="global">
+
+    <aura:attribute name="orderList" type="FX_Order__c[]" />
+    <aura:attribute name="fxs" type="FX_Order_Summary__c" />
+    <aura:attribute name="userCurrentProfile" type="User" />
+    <!-- <aura:attribute name="orderListcolumns" type="List"/> -->
+    <aura:attribute name="confirmCancelOrderModal" type="Boolean" default="false" />
+    <aura:attribute name="FXOrderDataOnModal" type="FX_Order__c" />
+    <aura:attribute name="blotterProfile" type="FX_Blotter_Profile_Manager__mdt" />
+
+    <aura:attribute name="recordId" type="Id" />
+
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler event="force:refreshView" action="{!c.onInit}" />
+
+
+    <lightning:card title="{!$Label.c.FX_Order_List_Title}">
+
+        <div class="slds-table_edit_container slds-is-relative">
+            <table class="slds-table slds-table_bordered slds-table_col-bordered slds-table_fixed-layout slds-border_left slds-border_right slds-border_bottom slds-table_cell-buffer slds-max-medium-table_stacked-horizontal">
+                <!-- <table class="slds-table slds-table_bordered slds-table_resizable-cols slds-table_fixed-layout slds-table_cell-buffer slds-table_col-bordered slds-max-medium-table_stacked-horizontal slds-border_left slds-border_right"> -->
+                <!-- <table class="slds-table slds-table_bordered slds-max-medium-table_stacked-horizontal slds-table_col-bordered"> -->
+                <thead>
+                    <tr class="slds-text-title_caps">
+                        <th scope="col">
+                            <div class="slds-truncate" title="{!$Label.c.FX_Order_Submit_Name}">{!$Label.c.FX_Order_Submit_Name}</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="{!$Label.c.FX_Order_Submit_Account_Name}">{!$Label.c.FX_Order_Submit_Account_Name}</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="{!$Label.c.FX_Order_Submit_Buy_or_Sell}">{!$Label.c.FX_Order_Submit_Buy_or_Sell}</div>
+                        </th>
+
+                        <th scope="col" class="slds-size_2-of-12">
+                            <div class="slds-truncate" title="{!$Label.c.FX_Order_Last_Modified}">{!$Label.c.FX_Order_Last_Modified}</div>
+                        </th>
+
+                        <th scope="col">
+                            <div class="slds-truncate" title="{!$Label.c.FX_Order_Submit_Customer_Rate}">{!$Label.c.FX_Order_Submit_Customer_Rate}</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="{!$Label.c.FX_Order_Submit_Owner_Name}">{!$Label.c.FX_Order_Submit_Owner_Name}</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="{!$Label.c.FX_Order_Submit_GTC}">{!$Label.c.FX_Order_Submit_GTC}</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="{!$Label.c.FX_Order_Submit_Expiration_Date}">{!$Label.c.FX_Order_Submit_Expiration_Date}</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="{!$Label.c.FX_Order_Submit_Request_Amount}">{!$Label.c.FX_Order_Submit_Request_Amount}</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="{!$Label.c.FX_Order_Submit_Fill_Amount}">{!$Label.c.FX_Order_Submit_Fill_Amount}</div>
+                        </th>
+                        <th scope="col">
+                            <div class="slds-truncate" title="{!$Label.c.FX_Order_Submit_Remaining_Amount}">{!$Label.c.FX_Order_Submit_Remaining_Amount}</div>
+                        </th>
+
+                        <!-- <aura:if isTrue="{! (v.fxs.FXS_Status__c == 'Fully Completed' ) }"> -->
+                        <th class="slds-size_2-of-12" scope="col">
+                            <div class="slds-truncate" title="{!$Label.c.FX_Dashboard_Action_Header}">{!$Label.c.FX_Dashboard_Action_Header}</div>
+                        </th>
+                        <!-- </aura:if> -->
+
+
+                    </tr>
+                </thead>
+
+                <tbody>
+
+
+                    <aura:iteration var="oscItem" items="{!v.orderList}" indexVar="idx">
+
+
+
+                        <tr id="{!oscItem.Id}">
+                            <td data-label="Exchange Rate">
+                                <div class="slds-truncate" title="{!oscItem.Name}">
+                                    <a id="{!oscItem.Id}" class="slds-truncate" style="width: max-width;" title="{!oscItem.Name}" onclick="{!c.navToRecDetail}">
+                                        {!oscItem.Name}
+                                    </a>
+
+                                </div>
+                            </td>
+                            <td data-label="Exchange Rate">
+                                <div class="slds-truncate" title="{!oscItem.FXO_Customer__r.Name }">
+                                    <a id="{!oscItem.FXO_Customer__c}" class="slds-truncate" style="width: max-width;" title="{!oscItem.FXO_Customer__r.Name }"
+                                        onclick="{!c.navToRecDetail}">
+                                        {!oscItem.FXO_Customer__r.Name }
+                                    </a>
+                                </div>
+                            </td>
+                            <td data-label="Exchange Rate">
+                                <div class="slds-truncate" title="{!oscItem.FXO_BuySell__c}">{!oscItem.FXO_BuySell__c}</div>
+                            </td>
+                            <td data-label="Exchange Rate">
+                                <div class="slds-truncate" title="{!oscItem.LastModifiedDate}">
+                                    <ui:outputDateTime value="{!oscItem.LastModifiedDate}"/>
+                                </div>
+                            </td>
+                            <td data-label="Exchange Rate">
+                                <div class="slds-truncate" title="{!oscItem.FXO_CustomerRate__c}">
+                                    <ui:outputNumber value="{!oscItem.FXO_CustomerRate__c}" format=".00000"/>
+                                </div>
+                            </td>
+                            <td data-label="Request Amount">
+                                <div class="slds-truncate totalAmount" title="{!oscItem.Owner.Name}">
+                                    <a id="{!oscItem.OwnerId}" class="slds-truncate" style="width: max-width;" title="{!oscItem.Owner.Name}" onclick="{!c.navToRecDetail}">
+                                        {!oscItem.Owner.Name}
+                                    </a>
+                                </div>
+                            </td>
+                            <td data-label="Request Amount">
+                                <div class="slds-truncate totalAmount" title="{!oscItem.FXO_GTC__c}">
+                                    <ui:outputCheckbox aura:id="output" value="{!oscItem.FXO_GTC__c}" />
+                                </div>
+                            </td>
+                            <td data-label="Request Amount">
+                                <div class="slds-truncate totalAmount" title="{!oscItem.FXO_Expiration_Date__c}">
+                                    <ui:outputDateTime value="{!oscItem.FXO_Expiration_Date__c}" />
+                                </div>
+                            </td>
+                            <td data-label="Request Amount">
+                                <div class="slds-truncate totalAmount" title="{!oscItem.FXO_RequestAmount__c}">
+                                    <ui:outputNumber value="{!oscItem.FXO_RequestAmount__c}" />
+                                </div>
+                            </td>
+                            <td data-label="Request Amount">
+                                <div class="slds-truncate totalAmount" title="{!oscItem.FXO_FillAmount__c}" data-idx="{!idx}">
+                                    <aura:if isTrue="{! (v.fxs.FXS_Status__c == 'Partially Completed' ) }">
+                                        <lightning:input type="number" name="fillAmount" label="Enter a Amount" variant="label-hidden" onchange="{!c.changeFillAmount}"
+                                            disabled="{!v.blotterProfile? !v.blotterProfile.FX_Order_Allow_Allocate__c:false}"
+                                            value="{!oscItem.FXO_FillAmount__c}" />
+
+                                    </aura:if>
+                                    <aura:if isTrue="{! (v.fxs.FXS_Status__c != 'Partially Completed' ) }">
+                                        <ui:outputNumber value="{!oscItem.FXO_FillAmount__c}" />
+                                    </aura:if>
+                                </div>
+                            </td>
+                            <td data-label="Request Amount">
+                                <div class="slds-truncate totalAmount" title="{!oscItem.FXO_RemainingAmount__c}">
+                                    <ui:outputNumber value="{!oscItem.FXO_RemainingAmount__c}" />
+                                </div>
+                            </td>
+
+                            <td data-label="{!$Label.c.FX_Dashboard_Action_Header}">
+
+                                <aura:if isTrue="{! oscItem.Allow_CloneCancel_action }">
+
+                                    <aura:if isTrue="{! or(v.fxs.FXS_Status__c == 'Fully Completed' , v.fxs.FXS_Status__c == 'Cancelled' ) }">
+
+
+                                        <div class="slds-button-group" role="group">
+                                            <button class="slds-button slds-button_neutral" title="{!$Label.c.FX_Order_Submit_Clone_Button}" disabled="{! or(or( oscItem.FXO_Cancelled_Remaining_Amount_By_Stamp__c != null , false) , oscItem.FXO_RemainingAmount__c == 0 )}"
+                                                onclick="{!c.CloneOrder}" data-idx="{!idx}">{!$Label.c.FX_Order_Submit_Clone_Button}</button>
+                                            <button class="slds-button slds-button_neutral" title="{!$Label.c.FX_Order_Submit_Cancel_Button}" disabled="{! ( or(or( oscItem.FXO_Cancelled_Remaining_Amount_By_Stamp__c != null , oscItem.FXO_OrderStatus__c == 'Cancelled'), oscItem.FXO_RemainingAmount__c == 0) )}"
+                                                onclick="{!c.showConfirmCancelOrderModal}" data-idx="{!idx}">{!$Label.c.FX_Order_Submit_Cancel_Button}</button>
+                                        </div>
+
+                                    </aura:if>
+                                </aura:if>
+                            </td>
+
+
+                        </tr>
+                    </aura:iteration>
+
+                </tbody>
+
+            </table>
+        </div>
+
+        <aura:if isTrue="{! and(v.fxs.FXS_Status__c == 'Partially Completed', v.blotterProfile.FX_Order_Allow_Allocate__c) }">
+
+            <div class="slds-align_absolute-center slds-m-around_medium">
+                <!-- <lightning:button variant="brand" label="New Order" title="New Order" onclick="{! c.NewOrder }"/> -->
+                <lightning:button variant="brand" label="{!$Label.c.FXS_Fill_Amount_Save}" title="{!$Label.c.FXS_Fill_Amount_Save}" onclick="{! c.ConfirmFill }"
+                    disabled="{!v.blotterProfile? !v.blotterProfile.FX_Order_Allow_Allocate__c:false}" />
+                <lightning:button label="{!$Label.c.FX_Order_List_Clear_Button}" title="{!$Label.c.FX_Order_List_Clear_Button}" onclick="{! c.clearFill }"
+                />
+            </div>
+
+        </aura:if>
+
+        <aura:if isTrue="{!v.confirmCancelOrderModal}">
+
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1"
+                class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="{!$Label.c.FX_Order_Submit_Cancel_Button}"
+                            onclick="{!c.closeConfirmCancelOrderModal}">
+                            <lightning:icon iconName="utility:close" size="small" />
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">{!$Label.c.FX_Order_Submit_Cancel_Button}</h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+
+                        <aura:if isTrue="{! v.FXOrderDataOnModal != null }">
+                            <div class="slds-p-horizontal--small">
+
+                                <div class="slds-card slds-has-bottom-magnet">
+                                    <div class="slds-p-around_medium">
+                                        <div class="slds-grid slds-wrap">
+
+                                            <div class="slds-col slds-size_5-of-12 slds-text-align_right">
+                                                {!$Label.c.FX_Order_Submit_Name}
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-12"></div>
+                                            <div class="slds-col slds-size_6-of-12">
+                                                {!v.FXOrderDataOnModal.Name}
+                                            </div>
+
+                                            <div class="slds-col slds-size_5-of-12 slds-text-align_right">
+                                                {!$Label.c.FX_Order_Submit_Account_Name}
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-12"></div>
+                                            <div class="slds-col slds-size_6-of-12">
+                                                {!v.FXOrderDataOnModal.FXO_Customer__r.Name}
+                                            </div>
+
+                                            <div class="slds-col slds-size_5-of-12 slds-text-align_right">
+                                                {!$Label.c.FX_Order_Submit_Owner_Name}
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-12"></div>
+                                            <div class="slds-col slds-size_6-of-12">
+                                                {!v.FXOrderDataOnModal.Owner.Name}
+                                            </div>
+
+                                            <div class="slds-col slds-size_5-of-12 slds-text-align_right">
+                                                {!$Label.c.FX_Order_Submit_Expiration_Date}
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-12"></div>
+                                            <div class="slds-col slds-size_6-of-12">
+                                                <ui:outputDateTime value="{!v.FXOrderDataOnModal.FXO_Expiration_Date__c}" />
+                                            </div>
+
+                                            <div class="slds-col slds-size_5-of-12 slds-text-align_right">
+                                                {!$Label.c.FX_Order_Submit_Request_Amount}
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-12"></div>
+                                            <div class="slds-col slds-size_6-of-12">
+                                                <ui:outputNumber value="{!v.FXOrderDataOnModal.FXO_RequestAmount__c}" />
+                                            </div>
+
+                                            <div class="slds-col slds-size_5-of-12 slds-text-align_right">
+                                                {!$Label.c.FX_Order_Submit_Fill_Amount}
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-12"></div>
+                                            <div class="slds-col slds-size_6-of-12">
+                                                <ui:outputNumber value="{!v.FXOrderDataOnModal.FXO_FillAmount__c}" />
+                                            </div>
+
+                                            <div class="slds-col slds-size_5-of-12 slds-text-align_right">
+                                                {!$Label.c.FX_Order_Submit_Remaining_Amount}
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-12"></div>
+                                            <div class="slds-col slds-size_6-of-12">
+                                                <ui:outputNumber value="{!v.FXOrderDataOnModal.FXO_RemainingAmount__c}" />
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                        </aura:if>
+
+
+
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <button class="slds-button slds-button_neutral" onclick="{!c.closeConfirmCancelOrderModal}">{!$Label.c.FX_Dashboard_Close_Text}</button>
+                        <button class="slds-button slds-button_brand" onclick="{!c.CancelOrder}">{!$Label.c.FX_Order_Submit_Confirm_Button}</button>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+
+        </aura:if>
+
+
+    </lightning:card>
+
+</aura:component>

@@ -1,0 +1,179 @@
+<aura:component implements="flexipage:availableForRecordHome,flexipage:availableForAllPageTypes,force:hasRecordId"
+    controller="PDPAReportController">
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <aura:attribute name="data" type="Object" />
+    <aura:attribute name="account" type="Object" />
+    <aura:attribute name="message" type="String" />
+    <aura:attribute name="size" type="integer" />
+    <aura:attribute name="noData" type="String" />
+
+    <aura:attribute name="isSuccess" type="boolean" default="true" />
+    <!-- <aura:attribute name="isSuccess" type="boolean" default="true" /> -->
+
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+
+    <aura:attribute name="isPrintable" type="boolean" />
+    <aura:attribute name="isEmailable" type="boolean" />
+    <aura:attribute name="isEditable" type="boolean" />
+
+    <lightning:navigation aura:id="navService" />
+    <lightning:workspaceAPI aura:id="pdpaPage" />
+
+    <!-- {!message} -->
+    <aura:if isTrue="{!v.isLoading}">
+        <div>
+            <lightning:spinner alternativeText="Loading" size="medium" />
+        </div>
+    </aura:if>
+
+    <aura:if isTrue="{!!v.isSuccess}">
+        <div class="slds-theme_shade slds-theme_alert-texture" style="padding:2%; font-weight:bold">
+            <span class="slds-text-heading_medium slds-text-color_destructive">Warning </span><br/>
+            Error retrieving data: {!v.message}<br/>
+            Please refresh page to try again.
+        </div>
+        <br/>
+    </aura:if>
+
+    <article class="slds-card ">
+        <div class="slds-card__header slds-grid">
+            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                <div class="slds-media__figure">
+                    <span class="slds-icon_container slds-icon-standard-account" title="account">
+                        <lightning:icon iconName="standard:warranty_term" alternativeText="View More"
+                            title="View More" />
+                        <span class="slds-assistive-text">account</span>
+                    </span>
+                </div>
+                <div class="slds-media__body">
+                    <h2 class="slds-card__header-title">
+                        <a href="#" class="slds-card__header-link slds-truncate" title="Accounts">
+                            <span>PDPA ({!v.size})</span>
+                        </a>
+                    </h2>
+                </div>
+                <!-- <div class="slds-no-flex">
+                    <button class="slds-button slds-button_neutral">New</button>
+                </div> -->
+            </header>
+        </div>
+        <div class="slds-card__body slds-card__body_inner">
+            {!v.noData}
+            <aura:iteration items="{!v.data}" var="pdpa">
+                <div class="cardborder">
+                    <article class="slds-card">
+                        <div class="slds-card__header slds-grid">
+                            <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                                <div class="slds-media__figure">
+                                    <span class="slds-icon_container slds-icon-standard-account" title="account">
+                                        <!-- <lightning:icon iconName="standard:warranty_term" alternativeText="View More"
+                                        title="View More" /> -->
+                                        <span class="slds-assistive-text">{!pdpa.type}</span>
+                                    </span>
+                                </div>
+                                <div class="slds-media__body">
+                                    <h2 class="slds-card__header-title">
+                                        <span href="#" class="slds-card__header-link slds-truncate" title="PDPA">
+                                            <span>{!pdpa.type}</span>
+                                        </span>
+                                    </h2>
+                                </div>
+                                <div class="slds-no-flex">
+                                    <lightning:buttonMenu alternativeText="Show menu">
+                                        <!-- <apex:outputPanel rendered="{!accountObj.Email_Address_PE__c != null}">
+                                            &nbsp;|&nbsp;
+                                        </apex:outputPanel> -->
+
+
+                                        <lightning:menuItem value="{!pdpa.index}" label="Print"
+                                            onactive="{!c.printConsentPDF}" disabled="{!v.isPrintable == false}" />
+                                        <lightning:menuItem value="{!pdpa.index}" label="Email"
+                                            onactive="{!c.sendEmail}" disabled="{!v.isEmailable == false}" />
+                                        <lightning:menuItem value="{!pdpa.index}" label="Edit" onactive="{!c.edit}"
+                                            disabled="{!v.isEditable == false}" />
+
+                                    </lightning:buttonMenu>
+                                </div>
+                            </header>
+                        </div>
+                        <div class="slds-card__body slds-card__body_inner">
+
+                            <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_striped"
+                                aria-label="Example table of Opportunities with striped rows">
+
+                                <tbody>
+                                    <tr class="slds-hint-parent">
+                                        <th class="" scope="col">
+                                            <div class="slds-cell-wrap bold" title="Need Update">Need Update</div>
+                                        </th>
+                                        <td data-label="Close Date">
+                                            <div class="slds-cell-wrap" title="Need Update">{!pdpa.needUpdateFlag}</div>
+                                        </td>
+                                    </tr>
+
+                                    <tr class="slds-hint-parent">
+                                        <th class="" scope="col">
+                                            <div class="slds-cell-wrap bold" title="Description (TH)">Description (TH)
+                                            </div>
+                                        </th>
+                                        <td data-label="Close Date">
+                                            <div class="slds-cell-wrap" title="Description (TH)">{!pdpa.decriptionEN}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="slds-hint-parent">
+                                        <th class="" scope="col">
+                                            <div class="slds-cell-wrap bold" title="Description (EN)">Description (EN)
+                                            </div>
+                                        </th>
+                                        <td data-label="Close Date">
+                                            <div class="slds-cell-wrap" title="Description (EN)">{!pdpa.decriptionTH}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr class="slds-hint-parent">
+                                        <th class="" scope="col">
+                                            <div class="slds-cell-wrap bold" title="Accept">Accept</div>
+                                        </th>
+                                        <td data-label="Close Date">
+                                            <div class="slds-cell-wrap" title="Accept">{!pdpa.wsCurrentFlag}</div>
+                                        </td>
+                                    </tr>
+                                    <tr class="slds-hint-parent">
+                                        <th class="" scope="col">
+                                            <div class="slds-cell-wrap bold" title="Template Version">Template Version
+                                            </div>
+                                        </th>
+                                        <td data-label="Close Date">
+                                            <div class="slds-cell-wrap" title="Template Version">{!pdpa.version}</div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                            <!-- <br />
+                        {!pdpa.version}<br />
+                        {!pdpa.decriptionTH} -->
+                        </div>
+
+                    </article>
+                </div>
+                <br />
+            </aura:iteration>
+        </div>
+        <footer class="slds-card__footer">
+            <a class="slds-card__footer-action" onclick="{!c.viewAllPDPA}" >
+                View All
+                <span class="slds-assistive-text">PDPA</span>
+            </a>
+        </footer>
+    </article>
+
+
+
+
+
+
+
+</aura:component>

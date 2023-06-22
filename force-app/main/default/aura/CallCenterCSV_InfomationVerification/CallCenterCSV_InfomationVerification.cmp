@@ -1,0 +1,127 @@
+<aura:component controller="RTL_CSVLightningUtil" implements="force:hasRecordId,flexipage:availableForRecordHome">
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <lightning:workspaceAPI aura:id="workspace" />
+    <aura:registerEvent name="ccpageProxyEvent" type="c:ccpageProxyEvent" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler event="c:ccpageProxyEvent" action="{!c.handleEventccpageProxy}" />
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="fieldsVerify" type="List" />
+    <aura:attribute name="fieldsCXM" type="List" />
+    <aura:attribute name="isActiveVerifySection" type="String" default="false" />
+    <aura:attribute name="isActiveCXMSection" type="String" default="false" />
+    <aura:attribute name="hasCXM" type="boolean" default="false" />
+    <aura:attribute name="CXMId" type="String" default="" />
+    <aura:attribute name="CXMURL" type="String" />
+    <aura:attribute name="CXMObj" type="Object" />
+    <aura:attribute name="CXMMeta" type="Object[]" />
+    <aura:attribute name="CXMFace" type="String" />
+
+    <aura:attribute name="complaintObj" type="Object[]" />
+    <aura:attribute name="hasComplaint" type="boolean" default="false" />
+    <aura:attribute name="isActiveComplaintSection" type="String" default="false" />
+
+    <aura:attribute name="isRerender" type="Boolean" default="false" />
+    
+    <lightning:card>
+        <aura:set attribute="title"></aura:set>
+        <lightning:accordion allowMultipleSectionsOpen="true" activeSectionName="{! v.isActiveCXMSection == 'true' ? 'CustomerCXMSection':'' }">
+            <div class="slds-text-align_center" style="font-size: 15px;color:red;">ข้อมูลลูกค้าเป็นความลับ ไม่อนุญาตให้เผยแพร่แก่บุคคลภายนอกและห้ามบันทึกภาพหรือจัดพิมพ์</div>
+            <lightning:accordionSection name="CustomerCXMSection" label="Customer Satisfaction">
+                <aura:if isTrue="{!v.hasCXM}">
+                    <div>
+                        <aura:if isTrue="{!v.CXMFace == 'Red_Face'}">
+                            <img src="{!$Resource.Red_Face}" style="height:36px;width:36px;margin-right:10px;" />
+                        </aura:if>
+                        <aura:if isTrue="{!v.CXMFace == 'Yellow_Face'}">
+                            <img src="{!$Resource.Yellow_Face}" style="height:36px;width:36px;margin-right:10px;" />
+                        </aura:if>
+                        <aura:if isTrue="{!v.CXMFace == 'Green_Face'}">
+                            <img src="{!$Resource.Green_Face}" style="height:36px;width:36px;margin-right:10px;" />
+                        </aura:if>
+                        <a onclick="{!c.openCXM}">CXM Survey Details</a>
+                        
+                    </div>
+                </aura:if>
+            </lightning:accordionSection>
+        </lightning:accordion>
+
+        <lightning:accordion allowMultipleSectionsOpen="true" activeSectionName="{! v.isActiveVerifySection == 'true' ? 'VerificationSection':'' }">
+            <lightning:accordionSection name="VerificationSection" label="Verification Section">
+                <aura:set attribute="body">
+                    <aura:if isTrue="{! v.isRerender }">
+                        <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+                    </aura:if>
+                    <lightning:layout multipleRows="true" verticalAlign="stretch">
+                        <aura:iteration items="{!v.fieldsVerify}" var="field">
+                            <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="4"
+                                padding="horizontal-small">
+
+                                <!-- <lightning:input class="slds-form-element_readonly" variant="label-inline" name="{!field.name}" readonly="{!field.readonly}"
+                                        value="{!field.value}" label="{!field.label}" /> -->
+                                <div
+                                    class="{!'slds-form-element slds-form-element_horizontal ' + (field.readonly ? 'slds-form-element_readonly ' : '') + field.class }">
+                                    <span class="slds-form-element__label">{! field.label ? field.label : '&nbsp;' }</span>
+                                    <div class="slds-form-element__control customField">
+                                        <div aura:id="{!field.name}" class="slds-form-element__static">
+                                            <div class="slds-text-longform" style="{!field.style}">
+                                                <lightning:formattedRichText value="{!field.value ? field.value : '&nbsp;'}" />
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                </div>
+
+
+                            </lightning:layoutItem>
+                        </aura:iteration>
+                    </lightning:layout>
+                </aura:set>
+            </lightning:accordionSection>
+        </lightning:accordion>
+
+        <lightning:accordion allowMultipleSectionsOpen="true" activeSectionName="{! v.isActiveComplaintSection == 'true' ? 'ComplaintSection':'' }">
+            <lightning:accordionSection name="ComplaintSection" label="Last 5 Complaints">
+                <aura:if isTrue="{!v.hasComplaint}">
+                    <table style="width:100%">
+                        <tr>
+                            <td style="width:5%">
+                                <img src="{!$Resource.Red_Face}" style="height:36px;width:36px;margin-right:10px;" />
+                            </td>
+                            <td style="width:95%">
+                                <lightning:layout horizontalAlign="space" verticalAlign="left" multipleRows="true">
+
+                                    <aura:iteration var="records" items="{!v.complaintObj}" >
+                                        <!-- 1 column -->
+                                         <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12" alignmentBump="right">
+                                                <aura:if isTrue="{!and(records.IsClosed == false,records.Is_Over_SLA__c == 1)}"> 
+                                                    <a onclick="{!c.openComplaint}" id="{!records.Id}" class="redColortext">                                            
+                                                        {!records.Subject}  
+                                                    </a>
+                                                    <aura:set attribute="else">                                                      
+                                                        <a onclick="{!c.openComplaint}" id="{!records.Id}" >                                      
+                                                            {!records.Subject}                                                          
+                                                        </a>                                                    
+                                                    </aura:set>   
+                                                </aura:if>  
+                                              [{!records.Status}]                                    
+                                             [
+                                             <lightning:formattedDateTime value="{!records.CreatedDate}" year="2-digit" month="short" day="2-digit" />
+                                             ]                                           
+                                            
+                                         </lightning:layoutItem>
+                                     </aura:iteration>             
+                                 </lightning:layout>
+                            </td>
+                        </tr>
+                    </table>                   
+                </aura:if>
+            </lightning:accordionSection>
+        </lightning:accordion>
+
+    </lightning:card>
+
+</aura:component>

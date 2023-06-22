@@ -1,0 +1,318 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId,flexipage:availableForAllPageTypes,forceCommunity:availableForAllPageTypes" access="global" controller="AdvisoryPlanningEditAllocationServices" >   
+	<!-- Required -->
+	<aura:attribute name="itemType"  type="String" description="Advisory Planning Item Type" required="true"/>  
+	<aura:attribute name="advisoryId" type="String" required="true"/>
+	<aura:attribute name="allocatedData" type="List" />
+	<aura:attribute name="allocatedColumn" type="Object" />
+	<aura:attribute name="columnLabelList" type="Object" />
+
+	<aura:attribute name="familyOptions" type="List" access="PRIVATE"/>
+    <aura:attribute name="productFamily" type="String" access="PRIVATE"/>
+    <aura:attribute name="keyword1" type="String" access="PRIVATE"/>
+    <aura:attribute name="keyword2" type="String" access="PRIVATE"/>
+    <aura:attribute name="keyword3" type="String" access="PRIVATE"/>
+    <aura:attribute name="selectedRowsCount" type="Integer" default="0"/>
+    <aura:attribute name="selectedRows" type="List" />
+    <aura:attribute name="selectedProduct" type="List" />
+	<aura:attribute name="isReloadProduct" type="Boolean" default="false"/>
+	 
+	<aura:attribute name="displayModal" type="Boolean" default="false" />
+
+	<aura:attribute name="sortDirection" type="String" default="asc" />
+    <aura:attribute name="sortedBy" type="String" />
+	<aura:attribute name="productData" type="Object"/>
+    <aura:attribute name="columns" type="List"/>
+	<aura:attribute name="stepNo" type="Integer" default="1"/>
+	<aura:attribute name="disableButton" type="Boolean" default="false" />
+
+	<aura:attribute name="deletedList" type="List" /> <!--to handle process within the component -->
+	<aura:attribute name="toDeleteItemList" type="List" /> <!--to handle advisory planning item deletion in the database-->
+
+	
+	<aura:attribute name="exisitingData" type="List" />
+	<aura:attribute name="updatedAllocatedData" type="List" />
+
+	<aura:attribute name="displayBondAction" type="Boolean" default="false"/>
+	<aura:attribute name="currentBondHolding" type="List" />
+	<aura:attribute name="addProductHeaderName" type="String" default="Add Product"/>
+
+	<!-- Action & Event -->
+	<aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<aura:handler name="close_bond_evt" event="c:AdvisoryPlanning_Event" action="{!c.handleCloseBondModal}"/>
+	<aura:handler name="save_bond_evt" event="c:AdvisoryPlanning_Event" action="{!c.handleSaveBondModal}"/>
+    
+	<aura:registerEvent name="close_loading_evt" type="c:AdvisoryPlanning_Event" />
+	<div class="slds-no-print">
+		<section role="dialog" tabindex="-1" aria-label="Edit allocation" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_large">
+			<div class="slds-modal__container">
+				<header class="slds-modal__header">
+					<h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate text-bold">
+						<aura:if isTrue="{!v.stepNo == 1}">
+							{!v.addProductHeaderName}
+							<aura:set attribute="else">
+								{!$Label.c.RMC_Edit_Allocation} - {!v.itemType}
+							</aura:set>
+						</aura:if>
+					</h1>
+					<button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick="{!c.closeModal}">
+					<lightning:icon iconName="utility:close" size="small" variant="neutral"/>
+					<span class="slds-assistive-text">Close</span>
+					</button>
+				</header>
+				<div class="slds-modal__content slds-p-around_medium alignLeft" id="modal-content-id-1">
+					<div  aura:id="loadingSpinner" class="spinner-div spinner-div-main">
+						<lightning:spinner   variant="brand" size="large"/>
+					</div>
+					<div aura:id="add-product" >
+						<div class="slds-grid slds-gutters slds-p-bottom_small">
+							<div class="slds-col slds-size_1-of-4">
+								<lightning:select  aura:id="productFamily" name="productFamily" label="Product Group" required="true" 
+									value="{!v.productFamily}"	
+									onchange="{!c.getProduct}">
+									<aura:iteration items="{!v.familyOptions}" var="option">
+										<option text="{!option}" value="{!option}"/>
+									</aura:iteration>
+								</lightning:select>
+							</div>
+							<div class="slds-col slds-size_1-of-4">
+								<lightning:input
+									aura:id="enter-search"
+									name="enter-search"
+									label="{!$Label.c.RMC_Search_Keyword_1}"
+									type="search"
+									value="{!v.keyword1}"
+									oncommit="{!c.getProduct}"
+								/>
+							</div>
+							<div class="slds-col slds-size_1-of-4">
+								<lightning:input
+									aura:id="enter-search"
+									name="enter-search"
+									label="{!$Label.c.RMC_Search_Keyword_2}"
+									type="search"
+									value="{!v.keyword2}"
+									oncommit="{!c.getProduct}"
+								/>
+							</div>
+							<div class="slds-col slds-size_1-of-4">
+								<lightning:input
+									aura:id="enter-search"
+									name="enter-search"
+									label="{!$Label.c.RMC_Search_Keyword_3}"
+									type="search"
+									value="{!v.keyword3}"
+									oncommit="{!c.getProduct}"
+								/>
+							</div>
+						</div>
+		
+						<div class="slds-grid slds-gutters">
+							<div class="slds-col slds-size_1-of-1">
+								
+								<lightning:badge label="{! 'Selected Items: ' + v.selectedRowsCount }" iconName="utility:success"  class="slds-m-bottom_small"/>
+								<lightning:datatable
+									aura:id ="productData"
+									class = "slds-hide"
+									columns="{!v.columns}"
+									data="{!v.productData}"
+									keyField="productId"
+									showRowNumberColumn="true"
+									enableInfiniteLoading="true"
+									loadMoreOffset="20"
+									selectedRows="{! v.selectedRows }"
+									onrowselection="{!c.onRowSelected}"
+								/>
+							</div>
+						</div>
+					</div>
+
+					<div aura:id="allocated" class="slds-hide">
+						<div class="slds-grid slds-gutters">
+							<div class="slds-col slds-size_1-of-1">
+								<table class="slds-table slds-table_bordered slds-table_col-bordered" aria-label="Allocated Table">
+									<thead>
+									  <tr class="slds-line-height_reset">
+										<th class="" scope="col" >
+										  <span class="wrap-text" title="No">No</span>
+										</th>
+										<th class="" scope="col">
+											<div class="slds-grid slds-has-flexi-truncate">
+												<span class="wrap-text" title="{!v.columnLabelList.Product_Group__c}">{!v.columnLabelList.Product_Group__c}</span>
+											</div>
+										</th>
+										<th class="" scope="col" style="width: 140px;">
+											<div class="slds-grid slds-has-flexi-truncate">
+												<span class="wrap-text" title="{!v.columnLabelList.Product_Sub_Group_Asset_Class__c}">{!v.columnLabelList.Product_Sub_Group_Asset_Class__c}</span>
+											</div>
+										</th>
+										<th class="" scope="col" style="width: 22.5%;">
+											<div class="slds-grid slds-has-flexi-truncate">
+												<span class="wrap-text" title="Product Name">Product Name</span>
+											</div>
+										</th>
+										<th class="" scope="col">
+											<div class="slds-grid slds-has-flexi-truncate">
+												<span class="wrap-text" title="Product Code">Product Code</span>
+											</div>
+										</th>
+										<aura:if isTrue="{!v.itemType == 'Return'}">
+											<th class="" scope="col">
+												<div class="slds-grid slds-has-flexi-truncate">
+													<span class="wrap-text" title="1 Yr. Return">1 Yr. Return</span>
+												</div>
+											</th>
+										</aura:if>
+										
+										<th class="" scope="col">
+											<div class="slds-grid slds-has-flexi-truncate">
+												<span class="wrap-text" title="{!v.columnLabelList.Baseline_Amount__c}">{!v.columnLabelList.Baseline_Amount__c}</span>
+											</div>
+										</th>
+										<aura:if isTrue="{!v.itemType == 'Return'}">
+											<th class="" scope="col">
+												<div class="slds-grid slds-has-flexi-truncate">
+													<span class="wrap-text" title="{!v.columnLabelList.Baseline_Allocation__c}">{!v.columnLabelList.Baseline_Allocation__c}</span>
+												</div>
+											</th>
+										</aura:if>
+										<th class="highlight-col" scope="col" style="width: 150px;">
+											<div class="slds-grid slds-has-flexi-truncate">
+												<span class="wrap-text" title="{!v.columnLabelList.Target_Amount__c}">{!v.columnLabelList.Target_Amount__c}</span>
+											</div>
+										</th>
+										<aura:if isTrue="{!v.itemType == 'Return'}">
+											<th class="" scope="col">
+												<div class="slds-grid slds-has-flexi-truncate">
+													<span class="wrap-text" title="{!v.columnLabelList.Target_Allocation__c}">{!v.columnLabelList.Target_Allocation__c}</span>
+												</div>
+											</th>
+										</aura:if>
+										<th></th>
+									  </tr>
+									</thead>
+									<tbody>
+										<aura:iteration  indexVar="rowIndex" items="{!v.updatedAllocatedData}" var="item">
+											<tr class="slds-hint-parent">
+												<th data-label="No" scope="row" class="slds-text-align_left">
+													<span>{!rowIndex+1}</span>
+												</th>
+												<td data-label="Product Group">
+													<div class="slds-grid slds-grid_vertical-align-left slds-has-flexi-truncate">
+														<span class="wrap-text">{!item.Product_Group__c}</span>
+													</div>
+												</td>
+												<td data-label="Product Sub Group">
+													<div class="slds-grid slds-grid_vertical-align-left slds-has-flexi-truncate">
+														<span class="wrap-text">{!item.Product_Sub_Group_Asset_Class__c}</span>
+													</div>
+												</td>
+												<td data-label="Product Name">
+													<div class="slds-grid slds-grid_vertical-align-left slds-has-flexi-truncate">
+														<p class="wrap-text">{!item.Product_Name__c}
+															<aura:if isTrue="{!item.Is_Product_Holding__c == false}">
+																<br/>
+																<span class="label-new">NEW</span>
+															</aura:if>
+														</p>
+													</div>
+												</td>
+												<td data-label="Product Code">
+													<div class="slds-grid slds-grid_vertical-align-left slds-has-flexi-truncate">
+														<span class="wrap-text">{!item.Product_Holding_Code__c}</span>
+													</div>
+												</td>
+												<aura:if isTrue="{!v.itemType == 'Return'}">
+													<td data-label="1 Yr. Return" class="text-right">
+														<p><lightning:formattedNumber value="{!item.RMC_1Year_Return__c}" style="decimal" minimumFractionDigits="2" maximumFractionDigits="5"/> %</p>
+													</td>
+												</aura:if>
+												
+												<td data-label="Baseline Amount" class="text-right">
+													<p><lightning:formattedNumber value="{!item.Baseline_Amount__c}" style="currency" currencyCode="THB" minimumFractionDigits="2" maximumFractionDigits="2"/></p>
+												</td>
+												<aura:if isTrue="{!v.itemType == 'Return'}">
+													<td data-label="Baseline Allocation (%)" class="text-right">
+														<p><lightning:formattedNumber value="{!item.Baseline_Allocation__c}" style="percent" minimumFractionDigits="2" maximumFractionDigits="2"/></p>
+													</td>
+												</aura:if>
+												
+												<td data-label="Target Amount" class="input-col text-right">
+													<aura:if isTrue="{!item.Is_Product_Holding__c}">
+														<lightning:input type="number" value="{!item.Target_Amount__c}" step="0.01" style="text-right" 
+																	variant="label-hidden" oncommit="{!c.recalculateTarget}"  disabled="{!v.itemType == 'Risk'}"/>
+														<aura:set attribute="else">
+															<lightning:input aura:id="targetAmountField" type="number" value="{!item.Target_Amount__c}" step="0.01" style="text-right" 
+																	variant="label-hidden" oncommit="{!c.recalculateTarget}"/>
+														</aura:set>
+													</aura:if>
+													<!-- <aura:if isTrue="{!v.itemType == 'Risk'}">
+														<lightning:input type="number" value="{!item.Target_Amount__c}" step="0.01" style="text-right" 
+																	variant="label-hidden" oncommit="{!c.recalculateTarget}"
+																	disabled="{!item.Is_Product_Holding__c}"/>
+														<aura:set attribute="else">
+															<lightning:input aura:id="targetAmountField" type="number" value="{!item.Target_Amount__c}" step="0.01" style="text-right" 
+																	variant="label-hidden" oncommit="{!c.recalculateTarget}"/>
+														</aura:set>
+													</aura:if> -->
+												</td>
+												<aura:if isTrue="{!v.itemType == 'Return'}">
+													<td data-label="Target Allocation (%)" class="text-right">
+														<p><lightning:formattedNumber value="{!item.Target_Allocation__c}" style="percent" minimumFractionDigits="2" maximumFractionDigits="2"/></p>
+													</td>
+												</aura:if>
+												<td data-label="Action" class="slds-text-align_center">
+													<aura:if isTrue="{!item.Is_Product_Holding__c == false}">
+														<a onclick="{!c.handleDeleteItem}" data-value="{!rowIndex}">
+															<lightning:icon iconName="utility:delete" alternativeText="delete" title="delete"  variant="error" size="x-small"/>
+														</a>	
+													</aura:if>
+												</td>
+											</tr>
+										</aura:iteration>
+									  
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+				</div>
+				<footer class="slds-modal__footer">
+					<div class="slds-grid slds-gutters">
+						<div class="slds-col slds-size_1-of-2 text-left">
+							<aura:if isTrue="{!v.stepNo == 1}">
+								<lightning:button label="Close" variant="neutral" onclick="{!c.closeModal}" disabled="{!v.disableButton}"/>
+								<aura:set attribute="else">
+									<lightning:button label="Cancel" variant="neutral" onclick="{!c.closeModal}" disabled="{!v.disableButton}"/>
+								</aura:set>
+							</aura:if>
+							
+						</div>
+						<div class="slds-col slds-size_1-of-2">
+							<aura:if isTrue="{!v.stepNo == 1}">
+								<lightning:button label="Next"  iconName="utility:forward" iconPosition="right" 	variant="brand" onclick="{!c.handleNext}" disabled="{!v.disableButton}"/>
+								<aura:set attribute="else">
+									<lightning:button label="Back"  iconName="utility:back" iconPosition="left" variant="neutral" onclick="{!c.handleBack}" disabled="{!v.disableButton}"/>
+									<aura:if isTrue="{!v.itemType == 'Return'}">
+										<lightning:button label="Add Bond" variant="brand" onclick="{!c.handleAddBond}" disabled="{!v.disableButton}"/>
+									</aura:if>
+									<lightning:button label="Save" iconName="utility:save" iconPosition="left"  variant="brand" onclick="{!c.handleSave}" disabled="{!v.disableButton}"/>
+								</aura:set>
+							</aura:if>
+							
+						</div>
+					</div>
+					
+					
+				</footer>
+			</div>
+		</section>
+		<div class="slds-backdrop slds-backdrop_open"></div>
+	</div>
+
+	<aura:if isTrue="{!v.itemType == 'Return'}">
+        <!--modal popup for the cancel button-->
+        <aura:if isTrue="{!v.displayBondAction}">
+            <c:AdvisoryPlanningBondList advisoryId="{!v.recordId}" currentBondHolding="{!v.currentBondHolding}" bondColumn="{!v.columnLabelList}"/>
+        </aura:if>
+	</aura:if>
+</aura:component>

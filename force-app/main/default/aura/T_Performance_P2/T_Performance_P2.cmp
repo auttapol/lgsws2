@@ -1,0 +1,589 @@
+<aura:component controller="T_Performance_P2Controller" implements="force:hasRecordId,lightning:utilityItem,flexipage:availableForAllPageTypes,lightning:isUrlAddressable,force:appHostable" >
+    <aura:attribute name="saleTranList" type="Object[]" />
+    <!-- <aura:attribute name="paginationList" type="List"/> -->
+    <aura:attribute name="pageSize" type="Integer" default="10"/>
+    <aura:attribute name="totalSize" type="Integer"/>
+    <aura:attribute name="start" type="Integer" default="1"/>
+    <aura:attribute name="end" type="Integer" default="10"/>
+    <aura:attribute name="saleInfo" type="Sale_Info__c"/>
+    <aura:attribute name="selectedEmpId" type="String"/>
+    <aura:attribute name="appIncentive" type="Decimal"/>
+    <aura:attribute name="loading" type="Boolean"/>
+    <aura:attribute name="selectedPerfKey" type="String"/>
+    <aura:attribute name="selectedPerfValue" type="String"/>
+    <aura:attribute name="selectedFullName" type="String"/>
+    <aura:attribute name="selectedMonth" type="Integer"/>
+    <aura:attribute name="selectedYear" type="String"/>
+    <aura:attribute name="asOfStr" type="String" />
+    <aura:attribute name="licenseObj" type="Object" />
+    <aura:attribute name="sortField" type="String" />
+    <aura:attribute name="isSortAsc" type="Boolean" />
+    <aura:attribute name="saleTransData" type="Object[]" />
+    <aura:attribute name="helpLink" type="String" />
+    <aura:attribute name="summaryLink" type="String" />
+    <aura:attribute name="genUniqueId" type="String" />
+    <aura:attribute name="sectionBLoading" type="Boolean"/>
+    
+    <!-- Water Mark -->
+    <aura:attribute name="waterMarkImage" type="String" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    
+    <div class="page-container" style="position: relative;">
+        
+        <div >
+            <div class="slds-col slds-size_1-of-1">
+                <article class="slds-card" style="{! 'background-image: ' + v.waterMarkImage + ' !important;width:100%;height:100%;'}">
+                    <aura:if isTrue="{!v.loading}">
+                        <div class="exampleHolder">
+                            <lightning:spinner style="z-index: 1" alternativeText="Loading" size="medium" />
+                        </div>
+                    </aura:if>
+                    <div class="slds-card__body slds-card__body_inner" style="flex-direction: column; display: flex;">
+                        <div class="btn-section">
+                            <lightning:button label = "Help &amp; คู่มือ" iconName="utility:help"   onclick="{!c.onClickHelp}" ></lightning:button> 
+                            <aura:if isTrue="{!v.saleInfo.Channel__c == 'Branch'}">
+                                <lightning:button label="Branch Summary"  iconName="standard:document"  onclick="{!c.onClickSummary}" class= "summary-button"></lightning:button> 
+                            </aura:if>
+                        </div>
+                        <aura:if isTrue="{!v.saleInfo.Channel__c == 'Branch'}">
+                            <div class="sale-info-section">
+                                <div class="section-col">
+                                    <div class="section-row">
+                                        <span class="f_title">Name:</span>
+                                        <span>{!v.saleInfo.Name}</span>
+                                    </div>
+                                    <div class="section-row">
+                                        <span class="f_title">Branch:</span>
+                                        <span>{!v.saleInfo.Branch_Name__c}</span>
+                                    </div>
+                                    <div class="section-row" style="display: flex;">
+                                        <span class="f_title">Licenses:</span>
+                                        <div class="license-row">
+                                            <div class="license-container">
+                                                <div class="{!(v.licenseObj.Fund_License? 'has-license': 'no-license') + ' license-circle'}" data-value="{!v.genUniqueId+'_fund_license'}" onmouseenter="{!c.showtooltip}" onmouseleave="{!c.hidetooltip}">
+                                                    <span class="license">IC</span>
+                                                    <aura:if isTrue="{!and(v.licenseObj.Fund_License,v.licenseObj.Fund_License_Status=='Y')}">
+                                                        <span class="checked-icon">
+                                                            &#10004;
+                                                        </span>
+                                                        <!-- <lightning:icon class="check-icon" iconName="utility:check" size="xx-small" alternativeText="check" title="check" /> -->
+                                                    </aura:if>
+                                                </div>
+                                                <div class="tooltipdiv2 slds-popover toggle" id="{!v.genUniqueId+'_fund_license'}">
+                                                    <span><lightning:formattedText value="{!v.licenseObj.Fund_License_Name}"/></span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="license-container">
+                                                <div class="{!(v.licenseObj.Unitlink_License? 'has-license': 'no-license') + ' license-circle'}" data-value="{!v.genUniqueId+'_ul_license'}" onmouseenter="{!c.showtooltip}" onmouseleave="{!c.hidetooltip}">
+                                                    <span class="license">UL</span>
+                                                    <aura:if isTrue="{!and(v.licenseObj.Unitlink_License,v.licenseObj.Unitlink_License_Status=='Y')}">
+                                                        <!-- <lightning:icon class="check-icon" iconName="utility:check" size="xx-small" alternativeText="check" title="check" /> -->
+                                                        <span class="checked-icon">
+                                                            &#10004;
+                                                        </span>
+                                                    </aura:if>
+                                                </div>
+                                                <div class="tooltipdiv2 slds-popover toggle" id="{!v.genUniqueId+'_ul_license'}">
+                                                    <span><lightning:formattedText value="{!v.licenseObj.Unitlink_License_Name}"/></span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="license-container">
+                                                <div class="{!(v.licenseObj.Nonlife_License? 'has-license': 'no-license') + ' license-circle'}" data-value="{!v.genUniqueId+'_nl_license'}" onmouseenter="{!c.showtooltip}" onmouseleave="{!c.hidetooltip}">
+                                                    <span class="license">NLB</span>
+                                                    <aura:if isTrue="{!and(v.licenseObj.Nonlife_License,v.licenseObj.Nonlife_License_Status=='Y')}">
+                                                        <!-- <lightning:icon class="check-icon" iconName="utility:check" size="xx-small" alternativeText="check" title="check" /> -->
+                                                        <span class="checked-icon">
+                                                            &#10004;
+                                                        </span>
+                                                    </aura:if>
+                                                </div>
+                                                <div class="tooltipdiv2 slds-popover toggle" id="{!v.genUniqueId+'_nl_license'}">
+                                                    <span><lightning:formattedText value="{!v.licenseObj.Nonlife_License_Name}"/></span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="license-container">
+                                                <div class="{!(v.licenseObj.Life_License? 'has-license': 'no-license') + ' license-circle'}" data-value="{!v.genUniqueId+'_life_license'}" onmouseenter="{!c.showtooltip}" onmouseleave="{!c.hidetooltip}">
+                                                    <span class="license">LB</span>
+                                                    <aura:if isTrue="{!and(v.licenseObj.Life_License,v.licenseObj.Life_License_Status=='Y')}">
+                                                        <!-- <lightning:icon class="check-icon" iconName="utility:check" size="xx-small" alternativeText="check" title="check" /> -->
+                                                        <span class="checked-icon">
+                                                            &#10004;
+                                                        </span>
+                                                    </aura:if>
+                                                </div>
+                                                <div class="tooltipdiv2 slds-popover toggle" id="{!v.genUniqueId+'_life_license'}">
+                                                    <span><lightning:formattedText value="{!v.licenseObj.Life_License_Name}"/></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    <div class="section-row" data-value="{!v.genUniqueId+'_detail_of'}" onmouseenter="{!c.showtooltip}" onmouseleave="{!c.hidetooltip}">
+                                        <span class="f_title">Detail of:</span>
+                                        <span class="slds-truncate" style="width: 75%;" >{!v.selectedFullName}</span>
+                                    </div>
+                                    <div class="tooltipdiv slds-popover toggle" id="{!v.genUniqueId+'_detail_of'}">
+                                        <span><lightning:formattedText value="{!v.selectedFullName}"/></span>
+                                    </div>
+                                </div>
+                                <div class="section-col">
+                                    <div class="section-row">
+                                        <span class="f_title">Employ Date:</span>
+                                        <span>{!v.saleInfo.Sale_Hire_Date_Display}</span>
+                                    </div>
+                                    <div class="section-row">
+                                        <span class="f_title">Position:</span>
+                                        <span>({!v.saleInfo.Sale_Type__c}){!v.saleInfo.Position__c}</span>
+                                    </div>
+                                
+                                    <div class="section-row">
+                                        <span class="f_title">Approx. Incentive:</span>
+                                        <span><lightning:formattedNumber value="{!v.appIncentive}" minimumFractionDigits="2" maximumFractionDigits="2"/></span>
+                                    </div>
+                                    <div class="section-row">
+                                        <span class="f_title">BM Expected:</span>
+                                        <span>{!v.saleInfo.BM_Expected__c}</span>
+                                    </div>
+                                </div>
+                                <div class="section-col">
+                                    <div class="section-row">
+                                        <div class="grade_block_first">
+                                            <span class="f_title">Specialist</span>
+                                        </div>
+                                        
+                                        <div class="grade_block">
+                                            <span class="f_title">Investment:</span>
+                                            <span>{!v.saleInfo.Fund_Grade__c}</span>
+                                        </div>
+                                        <div class="grade_block">
+                                            <span class="f_title">HL:</span>
+                                            <span>{!v.saleInfo.HL_Grade__c}</span>
+                                        </div>
+        
+                                    </div>
+                                    <div class="section-row">
+                                        <div class="grade_block_first">
+                                            <span class="f_title">&nbsp;</span>
+                                        </div>
+                                        <div class="grade_block">
+                                            <span class="f_title">Protection:</span>
+                                            <span>{!v.saleInfo.Life_Grade__c}</span>
+                                        </div>
+                
+                                        <div class="grade_block">
+                                            <span class="f_title">CYC:</span>
+                                            <span>{!v.saleInfo.CYC_Grade__c}</span>
+                                        </div>
+                                        
+                                    </div>
+                                    <div class="section-row">
+                                        <div class="grade_block_first">
+                                            <span class="f_title">&nbsp;</span>
+                                        </div>
+                                        <div class="grade_block" style="width: 70%;">
+                                            <span class="f_title">SBO:</span>
+                                        <span>{!v.saleInfo.SME_Grade__c}</span>
+                                        </div>
+                                        
+                                    </div>
+                                </div>
+                            </div>
+                    <!-- <div class="top-row">
+                                <div class="button-row">
+                                    
+                                </div>
+                            </div> -->
+                            <!-- <div class="content-row"> -->
+                                
+
+                            <!-- <div class="btn-section">
+                                <lightning:button label = "Help &amp; คู่มือ" iconName="utility:help"   onclick="{!c.onClickHelp}" ></lightning:button> 
+                                    <lightning:button label="Branch Summary"  iconName="standard:document"  onclick="{!c.onClickSummary}" class= "summary-button"  ></lightning:button> 
+                            </div> -->
+                            
+                            
+                                <!-- <div class="section-row sub-list">
+                                    <span class="f_title">HL:</span>
+                                    <span>{!v.saleInfo.HL_Grade__c}</span>
+                                </div>
+                                <div class="section-row sub-list">
+                                    <span class="f_title">CYC:</span>
+                                    <span>{!v.saleInfo.CYC_Grade__c}</span>
+                                </div> -->
+                            <!-- </div> -->
+                        </aura:if>
+                        
+                        <aura:if isTrue="{!v.saleInfo.Channel__c != 'Branch'}">
+                            <div class="sale-info-section">
+                                <div class="section-col">
+                                    <div class="section-row">
+                                        <span class="f_title">Name:</span>
+                                        <span>{!v.saleInfo.Name}</span>
+                                    </div>
+                                    <div class="section-row">
+                                        <span class="f_title">Team:</span>
+                                        <span>{!v.saleInfo.Branch_Name__c}</span>
+                                    </div>
+                                    <div class="section-row" style="display: flex;">
+                                        <span class="f_title">Licenses:</span>
+                                        <div class="license-row">
+                                            <div class="license-container">
+                                                <div class="{!(v.licenseObj.Fund_License? 'has-license': 'no-license') + ' license-circle'}" data-value="{!v.genUniqueId+'_fund_license'}" onmouseenter="{!c.showtooltip}" onmouseleave="{!c.hidetooltip}">
+                                                    <span class="license">IC</span>
+                                                    <aura:if isTrue="{!and(v.licenseObj.Fund_License,v.licenseObj.Fund_License_Status=='Y')}">
+                                                        <span class="checked-icon">
+                                                            &#10004;
+                                                        </span>
+                                                        <!-- <lightning:icon class="check-icon" iconName="utility:check" size="xx-small" alternativeText="check" title="check" /> -->
+                                                    </aura:if>
+                                                </div>
+                                                <div class="tooltipdiv2 slds-popover toggle" id="{!v.genUniqueId+'_fund_license'}">
+                                                    <span><lightning:formattedText value="{!v.licenseObj.Fund_License_Name}"/></span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="license-container">
+                                                <div class="{!(v.licenseObj.Unitlink_License? 'has-license': 'no-license') + ' license-circle'}" data-value="{!v.genUniqueId+'_ul_license'}" onmouseenter="{!c.showtooltip}" onmouseleave="{!c.hidetooltip}">
+                                                    <span class="license">UL</span>
+                                                    <aura:if isTrue="{!and(v.licenseObj.Unitlink_License,v.licenseObj.Unitlink_License_Status=='Y')}">
+                                                        <!-- <lightning:icon class="check-icon" iconName="utility:check" size="xx-small" alternativeText="check" title="check" /> -->
+                                                        <span class="checked-icon">
+                                                            &#10004;
+                                                        </span>
+                                                    </aura:if>
+                                                </div>
+                                                <div class="tooltipdiv2 slds-popover toggle" id="{!v.genUniqueId+'_ul_license'}">
+                                                    <span><lightning:formattedText value="{!v.licenseObj.Unitlink_License_Name}"/></span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="license-container">
+                                                <div class="{!(v.licenseObj.Nonlife_License? 'has-license': 'no-license') + ' license-circle'}" data-value="{!v.genUniqueId+'_nl_license'}" onmouseenter="{!c.showtooltip}" onmouseleave="{!c.hidetooltip}">
+                                                    <span class="license">NLB</span>
+                                                    <aura:if isTrue="{!and(v.licenseObj.Nonlife_License,v.licenseObj.Nonlife_License_Status=='Y')}">
+                                                        <!-- <lightning:icon class="check-icon" iconName="utility:check" size="xx-small" alternativeText="check" title="check" /> -->
+                                                        <span class="checked-icon">
+                                                            &#10004;
+                                                        </span>
+                                                    </aura:if>
+                                                </div>
+                                                <div class="tooltipdiv2 slds-popover toggle" id="{!v.genUniqueId+'_nl_license'}">
+                                                    <span><lightning:formattedText value="{!v.licenseObj.Nonlife_License_Name}"/></span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div class="license-container">
+                                                <div class="{!(v.licenseObj.Life_License? 'has-license': 'no-license') + ' license-circle'}" data-value="{!v.genUniqueId+'_life_license'}" onmouseenter="{!c.showtooltip}" onmouseleave="{!c.hidetooltip}">
+                                                    <span class="license">LB</span>
+                                                    <aura:if isTrue="{!and(v.licenseObj.Life_License,v.licenseObj.Life_License_Status=='Y')}">
+                                                        <!-- <lightning:icon class="check-icon" iconName="utility:check" size="xx-small" alternativeText="check" title="check" /> -->
+                                                        <span class="checked-icon">
+                                                            &#10004;
+                                                        </span>
+                                                    </aura:if>
+                                                </div>
+                                                <div class="tooltipdiv2 slds-popover toggle" id="{!v.genUniqueId+'_life_license'}">
+                                                    <span><lightning:formattedText value="{!v.licenseObj.Life_License_Name}"/></span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        
+                                    </div>
+                                    <!-- <div class="section-row">
+                                        <span class="f_title">Detail of:</span>
+                                        <span class="slds-truncate" >{!v.selectedPerfValue}</span>
+                                    </div> -->
+        
+                                    <div class="section-row" data-value="{!v.genUniqueId+'_detail_of'}" onmouseenter="{!c.showtooltip}" onmouseleave="{!c.hidetooltip}">
+                                        <span class="f_title">Detail of:</span>
+                                        <span class="slds-truncate" style="width: 75%;" >{!v.selectedFullName}</span>
+                                    </div>
+                                    <div class="tooltipdiv slds-popover toggle" id="{!v.genUniqueId+'_detail_of'}">
+                                        <span><lightning:formattedText value="{!v.selectedFullName}"/></span>
+                                    </div>
+                                </div>
+                                <div class="section-col">
+                                    <div class="section-row">
+                                        <span class="f_title">Employ Date:</span>
+                                        <span>{!v.saleInfo.Sale_Hire_Date_Display}</span>
+                                    </div>
+                                    <div class="section-row">
+                                        <span class="f_title">Position:</span>
+                                        <span>({!v.saleInfo.Sale_Type__c}){!v.saleInfo.Position__c}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </aura:if>
+                    </div>
+                </article>
+            </div>
+
+            <div class="slds-col slds-size_1-of-1" style="margin-top: 10px;">
+                <article class="slds-card" style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                    <aura:if isTrue="{!v.sectionBLoading == true}">
+                        <div class="exampleHolder">
+                            <lightning:spinner  style="z-index: 1" alternativeText="Loading" size="medium" />
+                        </div>
+                    </aura:if>
+                    <div class="slds-card__body slds-card__body_inner padding-card" > 
+                        <!-- style="min-height: 420px;" -->
+                        <div class="slds-scrollable--x">
+                            <table class="slds-table slds-table_cell-buffer key-perf-tb" style="{! 'background-image: ' + v.waterMarkImage + ' !important;width:100%;height:100%;margin-bottom: 30px;'}">
+                                <thead>
+                                    <tr class="slds-line-height_reset">
+                                        <th scope="col" colspan="8" style="background: none; border: 0px; padding-left: 0px;">
+                                            <div class="slds-truncate" title="Performance in detail">Performance in detail {!v.asOfStr}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col" style="background: none; border: 0;">
+                                            <lightning:button label="Previous" disabled="{!v.start == 1}"  onclick="{!c.handlePrevious}" />                     
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col" style="background: none; border: 0; padding-right: 0px;">
+                                            <lightning:button label="Next" disabled="{!v.end >= v.totalSize}" onclick="{!c.handleNext}" />
+                                        </th>
+                                    </tr>
+                                    <tr class="slds-line-height_reset">
+                                        <th scope="col" class="header-sort col1" onclick="{!c.sortData}" data-value="productString">
+                                            <div class="slds-truncate" title="Product" data-value="productString">Product 
+                                                <span data-value="productString" class="{!v.sortField == 'productString' ? '' : 'unsort'}">
+                                                    <aura:if isTrue="{!v.sortField != 'productString'}">
+                                                        &#8597;
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{!v.isSortAsc}">
+                                                                &#8593;
+                                                                <aura:set attribute="else">
+                                                                    &#8595;
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </div>
+                                        </th>
+                                        <th scope="col" class="header-sort col2" onclick="{!c.sortData}" data-value="Customer_Number__c">
+                                            <div class="slds-truncate" title="Customer No." data-value="Customer_Number__c">Customer No. 
+                                                <span data-value="Customer_Number__c" class="{!v.sortField == 'Customer_Number__c' ? '' : 'unsort'}">
+                                                    <aura:if isTrue="{!v.sortField != 'Customer_Number__c'}">
+                                                        &#8597;
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{!v.isSortAsc}">
+                                                                &#8593;
+                                                                <aura:set attribute="else">
+                                                                    &#8595;
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </div>
+                                        </th>
+                                        <th scope="col" class="header-sort col3" onclick="{!c.sortData}" data-value="Reference_Number1__c">
+                                            <div class="slds-truncate" title="Reference No.1" data-value="Reference_Number1__c">Reference No.1 
+                                                <span data-value="Reference_Number1__c" class="{!v.sortField == 'Reference_Number1__c' ? '' : 'unsort'}">
+                                                    <aura:if isTrue="{!v.sortField != 'Reference_Number1__c'}">
+                                                        &#8597;
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{!v.isSortAsc}">
+                                                                &#8593;
+                                                                <aura:set attribute="else">
+                                                                    &#8595;
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </div>
+                                        </th>
+                                        <th scope="col" class="header-sort col4" onclick="{!c.sortData}" data-value="Reference_Number2__c">
+                                            <div class="slds-truncate" title="Reference No.2" data-value="Reference_Number2__c">Reference No.2 
+                                                <span data-value="Reference_Number2__c" class="{!v.sortField == 'Reference_Number2__c' ? '' : 'unsort'}">
+                                                    <aura:if isTrue="{!v.sortField != 'Reference_Number2__c'}">
+                                                        &#8597;
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{!v.isSortAsc}">
+                                                                &#8593;
+                                                                <aura:set attribute="else">
+                                                                    &#8595;
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </div>
+                                        </th>                              
+                                        <th scope="col" class="header-sort col5" onclick="{!c.sortData}" data-value="Book_Service_Branch__c">
+                                            <div class="slds-truncate" title="Booking Branch" data-value="Book_Service_Branch__c">Booking Branch 
+                                                <span data-value="Book_Service_Branch__c" class="{!v.sortField == 'Book_Service_Branch__c' ? '' : 'unsort'}">
+                                                    <aura:if isTrue="{!v.sortField != 'Book_Service_Branch__c'}">
+                                                        &#8597;
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{!v.isSortAsc}">
+                                                                &#8593;
+                                                                <aura:set attribute="else">
+                                                                    &#8595;
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </div>
+                                        </th>
+                                        <th scope="col" class="header-sort col6" onclick="{!c.sortData}" data-value="Actual_Performance__c">
+                                            <div class="slds-truncate" title="Performance" data-value="Actual_Performance__c">Performance 
+                                                <span data-value="Actual_Performance__c" class="{!v.sortField == 'Actual_Performance__c' ? '' : 'unsort'}">
+                                                    <aura:if isTrue="{!v.sortField != 'Actual_Performance__c'}">
+                                                        &#8597;
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{!v.isSortAsc}">
+                                                                &#8593;
+                                                                <aura:set attribute="else">
+                                                                    &#8595;
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </div>
+                                        </th>
+                                        <th scope="col" class="header-sort col7" onclick="{!c.sortData}" data-value="Sale_Unit__c">
+                                            <div class="slds-truncate" title="Unit" data-value="Sale_Unit__c">Unit 
+                                                <span data-value="Sale_Unit__c" class="{!v.sortField == 'Sale_Unit__c' ? '' : 'unsort'}">
+                                                    <aura:if isTrue="{!v.sortField != 'Sale_Unit__c'}">
+                                                        &#8597;
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{!v.isSortAsc}">
+                                                                &#8593;
+                                                                <aura:set attribute="else">
+                                                                    &#8595;
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </div>
+                                        </th>
+                                        <th scope="col" class="header-sort col8" onclick="{!c.sortData}" data-value="Actual_Point__c">
+                                            <div class="slds-truncate" title="Point" data-value="Actual_Point__c">Point 
+                                                <span data-value="Actual_Point__c" class="{!v.sortField == 'Actual_Point__c' ? '' : 'unsort'}">
+                                                    <aura:if isTrue="{!v.sortField != 'Actual_Point__c'}">
+                                                        &#8597;
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{!v.isSortAsc}">
+                                                                &#8593;
+                                                                <aura:set attribute="else">
+                                                                    &#8595;
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </div>
+                                        </th>
+                                        <th scope="col" class="header-sort col9" onclick="{!c.sortData}" data-value="KPI_Date__c">
+                                            <div class="slds-truncate" title="KPI Date" data-value="KPI_Date__c">KPI Date 
+                                                <span data-value="KPI_Date__c" class="{!v.sortField == 'KPI_Date__c' ? '' : 'unsort'}">
+                                                    <aura:if isTrue="{!v.sortField != 'KPI_Date__c'}">
+                                                        &#8597;
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{!v.isSortAsc}">
+                                                                &#8593;
+                                                                <aura:set attribute="else">
+                                                                    &#8595;
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </div>
+                                        </th>
+                                        <th scope="col" style="padding-right: 0;" class="header-sort col10" onclick="{!c.sortData}" data-value="Deduct_Date__c">
+                                            <div class="slds-truncate" title="Deduct Date" data-value="Deduct_Date__c">Deduct Date 
+                                                <span data-value="Deduct_Date__c" class="{!v.sortField == 'Deduct_Date__c' ? '' : 'unsort'}">
+                                                    <aura:if isTrue="{!v.sortField != 'Deduct_Date__c'}">
+                                                        &#8597;
+                                                        <aura:set attribute="else">
+                                                            <aura:if isTrue="{!v.isSortAsc}">
+                                                                &#8593;
+                                                                <aura:set attribute="else">
+                                                                    &#8595;
+                                                                </aura:set>
+                                                            </aura:if>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </span>
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>                          
+                                    <aura:iteration items="{!v.saleTranList}" var="salesTrans" indexVar="index">
+                                        <tr class="slds-hint-parent">
+                                            <td class="col1">                                
+                                                <div class="slds-truncate" style="width: 200px;" title="" data-value="{!v.genUniqueId+'_productStr'+index}" onmouseenter="{!c.showtooltip}" onmouseleave="{!c.hidetooltip}">
+                                                    <!-- {!salesTrans.Indicator_Level1__c} <aura:if isTrue="{! salesTrans.Indicator_Level2__c != null}"> / {!salesTrans.Indicator_Level2__c}</aura:if> / {!salesTrans.Indicator_Name__c} -->
+                                                    {!salesTrans.productString}
+                                                </div>
+                                                <div class="tooltipdiv slds-popover toggle" id="{!v.genUniqueId+'_productStr'+index}">
+                                                    <span><lightning:formattedText value="{!salesTrans.productString}"/></span>
+                                                    <!-- <span><lightning:formattedText value="{!salesTrans.Indicator_Level1__c + (salesTrans.Indicator_Level2__c != null ? ' / '+salesTrans.Indicator_Level2__c : '') + ' / ' + salesTrans.Indicator_Name__c}"/></span> -->
+                                                </div>
+                                            </td>                         
+                                            <td class="col2">
+                                                <aura:if isTrue="{!salesTrans.CustomerName != null}">
+                                                    <div class="slds-truncate" title="" data-value="{!v.genUniqueId+'_cusNo'+index}" onmouseenter="{!c.showtooltip}" onmouseleave="{!c.hidetooltip}">{!salesTrans.Customer_Number__c}</div>
+                                                    <aura:set attribute="else">
+                                                        <div class="slds-truncate" title="" data-value="{!v.genUniqueId+'_cusNo'+index}">{!salesTrans.Customer_Number__c}</div>
+                                                    </aura:set>
+                                                </aura:if>
+                                                <div class="tooltipdiv slds-popover toggle" id="{!v.genUniqueId+'_cusNo'+index}">
+                                                    <span><lightning:formattedText value="{!salesTrans.CustomerName}"/></span>
+                                                    <!-- <span><lightning:formattedText value="{!salesTrans.CustomerName}"/></span> -->
+                                                    <!-- <span><lightning:formattedText value="{!salesTrans.Indicator_Level1__c + (salesTrans.Indicator_Level2__c != null ? ' / '+salesTrans.Indicator_Level2__c : '') + ' / ' + salesTrans.Indicator_Name__c}"/></span> -->
+                                                </div>
+                                            </td>
+                                            <td class="col3">
+                                                <div class="slds-truncate" title="">{!salesTrans.Reference_Number1__c}</div>
+                                            </td>
+                                            <td class="col4">
+                                                <div class="slds-truncate" title="">{!salesTrans.Reference_Number2__c}</div>
+                                            </td>
+                                            <td class="col5">
+                                                <div class="slds-truncate" title="">{!salesTrans.Book_Service_Branch__c}</div>
+                                            </td>
+                                            <td class="col6">
+                                                <div class="slds-truncate" title=""><lightning:formattedNumber value="{!salesTrans.Actual_Performance__c}" maximumFractionDigits="2"/></div>
+                                            </td>
+                                            <td class="col7">
+                                                <div class="slds-truncate" title="">{!salesTrans.Sale_Unit__c}</div>
+                                            </td>
+                                            <td class="col8">
+                                                <div class="slds-truncate" title=""><lightning:formattedNumber value="{!salesTrans.Actual_Point__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></div>
+                                            </td>
+                                            <td class="col9">
+                                                <div class="slds-truncate" title="">{!salesTrans.KPI_Date_Display}</div>
+                                            </td>
+                                            <td>
+                                                <!-- <aura:if isTrue="{!salesTrans.Deduct_Flag__c == 'Y'}">
+                                                    <div class="slds-truncate" title="">{!salesTrans.KPI_Date__c}</div>
+                                                </aura:if>
+                                                <aura:if isTrue="{!salesTrans.Deduct_Flag__c == 'N'}"> -->
+                                                    <div class="slds-truncate" title="">{!salesTrans.Deduct_Date_Display}</div>
+                                                <!-- </aura:if> -->
+                                            </td>
+                                        </tr>
+                                    </aura:iteration>                    
+                                </tbody>         
+                            </table>
+                            <div class="slds-align_absolute-center slds-no-flex" style="margin-top:10px">
+                            
+                            </div>
+                        </div> 
+                    </div>
+                </article>
+            </div>
+        </div>
+    </div>
+</aura:component>

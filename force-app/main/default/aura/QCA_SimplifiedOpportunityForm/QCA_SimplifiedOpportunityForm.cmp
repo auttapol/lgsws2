@@ -1,0 +1,144 @@
+<aura:component controller="QCA_OpportunitySimplifiedController"
+    implements="force:appHostable,flexipage:availableForAllPageTypes,lightning:isUrlAddressable" access="global">
+    <!-- 
+        Set handler listen for status processing and Lead information
+     -->
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler name="varSimplifiedOpportunityProcessStatus" event="c:SimplifiedOpportunityProcessStatus"
+        action="{!c.onInitEvent}" />
+    <aura:handler name="strike_evt_chevron" event="c:strike_evt"
+        action="{!c.handleSimplifiedOpportunityProcessStageEvent}" />
+    <aura:registerEvent name="varSimplifiedOpportunityProcessStatus" type="c:SimplifiedOpportunityProcessStatus" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <ltng:require styles="{!$Resource.Global_TMB_CSS}" />
+    <aura:attribute name="flowType" type="String" default="QCAOpptyType" />
+    <!-- 
+        Set default value and sObject Opportunity, 
+     -->
+    <aura:attribute name="accId" type="Id" />
+    <aura:attribute name="opptyId" type="Id" />
+    <aura:attribute name="opptyRecordTypeId" type="Id" />
+    <aura:attribute name="opptyObj" type="Opportunity" default="{ 'sobjectType': 'Opportunity' }" />
+    <!--
+        Set default Record type Id
+     -->
+    <aura:attribute name="varMapRecordTypeId" type="Map" default="{}" />
+
+    <aura:attribute name="simplifiedOpportunityProcessStatus" type="String[]"
+        default="[ 'Opportunity Detail', 'Contact', 'Add Product', 'Submit to SLS' ]" />
+    <aura:attribute name="simplifiedOpportunityProcessStage" type="Integer" />
+    <aura:attribute name="isDisabledBackward" type="Boolean" default="false" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+
+    <ui:scrollerWrapper class="scrollerSize">
+        <aura:if isTrue="{! v.showSpinnerLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" />
+        </aura:if>
+        <lightning:layout class="slds-page-header slds-page-header_object-home">
+            <!-- PAGE HEADER -->
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:opportunity" alternativeText="Create Opportunity" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 class="slds-text-heading_label">
+
+                        <nav role="navigation" aria-label="Breadcrumbs" style="color:rgb(0, 109, 204);">
+                            <ul class="slds-breadcrumb slds-list_horizontal slds-wrap">
+                                <li class="slds-breadcrumb__item">
+                                    <a href="javascript:void(0);" onclick="{! c.redirectToSmartBDM }"
+                                        class="slds-breadcrumb__item">
+                                        <span class="slds-truncate">{!$Label.c.TMB_Smart_title}</span>
+                                    </a>
+                                </li>
+                                <li class="slds-breadcrumb__item">
+                                    <a href="javascript:void(0);" onclick="{! c.redirectToMyCustomer }"
+                                        class="slds-breadcrumb__item">
+                                        <span class="slds-truncate">{!$Label.c.My_Customers}</span>
+                                    </a>
+                                </li>
+
+                                <li class="slds-breadcrumb__item">
+                                    <a href="javascript:void(0);" class="slds-breadcrumb__item">
+                                        <span class="slds-truncate"
+                                            style="border-bottom: 1px solid;">{!$Label.c.Quick_CA}</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+
+                    </h1>
+                    <h2 class="slds-text-heading_medium">
+                        {! v.opptyId ? v.opptyObj.Name : $Label.c.New_Opportunity }
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+
+        <lightning:layout class="slds-p-horizontal_large slds-m-vertical_medium">
+            <aura:If
+                isTrue="{! and(v.simplifiedOpportunityProcessStage != null, v.simplifiedOpportunityProcessStage != 4) }">
+                <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12">
+                    <c:strike_path aura:id="simplifiedOpportunityProcessPath"
+                        stageNames="{! v.simplifiedOpportunityProcessStatus }"
+                        activeChevron="{! v.simplifiedOpportunityProcessStage }" advanceButton="false"
+                        advanceButtonNextLabel="Mark Stage as Completed"
+                        advanceButtonSelectLabel="Mark as Current Stage" advanceButtonCompletedLabel="Process Completed"
+                        displayMode="linear"
+                        disableBackwardNavOnComplete="{! v.simplifiedOpportunityProcessStage >= 4 }"
+                        disableForwardNavOnIncomplete="true" forceProcessFlow="false" collapseExpandButton="false"
+                        error="false" displayIconMode="true" />
+                </lightning:layoutItem>
+            </aura:If>
+        </lightning:layout>
+
+        <!-- 1st State -->
+        <aura:If isTrue="{! v.simplifiedOpportunityProcessStage == 0 }">
+            <c:QCA_OpportunityInformation opptyObj="{! v.opptyObj }" accId="{!v.accId}" opptyId="{! v.opptyId }"
+                opptyRecordTypeId="{! v.opptyId ? v.opptyObj.RecordTypeId : v.varMapRecordTypeId.RecordTypeOpportunity }" />
+        </aura:If>
+
+        <!-- 2nd State -->
+        <aura:If isTrue="{! v.simplifiedOpportunityProcessStage == 1 }">
+
+            <c:QCA_VisitPlanReportForm aura:id="visitPlanReportForm" opptyId="{!v.opptyId}"
+                leadObjId="{! v.leadRecordId }" accId="{!v.accId}"
+                varVisitPlanReportRecordTypeId="{! v.varMapRecordTypeId.RecordTypeVisitPlanReport }"
+                flowType="{! v.flowType }" />
+
+            <div class="slds-p-horizontal_large slds-p-vertical_x-small btn-next">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                        <!-- <lightning:button class="slds-float_left" variant="neutral" type="button" name="previous" label="Back" onclick="" /> -->
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                        <div class="slds-clearfix">
+                            <div class="slds-clearfix">
+                                <lightning:button class="slds-float_right" variant="brand" type="button" name="save"
+                                    label="Next" onclick="{! c.onClickSubmitContactPath }" />
+                            </div>
+                        </div>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+        </aura:If>
+
+        <!-- 3rd State -->
+        <aura:If isTrue="{! v.simplifiedOpportunityProcessStage == 2 }">
+            <c:QCA_RecommendedProductForm opptyObjId="{! v.opptyId }" flowType="{! v.flowType }" />
+        </aura:If>
+
+        <!-- 4th State -->
+        <aura:If isTrue="{! v.simplifiedOpportunityProcessStage == 3 }">
+            <c:QCA_SubmitToSLS opptyObjId="{! v.opptyId }" flowType="{! v.flowType }" />
+        </aura:If>
+
+        <!-- 5th State -->
+        <aura:If isTrue="{! v.simplifiedOpportunityProcessStage == 4 }">
+            <c:SmartBDMPreviewQuickCA opptyObjId="{! v.opptyId }" flowType="{! v.flowType }" />
+        </aura:If>
+
+
+    </ui:scrollerWrapper>
+
+</aura:component>

@@ -1,0 +1,290 @@
+<apex:page controller="MarketConductConsentPDFController" applyHtmlTag="false" showHeader="false" renderAs="PDF" action="{!renderPage}"
+    title="test label">
+    <html>
+
+    <head>
+        <!-- <title>{!fileName}</title> -->
+        <!-- <title>Case: iiiis</title> -->
+        <style>
+            * {
+                box-sizing: border-box;
+            }
+
+            html,
+            body {
+                line-height: 16px;
+            }
+
+            .box--half {
+                float: left;
+                padding-left: 6%;
+                width: 44%;
+            }
+
+            .box--half2 {
+                float: left;
+                width: 50%;
+            }
+
+            .box--full {
+                float: left;
+                padding-left: 6%;
+                width: 94%;
+            }
+
+            .remark-box {
+                float: left;
+                padding-left: 1%;
+                width: 99%;
+                margin-top: 10px;
+            }
+
+            .box--right {
+                float: right;
+                width: 40%;
+                text-align: right;
+            }
+
+            .box--header {
+                float: left;
+                width: 100%;
+                margin-top: 15px;
+            }
+
+            .sub-box-header {
+                width: 50%;
+                padding-right: 6%;
+                float: right;
+                text-align: left;
+            }
+
+            .sub-box-header p {
+                text-align: right;
+            }
+
+            .content-right {
+                text-align: right;
+            }
+
+            .checkbox {
+                width: 10px;
+                height: 10px;
+                border: 1px solid black;
+                display: inline-block;
+                line-height: 0;
+
+            }
+
+            p {
+                margin: 0px;
+                padding: 0px;
+            }
+
+            .subject-space {
+                margin-top: 15px;
+            }
+
+            body {
+                font-family: Arial Unicode MS;
+                font-size: 9px;
+                color: #3f3d3d;
+            }
+
+            font {
+                font-family: Arial Unicode MS !important;
+            }
+
+            .inline {
+                display: inline-block;
+            }
+
+            .inline div {
+                display: inline-block;
+            }
+
+            @page {
+                size: A4;
+                margin: 1cm 0.75cm 1.25cm 0.75cm;
+                font-family: 'Arial Unicode MS';
+                /* font-size: 9.5pt; */
+                /* background-color: #fff; */
+                /* border: 1px solid; */
+                padding: 0;
+                @bottom-center {
+                    font-family: 'Arial Unicode MS';
+                    /* font-size: 7pt; */
+                    /* content: "Page " counter(page) " of " counter(pages); */
+                }
+            }
+
+            .sm-subject {
+                width: 200px;
+                display: inline-block;
+            }
+
+            .xs-value {
+                width: 60px;
+                text-align: left;
+                display: inline-block;
+            }
+
+
+            .footer {
+                margin-top: 45px;
+                text-align: center;
+            }
+
+            a {
+                text-decoration: underline;
+                color: rgb(1, 118, 211);
+            }
+
+            .underline-dot {
+                border-bottom: 1px dashed black;
+            }
+
+            .underline {
+                border-bottom: 0.5px solid #636161;
+            }
+
+            .form-container {
+                border: 1px solid black;
+                height: 285px;
+            }
+
+            /* .eng-subject {
+                color: #002fbb;
+            } */
+
+            .header-title {
+                margin-top: 10px;
+                font-size: 12px;
+                color: black;
+            }
+
+
+            .subject {
+                color: black;
+            }
+
+            .subject-font {
+                font-size: 9px;
+            }
+
+            .remark {
+                font-size: 7px;
+                text-align: left;
+            }
+        </style>
+    </head>
+
+    <body>
+        <!-- <div class="heading-row"> -->
+
+        <div class="form-container">
+            <center class="header-title">
+                <span>สำเนาการให้ความยินยอม</span>
+                <span class="subject">Copy of consent</span>
+            </center>
+            <div class="box--header">
+                <div class="sub-box-header">
+                    <p>
+                        <span class="subject subject-font">วันที่ร้องขอ/Requested date &nbsp;&nbsp;</span>
+                        <span class="underline">{!requestdate}</span>
+
+                    </p>
+                </div>
+            </div>
+
+            <div class="box--full subject-space">
+                <p>
+                    <span class="subject subject-font" style="display: inline-block; width: 43%;">ชื่อ-นามสกุลของเจ้าของข้อมูลบุคคล/Name - Surname of data subject</span>
+                    <apex:outputPanel rendered="{!name != ''}">
+                        <span class="underline">{!name}</span>
+                    </apex:outputPanel>
+                </p>
+            </div>
+
+            <div class="subject-space" style="float: left; width: 41%; margin-left: 6%;">
+                <p>
+                    <span class="subject subject-font">ประเภทของความยินยอม/Type of consent </span>
+                    <apex:outputPanel rendered="{!type != ''}">
+                        <span class="underline" style="margin-left: 5px;">{!type} Consent</span>
+                    </apex:outputPanel>
+                </p>
+            </div>
+
+            <div class="subject-space" style="float: left; width: 50%;">
+                <p>
+                    <span class="subject subject-font" style="display:inline-block; width: 172px;">การให้ความยินยอม/Consent Detail </span>
+                    <apex:outputPanel rendered="{!consentAccept != ''}">
+                        <span class="underline">{!consentAccept}</span>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!consentAccept == ''}">
+                        <span>-</span>
+                    </apex:outputPanel>
+                </p>
+            </div>
+
+            <div class="subject-space" style="float: left; width: 23%; margin-left: 6%;">
+                <p>
+                    <span class="subject subject-font" style="display: inline-block; width: 39%;">วันที่/Dated </span>
+                    <apex:outputPanel rendered="{!grantdate != ''}">
+                        <span class="underline">{!grantdate}</span>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!grantdate == ''}">
+                        <span>-</span>
+                    </apex:outputPanel>
+                </p>
+            </div>
+            <div class="subject-space" style="float: left; width: 18%;">
+                <p>
+                    <span class="subject subject-font" style="display: inline-block; width: 80px;">เวอร์ชั่น/version </span>
+                    <!-- <span>.....................</span> -->
+                    <apex:outputPanel rendered="{!ver != ''}">
+                        <span class="underline">{!ver}</span>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!ver == ''}">
+                        <span>-</span>
+                    </apex:outputPanel>
+                </p>
+            </div>
+
+
+            <div class="subject-space" style="float: left; width: 50%; ">
+                <p>
+                    <span class="subject subject-font" style="display: inline-block; width: 80px;">ผ่านช่องทาง/via </span>
+                    <apex:outputPanel rendered="{!via != ''}">
+                        <span class="underline">{!via}</span>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!via == ''}">
+                        <span>-</span>
+                    </apex:outputPanel>
+                </p>
+            </div>
+
+            <div class="box--full subject-space">
+                <p>
+                    <span class="subject subject-font" style="display: inline-block; width: 24%;">พนักงานผู้ให้บริการ/Provided by </span>
+                    <span>
+                        <a>{!emp}</a>
+                    </span>
+                </p>
+            </div>
+
+            <div class="box--full footer">
+
+                <p>ธนาคารทหารไทยธนชาต จำกัด (มหาชน)</p>
+                <p class="subject">TMBThanachart Bank Public Company Limited</p>
+            </div>
+
+            <div class="remark-box">
+
+                <p class="remark subject">หมายเหตุ/Remark CRMCC - Contact Center CRMBranch - สาขา/branch RSL - ระบบสินเชื่อ/loan system CRMTABLET -
+                    เปิดบัญชีโดย tablet/onboarding system via tablet</p>
+            </div>
+        </div>
+    </body>
+
+    </html>
+</apex:page>

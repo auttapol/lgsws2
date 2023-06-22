@@ -1,0 +1,63 @@
+<aura:component controller="RetailCSVLightningUtil" implements="lightning:isUrlAddressable" access="global">
+    <lightning:workspaceAPI aura:id="workspace" />
+    <lightning:navigation aura:id="navService" />
+    <aura:registerEvent name="RetailCSVEvent" type="c:RetailCSV_Event" />
+    <aura:method name="parentMethod" action="{!c.parentAction}" access="public">
+        <aura:attribute name="fieldValueMap" type="String"/> 
+    </aura:method>
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="theme" type="String" default="{!$Browser.formFactor == 'PHONE' ? 'Theme4t' : 'Theme4u'}" />
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="recordTypeId" type="Id" />
+
+    <aura:attribute name="userId" type="Id" default="{! $SObjectType.CurrentUser.Id }" access="private" />
+    <aura:attribute name="account" type="Object" />
+    <force:recordData aura:id="recordLoader" recordId="{!v.recordId}" fields="Name" targetFields="{!v.account}" />
+
+    <aura:attribute name="hiddenText" type="String" default="{! $Label.c.Data_Condition_Hidden_Text }" access="private" />
+    <aura:attribute name="profileName" type="String" default="" access="private" />
+    <!-- <aura:handler name="change" value="{!v.profileName}" action="{!c.handleProfileName}" /> -->
+
+    <aura:attribute name="dataFields" type="Map" />
+    <aura:attribute name="FIELDSList" type="List" default="[]" access="private" />
+    <aura:attribute name="sectionList" type="List" default="[]" access="private" />
+
+    <aura:attribute name="fieldUpdate" type="Map" default="{}" access="private" />
+    <aura:attribute name="isModify" type="Boolean" default="true" access="private" />
+    <aura:attribute name="isSubmit" type="Boolean" default="false" access="private" />
+    <aura:attribute name="isError" type="Boolean" default="false" access="private" />
+    <aura:attribute name="errorDetail" type="String" default="" access="private" />
+    <aura:attribute name="errorMessage" type="String" default="" access="private" />
+
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" access="private" />
+    <aura:attribute name="activeSections" type="List" default="['A','B','C','D']" access="private" />
+    <aura:attribute name="deviceSize" type="Map" default="{
+        'size': '12',
+        'smallDeviceSize': '6',
+        'mediumDeviceSize': '6',
+        'largeDeviceSize': '6',
+    }" access="private" />
+
+    <ui:scrollerWrapper class="{! v.theme == 'Theme4t' ? 'container' : 'slds-is-relative slds-m-bottom_small'}">
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:account" alternativeText="{!$Label.c.Account_Edit}" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 class="slds-text-heading_label">
+                        {!$Label.c.Account_Edit}
+                    </h1>
+                    <h2 class="slds-text-heading_medium">
+                        {!v.account.Name}
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+        
+        <c:EditCustomerForBranchCSV recordId="{!v.recordId}" parent="{!this}"/>
+    </ui:scrollerWrapper>
+
+    
+</aura:component>

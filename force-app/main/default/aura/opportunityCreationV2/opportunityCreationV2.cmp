@@ -1,0 +1,170 @@
+<aura:component implements="force:hasRecordId" access="global" controller="OpportunityController">
+    <aura:attribute name="recordId" type="Id" default="" />
+    <aura:attribute name="recordTypeId" type="String" />
+    <aura:attribute name="spinner" type="boolean" default="false" />
+    <aura:attribute name="theme" type="String" default="Theme4u" />
+    <aura:attribute name="oppRecDefualt" type="Opportunity" /> 
+    <aura:attribute name="oppRec" type="Opportunity"/>
+    <aura:attribute name="rts" type="Call_Report__c"/>
+    <aura:attribute name="visitplanID" type="id"/>
+
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}" />
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <ui:scrollerWrapper>
+        <aura:if isTrue="{!v.spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container">
+                <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                    <span class="slds-assistive-text">Loading...</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </aura:if>
+
+
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:opportunity" alternativeText="opportunity" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 class="slds-text-heading_label">
+                        New Opportunity
+                    </h1>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+
+
+        <lightning:recordEditForm aura:id="recordCreateForm" objectApiName="Opportunity" recordId="{!v.recordId}"
+            onsubmit="{!c.handleSubmit}" onsuccess="{!c.handleSuccess}" recordTypeId="{!v.recordTypeId}">
+            <lightning:messages />
+            <lightning:card>
+                <aura:set attribute="actions">
+                    <lightning:button label="{!$Label.c.Save}" type="submit" />
+                    <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.handleCancel}" />
+                </aura:set>
+                <aura:set attribute="footer">
+                    <lightning:button label="{!$Label.c.Save}" type="submit" />
+                    <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.handleCancel}" />
+                </aura:set>
+
+                <h3 class="slds-section__title slds-theme_shade" style="margin-top:30px">
+                    <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Opportunity
+                        Information</span>
+                </h3>
+
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="AccountId" value="{!v.oppRecDefualt.AccountId}"/>
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:outputField fieldName="OwnerId" />
+                        
+                    </div>
+                    
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Name" />
+                    </div>
+                    
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:outputField fieldName="RecordTypeId" />
+                    </div>
+                    
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Expected_submit_date__c" value="{!v.oppRecDefualt.Expected_submit_date__c}"/>
+                    </div>
+                    
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="StageName" value="{!v.oppRecDefualt.StageName}"/>
+                    </div>
+                    
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="CloseDate" value="{!v.oppRecDefualt.CloseDate}"/>
+                    </div>
+                    
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:outputField fieldName="Probability" />
+                    </div>
+                    
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Main_Branch__c" />
+                    </div>
+                    
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Details_of_Status__c" />
+                    </div>
+                    
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Remark__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Application_Status__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Reason_of_Lost__c" />
+                    </div>
+                </div>
+
+                <h3 class="slds-section__title slds-theme_shade" style="margin-top:30px">
+                    <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Revenue</span>
+                </h3>
+
+                <div class="slds-grid slds-wrap">
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Amount" />
+                    </div>
+                    
+                </div>
+
+                <h3 class="slds-section__title slds-theme_shade" style="margin-top:30px">
+                    <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Opportunity Source</span>
+                </h3>
+                <div class="slds-grid slds-wrap">
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="CampaignId" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="LeadSource" />
+                    </div>
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Supply_Chain_Flag__c" />
+                    </div>
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Other_Source__c" />
+                    </div>
+                    
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Branch_Referred__c" />
+                    </div>
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Referral_Staff_ID__c" />
+                    </div>
+                    
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <!-- Empty Space -->
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Referral_Staff_Name__c" />
+                    </div>
+                    
+                </div>
+
+
+            </lightning:card>
+        </lightning:recordEditForm>
+
+
+    </ui:scrollerWrapper>>
+
+
+</aura:component>

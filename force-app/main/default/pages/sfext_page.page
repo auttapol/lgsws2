@@ -1,0 +1,151 @@
+<apex:page title="SF_Integration_Page"
+            standardstylesheets="true"
+            docType="html-5.0"  
+            sidebar="false" 
+            showHeader="true"
+            controller="SFExtIntregration"
+>
+  <head>
+        <meta http-equiv="x-ua-compatible" content="ie=11"/>
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, 'TMBassets/jquery/jquery-2.0.0.min.js')}"  />
+         <script src="/soap/ajax/41.0/connection.js" type="text/javascript" />  
+         <apex:includeScript value="/support/console/41.0/integration.js"/>
+         
+         <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/dt/dt-1.10.16/datatables.min.css"/>
+         <script type="text/javascript" src="https://cdn.datatables.net/v/dt/dt-1.10.16/datatables.min.js" />
+        
+         <script type="text/javascript">
+                sforce.connection.sessionId= '{!$Api.Session_ID}';
+         </script>
+         <style>
+                .overlay {
+                    display: none;
+                    height: 100%;
+                    left: 0;
+                    position: fixed;
+                    top: 0;
+                    opacity: 0.3;
+                    -moz-opacity: 0.3;
+                    width: 100%;
+                    -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+                    filter: alpha(opacity=30);
+                    background: #000;
+                    -khtml-opacity: 0.3;
+                    z-index: 1000;
+                }
+
+                .loader {
+                    background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+                    width: 32px;
+                    height: 32px;
+                    position: absolute;
+                    left: 48%;
+                }
+                
+         </style>
+        <script type="text/javascript">
+            sforce.connection.sessionId= '{!$Api.Session_ID}';
+        </script>
+
+        <script type="text/javascript">
+            var getUrlParameter = function getUrlParameter(sParam) {
+                    var sPageURL = decodeURIComponent(window.location.search.substring(1));
+                    
+                    var sURLVariables = sPageURL.split('&');
+                    var sParameterName;
+
+                    for (var i = 0; i < sURLVariables.length; i++) {
+                        sParameterName = sURLVariables[i].split('=');
+
+                        if (sParameterName[0] === sParam) {
+                            return sParameterName[1] === undefined ? true : sParameterName[1];
+                        }
+                    }
+            };
+
+            $(function() {
+                startLoading('Loading...');
+                var val    = getUrlParameter('val');
+                var var1   = getUrlParameter('var1');
+                var rmid   = getUrlParameter('rmid');
+
+                val    = val === undefined ? '' : val;
+                var1   = var1 === undefined ? '' : var1;
+                rmid   = rmid === undefined ? '' : rmid;
+
+                Visualforce.remoting.Manager.invokeAction(
+                            '{!$RemoteAction.SFExtIntregration.call_interface}',
+                            val,
+                            var1,
+                            rmid,
+                            function(result, event){
+                                if (result != null && result.length == 1 && result[0].ACCOUNT_SF_ID != null) {
+                                    if( (typeof sforce.one != 'undefined') && (sforce.one != null) ) {
+                                        sforce.one.navigateToSObject(result[0].ACCOUNT_SF_ID);
+                                    }else{
+                                        if (sforce.console.isInConsole()) {
+                                            window.location.href = '/'+result[0].ACCOUNT_SF_ID;
+                                        }else {
+                                            window.location.href 
+                                            = '/ui/support/servicedesk/ServiceDeskPage#/'+result[0].ACCOUNT_SF_ID;
+                                        }
+                                    }
+                                }else if (result != null && result.length == 1 && result[0].TMB_CUST_ID != null) {
+
+                                }else if (result != null && result.length == 1 && result[0].LEAD_SF_ID != null) {
+                                    if( (typeof sforce.one != 'undefined') && (sforce.one != null) ) {
+                                        sforce.one.navigateToSObject(result[0].LEAD_SF_ID);
+                                    }else{
+                                        if (sforce.console.isInConsole()) {
+                                            window.location.href = '/'+result[0].LEAD_SF_ID;
+                                        }else {
+                                            window.location.href 
+                                            = '/ui/support/servicedesk/ServiceDeskPage#/'+result[0].LEAD_SF_ID;
+                                        }
+                                    }
+                                }else if (result != null && result[0].GLOBAL_SEARCH_VAL != undefined) {
+                                    if (result[0].GLOBAL_SEARCH_OBJ != null) {
+                                        if (sforce.console.isInConsole()) {
+                                            window.location.href 
+                                                = '/_ui/search/ui/UnifiedSearchResults?sen='+result[0].GLOBAL_SEARCH_OBJ+'&str='+result[0].GLOBAL_SEARCH_VAL;
+                                        }else {
+                                            window.location.href 
+                                                = '/console#/_ui/search/ui/UnifiedSearchResults?sen='+result[0].GLOBAL_SEARCH_OBJ+'&str='+result[0].GLOBAL_SEARCH_VAL;
+                                        }
+                                    }else {
+                                        if (sforce.console.isInConsole()) {
+                                            window.location.href 
+                                                = '/_ui/search/ui/UnifiedSearchResults?str='+result[0].GLOBAL_SEARCH_VAL;
+                                        }else {
+                                            window.location.href 
+                                                = '/console#/_ui/search/ui/UnifiedSearchResults?str='+result[0].GLOBAL_SEARCH_VAL;
+                                        
+                                        }
+                                    }
+                                }else {
+                                    if (sforce.console.isInConsole()) {
+                                    }else {
+                                        window.location.href = "/console";
+                                    }
+                                }
+                                endLoading();
+                            }, 
+                            {escape: true}
+                );  
+                                
+                endLoading();
+            });
+
+            function startLoading(text){
+                $('#load_scrl').css('top', 400).html(text);
+                $('.loadingBox').show();
+            }
+
+            function endLoading(){
+                $('.loadingBox').hide(100);
+            }
+        </script>
+  </head>
+  <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+  <div class="loadingBox overlay"></div>
+</apex:page>

@@ -1,0 +1,80 @@
+<apex:page standardController="Executive_Summary__c" extensions="ExecutiveSummaryCtrl" showHeader="true" standardStylesheets="true" sidebar="false"  applyBodyTag="false" docType="html-5.0" action="{!Refresh}" >    
+
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">    
+
+<head>
+  <title>Executive Summary Refresh</title>
+  <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+  <apex:includeScript value="/support/console/37.0/integration.js"/>
+  <script type="text/javascript">
+        $(document).ready(function(){  
+
+            if( (typeof sforce.one != 'undefined') && (sforce.one != null) ) {
+                console.log('SF1Mode');
+                $('#appearOnSF1').show();
+                $('#appearOnDesktop').hide();
+            }else{
+                console.log('DesktopMode');
+                $('#appearOnDesktop').show();
+                $('#appearOnSF1').hide();
+                sforce.console.setTabTitle('Executive Summary');
+            }  
+            
+        });
+        
+        function closeSubtab(result) {
+            sforce.console.closeTab(result.id);
+        }
+
+        function back(){
+            if( (typeof sforce.one != 'undefined') && (sforce.one != null) ) {
+                sforce.one.navigateToSObject('{!ExecutiveSummary.id}');               
+            }else if (sforce.console.isInConsole()){
+                sforce.console.getEnclosingTabId(closeSubtab);
+            }else{
+                window.location.href = '../{!ExecutiveSummary.id}';
+            }
+        }
+        
+    </script>
+</head>    
+
+<body>
+
+    <apex:outputPanel rendered="{!isRefresh}">
+      <script>back();</script>
+    </apex:outputPanel>
+
+    <apex:outputPanel rendered="{! !isRefresh}">
+        <!-- REQUIRED SLDS WRAPPER -->
+        <div class="slds" >  
+        
+            <div id="appearOnDesktop" >
+                <apex:form >
+                    <apex:pageBlock rendered="{! !isSF1}">
+                        <apex:outputPanel id="messages">
+                            <apex:pageMessages ></apex:pageMessages> 
+                        </apex:outputPanel> 
+                        
+                        <apex:pageBlockButtons >
+                            <!-- apex:commandButton value="Cancel" action="{!cancel}"  rerender="messages" / -->
+                            <apex:commandButton value="Cancel" onclick="back();return false;"/>
+                        </apex:pageBlockButtons>
+                        
+                    </apex:pageBlock>
+                </apex:form>  
+                
+            </div>  
+        
+            <div id="appearOnSF1" >
+                <apex:outputPanel id="messages" rendered="{! isSF1}">
+                    <apex:pageMessages ></apex:pageMessages> 
+                </apex:outputPanel> 
+            </div>
+        
+        </div>
+        <!-- / REQUIRED SLDS WRAPPER -->   
+    </apex:outputPanel>
+</body>
+</html>
+</apex:page>

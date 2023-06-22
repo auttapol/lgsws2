@@ -1,0 +1,411 @@
+<apex:page standardController="Account" extensions="RTL_NBOControllerInline" showchat="false" sidebar="false" showheader="false"
+           standardstylesheets="true" tabstyle="Account" title="{!$Label.RTL_NBO}">
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <!-- Import the Design System style sheet -->
+        <apex:slds />
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+
+
+        <!-- Includes Js -->
+        <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+        <apex:actionstatus onstart="startLoading('Loading ...');" id="status" onstop="endLoading();" />
+        <!-- Salesconsole JS API -->
+        <apex:includescript value="/support/console/39.0/integration.js" />
+        
+        
+        <!-- Style for Ajax Request -->
+        <style>
+            .overlay {
+                display: none;
+                height: 100%;
+                left: 0;
+                position: fixed;
+                top: 0;
+                opacity: 0.3;
+                -moz-opacity: 0.3;
+                width: 100%;
+                -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+                filter: alpha(opacity=30);
+                background: #000;
+                -khtml-opacity: 0.3;
+                z-index: 1000;
+            }
+
+            .loader {
+                background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+                /* width: 32px;*/
+                height: 32px;
+                position: absolute;
+                left: 48%;
+            }
+
+            .red-label {
+                list-style: none;
+                color: #f00;
+            }
+
+        </style>
+
+
+
+    </head>
+
+    
+
+
+<body style="background-color: #FFF;">
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+    <!-- // End Ajax Request -->
+
+    <!-- REQUIRED SLDS WRAPPER -->
+    <div class="slds-scope" >
+
+        <!-- PRIMARY CONTENT WRAPPER -->
+
+        <div >
+            <!-- Main form -->
+
+            <apex:form onkeypress="return noenter(event)" id="mainform">
+
+                <!-- Alert Box -->
+                <apex:outputPanel id="alertbox" style="{!IF(PageMessage == '','display:none','')}">
+                <div class="bootstrap-sf1" >
+                    <div class="alert alert-dismissible alert-danger" style="margin-bottom: 0px;">
+                        <button type="button" class="close" data-dismiss="alert">&times;</button>
+                        <h4>Warning!</h4>
+                        <p>
+                            <apex:outputText value="{!PageMessage}" escape="false" />
+                        </p>
+                    </div>
+                </div>
+                </apex:outputPanel>
+
+                <apex:actionfunction action="{!startRequest}"
+                             rerender="section1,section2,section3,section4,section5,section6,tbSummary,rpsum,alertbox"
+                             status="status"
+                             name="doRest">
+                    <apex:param name="isSf1" value="" />
+                </apex:actionfunction>
+
+                <!-- <div class="slds-form-element" style="padding-left: 10px;">
+                    <a class="normallink" href="/{!acct.Id}">back to customer single view</a>
+                </div> -->
+
+                <!-- <div class="slds-form-element" style="text-align: center; padding: 10px 10px;">
+                    <script>    
+                        function refreshNBOFromDB(){
+                            refreshNBOFromDB();
+                        }
+                    </script>
+                    <apex:commandButton styleClass="slds-button slds-button--neutral" onclick="refreshNBOFromDB();return false;" value="{!$Label.RTL_NBO_Refresh}" />
+                    <apex:actionfunction action="{!refreshNBOFromDB}"
+                                     rerender="section1,section2,section3,section4,section5,section6,tbSummary,rpsum,alertbox"
+                                     status="status"
+                                     name="refreshNBOFromDB"/>
+                </div> -->
+
+
+                <!-- Section NBO -->
+                <div id="section-nbo"></div>
+                <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                    <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_NBO}</h3>
+                </div>
+               
+                <apex:outputPanel id="section1" >
+
+                    <apex:outputPanel rendered="{!(ISNULL(nbohistoryList) || nbohistoryList.size == 0)}" >
+                        <div class="slds-p-around_x-small slds-border_bottom slds-border_top">
+                            <span style="font-size: 12px;margin-left: 20px;">
+                                <apex:outputText value="{!$Label.RTL_No_Record_Display}" ></apex:outputText>
+                            </span>
+                        </div>
+                    </apex:outputPanel>
+
+                    <div class="slds-form-element slds-m-around--medium"  id="responsive" >
+                        <apex:outputPanel rendered="{!NOT(ISNULL(nbohistoryList)) && nbohistoryList.size > 0 && isSF1}">
+                            <div class="slds-grid slds-wrap slds-gutters">
+                                <apex:repeat value="{!nbohistoryList}" var="nbo" rendered="{!NOT(ISNULL(nbohistoryList)) && nbohistoryList.size > 0}">
+                                    <div class="slds-col slds-p-vertical_small slds-size_1-of-3">
+                                        <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal" style="border: 1px solid black;text-align: center;font-size: 12px; width: 100%; " rendered="{!NOT(ISNULL(nbohistoryList)) && nbohistoryList.size > 0}">
+                                            <tr class="dataRow">
+                                                <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Campaign_Name__c.Label}"> 
+                                                    <apex:outputLink onclick="redirectURL('/apex/RTL_NBODetailView?p={!nbo.nboId}','{!nbo.nboName }');return false;" value="">{!nbo.nboName}</apex:outputLink>
+                                                </td>
+                                                <!-- <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Campaign_Code__c.Label}"> 
+                                                    <apex:outputtext value="{!nbo.campaign}" /> 
+                                                </td> -->
+                                                <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Valid_From__c.Label}"> 
+                                                    <apex:outputtext value="{!nbo.validFrom}" /> 
+                                                </td>
+                                                <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Valid_To__c.Label}"> 
+                                                    <apex:outputtext value="{!nbo.validTo}" />
+                                                </td>
+                                                <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Status__c.Label}"> 
+                                                    <apex:outputtext value="{!nbo.status}" /> 
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </apex:repeat>
+                            </div>
+                        </apex:outputPanel>
+
+                        <apex:outputPanel rendered="{!NOT(ISNULL(nbohistoryList)) && nbohistoryList.size > 0 && !isSF1}">
+                            <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal" style="text-align: center;font-size: 12px; width: 100%; " rendered="{!NOT(ISNULL(nbohistoryList)) && nbohistoryList.size > 0}">
+                                <thead>
+                                    <tr class="slds-text-title--caps section-header-title slds-p-horizontal--small slds-truncate"> 
+                                        <th scope="col"> {!$ObjectType.RTL_NBO_History__c.fields.RTL_Campaign_Name__c.Label} </th>
+                                        <!-- <th scope="col"> {!$ObjectType.RTL_NBO_History__c.fields.RTL_Campaign_Code__c.Label} </th> -->
+                                        <th scope="col"> {!$ObjectType.RTL_NBO_History__c.fields.RTL_Valid_From__c.Label} </th>
+                                        <th scope="col"> {!$ObjectType.RTL_NBO_History__c.fields.RTL_Valid_To__c.Label} </th>
+                                        <th scope="col"> {!$ObjectType.RTL_NBO_History__c.fields.RTL_Status__c.Label} </th>
+                                    </tr>
+                                </thead>
+                            
+                                <tbody>
+                                    <apex:repeat value="{!nbohistoryList}" var="nbo" rendered="{!NOT(ISNULL(nbohistoryList)) && nbohistoryList.size > 0}">
+                                        <tr class="dataRow">
+                                            <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Campaign_Name__c.Label}"> 
+                                                <apex:outputLink onclick="redirectURL('/apex/RTL_NBODetailView?p={!nbo.nboId}','{!nbo.nboName }');return false;" value="">{!nbo.nboName}</apex:outputLink>
+                                            </td>
+                                            <!-- <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Campaign_Code__c.Label}"> 
+                                                <apex:outputtext value="{!nbo.campaign}" /> 
+                                            </td> -->
+                                            <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Valid_From__c.Label}"> 
+                                                <apex:outputtext value="{!nbo.validFrom}" /> 
+                                            </td>
+                                            <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Valid_To__c.Label}"> 
+                                                <apex:outputtext value="{!nbo.validTo}" />
+                                            </td>
+                                            <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Status__c.Label}"> 
+                                                <apex:outputtext value="{!nbo.status}" /> 
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+                                </tbody>                            
+                            </table>
+                        </apex:outputPanel>
+                        <!--div class="slds-form-element" style="margin: 0px 20px 20px 20px;">
+                            <apex:outputPanel rendered="{!(ISNULL(nbohistoryList) || nbohistoryList.size == 0)}" >
+                                <apex:outputText value="{!$Label.RTL_No_Record_Display}"  styleClass="noRowsHeader"></apex:outputText>
+                            </apex:outputPanel>
+                        </div-->
+                    </div>      
+                </apex:outputPanel>
+                
+
+                <!-- <div id="section-nbo-hist"></div>  
+                <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                    <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_NBO_History}</h3>
+                </div> -->
+
+                <!-- <apex:outputPanel id="section2" >
+                    <apex:outputPanel rendered="{!(ISNULL(nbohistoryTempList) || nbohistoryTempList.size == 0)}" >
+                        <div class="slds-p-around_x-small slds-border_bottom slds-border_top">
+                            <span style="font-size: 12px;margin-left: 20px;">
+                                <apex:outputText value="{!$Label.RTL_No_Record_Display}" ></apex:outputText>
+                            </span>
+                        </div>
+                    </apex:outputPanel>
+
+                    <div class="slds-form-element slds-m-around--medium"  id="responsive">
+                        <apex:outputPanel rendered="{!NOT(ISNULL(nbohistoryTempList)) && nbohistoryTempList.size > 0}">
+                            <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal"  style="text-align: center;font-size: 12px; width: 100%; ">
+                                <thead>
+                                    <tr class="slds-text-title--caps section-header-title slds-p-horizontal--small slds-truncate"> 
+                                        <th scope="col"> {!$ObjectType.RTL_NBO_History__c.fields.RTL_Campaign_Name__c.Label} </th>
+                                        <th scope="col"> {!$ObjectType.RTL_NBO_History__c.fields.RTL_Campaign_Code__c.Label} </th>
+                                        <th scope="col"> {!$ObjectType.RTL_NBO_History__c.fields.RTL_Valid_From__c.Label} </th>
+                                        <th scope="col"> {!$ObjectType.RTL_NBO_History__c.fields.RTL_Valid_To__c.Label} </th>
+                                        <th scope="col"> {!$ObjectType.RTL_NBO_History__c.fields.RTL_Status__c.Label}</th>
+                                        <th scope="col"> {!$ObjectType.RTL_NBO_History__c.fields.RTL_Expired__c.Label} </th>
+                                    </tr>
+                                </thead>
+
+                                <tbody>
+                                <apex:repeat value="{!nbohistoryTempList}" var="nbohistory1" rendered="{!NOT(ISNULL(nbohistoryTempList)) && nbohistoryTempList.size > 0}">
+                                    <tr class="dataRow">
+                                        <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Campaign_Name__c.Label}"> 
+                                            <apex:outputLink onclick="redirectURL('/apex/RTL_NBOHistoryDetailView?p={!nbohistory1.RTL_NBO_ID__c}','{!nbohistory1.RTL_Campaign_Name__c }');return false;" value="">{!nbohistory1.RTL_Campaign_Name__c}
+                                            </apex:outputLink>
+                                        </td>
+                                        <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Campaign_Code__c.Label}"> 
+                                            <apex:outputtext value="{!nbohistory1.RTL_Campaign_Code__c}" /> 
+                                        </td>
+                                        <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Valid_From__c.Label}"> 
+                                            <apex:outputtext value="{0,date,dd/MM/yyyy}">
+                                                <apex:param value="{!nbohistory1.RTL_Valid_From__c}" />
+                                            </apex:outputtext>
+                                        </td>
+                                        <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Valid_To__c.Label}"> 
+                                            <apex:outputtext value="{0,date,dd/MM/yyyy}">
+                                                <apex:param value="{!nbohistory1.RTL_Valid_To__c }" />
+                                            </apex:outputtext>
+                                        </td>
+                                        <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Status__c.Label}"> 
+                                            <apex:outputtext value="{!nbohistory1.RTL_Status__c}" /> 
+                                        </td>
+                                        <td data-label="{!$ObjectType.RTL_NBO_History__c.fields.RTL_Expired__c.Label}"> 
+                                            <apex:outputField value="{!nbohistory1.RTL_Expired__c}" /> 
+                                        </td>
+                                    </tr>
+                                </apex:repeat>
+                                </tbody>
+                            </table>    
+                        </apex:outputPanel>
+
+                        <div class="slds-form-element" style="margin: 0px 20px 20px 20px;">
+                            <apex:outputPanel layout="block" styleClass="myHeader" style="float:right;margin: 4px">
+                            <apex:outputText value="{!$Label.RTL_Page} {!if(totalNBOhis>0,CEILING((counter+1)/pageMaxSize),0)}"/> of &nbsp;<apex:outputText value="{!CEILING(totalNBOhis/pageMaxSize)}"/>
+                            </apex:outputPanel> 
+                        </div>
+
+                        <div class="slds-form-element">
+                            <div style="width: 100%;">
+                                <div class="slds-button-group" role="group" >
+                                    <apex:commandButton value="{!$Label.RTL_First}" action="{!First}" status="status" rerender="section2" oncomplete="hideNormalLink();" disabled="{!DisablePrevious}" styleClass="slds-button slds-button_neutral"/>
+                                    <apex:commandButton value="{!$Label.RTL_Previous}" action="{!Previous}" status="status" reRender="section2" oncomplete="hideNormalLink();" disabled="{!disablePrevious}" styleClass="slds-button slds-button_neutral"/>
+                                    <apex:commandButton value="{!$Label.RTL_Next}" action="{!Next}" status="status" reRender="section2" oncomplete="hideNormalLink();" disabled="{!disableNext}" styleClass="slds-button slds-button_neutral"/>
+                                    <apex:commandButton value="{!$Label.RTL_Last}" action="{!Last}" status="status" reRender="section2" oncomplete="hideNormalLink();" disabled="{!disableNext}" styleClass="slds-button slds-button_neutral"/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </apex:outputPanel> -->
+            </apex:form>
+        </div>
+        <!-- / PRIMARY CONTENT WRAPPER -->
+    </div>
+</body>
+
+
+<!-- JAVASCRIPT -->
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+    <script>
+    // Global variable
+    var _isInConsole = false;
+    var _isInSF1 = false;
+    var _primaryTabId ='';
+    var _customername =  'NBO Summary';
+    var _nbosummarytabId;
+    
+    function startLoading(text){
+        $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+        $('.loadingBox').show();
+    }
+    function endLoading(){
+        $('.loadingBox').hide();
+        hideNormalLink();
+    }
+    
+    function redirectURL(url,pageName){
+            if(_isInConsole){
+                // In Sales Console
+                OpenTabPage(url,pageName);
+                
+            }else if(_isInSF1){
+                //In Salesforce1
+                sforce.one.navigateToURL(url);
+            }else{
+                //Desktop Version
+                window.location.href = url;
+            }
+            //endLoading();
+     }
+
+    /*-------------------------------------------------------------------------
+            Salesforce :  Sale Console Js
+        ---------------------------------------------------------------------------*/
+    function IsInConsole() {
+        if (sforce.console.isInConsole()) {
+            _isInConsole = true;
+            _isInSF1 = false;
+            // Then get primary tab id
+            sforce.console.getEnclosingPrimaryTabId(MainTabId);
+            sforce.console.getEnclosingTabId(showTabId);
+            sforce.console.setTabTitle(_customername);
+            sforce.console.setTabIcon("{!URLFOR($Resource.RTL_NBO_Logo)}", null);
+        }
+        // Ref. https://developer.salesforce.com/docs/atlas.en-us.salesforce1.meta/salesforce1/vf_dev_best_practices_pages_multipurpose.htm
+        else if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+            _isInConsole = false;
+            _isInSF1 = true;
+        }
+        else {
+            _isInConsole = false;
+            _isInSF1 = false;
+        }
+
+        console.log('_isInConsole = ' +  _isInConsole);
+        console.log('_isInSF1 = ' +  _isInSF1);
+    }
+    function hideNormalLink(){
+        if(_isInConsole){
+            // In Sales Console
+            $('.normallink').hide();
+            $('.console').show();
+            $('.sf1').hide();
+        }else if(_isInSF1){
+            // In Salesforce1
+            $('.normallink').hide();
+            $('.console').hide();
+            $('.sf1').show();
+        }else{
+            // Normal web
+            $('.normallink').show();
+            $('.console').hide();
+            $('.sf1').hide();
+        }
+    }
+    function OpenTabPage(url,pagename){
+
+        // Open new sub tab
+        sforce.console.openSubtab(_primaryTabId , url, true, pagename, null, openSuccess, _customername+pagename);
+    }
+    var MainTabId = function getMainTabId(result  /* primary tab info */) {
+        //Now that we have the primary tab ID, we can open a new subtab in it
+        _primaryTabId = result.id;
+    };
+    var openSuccess = function openSuccess(result) {
+        //Report whether we succeeded in opening the subtab
+        if (result.success == true) {
+
+        } else {
+
+        }
+    };
+
+    /*-------------------------------------------------------------------------
+            Salesforce :  Main Function
+        ---------------------------------------------------------------------------*/
+    $(document).ready(function () {
+        $('.normallink').hide();
+        $('.console').hide();
+        startLoading("SendingRequest ...");
+        //Check Application
+        IsInConsole();
+        // On Pageload send ajax request
+
+        doRest(_isInSF1);
+        hideNormalLink(); 
+    });
+
+    var showTabId = function showTabId(result) {
+          // Display the tab ID
+          
+          _nbosummarytabId = result.id;
+          console.log('_nbosummarytabId :'+_nbosummarytabId);
+    };   
+
+    </script>
+<!-- / JAVASCRIPT -->
+
+</html>
+</apex:page>

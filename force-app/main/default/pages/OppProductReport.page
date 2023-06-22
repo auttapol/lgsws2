@@ -1,0 +1,691 @@
+<apex:page docType="html-5.0" showHeader="false" sidebar="false" applyBodyTag="false" applyHtmlTag="true" standardStylesheets="true"
+    controller="OpportunityReportController" title="Pipeline Report" lightningStylesheets="true">
+
+    <head>
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:includeScript value="{!$Resource.SFScript}" />
+        <apex:includeScript value="/support/console/48.0/integration.js" />
+        <apex:stylesheet value="{!URLFOR($Resource.AccountPlanEditTable)}" />
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:includeScript value="{!$Resource.AccountPlan_Mustache}" />
+        <apex:includeScript value="/soap/ajax/48.0/connection.js" />
+        <apex:stylesheet value="{!URLFOR($Resource.SLOS)}" />
+        <style>
+            .slds .slds-box {
+                border: 1px solid #0070d2;
+            }
+
+            @media (max-width: 750px) {
+                .desc {
+                    width: 100% !important;
+                }
+
+                .month {
+                    width: 47% !important;
+                    float: left;
+                    clear: both;
+                }
+                .year {
+                    width: 47% !important;
+                    float: right
+                }
+                #body {
+                    padding: 0px !important;
+                    background-color: #fff !important;
+                }
+            }
+
+            .customWidth {
+                width: 60px !important; //font-size:16px !important;
+                font-size: 11px !important;
+            }
+
+            .customWidth2 {
+                font-size: 16px !important;
+            }
+
+            /*
+                @font-face {
+                    font-family: Arial, Helvetica, sans-serif;
+                    font-size: 12px;
+                }
+                
+                .testfont {
+                    //font-family: Arial, Helvetica, sans-serif !important;
+                    //font-size: 12px !important;
+                    font-family: Arial Unicode MS !important;
+                }
+                .testfont2 {
+                    font-family: Arial, Helvetica, sans-serif !important;
+                    //font-size: 12px !important;
+                    //font-family: Arial Unicode MS !important;
+                }
+                */
+
+            .testwidth {
+                width: 10px !important;
+            }
+
+            .font10 {
+                font-size: 10px !important;
+            }
+
+            .font12 {
+                font-size: 12px !important;
+            }
+
+            .font14 {
+                font-size: 14px !important;
+            }
+        </style>
+    </head>
+
+    <script>
+        sforce.console.setTabTitle('Pipeline Report');
+        function goto(a, b, c) {
+            if (sforce.console.isInConsole()) {
+                var directTab = function closeSubtab(result) {
+                    var tabId = result.id;
+                    
+                    if (c == 'opty') {
+                    } else if (c == 'oppProd') {
+                        //sforce.console.openPrimaryTab(tabId, a, true, b);
+                        sforce.one.navigateToURL('/'+a);
+                    }
+                };
+                sforce.console.getEnclosingPrimaryTabId(directTab);
+            } else {
+                window.location.href = '/' + a;
+            }
+        }
+
+        var $j = jQuery.noConflict();
+        function ShowSpin() {
+            $j('#spin').show();
+        }
+        function HideSpin() {
+            $j('#spin').hide();
+        }
+
+    </script>
+
+    <body id="body">
+
+        <apex:form id="frm">
+
+            <apex:outputPanel id="childList">
+                <div class="slds" id="appearOnDesktop">
+
+                    <div id="spin" style="display:none;" class="slds-spinner_container">
+                        <div class="slds-spinner--brand slds-spinner slds-spinner--large" aria-hidden="false" role="alert">
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div>
+
+                    <div class="slds-page-header" role="banner">
+                        <div>
+                            <div class="slds-media">
+
+                                <div class="slds-media__figure">
+                                    <span class="slds-icon__container slds-icon__container--circle slds-icon-standard-product">
+                                        <span class="bootstrap-sf1">
+                                            <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <div class="slds-media__body">
+                                    <p class="slds-text-heading--label">{!userObj.name}</p>
+                                    <h1 class="slds-text-heading--small" style="font-size:14px !important">
+                                        Year : {!sysYear}
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="">
+
+                        <apex:actionFunction action="{!nextPage}" name="nextPage" reRender="accountPanel" oncomplete="HideSpin();" />
+                        <apex:actionFunction action="{!previousPage}" name="previousPage" reRender="accountPanel" oncomplete="HideSpin();" />
+                        <apex:actionFunction action="{!showCurrentPage}" name="currentPage" reRender="accountPanel" oncomplete="HideSpin();" />
+                        <apex:actionFunction action="{!allPage}" name="allPage" reRender="accountPanel" oncomplete="HideSpin();" />
+                        <apex:actionFunction action="{!firstPage}" name="firstPage" reRender="accountPanel" oncomplete="HideSpin();" />
+                        <apex:actionFunction action="{!lastPage}" name="lastPage" reRender="accountPanel" oncomplete="HideSpin();" />
+                        <apex:actionFunction action="{!searchPage}" name="searchPage" reRender="accountPanel" oncomplete="HideSpin();" />
+                        <apex:actionFunction action="{!backToListView}" name="backToListView" />
+
+                        <apex:outputPanel id="accountPanel">
+
+                            <apex:variable value="{!0}" var="ctrColor" />
+                            <div class="slds-grid slds-grid--align-center slds-m-around--medium ">
+                                <div class="slds-size--1-of-1">
+
+                                    <apex:outputPanel rendered="{!isNotConsole}">
+                                        <span style="font-size:10px;">&lt;&lt;</span>
+                                        <span onclick="backToListView()" style="cursor:pointer;color:blue;font-size:12px">Back to List : Opportunities</span>
+                                        <br/>
+                                    </apex:outputPanel>
+
+                                    <!-- div style="text-align:center;font-size:12px">
+                                            <span onclick="firstPage()" style="cursor:pointer">First</span>&nbsp;
+                                            <span onclick="previousPage()" style="cursor:pointer">&lt;&lt;</span>&nbsp;
+                                            <span onclick="currentPage()" style="cursor:pointer">{!currentPage}</span>&nbsp;
+                                            <span onclick="nextPage()" style="cursor:pointer">&gt;&gt;</span>&nbsp;
+                                            <span onclick="lastPage()" style="cursor:pointer">Last</span>&nbsp;
+                                            <span onclick="allPage()" style="cursor:pointer">All</span>
+                                            <br/>
+                                            {!pageMode}
+                                        </div -->
+                                    <div style="text-align:center;font-size:12px">
+                                        <span onclick="firstPage();ShowSpin();" style="cursor:pointer;">&lt;&lt;</span>&nbsp;&nbsp;
+                                        <span onclick="previousPage();ShowSpin();" style="cursor:pointer">Previous</span>&nbsp;&nbsp;
+                                        <span onclick="nextPage();ShowSpin();" style="cursor:pointer">Next</span>&nbsp;&nbsp;
+                                        <span onclick="lastPage();ShowSpin();" style="cursor:pointer">&gt;&gt;</span>&nbsp;&nbsp;
+                                        <span onclick="allPage();ShowSpin();" style="cursor:pointer">All</span>
+                                        &nbsp;&nbsp;&nbsp;&nbsp; Page &nbsp;&nbsp;
+                                        <apex:inputText value="{!inputPage1}" onblur="searchPage();ShowSpin();" style="width:40px;text-align:center;padding:2px;"
+                                            styleClass="slds-input slds-text-align--right" /> &nbsp;{!pageMode}
+                                        <!-- br/> Current Page : {!inputPage} -->
+                                    </div>
+
+                                    <div id="actFrm" aria-labelledby="newaccountform">
+
+                                        <apex:repeat value="{!wrapObj}" var="wObj">
+
+                                            <fieldset class="slds-box slds-theme--default">
+                                                <legend class="slds-p-vertical--small slds-text-heading--label">
+                                                    <!-- &nbsp;<b><font style="font-size:20px !important">{!wObj.acct.name}</font></b>&nbsp; -->
+                                                    &nbsp;
+                                                    <b>
+                                                        <font class="font14">{!wObj.acct.name}</font>
+                                                    </b>
+                                                </legend>
+
+                                                <div class="slds-form-element ">
+                                                    <div class="slds-form-element " style="">
+                                                        <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal">
+                                                            <thead>
+                                                                <tr class="" style="Background-color: #f7f4f4;">
+                                                                    <th scope="col" colspan="2" style="text-align:left;">
+
+                                                                    </th>
+                                                                    <th scope="col" style="text-align:center;" class="font12">
+                                                                        JAN
+                                                                    </th>
+                                                                    <!-- th scope="col" width="0px" style="text-align:center" class="customWidth2" -->
+                                                                    <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                                        FEB
+                                                                    </th>
+                                                                    <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                                        MAR
+                                                                    </th>
+                                                                    <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                                        APR
+                                                                    </th>
+                                                                    <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                                        MAY
+                                                                    </th>
+                                                                    <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                                        JUN
+                                                                    </th>
+                                                                    <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                                        JUL
+                                                                    </th>
+                                                                    <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                                        AUG
+                                                                    </th>
+                                                                    <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                                        SEP
+                                                                    </th>
+                                                                    <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                                        OCT
+                                                                    </th>
+                                                                    <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                                        NOV
+                                                                    </th>
+                                                                    <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                                        DEC
+                                                                    </th>
+                                                                    <th scope="col" width="0px" style="text-align:center" class="font12">
+                                                                        TOTAL
+                                                                    </th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+
+                                                                <apex:variable value="{!0}" var="totalJan" />
+                                                                <apex:variable value="{!0}" var="totalFeb" />
+                                                                <apex:variable value="{!0}" var="totalMar" />
+                                                                <apex:variable value="{!0}" var="totalApr" />
+                                                                <apex:variable value="{!0}" var="totalMay" />
+                                                                <apex:variable value="{!0}" var="totalJun" />
+                                                                <apex:variable value="{!0}" var="totalJul" />
+                                                                <apex:variable value="{!0}" var="totalAug" />
+                                                                <apex:variable value="{!0}" var="totalSep" />
+                                                                <apex:variable value="{!0}" var="totalOct" />
+                                                                <apex:variable value="{!0}" var="totalNov" />
+                                                                <apex:variable value="{!0}" var="totalDec" />
+                                                                <apex:variable value="{!0}" var="totalVal" />
+
+                                                                <apex:repeat value="{!wObj.opty}" var="opp">
+
+                                                                    <tr style="Background-color: #d5d4d4;">
+                                                                        <th colspan="15" style="text-align:left" class="font12">
+                                                                            <!-- a href="/{!opp.id}">{!opp.Name} (Stage : {!opp.stageName})</a -->
+                                                                            <!--<span onclick="goto('{!opp.id}','{!opp.Name}','opty')" style="cursor:pointer">{!opp.Name} (Stage : {!opp.stageName})</span> -->
+
+
+
+
+
+
+                                                                            <span onclick="NavigateToSelf('{!opp.id}','{!opp.Name}','opty');return false;" style="cursor:pointer">{!opp.Name} (Stage : {!opp.stageName})</span>
+
+
+
+
+
+                                                                        </th>
+                                                                        <!-- th colspan="13"></th -->
+                                                                    </tr>
+
+                                                                    <apex:repeat value="{!opp.opportunitylineitems}" var="op">
+                                                                        <tr>
+                                                                            <td class='testwidth'>
+                                                                                <apex:outputPanel rendered="{! !opp.isClosed}">
+                                                                                    <!-- a href="/apex/OppProductBreakdown?listoppprodid={!op.id}">{!op.PricebookEntry.Product2.Name}</a -->
+                                                                                    <span onclick="goto('apex/OppProductBreakdown?listoppprodid={!op.id}&prevPage=pipeline&prevPageNo={!inputPage}','Pipeline Report','oppProd')"
+                                                                                        style="cursor:pointer" class="font12">{!op.PricebookEntry.Product2.Name}</span>
+                                                                                </apex:outputPanel>
+                                                                                <apex:outputPanel rendered="{! opp.isClosed}">
+                                                                                    <span class="font12">{!op.PricebookEntry.Product2.Name}</span>
+                                                                                </apex:outputPanel>
+                                                                            </td>
+                                                                            <td class='testwidth font12'>{!if (op.Type_Of_Reference__c != null,op.Type_Of_Reference__c,'NI')}</td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.NI_January__c}"
+                                                                                    rendered="{!if(op.RevisedStartYear__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.NI_January__c==null  || op.RevisedStartYear__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.NI_February__c}"
+                                                                                    rendered="{!if(op.RevisedStartYear__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.NI_February__c==null || op.RevisedStartYear__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.NI_March__c}" rendered="{!if(op.RevisedStartYear__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.NI_March__c==null    || op.RevisedStartYear__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.NI_April__c}" rendered="{!if(op.RevisedStartYear__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.NI_April__c==null    || op.RevisedStartYear__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.NI_May__c}" rendered="{!if(op.RevisedStartYear__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.NI_May__c==null      || op.RevisedStartYear__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.NI_June__c}" rendered="{!if(op.RevisedStartYear__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.NI_June__c==null     || op.RevisedStartYear__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.NI_July__c}" rendered="{!if(op.RevisedStartYear__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.NI_July__c==null     || op.RevisedStartYear__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.NI_August__c}"
+                                                                                    rendered="{!if(op.RevisedStartYear__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.NI_August__c==null   || op.RevisedStartYear__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.NI_September__c}"
+                                                                                    rendered="{!if(op.RevisedStartYear__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.NI_September__c==null|| op.RevisedStartYear__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.NI_October__c}"
+                                                                                    rendered="{!if(op.RevisedStartYear__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.NI_October__c==null  || op.RevisedStartYear__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.NI_November__c}"
+                                                                                    rendered="{!if(op.RevisedStartYear__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.NI_November__c==null || op.RevisedStartYear__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.NI_December__c}"
+                                                                                    rendered="{!if(op.RevisedStartYear__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.NI_December__c==null || op.RevisedStartYear__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputPanel rendered="{!if(op.RevisedStartYear__c == sysYear && op.This_Year_Expected_NI__c != null,true,false)}">
+                                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                                        <apex:param value="{!op.This_Year_Expected_NI__c}" />
+                                                                                    </apex:outputText>
+                                                                                </apex:outputPanel>
+                                                                                <apex:outputPanel rendered="{!if(op.RevisedStartYear__c == sysYear && op.This_Year_Expected_NI__c != null,false,true)}">0</apex:outputPanel>
+                                                                            </td>
+                                                                        </tr>
+
+                                                                        <apex:variable value="{!totalJan + if (op.NI_January__c!=null && op.RevisedStartYear__c == sysYear,op.NI_January__c,0)}"
+                                                                            var="totalJan" />
+                                                                        <apex:variable value="{!totalFeb + if (op.NI_February__c!=null && op.RevisedStartYear__c == sysYear,op.NI_February__c,0)}"
+                                                                            var="totalFeb" />
+                                                                        <apex:variable value="{!totalMar + if (op.NI_March__c!=null && op.RevisedStartYear__c == sysYear,op.NI_March__c,0)}" var="totalMar"
+                                                                        />
+                                                                        <apex:variable value="{!totalApr + if (op.NI_April__c!=null && op.RevisedStartYear__c == sysYear,op.NI_April__c,0)}" var="totalApr"
+                                                                        />
+                                                                        <apex:variable value="{!totalMay + if (op.NI_May__c!=null && op.RevisedStartYear__c == sysYear,op.NI_May__c,0)}" var="totalMay"
+                                                                        />
+                                                                        <apex:variable value="{!totalJun + if (op.NI_June__c!=null && op.RevisedStartYear__c == sysYear,op.NI_June__c,0)}" var="totalJun"
+                                                                        />
+                                                                        <apex:variable value="{!totalJul + if (op.NI_July__c!=null && op.RevisedStartYear__c == sysYear,op.NI_July__c,0)}" var="totalJul"
+                                                                        />
+                                                                        <apex:variable value="{!totalAug + if (op.NI_August__c!=null && op.RevisedStartYear__c == sysYear,op.NI_August__c,0)}" var="totalAug"
+                                                                        />
+                                                                        <apex:variable value="{!totalSep + if (op.NI_September__c!=null && op.RevisedStartYear__c == sysYear,op.NI_September__c,0)}"
+                                                                            var="totalSep" />
+                                                                        <apex:variable value="{!totalOct + if (op.NI_October__c!=null && op.RevisedStartYear__c == sysYear,op.NI_October__c,0)}"
+                                                                            var="totalOct" />
+                                                                        <apex:variable value="{!totalNov + if (op.NI_November__c!=null && op.RevisedStartYear__c == sysYear,op.NI_November__c,0)}"
+                                                                            var="totalNov" />
+                                                                        <apex:variable value="{!totalDec + if (op.NI_December__c!=null && op.RevisedStartYear__c == sysYear,op.NI_December__c,0)}"
+                                                                            var="totalDec" />
+                                                                        <apex:variable value="{!totalVal + if (op.This_Year_Expected_NI__c!=null && op.RevisedStartYear__c == sysYear,op.This_Year_Expected_NI__c,0)}"
+                                                                            var="totalVal" />
+
+                                                                        <tr>
+                                                                            <td class='testwidth'></td>
+                                                                            <td class='testwidth font12'>{!if (op.Type_Of_Reference_Fee__c != null,op.Type_Of_Reference_Fee__c,'Fee')}</td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.Fee_January__c}"
+                                                                                    rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.Fee_January__c==null   || op.RevisedStartYearFee__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.Fee_February__c}"
+                                                                                    rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.Fee_February__c==null  || op.RevisedStartYearFee__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.Fee_March__c}"
+                                                                                    rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.Fee_March__c==null     || op.RevisedStartYearFee__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.Fee_April__c}"
+                                                                                    rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.Fee_April__c==null     || op.RevisedStartYearFee__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.Fee_May__c}" rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.Fee_May__c==null       || op.RevisedStartYearFee__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.Fee_June__c}" rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.Fee_June__c==null      || op.RevisedStartYearFee__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.Fee_July__c}" rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.Fee_July__c==null      || op.RevisedStartYearFee__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.Fee_August__c}"
+                                                                                    rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.Fee_August__c==null    || op.RevisedStartYearFee__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.Fee_September__c}"
+                                                                                    rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.Fee_September__c==null || op.RevisedStartYearFee__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.Fee_October__c}"
+                                                                                    rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.Fee_October__c==null   || op.RevisedStartYearFee__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.Fee_November__c}"
+                                                                                    rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.Fee_November__c==null  || op.RevisedStartYearFee__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputField value="{!op.Fee_December__c}"
+                                                                                    rendered="{!if(op.RevisedStartYearFee__c == sysYear,true,false)}"
+                                                                                    styleClass="slds-input slds-text-align--right customWidth"
+                                                                                />
+                                                                                <apex:outputPanel rendered="{!op.Fee_December__c==null  || op.RevisedStartYearFee__c != sysYear}">0</apex:outputPanel>
+                                                                            </td>
+                                                                            <td style="text-align:right" class="customWidth">
+                                                                                <apex:outputPanel rendered="{!if(op.RevisedStartYearFee__c == sysYear && op.This_Year_Expected_Fee__c != null,true,false)}">
+                                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                                        <apex:param value="{!op.This_Year_Expected_Fee__c}" />
+                                                                                    </apex:outputText>
+                                                                                </apex:outputPanel>
+                                                                                <apex:outputPanel rendered="{!if(op.RevisedStartYearFee__c == sysYear && op.This_Year_Expected_Fee__c != null,false,true)}">0</apex:outputPanel>
+                                                                            </td>
+                                                                        </tr>
+
+                                                                        <apex:variable value="{!totalJan + if (op.Fee_January__c!=null && op.RevisedStartYearFee__c == sysYear,op.Fee_January__c,0)}"
+                                                                            var="totalJan" />
+                                                                        <apex:variable value="{!totalFeb + if (op.Fee_February__c!=null && op.RevisedStartYearFee__c == sysYear,op.Fee_February__c,0)}"
+                                                                            var="totalFeb" />
+                                                                        <apex:variable value="{!totalMar + if (op.Fee_March__c!=null && op.RevisedStartYearFee__c == sysYear,op.Fee_March__c,0)}"
+                                                                            var="totalMar" />
+                                                                        <apex:variable value="{!totalApr + if (op.Fee_April__c!=null && op.RevisedStartYearFee__c == sysYear,op.Fee_April__c,0)}"
+                                                                            var="totalApr" />
+                                                                        <apex:variable value="{!totalMay + if (op.Fee_May__c!=null && op.RevisedStartYearFee__c == sysYear,op.Fee_May__c,0)}" var="totalMay"
+                                                                        />
+                                                                        <apex:variable value="{!totalJun + if (op.Fee_June__c!=null && op.RevisedStartYearFee__c == sysYear,op.Fee_June__c,0)}" var="totalJun"
+                                                                        />
+                                                                        <apex:variable value="{!totalJul + if (op.Fee_July__c!=null && op.RevisedStartYearFee__c == sysYear,op.Fee_July__c,0)}" var="totalJul"
+                                                                        />
+                                                                        <apex:variable value="{!totalAug + if (op.Fee_August__c!=null && op.RevisedStartYearFee__c == sysYear,op.Fee_August__c,0)}"
+                                                                            var="totalAug" />
+                                                                        <apex:variable value="{!totalSep + if (op.Fee_September__c!=null && op.RevisedStartYearFee__c == sysYear,op.Fee_September__c,0)}"
+                                                                            var="totalSep" />
+                                                                        <apex:variable value="{!totalOct + if (op.Fee_October__c!=null && op.RevisedStartYearFee__c == sysYear,op.Fee_October__c,0)}"
+                                                                            var="totalOct" />
+                                                                        <apex:variable value="{!totalNov + if (op.Fee_November__c!=null && op.RevisedStartYearFee__c == sysYear,op.Fee_November__c,0)}"
+                                                                            var="totalNov" />
+                                                                        <apex:variable value="{!totalDec + if (op.Fee_December__c!=null && op.RevisedStartYearFee__c == sysYear,op.Fee_December__c,0)}"
+                                                                            var="totalDec" />
+                                                                        <apex:variable value="{!totalVal + if (op.This_Year_Expected_Fee__c!=null && op.RevisedStartYearFee__c == sysYear,op.This_Year_Expected_Fee__c,0)}"
+                                                                            var="totalVal" />
+
+                                                                    </apex:repeat>
+
+                                                                </apex:repeat>
+
+                                                                <tr style="Background-color: #d5d4d4;">
+                                                                    <td style="Text-align:center" class='testwidth font12'>
+                                                                        <!-- class="customWidth" -->
+                                                                        TOTAL
+                                                                    </td>
+                                                                    <td class='testwidth'></td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalJan}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalFeb}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalMar}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalApr}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalMay}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalJun}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalJul}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalAug}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalSep}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalOct}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalNov}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalDec}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                    <td style="text-align:right" class="customWidth">
+                                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                                            <apex:param value="{!totalVal}" />
+                                                                        </apex:outputText>
+                                                                    </td>
+                                                                </tr>
+
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+
+                                            </fieldset>
+
+                                        </apex:repeat>
+
+                                        <br/>
+                                        <!-- apex:commandButton value="Back" styleClass="slds-button slds-button--brand" action="{!backToListView}" rendered="{!isNotConsole}"/ -->
+
+                                    </div>
+
+                                    <!-- div style="text-align:center;font-size:12px">
+                                            <span onclick="firstPage()" style="cursor:pointer">First</span>&nbsp;
+                                            <span onclick="previousPage()" style="cursor:pointer">&lt;&lt;</span>&nbsp;
+                                            <span onclick="currentPage()" style="cursor:pointer">{!currentPage}</span>&nbsp;
+                                            <span onclick="nextPage()" style="cursor:pointer">&gt;&gt;</span>&nbsp;
+                                            <span onclick="lastPage()" style="cursor:pointer">Last</span>&nbsp;
+                                            <span onclick="allPage()" style="cursor:pointer">All</span>
+                                            <br/>
+                                            {!pageMode}
+                                        </div -->
+                                    <div style="text-align:center;font-size:12px">
+                                        <span onclick="firstPage();ShowSpin();" style="cursor:pointer;">&lt;&lt;</span>&nbsp;&nbsp;
+                                        <span onclick="previousPage();ShowSpin();" style="cursor:pointer">Previous</span>&nbsp;&nbsp;
+                                        <span onclick="nextPage();ShowSpin();" style="cursor:pointer">Next</span>&nbsp;&nbsp;
+                                        <span onclick="lastPage();ShowSpin();" style="cursor:pointer">&gt;&gt;</span>&nbsp;&nbsp;
+                                        <span onclick="allPage();ShowSpin();" style="cursor:pointer">All</span>
+                                        &nbsp;&nbsp;&nbsp;&nbsp; Page &nbsp;&nbsp;
+                                        <apex:inputText value="{!inputPage2}" onblur="searchPage();ShowSpin();" style="width:40px;text-align:center;padding:2px;"
+                                            styleClass="slds-input slds-text-align--right" /> &nbsp;{!pageMode}
+                                    </div>
+
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+
+                    </div>
+
+                </div>
+            </apex:outputPanel>
+
+        </apex:form>
+
+    </body>
+
+
+
+    <script>
+
+
+        function NavigateToSelf(id, name) {
+            if (sforce.console.isInConsole()) {
+                sforce.console.openPrimaryTab(undefined, '/' + id + '?isdtp=vw', true, name);
+            }
+            else
+                window.top.location.href = '/' + id;
+        }
+
+
+
+    </script>
+
+</apex:page>

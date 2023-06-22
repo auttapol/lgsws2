@@ -1,0 +1,68 @@
+<aura:component controller="CSUploadPDFToECMController"  implements="force:lightningQuickActionWithoutHeader,flexipage:availableForRecordHome,force:hasRecordId,lightning:actionOverride">
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler event="force:refreshView" action="{!c.doInit}" />
+    <aura:attribute name="eClientObj" type="E_Client_Suitability__c" />
+    <aura:attribute name="ecmRep" type="ECM_Repository__c" /> 
+    <aura:attribute name="fileName" type="String" default="" />    
+    <aura:attribute name="status" type="Boolean" default="" />    
+    <aura:attribute name="fileObj" type="Attachment" /> 
+    <aura:attribute name="uploadStatus" type="String" default="" />     
+    <aura:attribute name="timeOut" type="Integer[]" default="" /> 
+    <aura:attribute name="currentUser" type="User" />     
+
+    <aura:attribute name="Spinner" type="boolean" default="false"/>
+
+    <article class="slds-card">
+        <aura:if isTrue="{!v.Spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container">
+                <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                    <span class="slds-assistive-text">Loading</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </aura:if>
+  
+        <div class="vertical_line"></div>
+        <div class="slds-grid slds-wrap">
+            <div class="slds-col slds-size_3-of-6 slds-m-bottom_x-small">  <span class="slds-card__header-title" >Upload New File</span> </div>
+            <div class="slds-col slds-size_3-of-6 slds-m-bottom_x-small">  <span class="slds-card__header-title">Uploaded File</span> </div>
+            <aura:if  isTrue="{!v.fileName == ''}" >
+                <div class="slds-col slds-size_3-of-6">     
+                    <lightning:input aura:id="pdffile" name="file1" type="file" label="Attachment" accept=".pdf" onchange="{! c.handleFilesChange }"/>              
+                </div>
+            </aura:if>
+            
+            <aura:if  isTrue="{!v.fileName != ''}" >
+                <div class="slds-col slds-size_2-of-6">
+                    <lightning:input name="input1" label="Name" value="{!v.fileName}" placeholder="File Name..." readonly="true"/>            
+                </div>
+                <div class="slds-col slds-size_1-of-6">
+                    <lightning:input aura:id="pdffile" name="file1" type="file" label="Attachment" accept=".pdf" onchange="{! c.handleFilesChange }"/>
+                </div>
+            </aura:if>
+
+            <div class="slds-col slds-size_2-of-6">
+                <lightning:input name="input1" label="Name" value="{!v.eClientObj.ECM_Repository__r.File_Name__c}" placeholder="No File..." readonly="true"/>
+                <aura:if  isTrue="{!v.eClientObj.ECM_Repository__r != null}" >
+                    <span class="slds-form-element__label">By : {!v.eClientObj.ECM_Repository__r.ECM_Uploaded_By__c} </span>  
+                </aura:if>
+            </div>
+            <aura:if  isTrue="{!v.eClientObj.ECM_Repository__r != null}" >
+                <div class="slds-col slds-size_1-of-6 slds-m-top_large">
+                    <lightning:button label="View" variant="brand" onclick="{!c.viewPDF}" />
+                </div>
+            </aura:if>
+
+            <aura:if  isTrue="{!v.fileName != ''}" >
+                <div class="slds-grid slds-wrap slds-size_12-of-12" >		                	
+                    <div class="slds-text-align_center slds-m-top_medium">
+                        <lightning:button label="Upload to Web Service" variant="brand" onclick="{!c.onFileUploaded}" />
+                    </div>
+                </div>
+            </aura:if>
+        </div>
+      </article>
+    
+</aura:component>

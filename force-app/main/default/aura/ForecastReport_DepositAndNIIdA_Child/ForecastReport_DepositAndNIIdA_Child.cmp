@@ -1,0 +1,957 @@
+<aura:component>
+    <aura:attribute name="parent" type="Aura.Component" />
+    <aura:attribute name="groupingByRM" type="List" />
+    <aura:attribute name="reportYear" type="String" />
+    <aura:attribute name="endingBal" type="List" />
+    <aura:attribute name="avgBal" type="List" />
+    <aura:attribute name="valueBal" type="List" />
+    <aura:attribute name="userProfile" type="String" />
+    <aura:attribute name="type" type="String" />
+    <aura:attribute name="team" type="String" />
+    <aura:attribute name="rm" type="String" />
+    <aura:attribute name="target" type="Object[]" />
+    <aura:attribute name="jsonForCSV" type="Object[]" default="[]" />
+
+    <aura:attribute name="isFirstTarget" type="Boolean" default="false" />
+    <aura:attribute name="isSecondTarget" type="Boolean" default="false" />
+    <aura:attribute name="isThirdTarget" type="Boolean" default="false" />
+
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+
+
+    <aura:iteration items="{!v.valueBal}" var="data" indexVar="index">
+        <aura:if isTrue="{!v.type == 'rm'}">
+            <tr
+                style="{!data.isSub == true ? 'color: #514f4d;' : 'color: #514f4d; background-color:#eee;font-weight: bold;'}">
+                <td class="fixed-column"
+                    style="{!data.isSub == true ? 'color: #514f4d;left: 0px;min-width: 100px;max-width: 100px;'
+                 : 'color: #514f4d; background-color:#eee;font-weight: bold;left: 0px;min-width: 100px;max-width: 100px;'}">
+                    <div class="slds-truncate">
+                        <lightning:formattedText title="{!data.team}" value="{!data.team}" />
+                    </div>
+                </td>
+                <td class="fixed-column"
+                    style="{!data.isSub == true ? 'color: #514f4d;left: 100px;min-width: 165px;max-width: 165px;' 
+                : 'color: #514f4d; background-color:#eee;font-weight: bold;left: 100px;min-width: 165px;max-width: 165px;'}">
+                    <div class="slds-truncate">
+                        <aura:if isTrue="{!data.rm}">
+                            <lightning:formattedUrl value="{!'/lightning/r/' + data.rmId + '/view'}" label="{!data.rm}"
+                                title="{!data.rm}" />
+                        </aura:if>
+                    </div>
+                </td>
+                <td class="fixed-column"
+                    style="{!data.isSub == true ? 'color: #514f4d;left: 265px;min-width: 170px;max-width: 170px;' 
+                : 'color: #514f4d; background-color:#eee;font-weight: bold;left: 265px;min-width: 170px;max-width: 170px;'}">
+                    <div class="{! data.isSub == true ? 'slds-truncate sub-product' : 'slds-truncate'}">
+                        <lightning:formattedText title="{!data.product}" value="{!data.product}" />
+                    </div>
+                </td>
+                <td class="right-align fixed-column"
+                    style="{!data.isSub == true ? 'color: #514f4d;left: 435px;min-width: 120px;max-width: 120px;' 
+                : 'color: #514f4d; background-color:#eee;font-weight: bold;left: 435px;min-width: 120px;max-width: 120px;'}">
+                    <div class="slds-truncate">
+                        <aura:if isTrue="{!data.isPercent == true}">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.lastYear}" value="{!data.lastYearMillionUnit}" />
+                            <aura:set attribute="else">
+                                <lightning:formattedNumber title="{!data.lastYearTitle}" value="{!data.lastYearMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </td>
+                <aura:if isTrue="{!data.isPercent == true}">
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.jan}" value="{!data.janMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.feb}" value="{!data.febMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.mar}" value="{!data.marMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.apr}" value="{!data.aprMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.may}" value="{!data.mayMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.jun}" value="{!data.junMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.jul}" value="{!data.julMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.aug}" value="{!data.augMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.sep}" value="{!data.sepMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.oct}" value="{!data.octMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.nov}" value="{!data.novMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.dec}" value="{!data.decMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.total}" value="{!data.totalMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.ytd}" value="{!data.ytdMillionUnit}" />
+                        </div>
+                    </td>
+                    <aura:set attribute="else">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.janTitle}" value="{!data.janMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.febTitle}" value="{!data.febMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.marTitle}" value="{!data.marMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.aprTitle}" value="{!data.aprMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.mayTitle}" value="{!data.mayMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.junTitle}" value="{!data.junMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.julTitle}" value="{!data.julMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.augTitle}" value="{!data.augMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.sepTitle}" value="{!data.sepMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.octTitle}" value="{!data.octMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.novTitle}" value="{!data.novMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.decTitle}" value="{!data.decMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.totalTitle}" value="{!data.totalMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.ytdTitle}" value="{!data.ytdMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                    </aura:set>
+                </aura:if>
+                <!-- <aura:if isTrue="{!data.yoyMillionUnit == 0}">
+                    <td></td>
+                    <aura:set attribute="else"> -->
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.yoyTitle}" value="{!data.yoyMillionUnit}" />
+                            </div>
+                        </td>
+                    <!-- </aura:set> 
+                </aura:if> -->
+                <aura:if isTrue="{!or(v.userProfile == 'GroupHead',v.userProfile == 'System Administrator')}">
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber title="{!data.originVarianceTitle}"
+                                value="{!data.originVariance}" />
+                        </div>
+                    </td>
+                    <aura:if isTrue="{!data.product == 'NIId'}">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.originArchieveTitle}"
+                                    value="{!data.originArchieve}" />
+                            </div>
+                        </td>
+                        <aura:set attribute="else">
+                            <td></td>
+                        </aura:set>
+                    </aura:if>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber title="{!data.originFYTargetTitle}"
+                                value="{!data.originFYTarget}" />
+                        </div>
+                    </td>
+
+                    <!-- 3+9F -->
+                    <aura:if isTrue="{!v.isFirstTarget == True}">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.firstTargetVarianceTitle}"
+                                    value="{!data.firstTargetVariance}" />
+                            </div>
+                        </td>
+                        <aura:if isTrue="{!data.product == 'NIId'}">
+                            <td class="right-align">
+                                <div class="slds-truncate">
+                                    <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.firstTargetArchieveTitle}"
+                                        value="{!data.firstTargetArchieve}" />
+                                </div>
+                            </td>
+                            <aura:set attribute="else">
+                                <td></td>
+                            </aura:set>
+                        </aura:if>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.firstTargetFYTargetTitle}"
+                                    value="{!data.firstTargetFYTarget}" />
+                            </div>
+                        </td>
+                    </aura:if>
+
+                    <!-- 6+6F -->
+                    <aura:if isTrue="{!v.isSecondTarget == True}">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.secondTargetVarianceTitle}"
+                                    value="{!data.secondTargetVariance}" />
+                            </div>
+                        </td>
+                        <aura:if isTrue="{!data.product == 'NIId'}">
+                            <td class="right-align">
+                                <div class="slds-truncate">
+                                    <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.secondTargetArchieveTitle}"
+                                        value="{!data.secondTargetArchieve}" />
+                                </div>
+                            </td>
+                            <aura:set attribute="else">
+                                <td></td>
+                            </aura:set>
+                        </aura:if>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.secondTargetFYTargetTitle}"
+                                    value="{!data.secondTargetFYTarget}" />
+                            </div>
+                        </td>
+                    </aura:if>
+
+                    <!-- 9+3F -->
+                    <aura:if isTrue="{!v.isThirdTarget == True}">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.thirdTargetVarianceTitle}"
+                                    value="{!data.thirdTargetVariance}" />
+                            </div>
+                        </td>
+                        <aura:if isTrue="{!data.product == 'NIId'}">
+                            <td class="right-align">
+                                <div class="slds-truncate">
+                                    <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.thirdTargetArchieveTitle}"
+                                        value="{!data.thirdTargetArchieve}" />
+                                </div>
+                            </td>
+                            <aura:set attribute="else">
+                                <td></td>
+                            </aura:set>
+                        </aura:if>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.thirdTargetFYTargetTitle}"
+                                    value="{!data.thirdTargetFYTarget}" />
+                            </div>
+                        </td>
+                    </aura:if>
+                </aura:if>
+            </tr>
+        </aura:if>
+        <aura:if isTrue="{!v.type == 'team'}">
+            <tr class="total-team-row" style="{!data.isSub == true ? '' : 'font-weight: bold;'}">
+                <td class="fixed-column" style="{!data.isSub == true ? 'left: 0px;min-width: 100px;max-width: 100px;'
+                 : 'font-weight: bold;left: 0px;min-width: 100px;max-width: 100px;'}">
+                    <div class="slds-truncate">
+                        <lightning:formattedText title="{!data.team}" value="{!data.team}" />
+                    </div>
+                </td>
+                <td class="fixed-column" style="{!data.isSub == true ? 'left: 100px;min-width: 165px;max-width: 165px;' 
+                : 'font-weight: bold;left: 100px;min-width: 165px;max-width: 165px;'}">
+                    <div class="slds-truncate">
+                        <lightning:formattedText title="{!data.rm}" value="{!data.rm}" />
+                    </div>
+                </td>
+                <td class="fixed-column" style="{!data.isSub == true ? 'left: 265px;min-width: 170px;max-width: 170px;' 
+                : 'font-weight: bold;left: 265px;min-width: 170px;max-width: 170px;'}">
+                    <div class="{! data.isSub == true ? 'slds-truncate sub-product' : 'slds-truncate'}">
+                        <lightning:formattedText title="{!data.product}" value="{!data.product}" />
+                    </div>
+                </td>
+                <td class="right-align fixed-column" style="{!data.isSub == true ? 'left: 435px;min-width: 120px;max-width: 120px;' 
+                : 'font-weight: bold;left: 435px;min-width: 120px;max-width: 120px;'}">
+                    <div class="slds-truncate">
+                        <aura:if isTrue="{!data.isPercent == true}">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.lastYear}" value="{!data.lastYearMillionUnit}" />
+                            <aura:set attribute="else">
+                                <lightning:formattedNumber title="{!data.lastYearTitle}" value="{!data.lastYearMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </td>
+                <aura:if isTrue="{!data.isPercent == true}">
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.jan}" value="{!data.janMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.feb}" value="{!data.febMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.mar}" value="{!data.marMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.apr}" value="{!data.aprMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.may}" value="{!data.mayMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.jun}" value="{!data.junMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.jul}" value="{!data.julMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.aug}" value="{!data.augMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.sep}" value="{!data.sepMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.oct}" value="{!data.octMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.nov}" value="{!data.novMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.dec}" value="{!data.decMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.total}" value="{!data.totalMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.ytd}" value="{!data.ytdMillionUnit}" />
+                        </div>
+                    </td>
+                    <aura:set attribute="else">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.janTitle}" value="{!data.janMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.febTitle}" value="{!data.febMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.marTitle}" value="{!data.marMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.aprTitle}" value="{!data.aprMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.mayTitle}" value="{!data.mayMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.junTitle}" value="{!data.junMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.julTitle}" value="{!data.julMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.augTitle}" value="{!data.augMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.sepTitle}" value="{!data.sepMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.octTitle}" value="{!data.octMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.novTitle}" value="{!data.novMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.decTitle}" value="{!data.decMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.totalTitle}" value="{!data.totalMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.ytdTitle}" value="{!data.ytdMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                    </aura:set>
+                </aura:if>
+                <!-- <aura:if isTrue="{!data.yoyMillionUnit == 0}">
+                    <td></td>
+                    <aura:set attribute="else"> -->
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.yoyTitle}" value="{!data.yoyMillionUnit}" />
+                            </div>
+                        </td>
+                    <!-- </aura:set> 
+                </aura:if> -->
+                <aura:if isTrue="{!or(v.userProfile == 'GroupHead',v.userProfile == 'System Administrator')}">
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber title="{!data.originVarianceTitle}"
+                                value="{!data.originVariance}" />
+                        </div>
+                    </td>
+                    <aura:if isTrue="{!data.product == 'NIId'}">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.originArchieveTitle}"
+                                    value="{!data.originArchieve}" />
+                            </div>
+                        </td>
+                        <aura:set attribute="else">
+                            <td></td>
+                        </aura:set>
+                    </aura:if>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber title="{!data.originFYTargetTitle}"
+                                value="{!data.originFYTarget}" />
+                        </div>
+                    </td>
+
+                    <!-- 3+9F -->
+                    <aura:if isTrue="{!v.isFirstTarget == True}">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.firstTargetVarianceTitle}"
+                                    value="{!data.firstTargetVariance}" />
+                            </div>
+                        </td>
+                        <aura:if isTrue="{!data.product == 'NIId'}">
+                            <td class="right-align">
+                                <div class="slds-truncate">
+                                    <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.firstTargetArchieveTitle}"
+                                        value="{!data.firstTargetArchieve}" />
+                                </div>
+                            </td>
+                            <aura:set attribute="else">
+                                <td></td>
+                            </aura:set>
+                        </aura:if>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.firstTargetFYTargetTitle}"
+                                    value="{!data.firstTargetFYTarget}" />
+                            </div>
+                        </td>
+                    </aura:if>
+
+                    <!-- 6+6F -->
+                    <aura:if isTrue="{!v.isSecondTarget == True}">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.secondTargetVarianceTitle}"
+                                    value="{!data.secondTargetVariance}" />
+                            </div>
+                        </td>
+                        <aura:if isTrue="{!data.product == 'NIId'}">
+                            <td class="right-align">
+                                <div class="slds-truncate">
+                                    <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.secondTargetArchieveTitle}"
+                                        value="{!data.secondTargetArchieve}" />
+                                </div>
+                            </td>
+                            <aura:set attribute="else">
+                                <td></td>
+                            </aura:set>
+                        </aura:if>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.secondTargetFYTargetTitle}"
+                                    value="{!data.secondTargetFYTarget}" />
+                            </div>
+                        </td>
+                    </aura:if>
+
+                    <!-- 9+3F -->
+                    <aura:if isTrue="{!v.isThirdTarget == True}">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.thirdTargetVarianceTitle}"
+                                    value="{!data.thirdTargetVariance}" />
+                            </div>
+                        </td>
+                        <aura:if isTrue="{!data.product == 'NIId'}">
+                            <td class="right-align">
+                                <div class="slds-truncate">
+                                    <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.thirdTargetArchieveTitle}"
+                                        value="{!data.thirdTargetArchieve}" />
+                                </div>
+                            </td>
+                            <aura:set attribute="else">
+                                <td></td>
+                            </aura:set>
+                        </aura:if>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.thirdTargetFYTargetTitle}"
+                                    value="{!data.thirdTargetFYTarget}" />
+                            </div>
+                        </td>
+                    </aura:if>
+                </aura:if>
+            </tr>
+        </aura:if>
+        <aura:if isTrue="{!v.type == 'region'}">
+            <tr class="total-group-row" style="{!data.isSub == true ? '' : 'font-weight: bold;'}">
+                <td class="fixed-column" style="{!data.isSub == true ? 'left: 0px;min-width: 100px;max-width: 100px;'
+                 : 'font-weight: bold;left: 0px;min-width: 100px;max-width: 100px;'}">
+                    <div class="slds-truncate">
+                        <lightning:formattedText title="{!data.team}" value="{!data.team}" />
+                    </div>
+                </td>
+                <td class="fixed-column" style="{!data.isSub == true ? 'left: 100px;min-width: 165px;max-width: 165px;' 
+                : 'font-weight: bold;left: 100px;min-width: 165px;max-width: 165px;'}">
+                    <div class="slds-truncate">
+                        <lightning:formattedText title="{!data.rm}" value="{!data.rm}" />
+                    </div>
+                </td>
+                <td class="fixed-column" style="{!data.isSub == true ? 'left: 265px;min-width: 170px;max-width: 170px;' 
+                : 'font-weight: bold;left: 265px;min-width: 170px;max-width: 170px;'}">
+                    <div class="{! data.isSub == true ? 'slds-truncate sub-product' : 'slds-truncate'}">
+                        <lightning:formattedText title="{!data.product}" value="{!data.product}" />
+                    </div>
+                </td>
+                <td class="right-align fixed-column" style="{!data.isSub == true ? 'left: 435px;min-width: 120px;max-width: 120px;' 
+                : 'font-weight: bold;left: 435px;min-width: 120px;max-width: 120px;'}">
+                    <div class="slds-truncate">
+                        <aura:if isTrue="{!data.isPercent == true}">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.lastYear}" value="{!data.lastYearMillionUnit}" />
+                            <aura:set attribute="else">
+                                <lightning:formattedNumber title="{!data.lastYearTitle}" value="{!data.lastYearMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </td>
+                <aura:if isTrue="{!data.isPercent == true}">
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.jan}" value="{!data.janMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.feb}" value="{!data.febMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.mar}" value="{!data.marMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.apr}" value="{!data.aprMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.may}" value="{!data.mayMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.jun}" value="{!data.junMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.jul}" value="{!data.julMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.aug}" value="{!data.augMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.sep}" value="{!data.sepMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.oct}" value="{!data.octMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.nov}" value="{!data.novMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.dec}" value="{!data.decMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.total}" value="{!data.totalMillionUnit}" />
+                        </div>
+                    </td>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.ytd}" value="{!data.ytdMillionUnit}" />
+                        </div>
+                    </td>
+                    <aura:set attribute="else">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.janTitle}" value="{!data.janMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.febTitle}" value="{!data.febMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.marTitle}" value="{!data.marMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.aprTitle}" value="{!data.aprMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.mayTitle}" value="{!data.mayMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.junTitle}" value="{!data.junMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.julTitle}" value="{!data.julMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.augTitle}" value="{!data.augMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.sepTitle}" value="{!data.sepMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.octTitle}" value="{!data.octMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.novTitle}" value="{!data.novMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.decTitle}" value="{!data.decMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.totalTitle}" value="{!data.totalMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.ytdTitle}" value="{!data.ytdMillionUnit}"
+                                    style="decimal" minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </div>
+                        </td>
+                    </aura:set>
+                </aura:if>
+                <!-- <aura:if isTrue="{!data.yoyMillionUnit == 0}">
+                    <td></td>
+                    <aura:set attribute="else"> -->
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.yoyTitle}" value="{!data.yoyMillionUnit}" />
+                            </div>
+                        </td>
+                    <!-- </aura:set> 
+                </aura:if> -->
+                <aura:if isTrue="{!or(v.userProfile == 'GroupHead',v.userProfile == 'System Administrator')}">
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber title="{!data.originVarianceTitle}"
+                                value="{!data.originVariance}" />
+                        </div>
+                    </td>
+                    <aura:if isTrue="{!data.product == 'NIId'}">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.originArchieveTitle}"
+                                    value="{!data.originArchieve}" />
+                            </div>
+                        </td>
+                        <aura:set attribute="else">
+                            <td></td>
+                        </aura:set>
+                    </aura:if>
+                    <td class="right-align">
+                        <div class="slds-truncate">
+                            <lightning:formattedNumber title="{!data.originFYTargetTitle}"
+                                value="{!data.originFYTarget}" />
+                        </div>
+                    </td>
+
+                    <!-- 3+9F -->
+                    <aura:if isTrue="{!v.isFirstTarget == True}">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.firstTargetVarianceTitle}"
+                                    value="{!data.firstTargetVariance}" />
+                            </div>
+                        </td>
+                        <aura:if isTrue="{!data.product == 'NIId'}">
+                            <td class="right-align">
+                                <div class="slds-truncate">
+                                    <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.firstTargetArchieveTitle}"
+                                        value="{!data.firstTargetArchieve}" />
+                                </div>
+                            </td>
+                            <aura:set attribute="else">
+                                <td></td>
+                            </aura:set>
+                        </aura:if>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.firstTargetFYTargetTitle}"
+                                    value="{!data.firstTargetFYTarget}" />
+                            </div>
+                        </td>
+                    </aura:if>
+
+                    <!-- 6+6F -->
+                    <aura:if isTrue="{!v.isSecondTarget == True}">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.secondTargetVarianceTitle}"
+                                    value="{!data.secondTargetVariance}" />
+                            </div>
+                        </td>
+                        <aura:if isTrue="{!data.product == 'NIId'}">
+                            <td class="right-align">
+                                <div class="slds-truncate">
+                                    <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.secondTargetArchieveTitle}"
+                                        value="{!data.secondTargetArchieve}" />
+                                </div>
+                            </td>
+                            <aura:set attribute="else">
+                                <td></td>
+                            </aura:set>
+                        </aura:if>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.secondTargetFYTargetTitle}"
+                                    value="{!data.secondTargetFYTarget}" />
+                            </div>
+                        </td>
+                    </aura:if>
+
+                    <!-- 9+3F -->
+                    <aura:if isTrue="{!v.isThirdTarget == True}">
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.thirdTargetVarianceTitle}"
+                                    value="{!data.thirdTargetVariance}" />
+                            </div>
+                        </td>
+                        <aura:if isTrue="{!data.product == 'NIId'}">
+                            <td class="right-align">
+                                <div class="slds-truncate">
+                                    <lightning:formattedNumber style="percent" minimumFractionDigits="2" maximumFractionDigits="2" title="{!data.thirdTargetArchieveTitle}"
+                                        value="{!data.thirdTargetArchieve}" />
+                                </div>
+                            </td>
+                            <aura:set attribute="else">
+                                <td></td>
+                            </aura:set>
+                        </aura:if>
+                        <td class="right-align">
+                            <div class="slds-truncate">
+                                <lightning:formattedNumber title="{!data.thirdTargetFYTargetTitle}"
+                                    value="{!data.thirdTargetFYTarget}" />
+                            </div>
+                        </td>
+                    </aura:if>
+                </aura:if>
+            </tr>
+        </aura:if>
+    </aura:iteration>
+</aura:component>

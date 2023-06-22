@@ -1,0 +1,386 @@
+<apex:page controller="DepositProductDetailsCtrl" showchat="false" sidebar="false" showheader="true" standardstylesheets="true" tabstyle="Account">
+    <!-- Includes Js -->
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />   
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>        
+    <!-- Style for Ajax Request -->
+    <style>
+        .overlay {
+        display: none;
+        height: 100%;
+        left: 0;
+        position: fixed;
+        top: 0;
+        opacity: 0.3;
+        -moz-opacity: 0.3;
+        width: 100%;
+        -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+        filter: alpha(opacity=30);
+        background: #000;
+        -khtml-opacity: 0.3;
+        z-index: 1000;
+        }
+        
+        .loader {
+        background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+        /* width: 32px;*/
+        height: 32px;
+        position: absolute;
+        left: 48%;
+        }
+        
+        .red-label {
+        list-style: none;
+        color: #f00;
+        }
+        .bootstrap-sf1{
+        overflow: hidden;
+        }
+        .bootstrap-sf1 .container{
+        padding-left :0px;
+        padding-right:0px;
+        }
+        .bootstrap-sf1{
+        background-color: #FFF;
+        
+        }
+        .bootstrap-sf1 .btn-block {
+        display: block;
+        width: 100%;
+        text-align: center;
+        }
+        
+        .detailList .helpOrb {
+            top: 0px;
+            right: -14px;
+        }
+        .helpOrb {
+            background-image: url(/resource/1488789314000/HelpOrange13);
+            background-position: 0 0;
+            width: 13px;
+            height: 13px;
+        }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+    <div class="bootstrap-sf1 sf1_bk" style="display:none;">
+        <div class="container"> 
+            <a href="javascript:sforce.one.back();" class="btn-lg btn-default btn-block">Back</a>
+        </div>
+    </div>
+    
+    <apex:sectionheader title="Deposit Product" subtitle="{!$Label.Deposit_Product_Details}" />
+    
+    <apex:form onkeypress="return noenter(event)">
+        <apex:actionfunction action="{!startRequest}" rerender="section1,section2,section3,section4,section5,alertbox" status="status" name="doRest" />
+        <h1 style="display:none;">{!RMID}</h1>
+        
+        <!-- Alert Box -->
+        <apex:outputPanel id="alertbox">
+        <div class="bootstrap-sf1" style="{!IF(PageMessage == '','display:none','')}" >
+            <div class="alert alert-dismissible alert-danger">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <h4>Warning!</h4>
+                <p>{!PageMessage}</p>
+            </div>
+        </div>
+        </apex:outputPanel>
+        
+        <!-- Deposit Account Information  -->
+        <apex:pageblock id="section1" mode="maindetail">
+            <apex:pageblocksection title="{!$Label.Deposit_Account_Info}" columns="2">
+                <!-- Row 1 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Account_Number}" />
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.MarkedDepositAccountNumber}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Product_Name}" />
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.ProductName}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 2 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Account_Name}" />
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.AccountName}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Product_Type}" />
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.SubProductGroup}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 3 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Opened_Date}" />
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!ViewState.DepositeProductDetail.OpenedDate}" />
+                    </apex:outputtext>-->
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.ConvertedOpenedDate}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Ledger_Balance_Deposit}" />
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.MarkedLedgerBalance}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 4 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Status}" />
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.Status}" escape="false" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.OD_Balance_Deposit}" />
+                    <apex:outputPanel >
+                        <apex:outputtext value="{0, number, ###,###}" rendered="{!IF(ViewState.DepositeProductDetail.MarkedODLimit != 0, true, false)}">
+                            <apex:param value="{!ViewState.DepositeProductDetail.MarkedODLimit}" />
+                        </apex:outputtext>
+                        <apex:outputtext value="-" rendered="{!IF(ViewState.DepositeProductDetail.MarkedODLimit == 0, true, false)}" />
+                    </apex:outputPanel>
+                </apex:pageblocksectionitem>
+                <!-- Row 5 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Has_Joint}" />
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.HasJoint}" />
+                </apex:pageblocksectionitem>
+                <!--
+                     Date: 04-12-2018
+                     Modified By: Kanlaya A.
+                     Desciption:CR 203 Product Holding -> remove helptext of available balance
+                     -->
+                <!--<apex:pageblocksectionitem helptext="{!$Label.Outstanding_Deposit_Help_Text}"> -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Available_Balance_Deposit}" />
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.MarkedOutStanding}"/>
+                </apex:pageblocksectionitem>
+                <!-- Row 6 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Maturity_Date}" />
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!ViewState.DepositeProductDetail.MaturityDate}" />
+                    </apex:outputtext>-->
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.ConvertedMaturityDate}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Avg_Outstanding_MTD}" />
+                    <apex:outputPanel >
+                        <apex:outputtext style="{!IF(ViewState.DepositeProductDetail.MarkedAvgBalanceMTD == '-','display:none;','')}" value="{!ViewState.DepositeProductDetail.MarkedAvgBalanceMTD}" />
+                        <apex:outputtext style="{!IF(ViewState.DepositeProductDetail.MarkedAvgBalanceMTD == '-','','display:none;')}" value="" />
+                    </apex:outputPanel>
+                </apex:pageblocksectionitem>
+                <!-- Row 7 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Number_of_Active_Debit_Card_Bundling}" />
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.NoActiveDebitCardBundling}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Interest_Rate}" />
+                     <!--
+                     Date: 05-09-2017
+                     By: Danudath
+                     CR Edit Interest rate format to show 3 decimal 
+                     -->
+                    <apex:outputtext value="{0,number,0.000}%" >                       
+                         <apex:param value="{!ViewState.DepositeProductDetail.InterestRate}" />
+                    </apex:outputtext>  
+                    <!-- End edit -->
+                </apex:pageblocksectionitem>
+                <!--<apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.ME_Account_Bundled_Bank}" />
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.MEAccountBundledBank}" />
+                </apex:pageblocksectionitem> -->
+                <!-- Row 8 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.SMS_Alert_Service}" />
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.SMSAlertService}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem helptext="{!$Label.Interested_YTD_Help_Text}">
+                    <apex:outputlabel value="{!$Label.Interest_Earned_YTD}" />
+                    <apex:outputPanel >
+                        <apex:outputtext value="{0,number,###,###}" rendered="{!IF(ViewState.DepositeProductDetail.InterestEarned != 0,true,false)}">
+                            <apex:param value="{!ViewState.DepositeProductDetail.InterestEarned}" />
+                        </apex:outputtext>
+                        <apex:outputtext value="" rendered="{!IF(ViewState.DepositeProductDetail.InterestEarned == 0,true,false)}"></apex:outputtext>
+                    </apex:outputPanel>
+                </apex:pageblocksectionitem>
+                
+            </apex:pageblocksection>
+        </apex:pageblock>
+        <!--/Deposit Account Information  -->
+        <!-- Joint Account Information  -->
+        <apex:pageblock id="section2" mode="maindetail">                
+            <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+                <img src="/s.gif" alt="Hide Section - Joint Account Information" class="hideListButton"
+                     id="img_j_id0:j_id4:section4:j_id63" name="Join Account Information" onclick="twistSection(this);" onkeypress="if (event.keyCode=='13')twistSection(this);" style="cursor:pointer;" tabindex="0" title="Hide Section - Join Account Information" />
+                <h3>{!$Label.Joint_Account_Info}</h3>
+            </div>
+            <div class="pbSubsection">
+                <table class="detailList" border="0" cellpadding="0" cellspacing="0">
+                    <apex:variable var="loop" value="{!1}" />
+                    <apex:repeat id="rpjoin" var="join" value="{!ViewState.DepositeProductDetail.JoinAccountInformations}">
+                        <!-- Data 1 -->
+                        <tr>
+                            <th class="labelCol vfLabelColTextWrap first" scope="row"><label>{!$Label.Join_Account_Owner_Name} {!loop}</label></th>
+                            <td class="dataCol first"><span style="padding-right:5px;">{!join.JointAccountOwnerNumber}</span></td>
+                            <th class="labelCol vfLabelColTextWrap first" scope="row"><label>{!$Label.Relationship} {!loop}</label></th>
+                            <td class="dataCol first">
+                                <span style="padding-right:5px;">
+                                    {!join.Relationship}
+                                </span>
+                            </td>
+                        </tr>                        
+                        <apex:variable var="loop" value="{!loop + 1}" />
+                    </apex:repeat>
+                </table>
+            </div>
+        </apex:pageblock>
+        <!--/Join Account Information  -->
+        <!-- Last Month Transaction Summary  -->
+        <apex:pageblock id="section3" mode="maindetail">
+            <apex:pageblocksection title="{!$Label.Last_Month_Transaction_Summary}" columns="2">
+                <!-- Row 1 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.of_Deposit}" />
+                    <apex:outputpanel >
+                        <apex:outputtext style="padding-right:5px;{!IF(ViewState.DepositeProductDetail.isEmployeePayroll == true ,'display:none;','')}" value="{0, number, ###,###}" >
+                            <apex:param value="{!ViewState.DepositeProductDetail.LastMonthTransactionSummary.OfDeposit}" />
+                        </apex:outputtext>
+                        <apex:outputtext style="padding-right:5px;{!IF(ViewState.DepositeProductDetail.isEmployeePayroll == true ,'','display:none;')}" value="xxx" >
+                        </apex:outputtext>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.of_Transfer_Out_Within_TMB}" />
+                    <apex:outputpanel >
+                        <apex:outputtext style="padding-right:5px;{!IF(ViewState.DepositeProductDetail.isEmployeePayroll == true ,'display:none;','')}" value="{0, number, ###,###}" >
+                            <apex:param value="{!ViewState.DepositeProductDetail.LastMonthTransactionSummary.OfTransferOutTMB}" />
+                        </apex:outputtext>
+                        <apex:outputtext style="padding-right:5px;{!IF(ViewState.DepositeProductDetail.isEmployeePayroll == true ,'','display:none;')}" value="xxx" >
+                        </apex:outputtext>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <!-- Row 2 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.of_Withdrawal}" />
+                    <apex:outputpanel >
+                        <apex:outputtext style="padding-right:5px;{!IF(ViewState.DepositeProductDetail.isEmployeePayroll == true ,'display:none;','')}" value="{0, number, ###,###}" >
+                            <apex:param value="{!ViewState.DepositeProductDetail.LastMonthTransactionSummary.OfWithdraw}" />
+                        </apex:outputtext>
+                        <apex:outputtext style="padding-right:5px;{!IF(ViewState.DepositeProductDetail.isEmployeePayroll == true ,'','display:none;')}" value="xxx" >
+                        </apex:outputtext>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.of_Transfer_Out_Other_Banks}" />
+                    <apex:outputpanel >
+                        <apex:outputtext style="padding-right:5px;{!IF(ViewState.DepositeProductDetail.isEmployeePayroll == true ,'display:none;','')}" value="{0, number, ###,###}" >
+                            <apex:param value="{!ViewState.DepositeProductDetail.LastMonthTransactionSummary.OfTransferOutOther}" />
+                        </apex:outputtext>
+                        <apex:outputtext style="padding-right:5px;{!IF(ViewState.DepositeProductDetail.isEmployeePayroll == true ,'','display:none;')}" value="xxx" >
+                        </apex:outputtext>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <!-- Row 3 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.of_Bill_Payment}" />
+                    <apex:outputpanel >
+                        <apex:outputtext style="padding-right:5px;{!IF(ViewState.DepositeProductDetail.isEmployeePayroll == true ,'display:none;','')}" value="{0, number, ###,###}" >
+                            <apex:param value="{!ViewState.DepositeProductDetail.LastMonthTransactionSummary.OfBillPayment}" />
+                        </apex:outputtext>
+                        <apex:outputtext style="padding-right:5px;{!IF(ViewState.DepositeProductDetail.isEmployeePayroll == true ,'','display:none;')}" value="xxx" >
+                        </apex:outputtext>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                </apex:pageblocksectionitem>
+            </apex:pageblocksection>
+        </apex:pageblock> 
+        <!--/Last Month Transaction Summary  -->
+        <!-- Beneficiary Information  -->
+        <!--
+        <apex:pageblock id="section4" mode="maindetail">
+            <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+                <img src="/s.gif" alt="Hide Section - Beneficiary Information" class="hideListButton"
+                     id="img_j_id0:j_id4:section4:j_id63" name="Last Month Transaction Summary" onclick="twistSection(this);" onkeypress="if (event.keyCode=='13')twistSection(this);" style="cursor:pointer;" tabindex="0" title="Hide Section - Beneficiary Information" />
+                <h3>{!$Label.Beneficiary_Info}</h3>
+            </div>
+            <div class="pbSubsection">
+                <table class="detailList" border="0" cellpadding="0" cellspacing="0">
+                    <apex:variable var="loop" value="{!1}" />
+                    <apex:repeat id="rpben" var="ben" value="{!ViewState.DepositeProductDetail.BeneficiaryInformations}">
+                        <!-- Data 1 -->
+                    <!--    <tr>
+                            <th class="labelCol vfLabelColTextWrap first" scope="row"><label>{!$Label.Beneficiary_Name} {!loop}</label></th>
+                            <td class="dataCol first"><span style="padding-right:5px;">{!ben.BeneficiaryName}</span></td>
+                            <th class="labelCol vfLabelColTextWrap first" scope="row"><label>{!$Label.Benefit} {!loop}</label></th>
+                            <td class="dataCol first">
+                                <span style="padding-right:5px;">
+                                    <apex:outputtext value="{0,number,0}%">
+                                        <apex:param value="{!ben.BenefitPercent}" />
+                                    </apex:outputtext>
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th class="labelCol vfLabelColTextWrap first" scope="row"><label>{!$Label.Relationship} {!loop}</label></th>
+                            <td class="dataCol first"><span style="padding-right:5px;">{!ben.Relationship}</span></td>
+                            <th class="labelCol vfLabelColTextWrap first" scope="row"><label></label></th>
+                            <td class="dataCol first"><span style="padding-right:5px;"></span></td>
+                        </tr>
+                        <apex:variable var="loop" value="{!loop + 1}" />
+                    </apex:repeat>
+                </table>
+            </div>
+        </apex:pageblock>
+        <!--/Beneficiary Information  -->
+        <!-- Standing Order  -->
+        <!-- Deposite don't have standing order for p1.1
+        <apex:pageblock id="section5" title="{!$Label.Standing_Order}" mode="view">
+            <apex:pageblocktable value="{!ViewState.DepositeProductDetail.StandingOrders}" var="stdorder">
+                <apex:column style="width:15%;" headervalue="{!$Label.Request_Date}">
+                    <apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!stdorder.RequestDate}" />
+                    </apex:outputtext>
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.ConvertedRequestDate}" /> 
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Frequency}">
+                    <apex:outputtext value="{!stdorder.Frequency}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Settlement_Date}">
+                    <apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!stdorder.SettlementDate}" />
+                    </apex:outputtext>
+                    <apex:outputtext value="{!ViewState.DepositeProductDetail.ConvertedSettlementDate}" />  
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Type}">
+                    <apex:outputtext value="{!stdorder.Type}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Last_Amount}">
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!stdorder.LastAmount}" />
+                    </apex:outputtext>
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Last_Trx_Date}">
+                    <apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!stdorder.LastTrxDate}" />
+                    </apex:outputtext>
+                <apex:outputtext value="{!ViewState.DepositeProductDetail.ConvertedLastTrxDate}" /> 
+                </apex:column>
+            </apex:pageblocktable>
+        </apex:pageblock>
+        <!--/Standing Order  -->
+    </apex:form>
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+    <script>
+    function startLoading(text){
+        $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+        $('.loadingBox').show();
+    }
+    function endLoading(){
+        $('.loadingBox').hide();
+    }
+    $(document).ready(function () {
+        startLoading("SendingRequest ...");
+        // On Pageload send ajax request
+        if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+            $('.sf1_bk').show();            
+        }
+        doRest();
+    });
+    </script>
+</apex:page>

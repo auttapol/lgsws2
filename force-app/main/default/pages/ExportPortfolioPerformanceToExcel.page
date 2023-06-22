@@ -1,0 +1,269 @@
+<apex:page standardController="AcctPlanProdStrategy__c" extensions="AccountPlanPortfolioPerformanceCtrl"
+        showChat="false" showHeader="false" sidebar="false"
+        applyBodyTag="false" applyHtmlTag="true" standardStylesheets="false"
+        contenttype="application/vnd.ms-excel#PortfolioPerformance.xls" cache="true">
+    <head>
+        <title>Portfolio Management</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Nuttanun S." />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+       
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+        </style>
+    </head>
+
+    <body>
+        <div class="bootstrap-sf1">
+            <div id="responseErrors"></div>
+            <apex:form styleClass="form-horizontal">
+                <!--<fieldset>
+                    <legend>Portfolio Management</legend>
+                </fieldset>
+                 <div class="bootstrap-sf1 ">
+                    <div class="row">
+                        <div class="col-sm-12 col-md-12  col-lg-12">
+                            <ul class="nav nav-tabs">
+                                <li class="">
+                                    <a href="/apex/AccountPlanPortfolioManagement">RM Portfolio</a></li>
+                                <li class="active"> 
+                                    <a href="/apex/AccountPlanPortfolioPerformance">Portfolio Performance</a></li>                               
+                            </ul>                           
+                        </div>
+                    </div>
+                </div> -->
+                
+
+                <!-- <div class="form-group">
+                    <div style="text-align: center;">
+                        <a href="#" class="btn btn-info">Print</a>
+                    </div>
+                </div> -->
+
+                <div class="card collapse in panel-collapse">
+                    <div class="card-detail">
+                        <!--  Section 1 -->
+                        <fieldset>
+                            
+                            <div class="col-sm-8 col-md-6 col-lg-6">
+                                        <div class="form-group">
+                                            <apex:outputpanel id="targetPanel">
+                                            <div style="padding-top: 50px;">
+                                                <table class="table">
+                                                    <tbody>
+
+                                                        <tr>
+                                                            <td class="forceBackground" style="border: none;text-align:left;background-color: #006DCC; color: white;font-weight: bold;" width="30%">Year</td>
+                                                            <td style="border: none;text-align: right;">
+                                                                <span class="form-control text-center calculate">
+                                                                    <apex:outputtext value="{!year}" />
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="forceBackground" style="border: none;text-align:left;background-color: #006DCC; color: white;font-weight: bold;">Portfolio Owner Name</td>
+                                                            <td style="border: none;text-align: right;">
+                                                                <span class="form-control text-center calculate">
+                                                                    <apex:outputtext value="{!portfolioOwnerName}" />
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                          </apex:outputpanel>
+                                        </div>
+                                    </div>
+                                    <br />
+                                                                        
+                            <!-- <div style="clear:both;float:left;">
+                                Data as of <label><apex:outputfield id="refreshAsOf" value="{!refreshProductStrategy.RefreshAsOf__c}" /></label>
+                            </div> -->
+                                                                        
+                            <div style="clear:both;">
+                                <table class="table table-striped table-hover" border="1">
+                                    <thead>
+                                    <tr>
+                                        <th colspan="2" class="forceBackground text-center" style="border:none;background-color: #006DCC; color: white;">Portfolio Performance </th>
+                                    </tr>
+                                    <tr>
+                                        <th colspan="5" style="background-color:white;border:none;">&nbsp;</th>                                        
+                                        <apex:repeat value="{!if(NoOfGroup != null, if(NoOfGroup > 0, 1, null), null)}" var="TH2">
+                                            <th colspan="{!NoOfGroup}" class="forceBackground text-center" style="{!if(NoOfGroup != null, if(NoOfGroup > 0, 'background-color: #006DCC; color: white;', 'display:none;'), 'display:none;')}">Total Group NI </th>                                           
+                                            </apex:repeat> 
+                                    </tr>
+                                    <tr>                        
+                                        <th style="background-color: #006DCC; color: white;">Type of Wallet</th>
+                                        <th style="background-color: #006DCC; color: white;">Wallet Sizing (Yearly)</th>
+                                        <th style="background-color: #006DCC; color: white;">Target by Portfolio</th>
+                                        <th style="background-color: #006DCC; color: white;">Total NI <br/> (Portfolio basis)</th>
+                                        <th style="background-color: #006DCC; color: white;">GAP</th>                                                    
+                                        <apex:repeat value="{!GroupNameMap}" var="grouplist">    
+                                            <th style="background-color: #006DCC; color: white;">{!GroupNameMap[grouplist]}</th>
+                                        </apex:repeat>                                                    
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                        <apex:repeat value="{!TableLabel}" var="row">
+                                        <tr>
+                                            <td class="text-left" style="font-weight: bold;{!if(row==4 || row==10,'padding-left:25px', if(row==1 || row==2 || row==3,'font-weight: bold','padding-left:40px'))};"> <label>{!TableLabel[row]}</label></td>
+                                            <td>
+                                                <apex:outputText value="{0, number, ###,##0}" rendered="{!row!=4 && row!=10 && row!=21&& row!=22}">
+                                                    <apex:param value="{!GroupWallets[TableLabel[row]][0]}" />
+                                                        </apex:outputText>
+                                            </td>                                                
+                                            <td class="text-center"><!-- Target by portfolio --></td>
+                                            <td class="text-right">
+                                                <apex:outputText value="{0, number, ###,##0}" rendered="{!row!=4 && row!=10}">
+                                                    <apex:param value="{!GroupTotalNI[TableLabel[row]][0]}" />
+                                                        </apex:outputText></td>
+                                            <td class="text-center"><!-- GAP --></td> 
+                                            <apex:repeat value="{!if(NoOfGroup != null, if(NoOfGroup > 0, GroupTotalNIByEachGroup[TableLabel[row]], null), null)}" var="NIs">
+                                                <td class="text-right">
+                                                    <apex:outputText value="{0, number, ###,##0}" rendered="{!row!=4 && row!=10 && row!=21&& row!=22}">
+                                                        <apex:param value="{!NIs}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        </apex:repeat>                                           
+                                        </tr>  
+                                        </apex:repeat>
+                                        <tr class="info endRow">
+
+                                            <td class="text-left forceBackground endRowNotActive" style="padding-left:15px;background-color: #006DCC; color: white;font-weight: bold;"> <label>  Total wallet</label></td>
+                                            <td class="text-right" style="background-color: #c6e4ec;">
+                                                <apex:outputText value="{0, number, ###,##0}">
+                                                    <apex:param value="{!totalGroupWalletSizing}" />
+                                                </apex:outputText>    
+                                            </td>
+                                            <td class="text-right" style="background-color: #c6e4ec;"> 
+                                                <apex:outputText value="{0, number, ###,##0}">
+                                                    <apex:param value="{!totalTargetByPortfolio}" />
+                                                </apex:outputText> 
+                                            </td>
+                                            <td class="text-right" style="background-color: #c6e4ec;"> 
+                                                <apex:outputText value="{0, number, ###,##0}">
+                                                    <apex:param value="{!totalGroupTotalNI}" />
+                                                </apex:outputText>    
+                                            </td>
+                                            <td class="text-right" style="background-color: #c6e4ec;"> 
+                                                <apex:outputText value="{0, number, ###,##0}">
+                                                    <apex:param value="{!totalTargetByPortfolio - totalGroupTotalNI}" />
+                                                </apex:outputText>    
+                                            </td>
+                                            
+                                            <apex:repeat value="{!totalGroupTotalNIByEachGroup}" var="totalgrouplist">  
+                                                <td class="text-right" style="background-color: #c6e4ec;">
+                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                        <apex:param value="{!totalGroupTotalNIByEachGroup[totalgrouplist]}" />
+                                                    </apex:outputText>
+                                                </td>
+                                            </apex:repeat>
+                                        </tr> 
+                                            
+                                        <tr stlye="border:none;">
+                                            <td >&nbsp;</td>
+                                            <td >&nbsp;</td>
+                                            <td >&nbsp;</td>
+                                            <td >&nbsp;</td>  
+                                            <td >&nbsp;</td>  
+                                            
+                                            <apex:repeat value="{!GroupNameMap}" var="grouplist">
+                                                <td>&nbsp;</td>                                                    
+                                                </apex:repeat>
+                                        </tr>    
+                                        <tr class="info endRow" style="border-bottom:none;">
+                                            <td style="background-color:white;">&nbsp; </td>
+                                            <td style="background-color:white;">&nbsp;</td>
+                                            <td class="forceBackground endRowNotActive" style="background-color: #006DCC; color: white;font-weight: bold;">% Target Achievement </td>
+                                            <td class="text-right" style="background-color: #c6e4ec;">
+                                                <apex:outputText value="{0, number, ###,##0.00%}">
+                                                    <apex:param value="{!percentTargetAchievement}" />
+                                                </apex:outputText>      
+                                            </td>
+                                            <td style="background-color:white;">&nbsp;</td>    
+                                            <apex:repeat value="{!GroupNameMap}" var="grouplist">
+                                                <td style="background-color:white;">&nbsp; </td>                                                    
+                                                </apex:repeat>
+                                        </tr>       
+                                    </tbody>
+                                </table>                                 
+                             </div>
+                        </fieldset>
+                    </div>
+                </div>
+            </apex:form>
+        </div>
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+        <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+        <apex:includeScript value="/support/console/22.0/integration.js"/>
+        <!--<script>
+                var companyProfileId = '{!CompanyProfile.Id}';  
+                // Prevent Config
+                var $j = jQuery.noConflict();           
+                // Ready Event  
+                $j(document).ready( function () {   
+                        //$j('#tabContainer').hide();
+                        //getRemoteKeysSuccessFactors();
+                        //ksfModel.getData();
+    
+                });   
+                                 
+                // Rest API Data Source         
+                function getRemoteKeysSuccessFactors(callbac) { 
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.CompanyProfilesCreationEx.getKeysSuccessFactors}',
+                        companyProfileId, 
+                        function(result, event){
+                            if (event.status) { 
+                                
+                                
+                                var table = $j('#ksftable tbody');
+                                var template = $j('#tmpl').html();
+                                table.empty();
+                                var idx =1;                         
+                                var index;                          
+                                for (index = 0; index < result.length; ++index) {
+                                       
+                                       var rec = result[index];
+                                       rec.No = idx++;
+                                       table.append(Mustache.render(template, rec));  
+                                }
+                                
+                                /* Not Support IE8 */
+                                /*result.forEach(function(rec) {
+                                      rec.No = idx++;
+                                                      
+                                });*/        
+                               
+                            } else if (event.type === 'exception') {
+                                document.getElementById("responseErrors").innerHTML = 
+                                    event.message + "<br/>\n<pre>" + event.where + "</pre>";
+                            } else {
+                                document.getElementById("responseErrors").innerHTML = event.message;
+                            }
+                            return ;
+                        }, 
+                        { buffer: false, escape: true, timeout: 120000 }
+                    );
+                }       
+            </script>-->
+    </body>
+
+</apex:page>

@@ -1,0 +1,804 @@
+<apex:page standardController="Task" title="Log a call" applyBodyTag="false" tabStyle="Task" lightningStylesheets="true"
+    extensions="LogACallMobileController" sidebar="false" standardStylesheets="true" id="thePage" docType="html-5.0" showHeader="false">
+    <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+
+
+    <head>
+        <!-- Meta, title, CSS, favicons, etc. -->
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Piyawat Pitakpawatkul" />
+        <!-- Include -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+
+
+
+        <!-- fix for sf1 mobile font like native -->
+        <!-- <style type="text/css">
+            .red-label {
+                list-style: none;
+                color: #f00;
+            }
+
+            @font-face {
+                font-family: 'ProximaNovaSoft-Regular';
+                font-weight: normal;
+                font-style: normal;
+
+                src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}');
+                src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}?#iefix') format('embedded-opentype'),
+                url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.woff')}') format('woff'),
+                url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.ttf')}') format('truetype'),
+                url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.svg')}#proxima_nova_softregular') format('svg');
+            }
+
+            @font-face {
+                font-family: 'ProximaNovaSoft-Medium';
+                font-weight: normal;
+                font-style: normal;
+                src: url('../fonts/proximanovasoft-regular.eot');
+                src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}?#iefix') format('embedded-opentype'),
+                url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.woff')}') format('woff'),
+                url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.ttf')}') format('truetype'),
+                url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.svg')}#proxima_nova_softmedium') format('svg');
+            }
+
+            @font-face {
+                font-family: 'icomoon';
+                src: url('{!URLFOR($Resource.fonts, 'icon-utility.eot')}');
+            }
+
+            @font-face {
+                font-family: 'icomoon';
+                src: url("{!URLFOR($Resource.fonts, 'icon-utility.eot')}?#iefix") format("embedded-opentype"),
+                url("{!URLFOR($Resource.fonts, 'icon-utility.woff')}") format("woff"),
+                url("{!URLFOR($Resource.fonts, 'icon-utility.ttf')}") format("truetype"),
+                url("{!URLFOR($Resource.fonts, 'icon-utility.svg')}#icomoon") format("svg");
+                font-weight: normal;
+                font-style: normal;
+            }
+        </style> -->
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}" />
+        <!-- Mobile fix -->
+        <style type="text/css">
+            @media (max-width: 1000px) {
+
+                .bootstrap-sf1 .form-horizontal .form-group {
+                    margin-left: -10px;
+                    margin-right: -10px;
+                }
+                input[type="checkbox"],
+                input[type="radio"] {
+
+                    height: 30px;
+                    width: 50px;
+                }
+                .bootstrap-sf1 .form-horizontal .checkbox {
+                    margin-bottom: 5px;
+                }
+                .bootstrap-sf1 .radio label,
+                .bootstrap-sf1 .checkbox label {
+                    padding-left: 40px;
+                }
+                .bootstrap-sf1 .radio input[type="radio"],
+                .bootstrap-sf1 .radio-inline input[type="radio"],
+                .bootstrap-sf1 .checkbox input[type="checkbox"],
+                .bootstrap-sf1 .checkbox-inline input[type="checkbox"] {
+                    position: absolute;
+                    margin-left: -45px;
+                    top: -5px;
+                }
+
+                .bootstrap-sf1 {
+                    overflow: hidden;
+                }
+                .bootstrap-sf1 .container {
+                    padding-left: 0px;
+                    padding-right: 0px;
+                }
+                .bootstrap-sf1 .page-header[class*="context-"] {
+                    position: relative;
+                    padding-top: 14px;
+                    margin: -15px -15px 10px -15px;
+                }
+
+                .androidDateInput {
+                    position: relative;
+                    text-align: left !important;
+                }
+                input[type="date"] {
+                    padding-top: 1.25% !important;
+                }
+
+            }
+
+
+            .dateOnlyInput .dateFormat {
+                position: initial !important;
+                right: auto !important;
+            }
+
+            .androidDateInput {
+                position: relative;
+                text-align: center !important;
+            }
+
+            .bootstrap-sf1 {
+                background-color: #FFF;
+
+            }
+
+            /*<!-- Loddong style -->*/
+        </style>
+        <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+        <div class="loadingBox overlay"></div>
+
+
+
+
+    </head>
+
+    <body>
+        <!-- /Loadding ajax -->
+        <!-- Namespace wrapper -->
+
+        <!-- <apex:actionStatus onstart="startLoading('Inserting ...');" id="InsertStatus" /> -->
+
+        <apex:actionstatus id="InsertStatus">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                    <div class="slds">
+                        <div id="spin" class="slds-spinner_container">
+                            <div class="slds-spinner slds-spinner--medium" aria-hidden="false" role="alert">
+                                <div class="slds-spinner__dot-a"></div>
+                                <div class="slds-spinner__dot-b"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </apex:facet>
+        </apex:actionstatus>
+
+        <apex:actionStatus onstart="startLoading('Calling Webservice ...');" onstop="endLoading();" id="WebserviceStatus" />
+
+        <!--classic-->
+        <apex:outputText rendered="{!!isLigthning}">
+            <div class="bootstrap-sf1 ">
+                <div class='container'>
+                    <!-- Account -->
+                    <div class="page-header page-header-anchor context-transcript">
+                        <div class="container">
+                            <h1>Log a call</h1>
+                        </div>
+                    </div>
+
+                    <!-- Loadding ajax -->
+
+                    <apex:Form onkeypress="return noenter(event);" id="theForm" styleClass="form-horizontal" rendered="{!!isLigthning}">
+
+
+
+                        <apex:outputPanel id="statusMessage">
+                            <apex:pageMessages ></apex:pageMessages>
+                        </apex:outputPanel>
+
+                        <apex:actionFunction rerender="StatusMessage" name="doSave" action="{!save}" status="InsertStatus" reRender="scriptBlock">
+                            <apex:param name="currentDate" value="" />
+                        </apex:actionFunction>
+
+
+                        <!-- button section -->
+                        <div style="margin-bottom:10px;" class='text-center'>
+                            <apex:commandButton onclick="save();return false;" value="Save" styleClass="btn-lg btn-default" /> &nbsp;
+                            <apex:commandButton value="Cancel" onclick="cancel();return false;" tabindex="380" styleClass="btn-lg btn-default" />
+
+                        </div>
+
+                        <apex:outputPanel id="scriptBlock">
+                            <script type="text/javascript">
+                                var isSave = {!isSave};
+                                var theme = '{!$User.UIThemeDisplayed}';
+                                // console.log(isSave);
+                                if (isSave) {
+                                    var theme = '{!$User.UIThemeDisplayed}';
+                                    var whoid = '{!task.WhoID}';
+                                    //sforce.one.back();
+
+                                    if (theme == 'Theme4t') {
+                                        if (whoid == null || whoid == '') {
+                                            sforce.one.navigateToURL('/{!task.WhatID}');
+                                        } else {
+                                            sforce.one.navigateToURL('/{!task.WhoID}');
+                                        }
+                                    } else {
+                                        if (whoid == null || whoid == '') {
+                                            refreshTab('{!task.WhatID}');
+                                        } else {
+                                            refreshTab('{!task.WhoID}');
+                                        }
+                                    }
+                                }
+
+                            </script>
+                        </apex:outputPanel>
+
+
+                        <!-- section 1 -->
+                        <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                            <div class="container panel-heading">
+                                <div class="navbar-header ">
+                                    <a data-toggle="collapse" aria-expanded="true" href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                                        Task Information
+                                        <!-- : {!$CurrentPage.parameters.accid} -->
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="card collapse in panel-collapse" id="collapse1">
+                            <div class="card-detail">
+                                <div class="row">
+                                    <!-- Assigned To -->
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Assigned To
+                                                <span class="red-label" id="namereddot">*</span>
+                                            </label>
+                                            <apex:inputField styleClass="form-control" value="{!task.OwnerId}" id="assignTo" />
+
+                                        </div>
+                                    </div>
+                                    <!-- Subject -->
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Subject
+                                                <span class="red-label" id="namereddot">*</span>
+                                            </label>
+                                            <!-- <apex:inputField styleClass="form-control" value="{!task.Subject}"/> -->
+                                            <apex:selectList value="{!task.Subject}" multiselect="false" size="1" styleClass="form-control">
+                                                <apex:selectOptions value="{!Subjects}"></apex:selectOptions>
+                                            </apex:selectList>
+                                        </div>
+                                    </div>
+                                    <!-- Due Date -->
+                                    <div class="col-md-12 depend">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Due Date</label>
+                                            <!--<apex:inputField styleClass="form-control" value="{!task.ActivityDate }" />-->
+                                            <input type="date" value="{!task.ActivityDate }" html-data-skipFocus="true" class="form-control nodisplay" />
+                                        </div>
+                                    </div>
+                                    <!-- Comment -->
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Comment</label>
+                                            <apex:inputField styleClass="form-control" value="{!task.Description }" id="comment" />
+                                        </div>
+                                    </div>
+                                    <!-- /.col-lg-6 -->
+                                    <!-- Related to -->
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Related To</label>
+                                            <apex:outputField styleClass="form-control" value="{!task.WhatID }" />
+                                        </div>
+                                    </div>
+                                    <!-- Name -->
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Name</label>
+                                            <apex:outputField styleClass="form-control" value="{!task.WhoID }" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Main contact -->
+
+                                </div>
+                                <!-- /.row -->
+                            </div>
+                        </div>
+                        <!-- section 2 -->
+                        <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                            <div class="container panel-heading">
+                                <div class="navbar-header">
+                                    <a data-toggle="collapse" aria-expanded="true" href="#collapse2" class="navbar-brand navbar-foundation-logo">
+                                        Additional Information
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="card collapse in panel-collapse " id="collapse2">
+                            <div class="card-detail">
+                                <div class="row">
+                                    <div class="col-md-12 depend">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Status </label>
+                                            <apex:outputField styleClass="form-control" value="{!task.Status}" id="Status" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /.row -->
+                            </div>
+                        </div>
+
+                        <!-- section 3 -->
+                        <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                            <div class="container panel-heading">
+                                <div class="navbar-header">
+                                    <a data-toggle="collapse" aria-expanded="true" href="#collapse3" class="navbar-brand navbar-foundation-logo">
+                                        Schedule follow-up task
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="card collapse in panel-collapse " id="collapse3">
+                            <div class="card-detail">
+                                <div class="row">
+                                    <div class="col-md-12 depend">
+                                        <div class="form-group">
+                                            <!-- <label class="control-label" for="focusedInput">Status</label>
+                    <apex:inputField styleClass="form-control" value="{!task.status }" /> -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /.row -->
+                            </div>
+                        </div>
+
+                        <!-- section 4 -->
+                        <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                            <div class="container panel-heading">
+                                <div class="navbar-header">
+                                    <a data-toggle="collapse" aria-expanded="true" href="#collapse4" class="navbar-brand navbar-foundation-logo">
+                                        Task Information
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="card collapse in panel-collapse " id="collapse4">
+                            <div class="card-detail">
+                                <div class="row">
+                                    <div class="col-md-12 depend">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Assign To
+                                                <span class="red-label" id="namereddot">*</span>
+                                            </label>
+                                            <!-- <apex:outputField styleClass="form-control" value="{!TaskReminder.OwnerID  }" /> -->
+                                            <apex:inputField styleClass="form-control" value="{!TaskReminder.OwnerID}" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Subject  -->
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Subject
+                                                <span class="red-label" id="namereddot">*</span>
+                                            </label>
+
+                                            <!-- <apex:inputField styleClass="form-control" value="{!task.Subject }" />-->
+                                            <apex:selectList value="{!TaskReminder.Subject}" multiselect="false" size="1" styleClass="form-control">
+                                                <apex:selectOptions value="{!Subjects2}"></apex:selectOptions>
+                                            </apex:selectList>
+                                        </div>
+                                    </div>
+
+                                    <!-- Due Date  -->
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Due Date</label>
+                                            <!--<apex:inputField styleClass="form-control" value="{!TaskReminder.ActivityDate  }" />-->
+                                            <input type="date" value="{!TaskReminder.ActivityDate }" html-data-skipFocus="true" class="form-control nodisplay" />
+                                        </div>
+                                    </div>
+
+                                    <!-- Comment  -->
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Comment</label>
+                                            <apex:inputField styleClass="form-control" value="{!TaskReminder.Description }" />
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                                <!-- /.row -->
+                            </div>
+                        </div>
+
+                        <!-- section 5 -->
+                        <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                            <div class="container panel-heading">
+                                <div class="navbar-header">
+                                    <a data-toggle="collapse" aria-expanded="true" href="#collapse5" class="navbar-brand navbar-foundation-logo">
+                                        Additional Information
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="card collapse in panel-collapse " id="collapse5">
+                            <div class="card-detail">
+                                <div class="row">
+                                    <div class="col-md-12 depend">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Status
+                                                <span class="red-label" id="namereddot">*</span>
+
+                                            </label>
+                                            <apex:inputField styleClass="form-control" value="{!TaskReminder.status }" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-12 depend">
+                                        <div class="form-group">
+                                            <label class="control-label" for="focusedInput">Priority
+                                                <span class="red-label" id="namereddot">*</span>
+                                            </label>
+
+                                            <apex:inputField styleClass="form-control" value="{!TaskReminder.Priority  }" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- /.row -->
+                            </div>
+                        </div>
+
+                        <!-- section 6 
+                    <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner" style="z-index:99;">
+                        <div class="container panel-heading">
+                            <div class="navbar-header">
+                                <a data-toggle="collapse" aria-expanded="true" href="#collapse6" class="navbar-brand navbar-foundation-logo">
+                                    Reminder
+                                </a>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="card collapse in panel-collapse " id="collapse6">
+                        <div class="card-detail">
+                            <div class="row">
+                                
+                                    <div class="col-md-12 col-lg-6">
+                                        <div class="checkbox">
+                                            <label> <apex:inputField value="{!TaskReminder.IsReminderSet}" id="isReminder" />Reminder</label>
+                                        </div>
+                                    </div>
+                                
+                            
+                                    <div class="col-xs-6 col-sm-6 col-lg-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-lg-3" for="focusedInput">Date</label>
+                                            <div class="col-lg-9">  <apex:inputField styleClass="form-control" value="{!TaskReminder.ReminderDate__c}" id="reminderdate"  />
+                                       </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-lg-6">
+                                        <div class="form-group">                                        
+                                             <label class="control-label col-lg-3" for="focusedInput">Time</label>
+                                           <div class="col-lg-9">  
+                                            <apex:selectList value="{!ReminderTimeStr}" multiselect="false" size="1" id="remindertime" styleClass="form-control">
+                                                <apex:selectOptions value="{!Times}" ></apex:selectOptions>
+                                            </apex:selectList> 
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>
+                        
+                        </div>  
+                    </div>                 -->
+
+
+
+                        <!-- button section -->
+                        <div style="margin-bottom:10px;" class='text-center'>
+                            <apex:commandButton onclick="save();return false;" value="Save" styleClass="btn-lg btn-default" /> &nbsp;
+                            <apex:commandButton value="Cancel" onclick="cancel();return false;" tabindex="380" styleClass="btn-lg btn-default" />
+
+                        </div>
+
+                        <apex:inputHidden value="{!ObjectType}" id="theHiddenInput" />
+                        <apex:inputHidden value="{!ActivityDateHidden}" id="hdActivityDate" />
+
+                    </apex:form>
+                </div>
+            </div>
+        </apex:outputText>
+
+        <!--Lightning-->
+
+        <apex:outputText rendered="{!isLigthning}">
+            <style>
+                .pageTitleIcon {
+                    background-position: initial;
+                    display: block !important;
+                    background-image: url(/img/icon/t4v35/standard/log_a_call_60.png);
+                    background-color: #f2cf5b;
+                    background-size: contain;
+                    background-position: 0 0;
+                }
+            </style>
+            <apex:sectionHeader title="Log a Call" />
+            <apex:Form onkeypress="return noenter(event);" id="theBlock" styleClass="form-horizontal" rendered="{!isLigthning}">
+
+                <apex:outputPanel id="statusMessage">
+                    <apex:pageMessages ></apex:pageMessages>
+                </apex:outputPanel>
+
+                <!-- <apex:actionFunction name="doSave" action="{!save}" status="InsertStatus" reRender="scriptBlock" oncomplete="setTimeout(cancel, 1000);return false;"/> -->
+                <apex:actionFunction name="stdCancel" action="{!cancel}" />
+                <apex:actionFunction rerender="StatusMessage" name="doSave" action="{!save}" status="InsertStatus" reRender="scriptBlock"
+                    oncomplete="cancel();return false;">
+                    <apex:param name="currentDate" value="" />
+                </apex:actionFunction>
+                <apex:PageBlock id="theBlock">
+                    <apex:pageblockbuttons >
+                        <!-- button section -->
+                        <apex:commandButton onclick="save();return false;" value="Save" styleClass="btn-lg btn-default" /> &nbsp;
+                        <apex:commandButton value="Cancel" onclick="cancel();return false;" tabindex="380" styleClass="btn-lg btn-default" />
+                    </apex:pageblockbuttons>
+
+                    <apex:outputPanel id="scriptBlock">
+                        <script type="text/javascript">
+                            var isSave = {!isSave};
+                            var theme = '{!$User.UIThemeDisplayed}';
+                            // console.log(isSave);
+                            if (isSave) {
+                                var theme = '{!$User.UIThemeDisplayed}';
+                                var whoid = '{!task.WhoID}';
+                                //sforce.one.back();
+
+                                if (theme == 'Theme4t') {
+                                    if (whoid == null || whoid == '') {
+                                        sforce.one.navigateToURL('/{!task.WhatID}');
+                                    } else {
+                                        sforce.one.navigateToURL('/{!task.WhoID}');
+                                    }
+                                } else {
+                                    if (whoid == null || whoid == '') {
+                                        refreshTab('{!task.WhatID}');
+                                    } else {
+                                        refreshTab('{!task.WhoID}');
+                                    }
+                                }
+                            }
+
+                        </script>
+                    </apex:outputPanel>
+                    <!-- section 1 -->
+                    <apex:PageBlockSection title="Task Information">
+
+                        <apex:inputField styleClass="form-control" value="{!task.OwnerId}" id="assignTo" />
+
+                        <!-- Subject -->
+                        <!-- <apex:inputField styleClass="form-control" value="{!task.Subject}"/> -->
+                        <apex:selectList value="{!task.Subject}" multiselect="false" size="1" styleClass="form-control">
+                            <apex:selectOptions value="{!Subjects}"></apex:selectOptions>
+                        </apex:selectList>
+                        <!-- Due Date -->
+
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Due Date" />
+                            <input id="inputActivityDate" type="date" value="{!todayActivityDateStr}" html-data-skipFocus="true" class="form-control nodisplay"
+                            />
+                        </apex:pageBlockSectionItem>
+
+
+
+                        <!-- Comment -->
+                        <apex:inputField styleClass="form-control" value="{!task.Description }" id="comment" />
+
+                        <!-- Related to -->
+                        <apex:outputField styleClass="form-control" value="{!task.WhatID }" />
+                        <!-- Name -->
+                        <apex:outputField styleClass="form-control" value="{!task.WhoID }" />
+
+                        <!-- Main contact -->
+
+                    </apex:PageBlockSection>
+                    <!-- section 2 -->
+                    <apex:PageBlockSection title="Additional Information">
+                        <apex:outputField styleClass="form-control" value="{!task.Status}" id="Status" />
+                    </apex:PageBlockSection>
+
+                    <!-- section 3 -->
+                    <apex:PageBlockSection title="Schedule follow-up task">
+                    </apex:PageBlockSection>
+
+                    <!-- section 4 -->
+                    <apex:PageBlockSection title="Task Information">
+                        <!-- <div class="card collapse in panel-collapse " id="collapse4"> -->
+                        <!-- <apex:outputField styleClass="form-control" value="{!TaskReminder.OwnerID  }" /> -->
+                        <apex:inputField styleClass="form-control" value="{!TaskReminder.OwnerID}" />
+
+                        <!-- Subject  -->
+                        <!-- <apex:inputField styleClass="form-control" value="{!task.Subject }" />-->
+                        <apex:selectList value="{!TaskReminder.Subject}" multiselect="false" size="1" styleClass="form-control">
+                            <apex:selectOptions value="{!Subjects2}"></apex:selectOptions>
+                        </apex:selectList>
+
+                        <!-- Due Date  -->
+
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="Due Date" />
+                            <input type="date" value="{!TaskReminder.ActivityDate }" html-data-skipFocus="true" class="form-control nodisplay" />
+                        </apex:pageBlockSectionItem>
+                        <!-- <apex:inputField styleClass="form-control" value="{!TaskReminder.ActivityDate  }" type="datetime-local" showDatePicker="false"/> -->
+
+
+                        <!-- Comment  -->
+                        <apex:inputField styleClass="form-control" value="{!TaskReminder.Description }" />
+
+
+                    </apex:PageBlockSection>
+
+                    <!-- section 5 -->
+                    <apex:PageBlockSection title="Additional Information">
+                        <!-- <div class="card collapse in panel-collapse " id="collapse5"> -->
+                        <apex:inputField styleClass="form-control" value="{!TaskReminder.status }" />
+
+                        <apex:inputField styleClass="form-control" value="{!TaskReminder.Priority  }" />
+                    </apex:PageBlockSection>
+
+                    <!-- section 6 
+                    <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner" style="z-index:99;">
+                        <div class="container panel-heading">
+                            <div class="navbar-header">
+                                <a data-toggle="collapse" aria-expanded="true" href="#collapse6" class="navbar-brand navbar-foundation-logo">
+                                    Reminder
+                                </a>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="card collapse in panel-collapse " id="collapse6">
+                        <div class="card-detail">
+                            <div class="row">
+                                
+                                    <div class="col-md-12 col-lg-6">
+                                        <div class="checkbox">
+                                            <label> <apex:inputField value="{!TaskReminder.IsReminderSet}" id="isReminder" />Reminder</label>
+                                        </div>
+                                    </div>
+                                
+                            
+                                    <div class="col-xs-6 col-sm-6 col-lg-6">
+                                        <div class="form-group">
+                                            <label class="control-label col-lg-3" for="focusedInput">Date</label>
+                                            <div class="col-lg-9">  <apex:inputField styleClass="form-control" value="{!TaskReminder.ReminderDate__c}" id="reminderdate"  />
+                                       </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6 col-sm-6 col-lg-6">
+                                        <div class="form-group">                                        
+                                             <label class="control-label col-lg-3" for="focusedInput">Time</label>
+                                           <div class="col-lg-9">  
+                                            <apex:selectList value="{!ReminderTimeStr}" multiselect="false" size="1" id="remindertime" styleClass="form-control">
+                                                <apex:selectOptions value="{!Times}" ></apex:selectOptions>
+                                            </apex:selectList> 
+                                            </div>
+                                        </div>
+                                    </div>
+                            </div>
+                        
+                        </div>  
+                    </div>                 -->
+
+
+
+                    <apex:inputHidden value="{!ObjectType}" id="theHiddenInput" />
+                    <apex:inputHidden value="{!ActivityDateHidden}" id="hdActivityDate" />
+
+                </apex:PageBlock>
+
+            </apex:form>
+        </apex:outputText>
+
+
+
+        <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/2.0.0/jquery.min.js"></script>
+        <script type="text/javascript" src="https://netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+        <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+
+        <script type="text/javascript">
+            var $j = jQuery.noConflict();
+            $(document).ready(function () {
+
+                // isSalesforce1();
+                // var currActivityDate = new Date();
+                // var currActivityDateStr = currActivityDate.getFullYear().toString() + '-' + ((currActivityDate.getMonth() + 1).toString().length < 2 ? '0' + (currActivityDate.getMonth() + 1).toString() : (currActivityDate.getMonth() + 1).toString()) + '-' + (currActivityDate.getDate().toString().length < 2 ? '0' + currActivityDate.getDate().toString() : currActivityDate.getDate().toString());
+
+                // $("#inputActivityDate").val(currActivityDateStr);
+
+                $('[id$=isReminder]').change(function () {
+
+
+                    if ($('[id$=isReminder]').is(':checked')) {
+                        $('[id$=reminderdate]').prop('disabled', false);
+                        $('[id$=remindertime]').prop('disabled', false);
+                    } else {
+                        $('[id$=reminderdate]').prop('disabled', true);
+                        $('[id$=remindertime]').prop('disabled', true);
+
+                    }
+                });
+
+            });
+
+            function cancel() {
+
+                var theme = '{!$User.UIThemeDisplayed}';
+                var whoid = '{!task.WhoID}';
+                //sforce.one.back();
+                if (theme == 'Theme4t') {
+                    sforce.one.back();
+                    // if (whoid == null || whoid == '') {
+                    //     sforce.one.navigateToURL('/{!task.WhatID}');
+                    // } else {
+                    //     sforce.one.navigateToURL('/{!task.WhoID}');
+                    // }
+                } else if(theme == 'Theme4d'){
+                    if (whoid == null || whoid == '') {
+                        sforce.one.navigateToURL('/{!task.WhatID}');
+                    } else {
+                        sforce.one.navigateToURL('/{!task.WhoID}');
+                    }
+                } else {
+                    console.log('else');
+                    if (whoid == null || whoid == '') {
+                        refreshTab('{!task.WhatID}');
+                    } else {
+                        refreshTab('{!task.WhoID}');
+                    }
+                }
+            }
+
+
+            function save() {
+                var whoid = '{!task.WhoID}';
+                var dueDate = document.getElementById("inputActivityDate").value;
+                // console.log('dueDate : ',dueDate);
+                // $('[id$=hdActivityDate]').val(dueDate);
+                doSave(dueDate);
+                // if(whoid ==null || whoid == ''){
+                //     sforce.one.navigateToURL('/{!task.WhatID}');
+                // } else {
+                //     sforce.one.navigateToURL('/{!task.WhoID}');    
+                // }
+            }
+            function isSalesforce1() {
+                var theme = '{!$User.UIThemeDisplayed}';
+                if (theme == 'Theme4u' || theme == 'Theme4t') {
+                    $j("#LightningOuterDiv").css('display', 'block');
+
+
+                } else {
+                    $j("#outerDiv").css('display', 'block');
+                    $j("#LightningOuterDiv").css('display', 'none');
+                }
+            }
+
+            function refreshTab(recordId) {
+                // console.log(recordId);
+                sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                    "componentDef": "c:workspaceAPIforVF",
+                    "attributes": {
+                        "action": 'closeAndRefresh',
+                        "recordId": recordId,
+                        "force": true,
+                        "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                            return v.toString(16);
+                        }),
+                    }
+                })), true);
+            }
+        </script>
+
+    </body>
+
+
+
+
+</apex:page>

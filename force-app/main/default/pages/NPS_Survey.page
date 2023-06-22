@@ -1,0 +1,620 @@
+<apex:page controller="NPSSurveyController" tabStyle="Survey__c" doctype="html-5.0" lightningStylesheets="true">
+    <!-- <apex:slds /> -->
+
+    <head>
+        <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}" />
+        <apex:includeScript value="/support/console/22.0/integration.js" />
+        <apex:includeScript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includeScript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:includeScript value="{!$Resource.AccountPlan_Mustache}" />
+
+        <apex:stylesheet value="{!URLFOR($Resource.SLOS)}" />
+        <style>
+            .bootstrap-sf1 input[type="radio"],
+            .bootstrap-sf1 input[type="checkbox"] {
+                float: left;
+                text-align: left;
+            }
+
+            .leftRadioCheckbox tbody td {
+                float: left;
+                text-align: left;
+                margin: 5px 15px;
+            }
+
+            .leftSelect select,
+            .leftSelect span textarea {
+                margin: 5px 15px;
+                font-size: 12px;
+                color: #4a4a56;
+            }
+
+            .leftSelect table select,
+            .leftSelect table textarea {
+                margin: 5px 0px;
+                font-size: 12px;
+                color: #4a4a56;
+            }
+
+            .leftRadioCheckbox tbody td label {
+                margin-left: 10px;
+            }
+
+            .bootstrap-sf1 label {
+                font-size: 12px;
+                color: #4a4a56;
+            }
+
+            /* a.lookup {
+                padding: 5px !important;
+                background-color: transparent !important;
+                background-image: none !important;
+                -webkit-box-shadow: none !important;
+                box-shadow: none !important;
+                width: 35px !important;
+            }
+
+            .lookup {
+                display: inline !important;
+            } */
+
+            select,
+            textarea {
+                display: block;
+                width: 100%;
+                height: 34px;
+                padding: 6px 14px;
+                font-size: 14px;
+                line-height: 1.42857143;
+                color: #000000;
+                background-color: #ffffff;
+                background-image: none;
+                border: 1px solid #cfd0d2;
+                border-radius: 4px;
+            }
+
+            .bootstrap-sf1 .form-control {
+                font-size: 12px;
+            }
+
+            select {
+                width: auto !important;
+            }
+
+            .bootstrap-sf1 {
+                background-color: #FFF;
+            }
+
+            .bootstrap-sf1 .card {
+                border: none;
+            }
+
+            .datePicker select {
+                width: 85px !important;
+                height: 25px !important;
+                font-size: 10px;
+                padding: 5px;
+                display: initial;
+            }
+
+            td.buttonCell {
+                margin-top: 35px !important;
+            }
+
+            .messageCell {
+                text-align: left;
+                max-width: 100%;
+            }
+
+            .messageText {
+                text-align: left !important;
+                max-width: 100%;
+                word-wrap: break-word;
+            }
+
+            .messageTable h4 {
+                margin-top: 0px !important;
+                text-align: left !important;
+                color: inherit !important;
+            }
+
+            .slds img {
+                max-width: none;
+            }
+
+            .messageTable tbody td {
+                text-align: left;
+                float: left;
+            }
+
+            td.data2Col {
+                text-align: left !important;
+                top: 2px !important;
+                padding-left: 40px !important;
+            }
+        </style>
+    </head>
+
+    <div id="mobile-wrapper" style='display:none;'>
+        <h2> This page is not available on Salesforce1.</h2>
+
+    </div>
+
+    <div id="main-wrapper" style='display:none;'>
+        <apex:form id="sldsfrm">
+            <apex:actionstatus id="statusslds">
+                <apex:facet name="start">
+                    <div class="slds" style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                        <div id="spin" class="slds-spinner_container">
+                            <div class="slds-spinner slds-spinner--medium" aria-hidden="false" role="alert">
+                                <div class="slds-spinner__dot-a"></div>
+                                <div class="slds-spinner__dot-b"></div>
+                            </div>
+                        </div>
+                    </div>
+                </apex:facet>
+            </apex:actionstatus>
+            <apex:actionFunction name="savesurveyslds" action="{!dosave}" reRender="sldsfrm,questionlistsdls,statusMessage" status="statusslds"
+            />
+            <apex:actionFunction name="completesurvey" action="{!completesurvey}" reRender="sldsfrm,questionlistsdls,statusMessage" status="statusslds"
+            />
+
+            <div id="outerSpin" class="slds" style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%;display:none;">
+                <div id="spin" class="slds-spinner_container">
+                    <div class="slds-spinner slds-spinner--medium" aria-hidden="false" role="alert">
+                        <div class="slds-spinner__dot-a"></div>
+                        <div class="slds-spinner__dot-b"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slds" id="appearOnDesktop">
+                <!--HEADER-->
+                <div class="slds-page-header" role="banner">
+                    <div class="slds-grid">
+                        <div class="slds-col">
+                            <div class="slds-media">
+
+                                <div class="slds-media__figure">
+                                    <span class="slds-icon__container slds-icon__container--circle slds-icon-standard-product">
+                                        <span class="bootstrap-sf1">
+                                            <span class="glyphicon glyphicon-book" aria-hidden="true"></span>
+                                        </span>
+                                    </span>
+                                </div>
+
+                                <div class="slds-media__body">
+                                    <p class="slds-text-heading--label">NPS</p>
+                                    <h1 class="slds-text-heading--small">
+                                        {!if(isShowResultScreen,'Complete','')} Survey
+                                    </h1>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!--END HEADER-->
+
+                <!--BUTTONS-->
+                <div class="slds-size--1-of-1">
+                    <div class="slds-box--x-small slds-m-horizontal--x-small">
+                        <fieldset class="slds-theme--default ">
+                            <div class="slds-form-element slds-text-align--center ">
+                                <div class="slds-form-element__control  slds-m-top--medium">
+
+                                    <apex:commandButton styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Save" style="margin-right:15px;"
+                                        action="{!dosave}" reRender="sldsfrm,questionlistsdls,statusMessage,script_block" status="statusslds"
+                                        rendered="{!!isShowResultScreen && !isAlreadyComplete}" />
+                                    <apex:commandButton styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Complete Survey" style="margin-right:15px;"
+                                        action="{!completesurvey}" reRender="sldsfrm,questionlistsdls,statusMessage,script_block"
+                                        status="statusslds" rendered="{!!isShowResultScreen && !isAlreadyComplete}" />
+
+                                    <apex:commandButton styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Save" style="margin-right:15px;"
+                                        action="{!completesurveyFromCSV}" reRender="sldsfrm,questionlistsdls,statusMessage,script_block"
+                                        status="statusslds" rendered="{!isShowResultScreen && !isAlreadyComplete}" />
+
+                                    <apex:commandButton onclick="doCancel();return false;" styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Cancel"
+                                        status="statusslds" />
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <!--END BUTTONS-->
+
+                <apex:outPutPanel layout="block" id="script_block">
+                    <script>
+
+                        var $j = jQuery.noConflict();
+
+                        var messageText = $j(".messageText").text();
+
+                        if (messageText.indexOf("data value too large") >= 0) {
+                            //var newMessageText =messageText.substring(str.lastIndexOf(":")+1,str.lastIndexOf(";"));
+                            var newMessageText = messageText.split(':');
+
+                            var newmsgString = newMessageText[1] + ': ' + newMessageText[3] + ': (max length=5000)';
+
+                            // console.log(newmsgString);
+                            var errortitle = "<span style='color:#cc0000'><h4>Error:</h4></span>";
+                            $j(".messageText").html(errortitle + '' + newmsgString);
+
+
+                        }
+                        var shouldCancel = {!isCancel};
+                        if (shouldCancel) {
+                            doCancel();
+                        }
+                        function doCancel() {
+                            // console.log("Do Cancel");
+                            $j("#outerSpin").css('display', 'block');
+
+                            var recordId;
+                            if ({!isExisting}) {
+                                recordId = "{!tempSurveyDetail.Id}";
+                            }else if ({!isLead}) {
+                                recordId = "{!tempLead.Id}";
+                            }else if ({!isAccount}) {
+                                recordId = "{!tempAccount.Id}";
+                            }
+                            // console.log(recordId);
+                            var theme = '{!$User.UIThemeDisplayed}';
+                            if( theme=="Theme4u" || theme=="Theme4t" ){
+                                refreshTab(recordId);
+                            } else {
+                                CloseCurrentTab();
+                            }
+                            
+                        }
+
+                        function refreshTab(recordId) {
+                            sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                                "componentDef": "c:workspaceAPIforVF",
+                                "attributes": {
+                                    "action": 'closeAndRefresh',
+                                    "recordId": recordId,
+                                    "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                                        return v.toString(16);
+                                    }),
+                                }
+                            })), true);
+                        }
+
+
+                    </script>
+
+                </apex:outPutPanel>
+
+                <div class="bootstrap-sf1">
+                    <div class="card collapse in panel-collapse" id="collapse1">
+                        <div class="card-detail">
+
+                            <!--  Section 1 -->
+
+                            <fieldset>
+                                <div class="row">
+                                    <apex:PageBlock mode="view" id="flowBlock">
+                                        <apex:outputPanel id="statusMessage">
+                                            <apex:pageMessages ></apex:pageMessages>
+                                        </apex:outputPanel>
+
+                                        <apex:actionFunction name="selectsurveysdls" action="{!SelectedSurveyMaster}" reRender="questionlistsdls,buttombottomsdls"
+                                            status="statusslds" />
+
+                                        <apex:pageblockSection columns="1" rendered="{!!isShowResultScreen}">
+                                            <apex:pageblockSectionItem rendered="{!islead}">
+                                                <apex:outputLabel value="{!$ObjectType.Survey__c.fields.Lead__c.label}" />
+                                                <apex:outputField value="{!tempSurveyDetail.Lead__c}" styleclass="form-control lookup" />
+                                            </apex:pageblockSectionItem>
+                                            <apex:pageblockSectionItem >
+                                                <apex:outputLabel value="{!$ObjectType.Survey__c.fields.Customer__c.label}" />
+                                                <apex:outputField value="{!tempSurveyDetail.Customer__c }" styleclass="form-control lookup" />
+                                            </apex:pageblockSectionItem>
+
+                                            <apex:pageblockSectionItem >
+                                                <apex:outputLabel value="{!$ObjectType.Account.fields.Customer_Segment_Team__c.label}" />
+                                                <apex:outputText value="{!customerSegmentTeam}" />
+                                            </apex:pageblockSectionItem>
+
+
+                                            <apex:pageblockSectionItem >
+                                                <apex:outputLabel value="{!$ObjectType.Survey__c.fields.Contact_Name__c.label}" />
+                                                <apex:outputfield value="{!tempSurveyDetail.Contact_Name__c}" styleClass="form-control" />
+                                            </apex:pageblockSectionItem>
+
+                                            <apex:pageblockSectionItem >
+                                                <apex:outputLabel value="{!$ObjectType.Survey__c.fields.Contact_Phone__c.label}" />
+                                                <apex:outputfield value="{!tempSurveyDetail.Contact_Phone__c}" styleClass="form-control" />
+                                            </apex:pageblockSectionItem>
+
+                                        </apex:pageblockSection>
+
+                                        <apex:pageblockSection columns="1" rendered="{!!isShowResultScreen}">
+
+
+                                            <apex:pageblockSectionItem rendered="{!!IsExisting}">
+                                                <apex:outputLabel value="{!$ObjectType.Survey__c.fields.SurveyMaster__c.label}" />
+
+                                                <apex:outputPanel layout="block" styleClass="requiredInput">
+                                                    <apex:outputPanel layout="block" styleClass="requiredBlock" />
+                                                    <apex:selectList size="1" value="{!surveyId}" onchange="selectsurveysdls();" styleclass="form-control" style="width:auto !important;height: 35px;">
+                                                        <apex:selectOptions value="{!ListQuestion}" />
+                                                    </apex:selectList>
+                                                </apex:outputPanel>
+
+
+                                            </apex:pageblockSectionItem>
+
+                                            <apex:pageblockSectionItem rendered="{!IsExisting}">
+                                                <apex:outputLabel value="{!$ObjectType.Survey__c.fields.SurveyMaster__c.label}" />
+                                                <apex:outputField value="{!tempSurveyDetail.SurveyMaster__c}" styleClass="form-control" />
+
+
+                                            </apex:pageblockSectionItem>
+
+                                            <apex:pageblockSectionItem >
+                                                <apex:outputLabel value="{!$ObjectType.Survey__c.fields.Call_Date_Time__c.label}" />
+
+                                                <apex:outputField value="{!tempSurveyDetail.Call_Date_Time__c}" styleClass="form-control" style="width:170px;" />
+
+                                            </apex:pageblockSectionItem>
+
+
+                                        </apex:pageblockSection>
+
+                                        <apex:pageblockSection id="questionlistsdls" columns="1" rendered="{!!isShowResultScreen}">
+
+                                            <apex:pageblockSectionItem >
+                                                <apex:outputLabel value="{!$ObjectType.Survey__c.fields.Topic__c.label}" />
+                                                <apex:outputField value="{!tempSurveyDetail.Topic__c}" style="width:170px;" styleClass="form-control" />
+                                            </apex:pageblockSectionItem>
+
+                                            <apex:repeat value="{!QuestionWrapperList}" var="sm">
+
+                                                <apex:outputPanel >
+                                                    <table width="100%" border="0">
+                                                        <tr>
+                                                            <td width="18%"></td>
+                                                            <td class="text-left">
+                                                                <div class="slds-form--stacked">
+
+                                                                    <div class="slds-form-element text-left leftSelect">
+                                                                        <label class="slds-form-element__label" style="word-wrap: break-word;">
+                                                                            {!sm.SEQ}.
+                                                                            <apex:outputtext escape="false" value="{!sm.Question}" />
+
+
+
+                                                                        </label>
+
+                                                                        <div class="slds-form-element__control leftRadioCheckbox">
+                                                                            <apex:outputPanel rendered="{!sm.QuestionType=='Free Text'}">
+                                                                                <apex:inputTextarea value="{!sm.SelectedAnswer}" style="width:95%;height:90px" styleClass="slds-textarea" />
+                                                                            </apex:outputPanel>
+
+
+
+                                                                            <apex:outputPanel rendered="{!sm.QuestionType=='Check box'}" style="float:left;">
+
+
+                                                                                <style>
+                                                                                    .radioinput input[type="radio"] {
+                                                                                        float: left !important;
+                                                                                    }
+
+                                                                                    .radioinput label {
+                                                                                        display: block !important;
+                                                                                    }
+                                                                                </style>
+
+
+                                                                                <apex:selectradio layout="pageDirection" id="optioncheckbox" styleclass="optioncheckbox" value="{!sm.selectedAnswer}">
+                                                                                    <apex:selectOptions value="{!sm.possibleAnswerlist}" />
+                                                                                </apex:selectradio>
+
+                                                                                <style type="text/css">
+                                                                                    .optioncheckbox tbody td label {
+
+                                                                                        margin-top: 2px !important;
+                                                                                    }
+                                                                                </style>
+
+
+                                                                            </apex:outputPanel>
+
+
+                                                                            <apex:outputPanel rendered="{!sm.QuestionType=='Picklist'}">
+
+
+
+                                                                                <apex:selectList size="1" value="{!sm.selectedAnswer}" styleClass="slds-select_container floatonleft">
+                                                                                    <apex:selectOptions value="{!sm.possibleAnswerlist}" />
+                                                                                </apex:selectList>
+
+                                                                            </apex:outputPanel>
+
+
+                                                                            <apex:outputPanel rendered="{!sm.QuestionType=='Rating (0-10)'}">
+
+                                                                                <apex:selectRadio value="{!sm.selectedAnswer}" id="radiobutt" style="margin-top:10px;min-width: 470px !important;" styleClass="RatingAnswer">
+                                                                                    <apex:selectOptions value="{!sm.possibleAnswerlist}" />
+                                                                                </apex:selectRadio>
+
+                                                                                <style type="text/css">
+                                                                                    .leftRadioCheckbox .RatingAnswer tbody td label {
+                                                                                        position: absolute !important;
+                                                                                        margin-left: -10px !important;
+                                                                                        margin-top: -12px !important;
+                                                                                    }
+                                                                                </style>
+
+
+                                                                            </apex:outputPanel>
+
+
+
+                                                                            <apex:outputPanel rendered="{!sm.QuestionType=='Multi picklist'}">
+                                                                                <div style="float:left;">
+                                                                                    <c:multiselectpicklist leftlabel="Available" leftoption="{!sm.possibleAnswerlist}" rightlabel="Selected" rightoption="{!sm.SelectOptionAnswer}"
+                                                                                        size="5" width="200px" minwidth="200px"
+                                                                                        id="multipicklist">
+                                                                                    </c:multiselectpicklist>
+                                                                                </div>
+                                                                                <style type="text/css">
+                                                                                    svg.slds-button__icon {
+                                                                                        color: #706e6b;
+                                                                                    }
+
+                                                                                    .leftArrowIcon {
+                                                                                        height: 20px !important;
+                                                                                    }
+
+                                                                                    .rightArrowIcon {
+                                                                                        height: 20px !important;
+                                                                                    }
+                                                                                </style>
+                                                                            </apex:outputPanel>
+
+
+
+                                                                            <apex:outputPanel rendered="{!sm.AdditionalFlag}">
+                                                                                <br />
+                                                                                <table width="100%" border="0">
+                                                                                    <tr>
+                                                                                        <td style="float:left;">
+                                                                                            <label class="slds-form-element__label">Additional Feedback </label>
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                    <tr>
+                                                                                        <td style="float:left;width:100%;">
+                                                                                            <apex:inputTextarea id="additionalText" value="{!sm.AdditionalValue}" style="width:95%;height:50px" />
+                                                                                        </td>
+                                                                                    </tr>
+                                                                                </table>
+                                                                            </apex:outputPanel>
+
+
+
+                                                                        </div>
+                                                                    </div>
+
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </apex:outputPanel>
+                                            </apex:repeat>
+
+
+                                        </apex:pageblockSection>
+
+
+
+                                        <apex:pageblockSection columns="1" id="convertsection" rendered="{!IsShowResultScreen}">
+                                            <apex:pageblockSectionItem >
+                                                <apex:outputLabel style="margin-top:7px;" value="{!$ObjectType.Survey__c.fields.Result__c.label}" />
+
+                                                <apex:outputPanel layout="block" styleClass="requiredInput">
+                                                    <apex:outputPanel layout="block" styleClass="requiredBlock" />
+
+                                                    <apex:inputField value="{!tempSurveyDetail.Result__c}" styleClass="form-control" />
+                                                </apex:outputPanel>
+                                            </apex:pageblockSectionItem>
+                                        </apex:pageblockSection>
+
+
+                                    </apex:PageBlock>
+
+
+
+                                </div>
+                            </fieldset>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!--BUTTONS-->
+                <div class="slds-size--1-of-1" style="margin-left:-2.5px;">
+                    <div class="slds-box--x-small slds-m-horizontal--x-small">
+                        <fieldset class="slds-theme--default ">
+                            <div class="slds-form-element slds-text-align--center ">
+                                <div class="slds-form-element__control  slds-m-top--medium">
+
+                                    <apex:commandButton styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Save" style="margin-right:15px;"
+                                        action="{!dosave}" reRender="sldsfrm,questionlistsdls,statusMessage" status="statusslds"
+                                        rendered="{!!isShowResultScreen && !isAlreadyComplete}" />
+                                    <apex:commandButton styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Complete Survey" style="margin-right:15px;"
+                                        action="{!completesurvey}" reRender="sldsfrm,questionlistsdls,statusMessage" status="statusslds"
+                                        rendered="{!!isShowResultScreen && !isAlreadyComplete}" />
+
+                                    <apex:commandButton styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Save" style="margin-right:15px;"
+                                        action="{!completesurveyFromCSV}" reRender="sldsfrm,questionlistsdls,statusMessage" status="statusslds"
+                                        rendered="{!isShowResultScreen && !isAlreadyComplete}" />
+
+                                    <apex:commandButton onclick="doCancel();return false;" styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Cancel"
+                                        status="statusslds" />
+
+
+                                </div>
+                            </div>
+                        </fieldset>
+                    </div>
+                </div>
+                <!--END BUTTONS-->
+
+            </div>
+            <apex:actionFunction name="redirect" action="{!cancel}" />
+        </apex:form>
+    </div>
+
+    <apex:includeScript value="/support/console/22.0/integration.js" />
+
+    <script type="text/javascript">
+        var $j = jQuery.noConflict();
+
+        function setTitle() {
+            sforce.console.setTabTitle('Survey');
+        }
+
+
+        function checkIsSalesforceOne() {
+            var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")
+        };
+        var theme = '{!$User.UIThemeDisplayed}';
+        if (theme == 'Theme4u' && isLightningMode) {
+            $j("#main-wrapper").css('display', 'block');
+        }
+        else if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+            $j("#mobile-wrapper").css('display', 'block');
+        }
+        else {
+            $j("#main-wrapper").css('display', 'block');
+        }
+        }
+
+        $j(document).ready(function () {
+            checkIsSalesforceOne();
+
+            $j('[data-toggle="tooltip"]').tooltip();
+
+        });
+
+        function CloseCurrentTab() {
+            if (sforce.console.isInConsole()) {
+                sforce.console.getEnclosingTabId(closeSubtab);
+            } else {
+                redirect();
+            }
+        }
+
+        var closeSubtab = function closeSubtab(result) {
+            var tabId = result.id;
+            sforce.console.closeTab(tabId);
+        };
+
+    </script>
+</apex:page>

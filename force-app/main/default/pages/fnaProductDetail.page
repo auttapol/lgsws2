@@ -1,0 +1,2358 @@
+<apex:page controller="fnaProductDetailCtrl" extensions="CustomerProductLists" standardStylesheets="false" cache="false" sidebar="false" applyBodyTag="false" showHeader="false" title="View Uploaded File" >   
+<!-- action="{!getStream}"   -->
+<apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />   
+<apex:includeScript value="/support/console/39.0/integration.js"/>
+
+<apex:stylesheet value="{!URLFOR($Resource.FNA_Resource, '/src/css/styles.css')}" />
+<apex:stylesheet value="{!URLFOR($Resource.FNA_Resource, '/public/css/hover.css')}" />
+<apex:stylesheet value="{!URLFOR($Resource.FNA_Resource, '/public/css/bootstrap.min.css')}" />
+
+<apex:includeScript value="{!URLFOR($Resource.FNA_Resource, '/public/js/bootstrap.min.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.FNA_Resource, '/public/js/jquery-ui.js')}"/>
+<apex:includeScript value="{!URLFOR($Resource.FNA_Resource, '/src/js/details.js')}" />
+
+<apex:slds />
+<meta name="viewport" content="width=device-width"/>
+<style>
+
+    .center-screen {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        min-height: 100vh;
+    }
+
+    header .topbar a{
+        opacity: unset;
+    }
+
+    .cta h2 {
+        padding: 0px;
+        margin: 0;
+        display: inline;
+    }
+
+    .content{
+        margin-top: 30px;
+        margin-bottom: 30px;
+    }
+
+    .hide{
+        display: none !important;
+    }
+
+    .MessageError, .MessageError .material-icons{
+        color: red;
+        text-align: center;
+        font-size: 31px;
+    }
+
+    .MessageNotFound, .MessageNotFound .material-icons{
+        text-align: center;
+        font-size: 31px;
+    }
+
+    .mgt150{
+        margin-top: 150px;
+    }
+
+    canvas{
+        width: 90%;
+        height: 90%
+    }
+
+    .label{
+        display: inline-block;
+        margin-bottom: .5rem;
+        color: #000;
+        font-size: 1.5rem;
+        font-family: helvethaicaX-bold,sans-serif;
+        float: left;
+    }
+    
+    input{
+        font-size: 1.5rem;
+        line-height: normal;
+        width: 100%;
+        padding: 10px 10px;
+        color: #333;
+        border: 1px solid #ced4da;
+        border-radius: .25rem;
+    }
+
+    .bta2 {
+        font-family: "helvethaicaX-bold", sans-serif;
+        border-radius: 40px;
+        background-color: #007abc;
+        padding: 3px 20px;
+        color: white;
+        border-bottom: 5px solid #035581;
+        display: inline-block;
+        position: relative;
+        border-top: 0;
+        border-left: 0;
+        border-right: 0;
+        font-size: 2rem;
+    }
+
+    .modal-footer{
+        border-top: 2px solid #d4d4d4;
+        display: flex;
+        border-bottom-right-radius: .25rem;
+        border-bottom-left-radius: .25rem;
+        padding: .75rem 1rem;
+        justify-content: center;
+        box-shadow: 0 2px 3px 0 rgba(0, 0, 0, 0.16);
+    }
+
+    .errorlog {
+        color: red;
+        font-size: 1.7rem;
+        text-align: center;
+        font-family: "helvethaicaX-bold",sans-serif;
+        line-height: 2.5rem;
+        margin: 0;
+    }
+
+    .inputInvalid {
+        background-color: rgb(248, 215, 218) !important;
+    }
+    #inputProvince option {
+        background-color: #fff !important;
+    }
+    #inputDistrict option {
+        background-color: #fff !important;
+    }
+    #inputBranch option {
+        background-color: #fff !important;
+    }
+
+    .otp {
+        margin: 0 auto !important;
+        padding: 3px 0 !important;
+        display: block;
+        width: 286px;
+    }
+    .otp-input{
+        font-size: 2rem !important;
+        font-family: "helvethaicaX-bold", sans-serif;
+        padding: 0 10px !important;
+        line-height: 0 !important;
+        display: block;
+        float: left;
+        width: 42px;
+        margin: 2px;
+        text-align: center;		
+    }
+
+    .newRenderPDF img{
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .close4 {
+        padding: 0px;
+        background-color: transparent;
+        color: #000;
+        border: 0;
+        opacity: 1;
+        float: right;
+        text-shadow: 0 1px 0 #fff;
+        opacity: .5;
+    }
+
+    p {
+        width: 100%;
+        margin: auto auto;
+        padding: 0px;
+        color: black;
+    }
+    h3 {
+        font-size: 1.75rem;
+        margin-top: .5rem;
+        margin-bottom: .5rem;
+        font-family: inherit;
+        font-weight: 500;
+        line-height: 1.2;
+        color: inherit;
+        font-family: "helvethaicaX-bold", sans-serif;
+    }
+
+    h4 {
+        font-family: "helvethaicaX-bold", sans-serif;
+        width: 100%;
+        font-size: 1.5rem;
+        margin: -20px auto auto;
+        padding: 0;
+        text-align: center;
+        color: black;
+    }
+
+    .resetOTP {
+        background: #007abc;
+        /* margin-top: 18px; */
+        padding: 2px 10px;
+        border-radius: 20px;
+    }
+
+    .resetText {
+        margin: 0;
+        color: white;
+        text-align: center;
+        font-size: 1.2rem;
+        width: 100%;
+    }
+    
+    input:focus {
+        border-color: #80bdff;
+        outline: 0;
+        box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    }
+
+    input::placeholder {
+        color: #d4d4d4;
+        font-size: 1.5rem;
+        font-family: "helvethaicaX-light";
+    }
+
+    a {
+        text-decoration: none;
+    }
+
+    .modal-dialog{
+        max-width: 40rem;
+        min-width: 20rem;
+    }
+
+    .pointer{
+        cursor: pointer;
+    }
+
+    .hideElement{
+        display:none;
+    }
+    .showElement{
+        display:block;
+    }
+
+    #inputProvince, #inputDistrict, #inputBranch {
+        font-size: 1.3rem;
+    }
+
+    @media(max-width: 575px){
+        .resText{
+            display: none !important;
+            }
+    }
+
+    @media (max-width: 575px){
+        .iconCancel{
+            text-align:center;
+        }
+        .topbar a {
+            border: none !important;
+            background: white;
+        }
+        .ctaMb {
+            padding: 8px 8px;
+        }
+    }
+
+    @media (min-width: 576px) and (max-width: 1199px){
+        .iconCancel{
+            text-align:center;
+            margin-bottom: 6px !important;
+        }
+    }
+
+    @media (min-width: 1200px){
+        .iconCancel{
+            text-align:center;
+            margin-bottom: 8px !important;
+        }
+    }
+
+    .fa-headset {
+        content: "";
+        color: #007abc;
+        font-size: 2.5rem;
+        font-family: "Font Awesome 5 Free";
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .fixedMiddle {
+        z-index: 100 !important;
+    }
+
+
+    @media (max-width: 767px) and (min-width: 320px){
+        .fixedMiddle{
+            position: fixed !important;
+            left:0 !important;
+            top: 50% !important;
+        }
+    }
+
+    .exampleHolder{
+        position: relative;
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+    }
+
+    .slds-scope .slds-spinner_container{
+        z-index: 10000 !important;
+    }
+
+    .personInfo input{
+        font-family: "helvethaicaX-bold", sans-serif;
+        font-size: 1.5rem;
+        color: #333;
+    }
+
+    .modal-title{
+        line-height: normal;
+        padding: 5px 10px 0 0;
+        margin: 0;
+    }
+
+    .slds-p-around_medium{
+        padding: 1rem;
+    }
+
+    .logo {
+        margin-right: -83px !important;
+    }
+
+    @media (max-width: 576px){
+        .logo {
+            transform: scale(0.7);
+            margin-right: 0px !important;
+        }
+    }
+
+    @media (min-width: 577px) and (max-width: 767px){
+        .logo {
+            transform: scale(0.7);
+            margin-right: -75px !important;
+        }
+    }
+
+    @media (min-width: 251px) and (max-width: 319px) {
+        .displayPDF{
+            display: none;
+        }
+
+        html body {
+            /* background: white !important; */
+            overflow: auto !important;
+            height: auto !important;
+        }
+        
+        html body .topbar {
+            position: relative !important;
+            display: none !important;
+        }
+        
+        html .top-nav, html .sub-nav {
+            display: none;
+        }
+        
+        html .main-nav img {
+            float: none !important;
+            margin: 0 auto;
+        }
+        
+        html .main-nav nav {
+            display: none;
+        }
+        
+        html section.questions, html section.parallax, html section.main-content, html section.prod-details, html section.results, html section.passport {
+            display: none !important;
+        }
+        
+        html section.too-small {
+            display: block;
+            margin-top: 100px;
+        }
+        
+        html section.too-small .col {
+            padding: 0;
+            height: 20px;
+            margin-top: 180px;
+        }
+        
+        html section.too-small .col:first-child {
+            border-left: 11px solid black;
+        }
+        
+        html section.too-small .col hr {
+            border-top: 11px solid black;
+            margin-top: 15px;
+        }
+        
+        html section.too-small .col-8 {
+            padding: 0;
+        }
+        
+        html section.too-small .col-8 + .col {
+            border-right: 11px solid black;
+        }
+        
+        html section.too-small .col-8 .box {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 11px solid black;
+            border-radius: 10px;
+            text-align: center;
+            padding: 50px 10px;
+            background: #007abc;
+            font-family: "helvethaicaX-bold", sans-serif;
+            color: white;
+        }
+        
+        html section.too-small .col-8 .dizzy {
+            display: none;
+        }
+    }
+
+    @media (min-width: 1px) and (max-width: 250px) {
+        .displayPDF{
+            display: none;
+        }
+        
+        body {
+            /* background: white !important; */
+            overflow: auto !important;
+            height: auto !important;
+        }
+        
+        body .topbar {
+            position: relative !important;
+            display: none !important;
+        }
+        
+        .top-nav, .sub-nav {
+            display: none;
+        }
+        
+        .main-nav img {
+            float: none !important;
+            margin: 0 auto;
+        }
+        
+        .main-nav nav {
+            display: none;
+        }
+        
+        section.questions, section.parallax, section.main-content, section.prod-details, section.results, section.passport {
+            display: none !important;
+        }
+        
+        section.too-small {
+            display: block !important;
+            margin-top: 100px;
+        }
+        
+        section.too-small .col {
+            padding: 0;
+            height: 20px;
+            margin-top: 180px;
+        }
+        
+        section.too-small .col:first-child {
+            border-left: 11px solid black;
+        }
+        
+        section.too-small .col hr {
+            border-top: 11px solid black;
+            margin-top: 15px;
+        }
+        
+        section.too-small .col-8 {
+            padding: 0;
+        }
+        
+        section.too-small .col-8 + .col {
+            border-right: 11px solid black;
+        }
+        
+        section.too-small .col-8 .box {
+            width: 100%;
+            height: auto;
+            display: block;
+            border: 11px solid black;
+            border-radius: 10px;
+            text-align: center;
+            padding: 50px 10px;
+            background: #007abc;
+            font-family: "helvethaicaX-bold", sans-serif;
+            color: white;
+        }
+        
+        section.too-small .col-8 .dizzy {
+            display: block;
+        }
+        
+        section.too-small .col-8 .frown {
+            display: none;
+        }
+    }
+
+    body.details .modal .modal-body {
+        text-align: center;
+        height: auto;
+    }
+    
+    /* @media only screen and (min-device-width: 480px) and (max-device-width: 568px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: portrait) {
+        main, .topbar {
+            display: block !important;
+        }
+    
+        .unsupported {
+            display: none !important;
+        }
+    } */
+    /* Landscape */
+    /* @media only screen and (min-device-width: 480px) and (max-device-width: 568px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: landscape) {
+        main, .topbar, .unsupported {
+            display: none !important;
+        }
+
+        .displayPDF{
+            display: none;
+        }
+    
+        .orientation {
+            display: block !important;
+        }
+
+        body.details {
+            background: #e1f4fd;
+            overflow-y: hidden;
+            position: static;
+        }
+    } */
+    /* ----------- iPhone 6, 6S, 7 and 8 ----------- */
+    /* Problem Note 10 */
+    /* Landscape */
+    /* @media only screen and (min-device-width: 375px) and (max-device-width: 400px) and (-webkit-min-device-pixel-ratio: 2) and (orientation: landscape) {
+        main, .topbar, .unsupported {
+            display: none !important;
+        }
+
+        .displayPDF{
+            display: none;
+        }
+    
+        .orientation {
+            display: block !important;
+        }
+
+
+        body.details {
+            background: #e1f4fd;
+            overflow-y: hidden;
+            position: static;
+        }
+    } */
+    /* ----------- iPhone 6+, 7+ and 8+ ----------- */
+    /* Landscape */
+    /* @media only screen and (min-device-width: 414px) and (max-device-width: 736px) and (-webkit-min-device-pixel-ratio: 3) and (orientation: landscape) {
+        main, .topbar, .unsupported {
+            display: none !important;
+        }
+
+        .displayPDF{
+            display: none;
+        }
+    
+        .orientation {
+            display: block !important;
+        }
+
+        body.details {
+            background: #e1f4fd;
+            overflow-y: hidden;
+            position: static;
+        }
+    } */
+    /* ----------- iPhone X ----------- */
+    /* Landscape */
+    /* @media only screen and (min-device-width: 375px) and (max-device-width: 812px) and (-webkit-min-device-pixel-ratio: 3) and (orientation: landscape) {
+        main, .topbar, .unsupported {
+            display: none !important;
+        }
+
+        .displayPDF{
+            display: none;
+        }
+    
+        .orientation {
+            display: block !important;
+        }
+
+        body.details {
+            background: #e1f4fd;
+            overflow-y: hidden;
+            position: static;
+        }
+    } */
+    /* ----------- Other Devices ----------- */
+    /* @media (max-height: 480px) and (orientation: portrait) {
+        main, .topbar, .orientation, .horizon, .front, .animation {
+            display: none !important;
+        }
+
+        .displayPDF{
+            display: none;
+        }
+    
+        .unsupported {
+            display: block !important;
+        }
+
+        body.details {
+            background: #e1f4fd;
+            overflow-y: hidden;
+            position: static;
+        }
+    }
+    @media (max-height: 615px) and (orientation: landscape) {
+        main, .topbar, .unsupported, .horizon, .front, .animation {
+            display: none !important;
+        }
+
+        .displayPDF{
+            display: none;
+        }
+    
+        .orientation {
+            display: block !important;
+        }
+
+        body.details {
+            background: #e1f4fd;
+            overflow-y: hidden;
+            position: static;
+        }
+    } */
+    /* @media (max-height: 50px) {
+        main, .topbar, .orientation, .horizon, .front, .animation {
+            display: none !important;
+        }
+
+        .displayPDF{
+            display: none;
+        }
+    
+        .unsupported {
+            display: block !important;
+        }
+
+        body.details {
+            background: #e1f4fd;
+            overflow-y: hidden;
+            position: static;
+        }
+    } */
+
+    /* header .unsupported, header .orientation {
+        display: none;
+    } */
+    
+    /* header .unsupported img, header .orientation img {
+        margin: 30px 110px 0;
+    }
+     */
+    header .unsupported h2, header .orientation h2 {
+        line-height: 2rem;
+        font-weight: bold !important;
+        padding: 0 30px;
+        position: relative;
+        top: 20px;
+        text-align: center;
+        color: #666;
+    }
+
+    .close {
+        float: right;
+        font-size: 1.5rem;
+        font-weight: 700;
+        line-height: 1;
+        color: #000;
+        text-shadow: 0 1px 0 #fff;
+        opacity: .5;
+    }
+
+    main section.main-content .fab:hover .fab-buttons, 
+    main section.main-content .fab-action-button__icon:hover .fab-buttons,
+    main section.main-content .fab .fab-action-button.showDownload + .fab-buttons
+    {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    main section.main-content .fab:hover .fab-buttons__link,    
+    main section.main-content .fab-action-button__icon:hover .fab-buttons__link,
+    main section.main-content .fab .fab-action-button.showDownload + .fab-buttons .fab-buttons__link{
+        transform: scaleY(1) scaleX(1) translateY(-16px) translateX(0px);
+    }
+
+    main section.main-content .fab-action-button:hover + .fab-buttons .fab-buttons__link:before,
+    main section.main-content .fab-action-button.showDownload + .fab-buttons .fab-buttons__link:before {
+        visibility: visible;
+        opacity: 1;
+        transform: scale(1);
+        transform-origin: right center 0;
+        transition-delay: 0.3s;
+    }
+
+    main section.main-content .fab-action-button.showDownload {
+        opacity: 1;
+        cursor: pointer;
+    }
+
+</style>
+
+<!-- <script src="//mozilla.github.io/pdf.js/build/pdf.js"></script> -->
+
+<body class="details">   
+         
+    <header>
+        <div class="unsupported">
+            <img src="{!notSupport}" />
+            <h2>
+                Your device is not supported, please upgrade your device if you want to take this journey with us!
+            </h2>
+        </div>
+        <div class="orientation">
+            <img src="{!orientation}" />
+            <h2>
+                Sorry! The page can't be displayed on your monitor or device.<br/>Please try rotating your device to portrait mode, or enlarge your browser window to continue.
+            </h2>
+        </div>
+        <div class="topbar" style="position: fixed;top: 0px;">
+            <a href="javascript:void(0)" name="like" onclick="getInfo()" class="float-right cta hvr-fade" id="lead-modal" data-toggle="modal" data-target="#leadModal" data-backdrop="static" data-keyboard="false"><h2 class="resText">สนใจผลิตภัณฑ์นี้</h2></a>
+            <img src="{!logoImage}" class="logo" />
+            <a href="javascript:void(0)" name="back" onclick="previousPage()" class="float-left cta hvr-fade" id="previous"><h2 class="resText">Back</h2></a>
+        </div>
+    </header>
+    <div class="content slds-scope mgt150 displayPDF">
+        <div class="MessageError hide">
+            <i class="material-icons">error</i> PDF large file size can't render</div>
+        <div class="MessageNotFound hide">
+            <i class="material-icons">error</i> PDF file not found</div>
+        <div class="content-pdf">
+            <!-- <div class="button-center">
+                <div class="button-prev"><button class="slds-button slds-button_brand" id="prev">Previous</button></div>
+                
+                <span>Page: <span id="page_num"></span> / <span id="page_count"></span></span>
+                
+                <div class="button-next"><button class="slds-button slds-button_brand" id="next">Next</button></div>
+            </div> -->
+            <div class="newRenderPDF"></div>
+            <!-- old render PDF -->
+            <!-- <div class="center-screen hide"><canvas id="the-canvas"></canvas></div> -->
+        </div>
+    </div>
+    <!-- Modal -->
+    <apex:form >  
+
+        <apex:actionfunction action="{!dependentInformationDistrict}" oncomplete="completeLoadDependentDistrict()" name="dependentDistrictActFn" reRender="rerenderDependentDistrict,rerenderDependentBranch">
+            <apex:param name="paramProvinceDependent_1" value="" assignto="{!provinceDependent}"/>
+        </apex:actionfunction>
+        <apex:actionfunction action="{!dependentInformationBranch}" oncomplete="completeLoadDependentBranch()" name="dependentBranchActFn" reRender="rerenderDependentBranch">
+            <apex:param name="paramDistrictDependent_2" value="" assignto="{!districtDependent}"/>
+            <apex:param name="paramBranchDependent_2" value="" assignto="{!branchDependent}"/>
+        </apex:actionfunction>
+        <apex:actionfunction action="{!getInformation}" oncomplete="beforeSetInfo();" name="getInformationFn" reRender="rerenderDependentProvince,rerenderDependentDistrict,rerenderDependentBranch" />
+
+        <apex:actionfunction action="{!setInformation}" oncomplete="setInfo('{!personName}', '{!mobileNumber}', '{!provinceDependent}', '{!districtDependent}', '{!branchDependent}');" name="setInformationFn" reRender="rerenderInput,rerenderDependentProvince,rerenderDependentDistrict,rerenderDependentBranch" />
+
+        <apex:actionfunction action="{!saveInformation}" oncomplete="updateFlag();" name="saveInformationFn" reRender="rerenderInput,rerenderDependentDistrict,rerenderDependentBranch">
+            <apex:param name="paramProvinceDependent_3" value="" assignto="{!provinceDependent}"/>
+            <apex:param name="paramDistrictDependent_3" value="" assignto="{!districtDependent}"/>
+            <apex:param name="paramBranchDependent_3" value="" assignto="{!branchDependent}"/>
+            <apex:param name="paramPersonName_3" value="" assignto="{!personName}"/>
+            <apex:param name="paramMobileNumber_3" value="" assignto="{!mobileNumber}"/>
+        </apex:actionfunction>
+
+        <apex:actionfunction action="{!createRef}" oncomplete="clearSession()" name="createRefFn" reRender="">
+            <apex:param name="paramSessionData" value="" assignto="{!sessionData}"/>
+        </apex:actionfunction>
+
+        <apex:actionfunction action="{!idleTime}" oncomplete="idleTimeCooldown('{!idleTimeMilliseconds}')" name="idleTimeFn" reRender="" />
+
+
+        <apex:actionfunction action="{!setupCustomerList}" oncomplete="callOscService('{!statusStampOffset}','{!sendSMS}')" name="setupServiceOSCFn" reRender="" >
+            <apex:param name="paramsActivityId" value="" assignto="{!fnaActivityId}"/>
+            <apex:param name="paramsSendSMS" value="" assignto="{!sendSMS}"/>
+        </apex:actionfunction>
+        <!-- Old -->
+        <!-- <apex:actionfunction action="{!startCallCaseProductDeposit}" oncomplete="setProductOSC14('{!responseBody}','{!sendSMS}')" name="callOsc14ServiceFn" reRender="">
+            <apex:param name="paramsSendSMS" value="" assignto="{!sendSMS}"/>
+        </apex:actionfunction>
+        <apex:actionfunction action="{!startCallCaseProductBA}" oncomplete="setProductOSC16('{!responseBody}','{!sendSMS}')" name="callOsc16ServiceFn" reRender="">
+            <apex:param name="paramsSendSMS" value="" assignto="{!sendSMS}"/>
+        </apex:actionfunction> -->
+
+        <apex:actionfunction action="{!startCallCaseProductDeposit2}" oncomplete="setProductOSC01('{!responseBody}','{!sendSMS}')" name="callOsc01ServiceFn" reRender="">
+            <apex:param name="paramsSendSMS" value="" assignto="{!sendSMS}"/>
+        </apex:actionfunction>
+        <apex:actionfunction action="{!startCallCaseProductBA2}" oncomplete="setProductOSC05('{!responseBody}','{!sendSMS}')" name="callOsc05ServiceFn" reRender="">
+            <apex:param name="paramsSendSMS" value="" assignto="{!sendSMS}"/>
+        </apex:actionfunction>
+        <!-- Credit cards: get-cards-balance service -->
+        <apex:actionfunction action="{!startCallCaseProductCreditCards}" oncomplete="setProductGetCardsBalance('{!responseBody}','{!sendSMS}')" name="callGetCardsBalanceServiceFn" reRender="">
+            <apex:param name="paramsSendSMS" value="" assignto="{!sendSMS}"/>
+        </apex:actionfunction>
+
+        <apex:actionfunction action="{!stampOffSet}" oncomplete="finishStampOSC('{!statusResponse}','{!statusCode}')" name="stampOSCFn" reRender="" >
+            <!-- <apex:param name="paramsResponseOSC14" value="" assignto="{!responseOSC14}"/>
+            <apex:param name="paramsResponseOSC16" value="" assignto="{!responseOSC16}"/> -->
+            <apex:param name="paramsResponseOSC01" value="" assignto="{!responseOSC01}"/>
+            <apex:param name="paramsResponseOSC05" value="" assignto="{!responseOSC05}"/>
+            <apex:param name="paramsResponseGetCardsBalance" value="" assignto="{!responseGetCardsBalance}"/>
+        </apex:actionfunction>
+
+
+    <main>
+        <section class="too-small">
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        <hr />
+                    </div>
+                    <div class="col-8">
+                        <div class="frown text-center">
+                            <img src="{!hurt}" class="img-fluid" />
+                        </div>
+                        <div class="dizzy text-center">
+                            <img src="{!dead}" class="img-fluid" />
+                        </div>
+                        <div class="box">
+                            <h1>
+                                Your device is not supported, please upgrade your device if you want to take this journey with us!
+                                <br/>
+                                    <i class="fas fa-mobile-alt">
+                                </i>
+                            </h1>
+                        </div>
+                    </div>
+                    <div class="col">
+                        <hr />
+                    </div>
+                </div>
+            </div>
+        </section>
+        <div class="slds-scope manualSpinner">
+            <div id="spinner" class="slds-spinner_container slds-is-fixed">
+                <div role="status" class="slds-spinner slds-spinner_large">
+                    <span class="slds-assistive-text">Loading</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal fade" id="leadModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content interestedModal">
+                    <div class="slds-scope interestSpinner hide">
+                        <div id="spinner" class="slds-spinner_container">
+                            <div role="status" class="slds-spinner slds-spinner_medium">
+                                <span class="slds-assistive-text">Loading</span>
+                                <div class="slds-spinner__dot-a"></div>
+                                <div class="slds-spinner__dot-b"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="prodName"></h3>
+                        <button type="button" onclick="closeModalInterested()" name="close" class="close" data-dismiss="modal" aria-label="Close">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="prodForm" id="prodFormField">
+                            <h3>กรอกรายละเอียดเพื่อรับข้อมูลเพิ่มเติม</h3>
+                            <form>
+    
+                                <apex:outputPanel id="rerenderInput">
+    
+                                <div class="form-row personInfo">
+                                    <div class="col-md-6 mt-2">
+                                            <!-- value="{!personName}" -->
+                                        <input onkeyup="checkValidateModal()" name="name" id="personName" type="text" class="form-control" placeholder="ชื่อ-นามสกุล" />
+                                    </div>
+                                    <div class="col-md-6 mt-2">
+                                            <!-- value="{!mobileNumber}" -->
+                                        <input onkeypress="allowNumbersOnlyOnce(event)" name="phone" onkeyup="checkValidateModal()" id="mobileNumber" type="tel" maxlength="10" class="form-control" placeholder="เบอร์โทรศัพท์มือถือ" />
+                                    </div>
+                                </div>
+    
+                                </apex:outputPanel>
+    
+                                <h3 style="padding-top:15px;">สาขา TMB ที่ต้องการให้ติดต่อกลับ</h3>
+                                
+                                <div class="form-row">
+                                    <div class="col-md-4 mt-2">
+                                        <apex:outputPanel id="rerenderDependentProvince">
+                                            <select name="inputProvince" id="inputProvince" class="form-control" onchange="dependentD()">
+                                                <option value="จังหวัด">จังหวัด</option>
+                                                <apex:repeat value="{!province}" var="itemProvince">
+                                                    <option value="{!itemProvince}">{!itemProvince}</option>
+                                                </apex:repeat>
+                                            </select>
+                                        </apex:outputPanel>
+                                    </div>
+    
+                                    <div class="col-md-4 mt-2">
+                                        <apex:outputPanel id="rerenderDependentDistrict">
+                                            <select name="inputDistrict" id="inputDistrict" class="form-control" onchange="dependentB()" disabled="true">
+                                                <option value="">เขต</option>
+                                                <apex:repeat value="{!district}" var="itemDistrict">
+                                                    <option value="{!itemDistrict}">{!itemDistrict}</option>
+                                                </apex:repeat>
+                                            </select>
+                                        </apex:outputPanel>
+                                    </div>
+                                    <div class="col-md-4 mt-2">
+                                        <apex:outputPanel id="rerenderDependentBranch">
+                                            <select name="inputBranch" id="inputBranch" class="form-control" onchange="validateBranch()" disabled="true">
+                                                <option value="">สาขา</option>
+                                                <apex:repeat value="{!branch}" var="itemBranch">
+                                                    <option value="{!itemBranch}">{!itemBranch}</option>
+                                                </apex:repeat>
+                                            </select>
+                                        </apex:outputPanel>
+                                    </div>
+    
+                                </div>
+                            </form>
+    
+                        </div>
+                        
+                        <div class="more" id="moreField">
+                            <h3>สนใจรับข้อมูลผลิตภัณฑ์อื่นๆเพิ่มเติมหรือไม่</h3>
+                            <div class="links">
+                                <a href="javascript:void(0)" name="interest" onclick="previousPage()" class="cta hvr-fade interested"><h2>สนใจ</h2></a>
+                                <a href="javascript:void(0)" name="noThankyou" class="cta hvr-fade nothank" onclick="nextStep()"><h2>ไม่ ขอบคุณ</h2></a>
+                            </div>
+                        </div>
+                        
+                        <div class="callback" id="callbackField">
+                            <h3>ขอบคุณสำหรับข้อมูลครับ<br/>ธนาคารจะติดต่อกลับ</h3><i class="fas fa-headset"></i>				
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" onclick="saveInfo()" name="submit" class="btn btn-lg cta" id="moreProdBtn">Submit</button>
+                        <button type="button" onclick="exitPage()" name="ok" class="btn btn-lg cta" id="endProdBtn">OK</button>
+                    </div>
+                </div>
+            </div>            
+        </div>
+    </main>
+    </apex:form> 
+    <main>
+        <!-- <section class="main-content {!IF(isAvatarDownload , 'hide', '')}"> -->
+        <section class="main-content">
+            <div class="container">
+                <div class="fab fixedMiddle" style="opacity: 1; display: block;">
+                    <span class="fab-action-button" data-id="iconDownload" onclick="downloadHandle()">
+                        <img src="{!b64}" style="transform: scale(1.2);margin: 0;max-width: 100%;height: auto;"  />
+                    </span>
+                    <ul class="fab-buttons">
+                        <li class="fab-buttons__item">
+                            <a href="javascript:void(0)" name="download" onclick="handleClick()"  class="fab-buttons__link" data-tooltip="Download Avatar" data-toggle="modal" data-target="#leadModal2" data-backdrop="static" data-keyboard="false"></a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+                
+        <div class="modal fade modalCenter" id="leadModal2" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="slds-scope downloadSpinner hide">
+                    <div id="spinner" class="slds-spinner_container">
+                        <div role="status" class="slds-spinner slds-spinner_medium">
+                            <span class="slds-assistive-text">Loading</span>
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-content bShowModal1">
+                    <!-- modal header -->
+                    <div class="modal-header">
+                        <h3 class="modal-title">ใส่หมายเลขมือถือเพื่อดาวน์โหลด Avatar</h3>
+                        <!-- <h5 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate" style="float: left;" >ใส่หมายเลขมือถือเพื่อดาวน์โหลด Avatar</h5> -->
+                        <!-- <a class="close4 pointer" name="close" onclick="closeModal()" data-dismiss="modal" >
+                            <i class="fas fa-times-circle"></i>
+                        </a> -->
+                        <button type="button" onclick="closeModal()" name="close" class="close" data-dismiss="modal" aria-label="Close">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </div>
+                    <!-- modal body -->
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <div class="modal-body" style="min-height: 150px;" >
+                            <div class="form-group">
+                                <label class="label" >Mobile Number</label>
+                            </div>
+                            <!-- <input class="phone" type="tel" maxlength="10" id="phone" name="phone" placeholder="e.g. 0815581558" style="background: rgb(255, 255, 255);"/> -->
+                            <input onkeypress="allowNumbersOnly(event)" pattern="[0-9]*" class="phone" type="tel" maxlength="10" value="{!mobilenumber}" data-id="phoneInput" id="phone" name="phone" placeholder="e.g. 0815581558" />
+                            <!-- <p class="error">หมายเลขที่คุณใส่ไม่ถูกต้อง</p> -->
+                            <p style="margin: 9px 0px;" class="errorlog errPhone hide">หมายเลขที่คุณใส่ไม่ถูกต้อง</p>
+                        </div>
+                    </div>
+                    <!-- modal footer -->
+                    <div class="modal-footer">
+                        <!-- <div class="slds-align_absolute-center"> -->
+                            <button class="btn btn-lg cta" name="next" onclick="next()">Next</button> 
+                        <!-- </div> -->
+                    </div>
+                </div>
+
+                <div class="modal-content bShowModal2 hide">
+                    <div class="modal-header">
+                        <h3 class="modal-title" style="width: 15rem;">กรุณาระบุรหัส OTP ที่ได้รับ</h3>
+                        <!-- <a  class="close4 pointer" name="close" onclick="closeModal()" data-dismiss="modal" >
+                            <i class="fas fa-times-circle"></i>
+                        </a> -->
+                        <button type="button" onclick="closeModal()" name="close" class="close" data-dismiss="modal" aria-label="Close">
+                            <i class="fas fa-times-circle"></i>
+                        </button>
+                    </div>
+                    <!-- modal body -->
+                    <!-- <div class="slds-modal__content slds-p-around_medium"> -->
+                        <div class="modal-body">
+                            <!-- <div class="slds-align_absolute-center"> -->
+                                <div class="row" id="otpInput" style="display: flex; padding-top: 20px;">
+                                    <h4>กรุณากรอกรหัส OTP 6 หลักที่ระบบส่งให้ทาง SMS ของท่าน</h4>
+                                    <p style="font-weight: lighter !important; text-align: center;font-size: 1.5rem;" class="textRef"></p>
+                                    <div class="otp">
+                                    <input type="tel" class="form-control otp-input" maxlength="1" onkeypress="allowNumbersOnlyOnce(event)" onkeyup="checkNext(event)" name="input_1" data-id="otpInput_1" />
+                                    <input type="tel" class="form-control otp-input" maxlength="1" onkeypress="allowNumbersOnlyOnce(event)" onkeyup="checkNext(event)" name="input_2" data-id="otpInput_2" />
+                                    <input type="tel" class="form-control otp-input" maxlength="1" onkeypress="allowNumbersOnlyOnce(event)" onkeyup="checkNext(event)" name="input_3" data-id="otpInput_3" />
+                                    <input type="tel" class="form-control otp-input" maxlength="1" onkeypress="allowNumbersOnlyOnce(event)" onkeyup="checkNext(event)" name="input_4" data-id="otpInput_4" />
+                                    <input type="tel" class="form-control otp-input" maxlength="1" onkeypress="allowNumbersOnlyOnce(event)" onkeyup="checkNext(event)" name="input_5" data-id="otpInput_5" />
+                                    <input type="tel" class="form-control otp-input" maxlength="1" onkeypress="allowNumbersOnlyOnce(event)" onkeyup="checkNext(event)" name="input_6" data-id="otpInput_6" /> 
+                                    </div>
+                                    <p class="errorlog hide err textErr" ></p>
+                                    <span class="btnResetOTP hide" style="width: 100%;justify-content: center;">
+                                        <a href="#" class="resetOTP" name="resetOTP" onclick="resetOTP()">
+                                            <span class="resetText">
+                                                รับรหัส OTP ใหม่
+                                            </span>
+                                        </a>
+                                    </span>
+                                </div>
+                            <!-- </div> -->
+                        </div>
+                    <!-- </div> -->
+                    
+                    <!-- modal footer -->
+                    <div class="modal-footer">
+                        <!-- <div class="slds-align_absolute-center"> -->
+                            <button class="btn btn-lg cta" data-id="btnSubmitOTP" name="submitOTP" onclick="checkNext(event)">ตกลง</button>
+                        <!-- </div> -->
+                    </div>    
+                </div>
+
+                <div class="modal-content bShowModal3 hide">
+                    <div class="slds-modal__container">
+                        <!-- modal header -->
+                        <div class="modal-header">
+                            <h3 class="modal-title">ยืนยันสำเร็จ</h3>
+                            <!-- <a  class="close4 pointer" name="close" onclick="closeModal()" data-dismiss="modal" >
+                                <i class="material-icons" style="color: #000;">cancel</i>
+                            </a> -->
+                            <button type="button" onclick="closeModal()" name="close" class="close" data-dismiss="modal" aria-label="Close">
+                                <i class="fas fa-times-circle"></i>
+                            </button>
+                        </div>
+                        <!-- modal body -->
+                        <div class="slds-modal__content slds-p-around_medium">
+                            <div class="modal-body">
+                                <div class="slds-align_absolute-center">
+                                    <div style="text-align: center;">
+                                        <!-- <i class="material-icons" style=" color: green; font-size: 4rem;">check_circle</i> -->
+                                        <i class="fas fa-check-circle" style=" color: green; font-size: 4rem;"></i>
+                                        <h3 class="slds-text-heading_medium slds-hyphenate" style="color: rgba(0, 0, 0, 0.966); font-family:helvethaicaX-thin,sans-serif;">ท่านจะได้รับ SMS เพื่อดาวน์โหลด Avatar</h3>
+                                        <h3 class="slds-text-heading_medium slds-hyphenate" style="color: rgba(0, 0, 0, 0.966); font-family:helvethaicaX-thin,sans-serif;">ขอบคุณครับ</h3>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- modal footer -->
+                        <div class="modal-footer">
+                            <!-- <div class="slds-align_absolute-center"> -->
+                                <button class="btn btn-lg cta" name="ok" onclick="closeModal()" data-dismiss="modal">OK</button>
+                            <!-- </div>  -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main> 
+
+</body>
+            
+    
+    <script>
+
+        var body = document.body;
+        body.classList.add("details");
+        body.classList.remove('slds-scope');
+        var phoneNumber = '{!mobileNumber}';
+
+        var getID = '{!formIdOriginal}';
+        $(".textRef").text('รหัสอ้างอิงของท่านคือ: ');
+        $(".textErr").text('');
+
+        var provinceVal = '';
+        var districtVal = '';
+        var branchVal = '';
+
+        var init = false;     
+        var srcData, pdfData = '';
+        var sessionData = '';
+
+        $( document ).ready(function() {
+            let personNameInput = document.getElementById('personName');
+            let mobileNumberInput = document.getElementById('mobileNumber');
+            let depProvince = document.getElementById('inputProvince');
+            let depDistrict = document.getElementById('inputDistrict');
+            let depBranch = document.getElementById('inputBranch');
+
+            $('.phone').val(phoneNumber);
+
+            Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.fnaProductDetailCtrl.getStream}','{!idRTL}',
+                function(result, event){
+                    // console.log('result : ' , result);
+                    // console.log('event : ' , event);
+                    if(result != ''){
+                        // console.log('then', result);
+
+                        sessionData = result.productId;
+   
+                        $( "#prodName" ).text('ผลิตภัณฑ์ ' + result.productName);
+                        if(result.isError){
+                            $( ".MessageError" ).removeClass( "hide" );
+                            $( ".content-pdf" ).addClass( "hide" );
+                        }else if(result.pdffile != '' && result.pdffile != null){
+                            
+                            $( "#prodName" ).text('ผลิตภัณฑ์ ' + result.productName);
+                            srcData = result.pdffile;
+                            pdfData = atob(srcData);
+                            newRenderPDF(result.pdfId);
+                            /**
+                             * Asynchronously downloads PDF.
+                             */
+                            /*var loadingTask = pdfjsLib.getDocument({data: pdfData});
+                                loadingTask.promise.then(function(pdfDoc_) {
+                                    pdfDoc = pdfDoc_;
+                                    //document.getElementById('page_count').textContent = pdfDoc.numPages;
+                                    // Initial/first page rendering
+                                    //renderPage(pageNum);
+                                    newRenderPDF(result.pdfId);
+                            });*/
+                        }else{
+                            $( ".MessageNotFound" ).removeClass( "hide" );
+                            $( ".content-pdf" ).addClass( "hide" );
+                        }
+                        
+                    }else{
+                        // console.log('Catch getStream');
+                    }
+
+                    $(".manualSpinner").addClass("hide");
+            });
+
+            var sessionStorageLocal = sessionStorage.getItem("1");
+
+            if(sessionStorageLocal != null){
+                idleTimeFn();
+            }
+
+            /*const sPageURL = decodeURIComponent(window.location.search.substring(1));
+            const parameter = getparameter(sPageURL);*/
+            
+            if(getID != '' && getID != null){
+                Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.fnaProductDetailCtrl.stampUrlDropOff}', 
+                    getID, window.location.search, '{!idRTL}',function(result, event){});
+            }
+
+        });
+        // function afterRender(){
+        // atob() is used to convert base64 encoded PDF to binary-like data.
+        // (See also https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/
+        // Base64_encoding_and_decoding.)
+
+        // var srcData = "{pdfFile}";
+        // var pdfData = atob(srcData);
+
+        // Loaded via <script> tag, create shortcut to access PDF.js exports.
+        // var pdfjsLib = window['pdfjs-dist/build/pdf'];
+
+        // The workerSrc property shall be specified.
+        // pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
+
+        var pdfDoc = null;
+        // pageNum = 1,
+        // pageRendering = false,
+        // pageNumPending = null,
+        // scale = 2,
+        // canvas = document.getElementById('the-canvas'),
+        // ctx = canvas.getContext('2d');
+        // }
+        
+        /**
+        * Get page info from document, resize canvas accordingly, and render page.
+        * @param num Page number.
+        */  
+
+        /*function getparameter(param){
+            var myMap = new Map();
+            if(param !== ''){
+                var sURLVariables = param.split('&');
+            
+                var i;
+                var sParameterName;
+                for (i = 0; i < sURLVariables.length; i++) {
+                    sParameterName = sURLVariables[i].split('='); //to split the key from the value.
+                    myMap.set(sParameterName[0], sParameterName[1]);
+                }
+            }
+            // console.log('myMap : ', myMap)
+            return myMap;
+        }*/
+
+        function imgError(ele){
+            //ele.remove();
+            ele.parentNode.removeChild(ele);
+        }
+
+        function newRenderPDF(version){
+            // pdfDoc.numPages
+            
+            var num = 0;
+            
+            while (num < 15) {
+                var ele = document.createElement("img");
+                var eleAtt = document.createAttribute("src");    
+                eleAtt.value = '{!domain}' + "/sfc/servlet.shepherd/version/renditionDownload?rendition=SVGZ&versionId="+ version +"&page=" + num;
+                var eleOnerror = document.createAttribute("onerror");    
+                eleOnerror.value = 'imgError(this)';
+                
+                //badUrl = checkImage(eleAtt.value, function(){ console.log("good" + badUrl); return false;}, function(){ console.log("bad" + badUrl); return true;} );
+                //console.log('badUrl' + badUrl);
+                ele.setAttributeNode(eleAtt);
+                ele.setAttributeNode(eleOnerror);
+                $('.newRenderPDF').append(ele);
+                num++;
+                
+            }
+            /*for (num = 0; num < pdfDoc.numPages; num++) {
+                var ele = document.createElement("img");
+                var eleAtt = document.createAttribute("src");    
+                eleAtt.value = '{!domain}' + "/sfc/servlet.shepherd/version/renditionDownload?rendition=SVGZ&versionId="+ version +"&page=" + num;
+                ele.setAttributeNode(eleAtt);
+                $('.newRenderPDF').append(ele);
+            }*/
+        }
+
+        function checkImage(imageSrc, good, bad) {
+            var img = new Image();
+            img.onload = good; 
+            img.onerror = bad;
+            img.src = imageSrc;
+        }
+
+        function downloadHandle(){
+            var isIE11 = !!window.MSInputMethodContext && !!document.documentMode;
+            var notSupport = false;
+            if(isIE11 || this.detectIEEdge() != false){
+                notSupport = true;
+            }
+
+            if(notSupport){
+                var downloadButton = document.querySelector('[data-id="iconDownload"]');
+                console.log('downloadButton.contains' + downloadButton.classList.contains("showDownload"));
+                if(downloadButton.classList.contains("showDownload")){
+                    downloadButton.classList.remove("showDownload");
+                }else{
+                    downloadButton.classList.add("showDownload");
+                }
+            }
+        }
+
+        function detectIEEdge() {
+            var ua = window.navigator.userAgent;
+
+            var msie = ua.indexOf('MSIE ');
+            if (msie > 0) {
+                // IE 10 or older => return version number
+                return parseInt(ua.substring(msie + 5, ua.indexOf('.', msie)), 10);
+            }
+
+            var trident = ua.indexOf('Trident/');
+            if (trident > 0) {
+                // IE 11 => return version number
+                var rv = ua.indexOf('rv:');
+                return parseInt(ua.substring(rv + 3, ua.indexOf('.', rv)), 10);
+            }
+
+            var edge = ua.indexOf('Edge/');
+            if (edge > 0) {
+            // Edge => return version number
+            return parseInt(ua.substring(edge + 5, ua.indexOf('.', edge)), 10);
+            }
+
+            // other browser
+            return false;
+        }  
+        
+
+        function renderPage(num) {
+            pageRendering = true;
+            // Using promise to fetch the page
+            pdfDoc.getPage(num).then(function(page) {
+                var viewport = page.getViewport({ scale: scale, });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                // Render PDF page into canvas context
+                var renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport,
+                };
+
+                var renderTask = page.render(renderContext);
+                // Wait for rendering to finish
+                    renderTask.promise.then(function () {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        // New page rendering is pending
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+
+                    /// all page
+                    num++;
+                    if ( num <= pdfDoc.numPages )
+                    {   
+                        var ele = document.createElement("canvas");
+                        var eleAtt = document.createAttribute("id");    
+                        eleAtt.value = "the-canvas" + num;
+                        ele.setAttributeNode(eleAtt);
+                        $('.center-screen').append(ele)
+
+                        canvas = document.getElementById('the-canvas' + num);
+                        ctx = canvas.getContext('2d');
+                        // console.log('num ' + num);
+                        // if(num == 5){
+                        //     $(".manualSpinner").addClass("hide");
+                        // }
+                        //thePDF.getPage( num ).then( handlePages );
+                        renderPage(num);
+                    }
+                });
+            });
+        // Update page counters
+            //document.getElementById('page_num').textContent = num;
+        }
+
+        /**
+         * If another page rendering in progress, waits until the rendering is
+         * finised. Otherwise, executes rendering immediately.
+         */
+        // function queueRenderPage(num) {
+        //     if (pageRendering) {
+        //         pageNumPending = num;
+        //     } else {
+        //         renderPage(num);
+        //     }
+        // }
+        /**
+        * Displays previous page.
+        */
+        // function onPrevPage() {
+        //     if (pageNum <= 1) {
+        //         return;
+        //     }
+        //     pageNum--;
+        //     queueRenderPage(pageNum);
+        // }
+        //document.getElementById('prev').addEventListener('click', onPrevPage);
+        /**
+        * Displays next page.
+        */
+        // function onNextPage() {
+        //     if (pageNum >= pdfDoc.numPages) {
+        //         return;
+        //     }
+        //     pageNum++;
+        //     queueRenderPage(pageNum);
+        // }
+        //document.getElementById('next').addEventListener('click', onNextPage);
+        var heart = "{!heart}";
+        var heartInvert = "{!heartInvert}";
+        var back = "{!back}";
+        var backInvert = "{!backInvert}";
+        
+        function ImageOver(d){
+            // console.log('ImageOver');
+            $('img[name="imgHeart"]').attr('src',heartInvert);
+        }
+        function ImageUnOver(d){
+            // console.log('ImageUnOver');
+            $('img[name="imgHeart"]').attr('src',heart);
+        }
+        function ImageOverBack(d){
+            // console.log('ImageOver');
+            $('img[name="imgBack"]').attr('src',backInvert);
+        }
+        function ImageUnOverBack(d){
+            // console.log('ImageUnOver');
+            $('img[name="imgBack"]').attr('src',back);
+        }
+
+        function resetTimeoutPage(){
+            clearTimeout(fnIdleTime);
+            var sessionStorageInfo = sessionStorage.getItem("1");
+            // console.log('sessionStorageInfo : ',sessionStorageInfo)
+
+            if(sessionStorageInfo != null){
+                idleTimeFn();
+            }
+        }
+
+        function previousPage (){
+            $(".manualSpinner").removeClass("hide");
+            
+            if(fnIdleTime !== undefined){
+                clearTimeout(fnIdleTime);
+            }
+
+            Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.fnaProductDetailCtrl.encryptId}',this.getID,
+                function(result, event){
+                    var originalURL = 'Id=' + result;
+                    var encryptURL = '/fin/s/fnaHighlightProduct?' + encodeURIComponent(originalURL);
+                    window.location.href = encryptURL;
+
+            });
+        }
+
+        function exitPage (){
+            sessionStorage.clear();
+            window.location.href = '/fin/s/';
+        }
+
+        function resetClass(){
+            let depProvince = document.getElementById('inputProvince');
+            let depDistrict = document.getElementById('inputDistrict');
+            let depBranch = document.getElementById('inputBranch');
+
+            depProvince.classList.remove('inputInvalid');
+            depDistrict.classList.remove('inputInvalid');
+            depBranch.classList.remove('inputInvalid');
+        }
+
+        function dependentD(){
+            // console.log('Dependent District Function Start')
+            let depProvince_r = document.getElementById('inputProvince').value;
+            let depDistrict_r = document.getElementById('inputDistrict').value;
+      
+            let personNameInput = document.getElementById('personName');
+            let mobileNumberInput = document.getElementById('mobileNumber');
+            let depProvince = document.getElementById('inputProvince');
+            let depDistrict = document.getElementById('inputDistrict');
+            let depBranch = document.getElementById('inputBranch');
+
+            if(depProvince.value !== 'จังหวัด'){
+                depProvince.classList.remove('inputInvalid');
+                this.provinceVal = depProvince.value;
+                $('#inputBranch').attr("disabled", "disabled");
+                $('#inputDistrict').attr("disabled", "disabled");
+                $('#inputProvince').attr("disabled", "disabled");
+                dependentDistrictActFn(depProvince_r);
+            }else{
+                depProvince.classList.add('inputInvalid');
+                depProvince.blur();
+
+                $('#inputBranch').attr("disabled", "disabled");
+                $('#inputDistrict').attr("disabled", "disabled");
+
+                $('#inputDistrict').val('เขต');
+                $('#inputBranch').val('สาขา');
+            }
+        }
+
+        function completeLoadDependentBranch(){
+
+            if(this.branchVal !== '' && this.branchVal !== 'สาขา' && this.init === true){
+                $("#inputBranch").val(this.branchVal);
+                this.init = false;
+
+                $('#inputBranch').removeAttr("disabled");
+                $('#inputDistrict').removeAttr("disabled");
+                $('#inputProvince').removeAttr("disabled");
+                $(".interestSpinner").addClass("hide");
+            }else{
+                $('#inputBranch').removeAttr("disabled");
+                $('#inputDistrict').removeAttr("disabled");
+                $('#inputProvince').removeAttr("disabled");
+            }
+        }
+        function completeLoadDependentDistrict(){
+
+            $('#inputDistrict').removeAttr("disabled");
+            $('#inputProvince').removeAttr("disabled");
+
+            if(this.districtVal !== '' && this.districtVal !== 'เขต' && this.init === true){
+                $("#inputDistrict").val(this.districtVal);
+                dependentBranchActFn(this.districtVal,this.branchVal);
+            }else{
+                $('#inputDistrict').val('เขต');
+                $('#inputBranch').val('สาขา');
+                $('#inputBranch').attr("disabled", "disabled");
+                $('#inputDistrict').removeAttr("disabled");
+            }
+        }
+        
+        function dependentB(){
+            // console.log('Dependent Branch Function Start')
+            let depDistrict_r = document.getElementById('inputDistrict').value;
+            let depBranch_r = document.getElementById('inputBranch').value;
+
+            let personNameInput = document.getElementById('personName');
+            let mobileNumberInput = document.getElementById('mobileNumber');
+            let depProvince = document.getElementById('inputProvince');
+            let depDistrict = document.getElementById('inputDistrict');
+            let depBranch = document.getElementById('inputBranch');
+
+            if(depDistrict_r !== 'เขต'){
+                depDistrict.classList.remove('inputInvalid');
+                $('#inputBranch').attr("disabled", "disabled");
+                $('#inputDistrict').attr("disabled", "disabled");
+                $('#inputProvince').attr("disabled", "disabled");
+                dependentBranchActFn(depDistrict_r,depBranch_r);
+            }else{
+                depDistrict.classList.add('inputInvalid');
+                depDistrict.blur();
+
+                $('#inputBranch').attr("disabled", "disabled");
+                // depBranch.classList.add('inputInvalid');
+                $('#inputBranch').val('สาขา');
+
+            }
+        }
+
+        function validateBranch(){
+            let depBranch_r = document.getElementById('inputBranch').value;
+            let depBranch = document.getElementById('inputBranch');
+
+            if(depBranch_r !== 'สาขา'){
+                depBranch.classList.remove('inputInvalid');                    
+            }
+            else{
+                depBranch.classList.add('inputInvalid');
+                depBranch.blur();
+            }
+        }
+
+        function getInfo(){  
+            resetTimeoutPage();
+
+            $('#inputProvince').val('จังหวัด');
+            $('#inputDistrict').val('เขต');
+            $('#inputBranch').val('สาขา');
+            $(".interestSpinner").removeClass("hide");
+            $("#prodFormField").show();
+            $("#moreProdBtn").show();
+            $("#callbackField").hide();
+            $("#endProdBtn").hide();
+            $("#moreField").hide();
+            getInformationFn();
+        }
+
+        function beforeSetInfo(){
+            // console.log('CALL BEFORE SET INFO')
+            clearTimeout(fnIdleTime);
+            var sessionStorageInfo = sessionStorage.getItem("1");
+
+            if(sessionStorageInfo != null){
+                idleTimeFn();
+            }
+            setInformationFn();
+        }
+        function setInfo(setPersonName, setMobileNumber, setProvince, setDistrict, setBranch){
+            // console.log('SET INFO' + setPersonName);
+            resetTimeoutPage();
+            setPersonName = decodeURIComponent(setPersonName.replace(/\+/g, ' '));
+
+            let personNameInput = document.getElementById('personName');
+            let mobileNumberInput = document.getElementById('mobileNumber');
+            let provinceSelectInput = document.getElementById('inputProvince');
+            let districtSelectInput = document.getElementById('inputDistrict');
+            let branchSelectInput = document.getElementById('inputBranch');
+
+            personNameInput.value = '';
+            mobileNumberInput.value = '';
+
+            provinceSelectInput.value = '';
+            districtSelectInput.value = '';
+            branchSelectInput.value = '';
+
+            if(setPersonName !== ''){
+                personNameInput.value = setPersonName;
+            }
+            if(setMobileNumber !== ''){
+                mobileNumberInput.value = setMobileNumber;
+            }
+            if(setProvince !== ''){
+                provinceSelectInput.value = setProvince;
+            }
+            if(setDistrict !== ''){
+                districtSelectInput.value = setDistrict;
+            }
+            if(setBranch !== ''){
+                branchSelectInput.value = setBranch;
+            }
+
+            //AOM
+            if(setProvince !== 'จังหวัด'){
+                this.districtVal = setDistrict;
+                this.branchVal = setBranch;
+                this.init = true;
+                $('#inputProvince').removeAttr("disabled");
+                if(setProvince !== ''){
+                    $("#inputProvince").val(setProvince);
+                    dependentDistrictActFn(setProvince);
+                }
+            }
+            else{
+                $(".interestSpinner").addClass("hide");
+                $('#inputProvince').val('จังหวัด');
+                $('#inputDistrict').val('เขต');
+                $('#inputBranch').val('สาขา');
+            }
+        }
+
+        function checkValidateModal(event){
+            let personNameInput = document.getElementById('personName');
+            let mobileNumberInput = document.getElementById('mobileNumber');
+            let depProvince = document.getElementById('inputProvince');
+            let depDistrict = document.getElementById('inputDistrict');
+            let depBranch = document.getElementById('inputBranch');
+
+            if(personNameInput.value !== ''){
+                personNameInput.classList.remove('inputInvalid');
+            }
+            if(mobileNumberInput.value !== ''){
+                mobileNumberInput.classList.remove('inputInvalid');
+            }
+            if(depProvince.value !== 'จังหวัด'){
+                depProvince.classList.remove('inputInvalid');                    
+            }
+            if(depDistrict.value !== 'เขต'){
+                depDistrict.classList.remove('inputInvalid');                    
+            }
+            if(depBranch.value !== 'สาขา'){
+                depBranch.classList.remove('inputInvalid');                    
+            }
+
+        }
+
+
+        function finishStampOSC(statusResp, statusCode){
+            
+            //Loading on interest product modal
+            $(".interestSpinner").addClass("hide");
+
+            //Next step to finish download avatar
+            $(".bShowModal1").addClass("hide");
+            $(".bShowModal2").addClass("hide");
+            $(".bShowModal3").removeClass("hide");
+            $(".err").addClass("hide");
+            $(".downloadSpinner").addClass("hide");
+        }
+
+        var jsonResponseOSC14;
+        var jsonResponseOSC16;
+
+        var osc14Complete, osc16Complete, isSendSMS = false;
+
+        var jsonResponseOSC01;
+        var jsonResponseOSC05;
+        var jsonResponseGetCardsBalance;
+        var osc01Complete, osc05Complete, getCardsBalanceComplete = false;
+
+        // function setProductOSC16(prodOsc16,sendSMS){
+        //     // console.log('sendSMS OSC16 : ', sendSMS)
+        //     osc16Complete = true;
+        //     if(osc14Complete && osc16Complete && !isSendSMS && sendSMS == 'true'){
+        //         isSendSMS = true;
+        //         SendSMSURL();
+        //     }
+        //     // console.log('prodOsc16 : ', prodOsc16);
+        //     jsonResponseOSC16 = prodOsc16;
+        //     // updateOffsetOSC16FlagFn(prodOsc16);
+
+        //     if(jsonResponseOSC14 != null && jsonResponseOSC16 != null){
+        //         stampOSCFn(jsonResponseOSC14,jsonResponseOSC16);
+        //     }
+        // }
+
+        // function setProductOSC14(prodOsc14,sendSMS){
+        //     // console.log('sendSMS OSC14 : ', sendSMS)
+        //     osc14Complete = true;
+        //     if(osc14Complete && osc16Complete && !isSendSMS && sendSMS == 'true'){
+        //         isSendSMS = true;
+        //         SendSMSURL();
+        //     }
+        //     // console.log('prodOsc14 : ', prodOsc14);
+        //     jsonResponseOSC14 = prodOsc14;
+        //     // updateOffsetOSC14FlagFn(prodOsc14);
+        //     if(jsonResponseOSC14 != null && jsonResponseOSC16 != null){
+        //         stampOSCFn(jsonResponseOSC14,jsonResponseOSC16);
+        //     }
+        // }
+
+        // New 
+        function setProductOSC01(prodOsc01,sendSMS){
+            // console.log('sendSMS OSC16 : ', sendSMS)
+            osc01Complete = true;
+            if(osc01Complete && osc05Complete && getCardsBalanceComplete  && !isSendSMS && sendSMS == 'true'){
+                isSendSMS = true;
+                SendSMSURL();
+            }
+            // console.log('prodOsc01 : ', prodOsc01);
+            jsonResponseOSC01 = prodOsc01;
+            // updateOffsetOSC16FlagFn(prodOsc16);
+
+            if(jsonResponseOSC01 != null && jsonResponseOSC05 != null && jsonResponseGetCardsBalance != null){
+                stampOSCFn(jsonResponseOSC01,jsonResponseOSC05,jsonResponseGetCardsBalance);
+            }
+        }
+
+        function setProductOSC05(prodOsc05,sendSMS){
+            // console.log('sendSMS OSC16 : ', sendSMS)
+            osc05Complete = true;
+            if(osc01Complete && osc05Complete && getCardsBalanceComplete  && !isSendSMS && sendSMS == 'true'){
+                isSendSMS = true;
+                SendSMSURL();
+            }
+            // console.log('prodOsc05 : ', prodOsc05);
+            jsonResponseOSC05 = prodOsc05;
+            // updateOffsetOSC16FlagFn(prodOsc16);
+
+            if(jsonResponseOSC01 != null && jsonResponseOSC05 != null && jsonResponseGetCardsBalance != null){
+                stampOSCFn(jsonResponseOSC01,jsonResponseOSC05,jsonResponseGetCardsBalance);
+            }
+        }
+
+        function setProductGetCardsBalance(prodGetCardsBalance,sendSMS){
+            // console.log('sendSMS OSC16 : ', sendSMS)
+            getCardsBalanceComplete = true;
+            if(osc01Complete && osc05Complete && getCardsBalanceComplete  && !isSendSMS && sendSMS == 'true'){
+                isSendSMS = true;
+                SendSMSURL();
+            }
+            // console.log('prodGetCardsBalance : ', prodGetCardsBalance);
+            jsonResponseGetCardsBalance = prodGetCardsBalance;
+            // updateOffsetOSC16FlagFn(prodOsc16);
+
+            if(jsonResponseOSC01 != null && jsonResponseOSC05 != null && jsonResponseGetCardsBalance != null){
+                stampOSCFn(jsonResponseOSC01,jsonResponseOSC05,jsonResponseGetCardsBalance);
+            }
+        }
+
+        function callOscService(status,sendSMS){
+            // console.log('Status before call OSC : ', status)
+            // console.log('status send sms : ', sendSMS)
+
+            if(status === 'true'){
+                // callOsc14ServiceFn(sendSMS);
+                // callOsc16ServiceFn(sendSMS);
+                callOsc01ServiceFn(sendSMS);
+                callOsc05ServiceFn(sendSMS);
+                callGetCardsBalanceServiceFn(sendSMS);
+                //false true
+            }
+            else {
+                if (status === 'false' && sendSMS === 'true'){
+                    SendSMSURL();
+                }
+                //false false
+
+                // console.log('Product Offset Already Exist')
+                $(".interestSpinner").addClass("hide");
+                $(".bShowModal1").addClass("hide");
+                $(".bShowModal2").addClass("hide");
+                $(".bShowModal3").removeClass("hide");
+                $(".err").addClass("hide");
+                $(".downloadSpinner").addClass("hide");
+            }
+        }
+
+        function updateFlag(){
+           
+            // START CALL OSC14,16
+            $(".interestSpinner").removeClass("hide");
+            setupServiceOSCFn(this.getID,false);
+
+            var sessionTemp = sessionStorage.getItem("1");
+            if(sessionTemp != null){
+                sessionTemp += '|' + sessionData;
+                sessionStorage.setItem("1",sessionTemp);
+            }
+            else{ //first
+                var test = sessionData + '';
+                sessionStorage.setItem("1", test);
+            }
+
+            idleTimeFn();
+        }
+
+        var fnIdleTime;
+        function idleTimeCooldown(idleTimeMillisec){
+            // console.log('idle before : ', idleTimeMillisec);
+            if(idleTimeMillisec !== undefined){
+                var idleTime = parseInt(idleTimeMillisec);
+                // console.log('idle change to int : ', idleTime);
+                fnIdleTime = setTimeout(function(){  
+                    createRef();
+                }, idleTime);  
+            }
+        }
+    
+        function createRef(){
+            // console.log('CREATE REF.')
+            var sessionTemp = sessionStorage.getItem("1");
+            // console.log('sessionTemp : ',sessionTemp)
+            createRefFn(sessionTemp);
+        }
+
+        function gotoURL(urlpage){  
+            window.location.href = urlpage;
+        }
+
+        var isRedirect = true;
+        function clearSession(){
+            var time = 1000;
+            var url = '';
+
+            Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.fnaProductDetailCtrl.encryptId}',this.getID,
+                function(result, event){
+                    // console.log('result : ' , result);
+                    // console.log('event : ' , event);
+                    
+                    var originalURL = 'Id=' + result;
+                    var encryptURL = 's/avatardetail?' + encodeURIComponent(originalURL);
+
+                    sessionStorage.clear();
+                    //BUG
+                    // console.log('clearSession : isRedirect :',this.isRedirect)
+                    if(this.isRedirect == true){
+                        window.location.href = encryptURL;
+                    }
+            }); 
+        }
+
+        function saveInfo(){
+            resetTimeoutPage();
+
+            $(".interestSpinner").removeClass("hide");
+            // console.log('SAVE INFO')
+            let personNameInput = document.getElementById('personName');
+            let mobileNumberInput = document.getElementById('mobileNumber');
+            let depProvince = document.getElementById('inputProvince');
+            let depDistrict = document.getElementById('inputDistrict');
+            let depBranch = document.getElementById('inputBranch');
+
+            if(personNameInput.value !== '' && mobileNumberInput.value !== '' && depProvince.value !== 'จังหวัด' && depDistrict.value !== 'เขต' && depBranch.value !== 'สาขา'){
+                const phoneno = /^[0]{1}[6,8,9]{1}[0-9]{8}$/;
+                if((mobileNumberInput.value).match(phoneno) && (mobileNumberInput.value).length == 10){
+                    saveInformationFn(depProvince.value,depDistrict.value,depBranch.value,personNameInput.value,mobileNumberInput.value);
+                    
+                    $("#prodFormField").hide();
+                    $("#moreField").show();
+                    $("#callbackField").hide();
+                    $("#moreProdBtn").hide();
+                    $("#endProdBtn").hide();
+                }
+                else{
+                    mobileNumberInput.classList.add('inputInvalid');
+                    $(".interestSpinner").addClass("hide");
+                }
+            }
+            else{
+                if(personNameInput.value === ''){
+                    personNameInput.classList.add('inputInvalid');
+                }
+                if(mobileNumberInput.value === ''){
+                    mobileNumberInput.classList.add('inputInvalid');
+                }
+                if(depProvince.value === 'จังหวัด'){
+                    depProvince.classList.add('inputInvalid');                    
+                }
+                if(depDistrict.value === 'เขต'){
+                    depDistrict.classList.add('inputInvalid');                    
+                }
+                if(depBranch.value === 'สาขา'){
+                    depBranch.classList.add('inputInvalid');                    
+                }
+                $(".interestSpinner").addClass("hide");
+            }
+        }
+
+        function nextStep(){
+            $("#prodFormField").hide();
+            $("#moreField").hide();
+            $("#callbackField").show();
+            $("#moreProdBtn").hide();
+            $("#endProdBtn").show();
+
+            this.isRedirect = false;
+            // console.log('nextStep : isRedirect :',this.isRedirect)
+
+            createRef();
+        }
+
+        function allowNumbersOnlyOnce(e) {
+            // console.log('allowNumbersOnlyOnce')
+            var code = (e.which) ? e.which : e.keyCode;
+            // console.log('code : ' + code);
+            if (code > 31 && (code < 48 || code > 57)) {
+                // console.log('prevent')
+                e.preventDefault();
+            }
+        }
+
+        function allowNumbersOnly(e) {
+            // console.log('allowNumbersOnly')
+            let inputPhone = document.querySelector('[data-id="phoneInput"]');
+            var code = (e.which) ? e.which : e.keyCode;
+            // console.log('code : ' + code);
+            if (code > 31 && (code < 48 || code > 57)) {
+                // console.log('prevent')
+                e.preventDefault();
+            }
+            inputPhone.classList.remove('inputInvalid');
+            $(".errPhone").addClass("hide");
+        }
+
+        function next(){
+            resetTimeoutPage();
+
+            $(".downloadSpinner").removeClass("hide");
+            let inputPhone = document.querySelector('[data-id="phoneInput"]');
+
+            // console.log((inputPhone.value).length)
+            var phoneno = /^[0]{1}[6,8,9]{1}[0-9]{8}$/;
+            if(inputPhone.value.match(phoneno) && (inputPhone.value).length === 10) {
+                // console.log('true')
+                this.phoneNumber = inputPhone.value;
+                Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.fnaProductDetailCtrl.fnGenerateOTP}',
+                    this.getID, this.phoneNumber,
+                    function(result, event){
+                        // console.log('result : ' , result);
+                        // console.log('event : ' , event);
+
+                        $('input[name="input_1"]').removeAttr("disabled");
+                        $('input[name="input_2"]').removeAttr("disabled");
+                        $('input[name="input_3"]').removeAttr("disabled");
+                        $('input[name="input_4"]').removeAttr("disabled");
+                        $('input[name="input_5"]').removeAttr("disabled");
+                        $('input[name="input_6"]').removeAttr("disabled");
+
+                        $('input[name="input_1"]').val('');
+                        $('input[name="input_2"]').val('');
+                        $('input[name="input_3"]').val('');
+                        $('input[name="input_4"]').val('');
+                        $('input[name="input_5"]').val('');
+                        $('input[name="input_6"]').val('');
+
+                        if(result != null){
+                            // console.log('then',result);
+                            $(".textRef").text('รหัสอ้างอิงของท่านคือ: ' + result.Otp_Ref__c);
+                            // $(".bShowModal").removeClass("hide");
+                            $(".bShowModal1").addClass("hide");
+                            $(".bShowModal2").removeClass("hide");
+                            $(".bShowModal3").addClass("hide");
+                            $(".btnResetOTP").removeClass("hide");
+                            $(".errPhone").addClass("hide");
+                            inputPhone.classList.remove('inputInvalid');
+                            $('.phone').val(phoneNumber);
+
+                        }else{
+                            // console.log('catch fnGenerateOTP');
+                        }
+                        $(".downloadSpinner").addClass("hide");
+                });
+            }else {
+                $('.phone').val('');
+                $(".errPhone").removeClass("hide");
+                // console.log('false')
+                inputPhone.classList.add('inputInvalid');
+                $(".downloadSpinner").addClass("hide");
+            }
+            
+        }
+
+        function SendSMSURL (){
+
+            Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.fnaProductDetailCtrl.sendSMSUrl}', this.getID,
+            function(result, event){
+                // console.log('result : ' , result);
+                // console.log('event : ' , event);
+                if(result != null){
+                    // console.log('Complete sendSMSUrl');
+                    
+                    Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.fnaProductDetailCtrl.successDownload}', this.getID,
+                    function(result, event){
+                        // console.log('result : ' , result);
+                        // console.log('event : ' , event);
+                        if(result != null){
+                            // console.log('Complete successDownload');
+                        }else{
+                            // console.log('catch successDownload');
+                        }
+                    });
+                    
+                }else{
+                    // console.log('catch sendSMSUrl');
+                }
+            });
+        }
+
+        function checkNext(event){
+            $(".downloadSpinner").removeClass("hide");
+            // console.log('checkNext = ',event.target.value)
+            var inputName = event.target.name;
+            // console.log('inputName = ',inputName)
+
+            let inputOTP_1 = document.querySelector('[data-id="otpInput_1"]');
+            let inputOTP_2 = document.querySelector('[data-id="otpInput_2"]');
+            let inputOTP_3 = document.querySelector('[data-id="otpInput_3"]');
+            let inputOTP_4 = document.querySelector('[data-id="otpInput_4"]');
+            let inputOTP_5 = document.querySelector('[data-id="otpInput_5"]');
+            let inputOTP_6 = document.querySelector('[data-id="otpInput_6"]');
+            let btnSubmitOTP = document.querySelector('[data-id="btnSubmitOTP"]');
+
+            if(inputOTP_1.value === '' || 
+            inputOTP_2.value === '' || 
+            inputOTP_3.value === '' ||
+            inputOTP_4.value === '' ||
+            inputOTP_5.value === '' ||
+            inputOTP_6.value === ''){
+                $(".textErr").text('');
+            }
+            
+            // (document.querySelector('[data-id="otpInput_6"]')).value || 
+            if(inputName === 'submitOTP'){
+                if( (inputOTP_1).value === '' || 
+                (inputOTP_2).value === '' ||
+                (inputOTP_3).value === '' ||
+                (inputOTP_4).value === '' ||
+                (inputOTP_5).value === '' ||
+                (inputOTP_6).value === '' ){
+                    // console.log('OTP กรอกไม่ครบ')
+                    $(".textErr").text('กรุณาระบุรหัส OTP ที่ได้รับ');
+                    $(".err").removeClass("hide");
+                    $(".btnResetOTP").removeClass("hide");     
+                    $(".downloadSpinner").addClass("hide");               
+                }else{
+                    // console.log('OTP กรอกครบกำลัง validate')
+                    let inputValue_1 = (inputOTP_1.value).toString();
+                    let inputValue_2 = (inputOTP_2.value).toString();
+                    let inputValue_3 = (inputOTP_3.value).toString();
+                    let inputValue_4 = (inputOTP_4.value).toString();
+                    let inputValue_5 = (inputOTP_5.value).toString();
+                    let inputValue_6 = (inputOTP_6.value).toString();
+                    var inputValue = inputValue_1 + inputValue_2 + inputValue_3 + inputValue_4 + inputValue_5 + inputValue_6;
+                    // console.log('inputValue : ',inputValue);
+                    // console.log('getId : ', this.getID );
+                   
+                    Visualforce.remoting.Manager.invokeAction(
+                        '{!$RemoteAction.fnaProductDetailCtrl.fnVerifyOTP}',
+                        this.getID, inputValue,
+                        function(result, event){
+                            if(result != null){
+                                // console.log('then', result)
+                                $(".err").removeClass("hide");
+                                switch(result){
+                                    case 1:
+                                        // this.textErr = 'Please request the new OTP.';
+                                        $(".textErr").text('ขอรับรหัส OTP ใหม่');
+                                        inputOTP_1.setAttribute("disabled", "");
+                                        inputOTP_2.setAttribute("disabled", "");
+                                        inputOTP_3.setAttribute("disabled", "");
+                                        inputOTP_4.setAttribute("disabled", "");
+                                        inputOTP_5.setAttribute("disabled", "");
+                                        inputOTP_6.setAttribute("disabled", "");
+                                        btnSubmitOTP.setAttribute("disabled", "");
+                                        $(".btnResetOTP").removeClass("hide");
+                                        $(".downloadSpinner").addClass("hide");
+                                        break;
+                                    case 2:
+                                        // this.textErr = 'Cannot use old OTP Code.';
+                                        $(".textErr").text('รหัส OTP ไม่ถูกต้อง คุณอาจนำรหัสที่ถูกใช้งานไปแล้วมากรอก กรุณาตรวจสอบ SMS ใหม่ หรือ ขอรหัส OTP ใหม่');
+                                        $(".btnResetOTP").removeClass("hide");
+                                        $(".downloadSpinner").addClass("hide");
+                                        break;
+                                    case 3://disabled
+                                        // this.textErr = 'OTP Code was expired. Please request the new OTP.';
+                                        $(".textErr").text('รหัส OTP ของคุณหมดอายุ กรุณาขอรับรหัส OTP ใหม่');
+                                        inputOTP_1.setAttribute("disabled", "");
+                                        inputOTP_2.setAttribute("disabled", "");
+                                        inputOTP_3.setAttribute("disabled", "");
+                                        inputOTP_4.setAttribute("disabled", "");
+                                        inputOTP_5.setAttribute("disabled", "");
+                                        inputOTP_6.setAttribute("disabled", "");
+                                        btnSubmitOTP.setAttribute("disabled", "");
+                                        $(".btnResetOTP").removeClass("hide");
+                                        $(".downloadSpinner").addClass("hide");
+                                        break;
+                                    case 4://disabled
+                                        // this.textErr = 'OTP Code was hit max retry. Please request the new OTP.';
+                                        $(".textErr").text('ขออภัยค่ะ คุณกรอกรหัสผิดเกินจำนวนครั้งที่กำหนด กรุณาขอรับรหัส OTP ใหม่');
+                                        inputOTP_1.setAttribute("disabled", "");
+                                        inputOTP_2.setAttribute("disabled", "");
+                                        inputOTP_3.setAttribute("disabled", "");
+                                        inputOTP_4.setAttribute("disabled", "");
+                                        inputOTP_5.setAttribute("disabled", "");
+                                        inputOTP_6.setAttribute("disabled", "");
+                                        btnSubmitOTP.setAttribute("disabled", "");
+                                        $(".btnResetOTP").removeClass("hide");
+                                        $(".downloadSpinner").addClass("hide");
+                                        break;
+                                    case 5:
+                                        // this.textErr = 'OTP Code miss match.';
+                                        $(".textErr").text('รหัส OTP ไม่ถูกต้อง กรุณาตรวจสอบ SMS ใหม่ หรือ ขอรับรหัส OTP ใหม่');
+                                        $(".btnResetOTP").removeClass("hide");
+                                        $(".downloadSpinner").addClass("hide");
+                                        break;
+                                    case 6://disabled
+                                        // this.textErr = 'Cannot use old OTP Code. Please request the new OTP.';
+                                        $(".textErr").text('รหัส OTP ไม่ถูกต้อง คุณอาจนำรหัสที่ถูกใช้งานไปแล้วมากรอก กรุณาตรวจสอบ SMS ใหม่ หรือ ขอรหัส OTP ใหม่');
+                                        inputOTP_1.setAttribute("disabled", "");
+                                        inputOTP_2.setAttribute("disabled", "");
+                                        inputOTP_3.setAttribute("disabled", "");
+                                        inputOTP_4.setAttribute("disabled", "");
+                                        inputOTP_5.setAttribute("disabled", "");
+                                        inputOTP_6.setAttribute("disabled", "");
+                                        btnSubmitOTP.setAttribute("disabled", "");
+                                        $(".btnResetOTP").removeClass("hide");
+                                        $(".downloadSpinner").addClass("hide");
+                                        break;
+                                    case 7:
+                                        $(".err").removeClass("hide");
+                                        // $(".textErr").text('Verify success.');
+                                        // $(".main-content").addClass('hide');
+                                        inputOTP_1.setAttribute("disabled", "");
+                                        inputOTP_2.setAttribute("disabled", "");
+                                        inputOTP_3.setAttribute("disabled", "");
+                                        inputOTP_4.setAttribute("disabled", "");
+                                        inputOTP_5.setAttribute("disabled", "");
+                                        inputOTP_6.setAttribute("disabled", "");
+                                        if(inputName === 'submitOTP'){
+                                            // $(".bShowModal").removeClass("hide");
+                                            // $(".bShowModal1").addClass("hide");
+                                            // $(".bShowModal2").addClass("hide");
+                                            // $(".bShowModal3").removeClass("hide");
+                                            // $(".err").addClass("hide");
+                                            $(".downloadSpinner").removeClass("hide");
+                                            setupServiceOSCFn(this.getID,true);
+                                        }
+                                        break;
+                                    default:
+                                        break;
+                                }
+
+                            }else{
+                                // console.log('catch fnVerifyOTP');
+                            }
+                    });
+                }
+            }else if(event.target.value !== ''){
+                var inputNameCount = inputName.substring(inputName.length-1, inputName.length);
+                var integer = parseInt(inputNameCount, 10);
+                integer = integer+1;
+                var otpInput;
+
+                switch (true) {
+                    case (integer === 1 && event.target.value !== ''):
+                        otpInput = inputOTP_1;
+                        // console.log(event.target.value);  
+                        break;
+                    case (integer === 2 && event.target.value !== ''):
+                        otpInput = inputOTP_2;
+                        // console.log(event.target.value);        
+                        break;
+                    case (integer === 3 && event.target.value !== ''):
+                        otpInput = inputOTP_3;
+                        // console.log(event.target.value);             
+                        break;
+                    case (integer === 4 && event.target.value !== ''):
+                        otpInput = inputOTP_4;      
+                        // console.log(event.target.value);        
+                        break;
+                    case (integer === 5 && event.target.value !== ''):
+                        otpInput = inputOTP_5;
+                        // console.log(event.target.value);        
+                        break;
+                    case (integer === 6 && event.target.value !== ''):
+                        otpInput = inputOTP_6;
+                        // console.log(event.target.value);        
+                        break;
+                    default:
+                        break;
+                }
+
+                if(otpInput != null && otpInput != undefined){
+                    otpInput.focus();
+                }
+                $(".downloadSpinner").addClass("hide");
+            }
+            else{
+                // console.log('else')
+                var inputNameCountElse = inputName.substring(inputName.length-1, inputName.length);
+                var integerElse = parseInt(inputNameCountElse, 10);
+                if(integerElse-1 !== 0){
+                    // console.log(integerElse)
+                    integerElse = integerElse-1;
+                    // console.log(integerElse)
+                }
+                var otpInputElse;
+
+                switch (true) {
+                    case (integerElse === 1):
+                        otpInputElse = inputOTP_1;
+                        // console.log(event.target.value);  
+                        break;
+                    case (integerElse === 2):
+                        otpInputElse = inputOTP_2;
+                        // console.log(event.target.value);        
+                        break;
+                    case (integerElse === 3):
+                        otpInputElse = inputOTP_3;
+                        // console.log(event.target.value);             
+                        break;
+                    case (integerElse === 4):
+                        otpInputElse = inputOTP_4;      
+                        // console.log(event.target.value);        
+                        break;
+                    case (integerElse === 5):
+                        otpInputElse = inputOTP_5;
+                        // console.log(event.target.value);        
+                        break;
+                    case (integerElse === 6):
+                        otpInputElse = inputOTP_6;
+                        // console.log(event.target.value);        
+                        break;
+                    default:
+                        break;
+                }
+
+                if(otpInputElse != null && otpInputElse != undefined){
+                    otpInputElse.focus();
+                }
+                $(".downloadSpinner").addClass("hide");
+            } 
+            
+        }
+
+        function resetOTP(){
+            $(".downloadSpinner").removeClass("hide");
+            let inputOTP_1 = document.querySelector('[data-id="otpInput_1"]');
+            let inputOTP_2 = document.querySelector('[data-id="otpInput_2"]');
+            let inputOTP_3 = document.querySelector('[data-id="otpInput_3"]');
+            let inputOTP_4 = document.querySelector('[data-id="otpInput_4"]');
+            let inputOTP_5 = document.querySelector('[data-id="otpInput_5"]');
+            let inputOTP_6 = document.querySelector('[data-id="otpInput_6"]');
+            let btnSubmitOTP = document.querySelector('[data-id="btnSubmitOTP"]');
+
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.fnaProductDetailCtrl.fnGenerateOTP}',
+                this.getID, this.phoneNumber,
+                function(result, event){
+                    if(result != null){
+                        // console.log('then',result);
+                        $(".textRef").text('รหัสอ้างอิงของท่านคือ: ' + result.Otp_Ref__c);
+                        $(".textErr").text('');
+                        inputOTP_1.value = '';
+                        inputOTP_2.value = '';
+                        inputOTP_3.value = '';
+                        inputOTP_4.value = '';
+                        inputOTP_5.value = '';
+                        inputOTP_6.value = '';
+
+                        inputOTP_1.removeAttribute("disabled");
+                        inputOTP_2.removeAttribute("disabled");
+                        inputOTP_3.removeAttribute("disabled");
+                        inputOTP_4.removeAttribute("disabled");
+                        inputOTP_5.removeAttribute("disabled");
+                        inputOTP_6.removeAttribute("disabled");
+                        btnSubmitOTP.removeAttribute("disabled");
+
+                        $(".btnResetOTP").removeClass("hide");
+                        $(".downloadSpinner").addClass("hide");
+
+                    }else{
+                        // console.log('catch resetOTP fnGenerateOTP');
+                        $(".downloadSpinner").addClass("hide");
+                    }
+            });
+        }
+
+        function handleClick() {
+            // $(".bShowModal").removeClass("hide");  
+            $(".downloadSpinner").removeClass("hide");
+            $(".bShowModal1").removeClass("hide");  
+            $(".bShowModal2").addClass("hide");  
+            $(".bShowModal3").addClass("hide");
+            $(".errPhone").addClass("hide");
+            $(".err").addClass("hide");
+            $(".textErr").text('');
+            $(".downloadSpinner").addClass("hide");
+        }
+
+        function closeModal() {  
+            resetTimeoutPage();
+            if($('.phone').val() == ''){
+                $('.phone').val(phoneNumber);
+            }
+            $(".phone").removeClass('inputInvalid');
+            // $(".bShowModal").addClass("hide");  
+            $(".bShowModal1").addClass("hide");  
+            $(".bShowModal2").addClass("hide");  
+            $(".bShowModal3").addClass("hide");
+            $(".btnResetOTP").removeClass("hide");
+            $(".errPhone").addClass("hide");
+        }
+
+        function closeModalInterested(){
+            resetTimeoutPage();
+        }
+
+    </script>   
+
+
+</apex:page>

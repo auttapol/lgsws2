@@ -1,0 +1,333 @@
+<apex:page ></apex:page>
+<!--
+<apex:page controller="01p90000006DPMf"  showChat="false" showHeader="true" sidebar="false"
+           standardStylesheets="true" applyHtmlTag="true">   
+	<head>    
+     	<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}"  />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:actionStatus onstart="startLoading();" onstop="endLoading();" id="loadStatus"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        
+        <style type="text/css">
+            /*Custom style by Jantanee*/
+            .headuploadlead {
+                color: #D3D3D3;
+                font-size: 18px;
+            }
+            .importCSVsection{
+                margin: 20px auto;
+            }
+            .importCSVbtn{
+            	margin-top: 30px !important;
+            }
+            #switch2{
+            	margin: 20px auto;
+            }
+            #log table{
+            	background-color:#FFF;
+            	width: 100%;
+            	border: 1px solid #dadee2
+            }
+            #log td{
+            	padding: 3px;
+            }
+            .successin th{
+                background-color:#2a94d6;
+            	text-align: center;
+            	color: #fff;
+           		padding: 5px;
+        		font-size: 15px;
+            }
+            .successin{
+            	width:100%;
+    			padding: 5px;
+            }
+            .successout {
+                overflow:scroll;
+            }
+            .errorin th{
+                background-color:#e56d2c;
+            	text-align: center;
+            	color: #fff;
+                padding: 5px;
+        		font-size: 15px;
+            }
+            .errorin {
+            	width:100%;
+    			padding: 5px;
+            }
+            .errorout {
+				overflow:scroll;
+            }
+            .event-paging{
+            	width: 50px;
+                display: inline-table;
+            }
+            .index-paging{
+                color: #acacac;
+                font-size: 13px;
+            }
+            h3{
+            	padding: 5px;
+   				margin: 0 !important;
+            	flost: left;
+            }
+            .apexp .bPageBlock.apexDefaultPageBlock .pbBody .pbSubheader .hideListButton,
+            .apexp .bPageBlock.apexDefaultPageBlock .pbBody .pbSubheader .showListButton{
+    			float: left;
+                margin: 5px;
+            }
+            .btn{
+            	margin-bottom: 20px !important ;
+            }
+            .bootstrap-sf1 #switch1 tbody td {
+    			font-size: 13px;
+            }
+            #switch1 th{
+            	background-color: #2a94d6;
+    			color: #fff;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="bootstrap-sf1">   
+            <apex:form id="frm"> 
+                <apex:actionstatus id="status">
+                    <apex:facet name="start">
+                        <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                            &nbsp;
+                        </div>
+                        <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                            <img src="/img/loading32.gif" />
+                        </div>
+                    </apex:facet>
+                </apex:actionstatus>
+                <apex:pageMessages id="messages"/>    
+            	<div style="margin-top:20px;">
+                    <ul class="nav nav-tabs" id="tabSearch" >
+                      <li class="active">
+                          <a  href="/apex/uploadlead" style="display: {!IF(isDisable,'block','none')};">Upload Lead</a>
+                          <a aria-controls="uploadLead" role="tab" data-toggle="tab" href="#switch1" style="display: {!IF(!isDisable,'block','none')};">Upload Lead</a>
+                      </li>
+                      <li>
+                          <a aria-controls="logFile" role="tab" data-toggle="tab" href="#switch2" >Log File</a>
+                      </li>
+                  </ul>
+                </div>
+                
+        		<div class="tab-content" style="padding: 0 30px; " >
+                    <div id="switch1" role="tabpanel" class="tab-pane fade in active importCSVsection">
+                        <apex:outputPanel id="renderSection">
+                            <apex:outputPanel style="overflow-x: scroll;" id="deleteSection" rendered="{! isDisable}">
+                                <div class="alert alert-info">
+                                    <strong>Delete! </strong>
+                                    <p>{!validatedelete}</p>
+                                </div>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{! !isValidProgress && !isValidDone && !isImportProgress && !isImportDone && !isDisable}" id="btn1">
+                                <apex:commandButton styleClass="btn btn-default" value="Validate" action="{!Validatebatch}"  status="status" rerender="btn1,btn2,renderSection"/>
+                            </apex:outputPanel>
+                            <apex:outputPanel rendered="{! !isValidProgress && isValidDone && !isImportProgress && !isImportDone && !isDisable}" id="btn2">
+                                <apex:commandButton styleClass="btn btn-default" value="Import Lead" action="{!insertLead}" status="status"  rerender="btn1,btn2,renderSection"/>
+                            </apex:outputPanel>
+                            
+                            <apex:outputPanel rendered="{! !isDisable}">
+                            <apex:outputPanel style="overflow-x: scroll;" id="runValidateBatch" rendered="{! isValidProgress && !isValidDone && !isImportProgress && !isImportDone}">
+                                <div class="alert alert-info">
+                                    <strong>Validate Lead! </strong>
+                                    <p>{!validatemeassgeEN}</p>
+                                    <p>{!validatemeassgeTH}</p>
+                                </div>
+                            </apex:outputPanel>
+                            
+                            <apex:outputPanel style="overflow-x: scroll;" id="runImportBatch" rendered="{! !isValidProgress && isValidDone && isImportProgress && !isImportDone}">
+                                 <div class="alert alert-info">
+                                    <strong>Import Lead! </strong>
+                                    <p>{!importemeassgeEN}</p>
+                                    <p>{!importemeassgeTH}</p>
+                                </div>
+                            </apex:outputPanel>
+                                           
+                            <apex:outputPanel style="overflow-x: scroll;" id="results1" rendered="{! !isValidProgress && !isValidDone && !isImportProgress && !isImportDone}">
+                                
+                                <apex:pageBlock rendered="{!validlogs.size != null}" >  
+                                    <apex:pageblocktable id="leadTable" value="{!validlogs}" var="row" >
+                                      <apex:column value="{!row.tempvalidlog.Row__c}" headerValue="Row"/> 
+                                      <apex:column value="{!row.tempvalidlog.leadOwnerName__c}" headerValue="Lead Owner"/>
+                                      <apex:column value="{!row.tempvalidlog.PrimaryCampaignName__c}" headerValue="Primary Campaign"/>   
+                                      <apex:column value="{!row.tempvalidlog.LeadOwnerExceptionFlag__c}" headerValue="Lead Owner Exception Flag"/>     
+                                      <apex:column value="{!row.tempvalidlog.LinktoCustomer__c}" headerValue="Link to Customer"/>
+                                      <apex:column value="{!row.tempvalidlog.CustomerType__c}" headerValue="Customer Type"/>
+                                      <apex:column value="{!row.tempvalidlog.CustomerName__c}" headerValue="Customer Name"/>
+                                      <apex:column value="{!row.tempvalidlog.CustomerNameEN__c }" headerValue="Customer Name EN"/>
+                                      <apex:column value="{!row.tempvalidlog.IDType__c }" headerValue="ID Type"/>
+                                      <apex:column value="{!row.tempvalidlog.IDNumber__c }" headerValue="ID Number"/>
+                                      <apex:column value="{!row.tempvalidlog.ContactTitle__c }" headerValue="Contact Title"/>
+                                      <apex:column value="{!row.tempvalidlog.ContactFirstname__c }" headerValue="Firstname"/>
+                                      <apex:column value="{!row.tempvalidlog.ContactLastname__c }" headerValue="Lastname"/>
+                                      <apex:column value="{!row.tempvalidlog.ContactPosition__c }" headerValue="Contact Position"/>
+                                      <apex:column value="{!row.tempvalidlog.DecisionMap__c }" headerValue="Decision Map"/>
+                                      <apex:column value="{!row.tempvalidlog.ContactPhoneNumber__c }" headerValue="Contact Phone Number"/>
+                                      <apex:column value="{!row.tempvalidlog.IndustryName__c }" headerValue="Industry"/>
+                                      <apex:column value="{!row.tempvalidlog.Groupname2__c }" headerValue="Group name"/>
+                                      <apex:column value="{!row.tempvalidlog.NoOfyears__c }" headerValue="No. of years business run"/>
+                                      <apex:column value="{!row.tempvalidlog.SalesAmountperyear__c }" headerValue="Sales amount per year"/>
+                                      <apex:column value="{!row.tempvalidlog.LeadSource__c }" headerValue="Lead Source"/>
+                                      <apex:column value="{!row.tempvalidlog.OtherSource__c }" headerValue="Other Source"/>
+                                      <apex:column value="{!row.tempvalidlog.BranchedReferredName__c }" headerValue="Branch Referred (Referred)"/>
+                                      <apex:column value="{!row.tempvalidlog.ReferralStaffID__c }" headerValue="Referral Staff ID (Referred)"/>  
+                                      <apex:column value="{!row.tempvalidlog.ReferralStaffName__c}" headerValue="Referral Staff Name"/>
+                                      <apex:column value="{!row.tempvalidlog.TotalExpectedRevenue__c }" headerValue="Total Expected Revenue"/>
+                                      <apex:column value="{!row.tempvalidlog.Address__c }" headerValue="Address No/Moo/Soi/Street"/>
+                                      <apex:column value="{!row.tempvalidlog.SubDistrict__c }" headerValue="Sub District"/>
+                                      <apex:column value="{!row.tempvalidlog.District__c }" headerValue="District"/>
+                                      <apex:column value="{!row.tempvalidlog.Province__c }" headerValue="Province"/>
+                                      <apex:column value="{!row.tempvalidlog.ZipCode__c }" headerValue="Zip Code"/>
+                                      <apex:column value="{!row.tempvalidlog.Country__c }" headerValue="Country"/>
+                                      <apex:column value="{!row.tempvalidlog.MobileNo__c }" headerValue="Mobile No."/>
+                                      <apex:column value="{!row.tempvalidlog.OfficeNo__c }" headerValue="Office No."/>
+                                      <apex:column value="{!row.tempvalidlog.Ext__c }" headerValue="Ext"/>
+                                      <apex:column value="{!row.tempvalidlog.Email__c }" headerValue="Email"/>
+                                      <apex:column value="{!row.tempvalidlog.Rating__c }" headerValue="Rating"/>
+                                      <apex:column value="{!row.tempvalidlog.Remark__c }" headerValue="Remark"/>
+                                   </apex:pageblocktable>
+                                 </apex:pageBlock>
+                                 
+                                 <apex:panelGrid columns="5"  >
+                                     <apex:commandLink action="{!first}" rendered="{!hasPrevious}" status="status"  rerender="results1" styleClass="event-paging" >First</apex:commandlink>
+                                     <apex:commandLink action="{!previous}" rendered="{!hasPrevious}" status="status" rerender="results1" styleClass="event-paging" style="width:70px;">Previous</apex:commandlink>
+                                     <apex:commandLink action="{!next}" rendered="{!hasNext}" status="status" rerender="results1" styleClass="event-paging" >Next</apex:commandlink>
+                                     <apex:commandLink action="{!last}" rendered="{!hasNext}" status="status" rerender="results1" styleClass="event-paging" >Last</apex:commandlink>
+                                     <apex:outputpanel rendered="{!hasNext || hasPrevious}" styleClass="index-paging">
+                                        Import CSV Results -  Page : {!pageNumber} of {!CEILING(noOfRecords /pageSize)}   Total Records : {!noOfRecords}
+                                     </apex:outputpanel>
+                                 </apex:panelGrid>
+                            </apex:outputPanel>
+                    
+                            <apex:outputPanel style="overflow-x: scroll;" id="results2" rendered="{! !isValidProgress && isValidDone && !isImportProgress && !isImportDone}">
+                            <apex:pageBlock rendered="{!validlogs.size != null}" >  
+                               		<apex:pageblocktable id="leadTable" value="{!validlogs}" var="row" >
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.Row__c}" headerValue="Row"/>  
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.leadOwnerName__c}" headerValue="Lead Owner"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.PrimaryCampaignName__c}" headerValue="Primary Campaign"/>   
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.LeadOwnerExceptionFlag__c}" headerValue="Lead Owner Exception Flag"/>     
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.LinktoCustomer__c}" headerValue="Link to Customer"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.CustomerType__c}" headerValue="Customer Type"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.CustomerName__c}" headerValue="Customer Name"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.CustomerNameEN__c }" headerValue="Customer Name EN"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.IDType__c }" headerValue="ID Type"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.IDNumber__c }" headerValue="ID Number"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.ContactTitle__c }" headerValue="Contact Title"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.ContactFirstname__c }" headerValue="Firstname"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.ContactLastname__c }" headerValue="Lastname"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.ContactPosition__c }" headerValue="Contact Position"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.DecisionMap__c }" headerValue="Decision Map"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.ContactPhoneNumber__c }" headerValue="Contact Phone Number"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.IndustryName__c }" headerValue="Industry"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.Groupname2__c }" headerValue="Group name"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.NoOfyears__c }" headerValue="No. of years business run"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.SalesAmountperyear__c }" headerValue="Sales amount per year"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.LeadSource__c }" headerValue="Lead Source"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.OtherSource__c }" headerValue="Other Source"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.BranchedReferredName__c }" headerValue="Branch Referred (Referred)"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.ReferralStaffID__c }" headerValue="Referral Staff ID (Referred)"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.ReferralStaffName__c}" headerValue="Referral Staff Name"/>  
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.TotalExpectedRevenue__c }" headerValue="Total Expected Revenue"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.Address__c }" headerValue="Address No/Moo/Soi/Street"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.SubDistrict__c }" headerValue="Sub District"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.District__c }" headerValue="District"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.Province__c }" headerValue="Province"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.ZipCode__c }" headerValue="Zip Code"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.Country__c }" headerValue="Country"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.MobileNo__c }" headerValue="Mobile No."/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.OfficeNo__c }" headerValue="Office No."/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.Ext__c }" headerValue="Ext"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.Email__c }" headerValue="Email"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.Rating__c }" headerValue="Rating"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.Remark__c }" headerValue="Remark"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.LeadRecordtypeName__c }" headerValue="LeadRecordtypeName"/>
+                                        <apex:column style="{!IF(!row.tempvalidlog.valid__c,'background-color:#ED4337','')};" value="{!row.tempvalidlog.Errormessage__c }" headerValue="Errormessage"/>
+                                    </apex:pageblocktable>
+                            </apex:pageBlock>
+                            <apex:panelGrid columns="5"  >
+                                <apex:commandLink action="{!first}" rendered="{!hasPrevious}" status="status"  rerender="results2" styleClass="event-paging" >First</apex:commandlink>
+                                <apex:commandLink action="{!previous}" rendered="{!hasPrevious}" status="status" rerender="results2" styleClass="event-paging" style="width:70px;">Previous</apex:commandlink>
+                                <apex:commandLink action="{!next}" rendered="{!hasNext}" status="status" rerender="results2" styleClass="event-paging" >Next</apex:commandlink>
+                                <apex:commandLink action="{!last}" rendered="{!hasNext}" status="status" rerender="results2" styleClass="event-paging" >Last</apex:commandlink>
+                                <apex:outputpanel rendered="{!hasNext || hasPrevious}" styleClass="index-paging">
+                                	Validate Results -  Page : {!pageNumber} of {!CEILING(noOfRecords /pageSize)}   Total Records : {!noOfRecords}
+                                </apex:outputpanel>
+                            </apex:panelGrid>
+        				</apex:outputPanel>
+                            
+                            <apex:outputPanel style="overflow-x: scroll;" id="runImportSuccess" rendered="{! !isValidProgress && isValidDone && !isImportProgress && isImportDone}">
+                                  <div class="alert alert-success">
+                                    <strong>
+                                        <apex:outputtext value="{!uploadCompleted}"/>
+                                    </strong>
+                                  </div>
+                            </apex:outputPanel>
+                    
+                        </apex:outputPanel>
+                    	</apex:outputPanel>
+                   </div>
+                    
+                    <div id="switch2" role="tabpanel" class="tab-pane fade" >
+                        <apex:actionFunction name="callclass" action="{!logfiles}" reRender="success"/>
+                        <apex:outputPanel id="success">
+                            <div id="log" class="successout">
+                                <div class="successin">
+                                    <span><h4>Results</h4></span>
+                                    <table class="table ">
+                                        <tr>
+                                            <th style="">#</th>
+                                            <th style="">Name</th>
+                                            <th style="">Create Date</th>
+                                        </tr>
+                                        <apex:repeat value="{!loghead}" var="log">
+                                            <tr >
+                                                <td>{!log.Row__c}</td>
+                                                <td><a href="UploadLeadcsv?idname={!log.Id}"> {!log.Name}_Result</a></td>
+                                                <td>
+                                                    <apex:outputText value="{0, date,d MMMM yyyy}">
+                                                        <apex:param value="{!log.Createddate}" /> 
+                                                    </apex:outputText>
+                                                </td>                                    
+                                            </tr>
+                                        </apex:repeat>                            
+                                    </table>                   
+                                </div>
+                            </div>
+                            
+                            <div id="log" class="errorout">
+                                <div class="errorin">
+                                    <span><h4>Invalid</h4></span>
+                                    <table class="table ">
+                                        <tr>
+                                            <th style="">#</th>
+                                            <th style="">Name</th>
+                                            <th style="">Create Date</th>
+                                        </tr>
+                                        <apex:repeat value="{!logheadFalse}" var="log">
+                                            <tr>
+                                                <td>{!log.Row__c}</td>
+                                                <td><a href="UploadLeadCsvError?idname={!log.Id}"> {!log.Name}_Invalid </a></td>
+                                                <td>
+                                                    <apex:outputText value="{0, date,d MMMM yyyy}">
+                                                        <apex:param value="{!log.Createddate}" /> 
+                                                    </apex:outputText>
+                                                </td>                                    
+                                            </tr>
+                                        </apex:repeat>
+                                    </table>                    
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+                    </div>
+                </div>
+            </apex:form>
+        </div>
+    </body>
+</apex:page>-->

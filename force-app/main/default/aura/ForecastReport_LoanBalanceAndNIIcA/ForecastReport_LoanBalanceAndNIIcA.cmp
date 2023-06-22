@@ -1,0 +1,123 @@
+<aura:component access="global" implements="lightning:isUrlAddressable,force:appHostable"
+    controller="ForecastReportController">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="parent" type="Aura.Component" />
+    <aura:attribute name="reportParam" type="Object" />
+    <aura:attribute name="isLoading" type="boolean" />
+    <aura:attribute name="reportYear" type="String" />
+    <aura:attribute name="Cube1Data" type="Object[]" />
+    <aura:attribute name="target" type="Object[]" />
+    <aura:attribute name="groupedData" type="Object[]" />
+    <aura:attribute name="teamTotalRow" type="Object" />
+    <aura:attribute name="productGroup" type="Object[]" />
+    <aura:attribute name="userProfile" type="String" />
+    <aura:attribute name="isGrouped" type="Boolean" default="false" />
+    <aura:attribute name="jsonForCSV" type="Object[]" default="[]"/>
+    
+    <aura:attribute name="gridColumnsMockTable" type="List" access="PRIVATE" />
+    <aura:attribute name="gridDataMockTable" type="Object" access="PRIVATE" />
+
+    <aura:attribute name="targetColumnsTop" type="List" access="PRIVATE" />
+    <aura:attribute name="targetColumnsBottom" type="List" access="PRIVATE" />
+
+    <aura:method name="sumGroupTotalRow" action="{!c.sumGroupTotalRow}">
+        <aura:attribute name="param1" type="Object" />
+    </aura:method>
+
+    <aura:method name="exportCSV" action="{!c.exportCSV}">
+        <aura:attribute name="param1" type="Object[]" />
+    </aura:method>
+
+    <div class="slds-scrollable slds-m-around_large" style="margin: 5px 10px;max-height: 400px;">
+        <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                <thead>
+                    <tr class="slds-text-title--caps">
+                        <aura:iteration items="{!v.gridColumnsMockTable}" var="col" indexVar="index">
+                                <aura:if isTrue="{!col.fieldName == 'team'}">
+                                    <th rowspan="2" scope="col" class="center-align border-line-color first-color fixed-column" style="left: 0px;min-width: 100px;max-width: 100px;">
+                                        <div title="{!col.label}">{!col.label}</div>
+                                    </th>
+                                </aura:if>
+                                <aura:if isTrue="{!col.fieldName == 'rm'}">
+                                    <th rowspan="2" scope="col" class="center-align border-line-color first-color fixed-column" style="left: 100px;min-width: 165px;max-width: 165px;">
+                                        <div title="{!col.label}">{!col.label}</div>
+                                    </th>
+                                </aura:if>
+                                <aura:if isTrue="{!col.fieldName == 'product'}">
+                                    <th rowspan="2" scope="col" class="center-align border-line-color first-color fixed-column" style="left: 265px;min-width: 170px;max-width: 170px;">
+                                        <div title="{!col.label}">{!col.label}</div>
+                                    </th>
+                                </aura:if>
+                                <aura:if isTrue="{!col.fieldName == 'lastYear'}">
+                                    <th rowspan="2" scope="col" class="center-align border-line-color first-color fixed-column" style="left: 435px;min-width: 120px;max-width: 120px;">
+                                        <div title="{!col.label}">{!col.label}<br/>
+                                            {!col.label2}
+                                        </div>
+                                    </th>
+                                </aura:if>
+                            <aura:if isTrue="{!col.slot == 2}">
+                                <th rowspan="2" scope="col" class="center-align border-line-color second-color">
+                                    <div class="slds-truncate" title="{!col.label}">{!col.label}</div>
+                                </th>
+                            </aura:if>
+                            <aura:if isTrue="{!col.slot == 3}">
+                                <th rowspan="2" scope="col" class="center-align border-line-color third-color">
+                                    <div class="slds-truncate" title="{!col.label}">{!col.label}
+                                    <br/>
+                                   {!col.label2}
+                                    </div>
+                                </th>
+                            </aura:if>
+                        </aura:iteration>
+                        <aura:if isTrue="{!or(v.userProfile == 'GroupHead',v.userProfile == 'System Administrator')}">                        
+                            <aura:iteration items="{!v.targetColumnsTop}" var="col" indexVar="index">
+                                <th colspan="3" scope="col" class="center-align border-line-color third-color">
+                                    <div class="slds-truncate" title="{!col.label}">{!col.label}</div>
+                                </th>
+                            </aura:iteration>
+                        </aura:if>
+                    </tr>
+                    <aura:if isTrue="{!or(v.userProfile == 'GroupHead',v.userProfile == 'System Administrator')}">  
+                        <tr class="slds-text-title--caps">
+                            <aura:iteration items="{!v.targetColumnsBottom}" var="col" indexVar="index">
+                                <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                                    <div class="slds-truncate" title="{!col.label1}">{!col.label}
+                                    </div>
+                                </th>
+                            </aura:iteration>
+                        </tr>                    
+                    </aura:if>
+                </thead>
+                <aura:if isTrue="{!v.isGrouped}">
+                    <tbody>
+                        <aura:iteration items="{!v.groupedData}" var="data" indexVar="index">
+                            <aura:iteration items="{!data.team}" var="team" indexVar="index">
+                                <aura:if isTrue="{!v.userProfile != 'GroupHead'}">
+                                    <aura:iteration items="{!team.rm}" var="rm" indexVar="index">
+                                        <c:ForecastReport_LoanBalanceAndNIIcA_Child groupingByRM="{!rm}" reportYear = "{!v.reportParam.selectedYear}" userProfile = "{!v.userProfile}" type  = "rm" parent="{! this}"/>
+                                    </aura:iteration>
+                                </aura:if>
+                                <aura:if isTrue="{!or(or(v.userProfile == 'TeamHead',v.userProfile == 'System Administrator'), v.userProfile == 'GroupHead')}">
+                                    <c:ForecastReport_LoanBalanceAndNIIcA_Child groupingByRM="{!team.team}" reportYear = "{!v.reportParam.selectedYear}" userProfile = "{!v.userProfile}" type  = "team" parent="{! this}"/>
+                                </aura:if>
+                            </aura:iteration>
+                            <aura:if isTrue="{!or(v.userProfile == 'GroupHead',v.userProfile == 'System Administrator')}">
+                                    <c:ForecastReport_LoanBalanceAndNIIcA_Child groupingByRM="{!data.region}" reportYear = "{!v.reportParam.selectedYear}" userProfile = "{!v.userProfile}" type  = "region" parent="{! this}"/>
+                            </aura:if>
+                        </aura:iteration>   
+                    </tbody>
+                    <aura:set attribute="else">
+                        <tr>
+                            <td class="fixed-column" style="left: 0;min-width: 100px;">
+                                <div class="slds-truncate">
+                                    <aura:unescapedHtml value="{!$Label.c.no_record_to_display}">
+                                        <lightning:formattedText value="{!$Label.c.no_record_to_display}" />
+                                    </aura:unescapedHtml>
+                                </div>
+                            </td>
+                        </tr>
+                    </aura:set>
+                </aura:if>
+            </table>
+        </div>
+</aura:component>

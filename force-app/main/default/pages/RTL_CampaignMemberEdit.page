@@ -1,0 +1,1200 @@
+<apex:page showHeader="false" sidebar="false" cache="false" standardController="CampaignMember" tabStyle="CampaignMember"
+    extensions="RTL_CampaignMemberExtension" standardStylesheets="true" action="{!defaultContactStatus}">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <!-- Import the Design System style sheet -->
+        <apex:slds />
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <!-- Includes Js -->
+        <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+        <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+        <!-- Salesconsole JS API -->
+        <apex:includescript value="/support/console/48.0/integration.js" />
+
+
+        <!-- Style for Ajax Request -->
+        <style>
+            .overlay {
+                display: none;
+                height: 100%;
+                left: 0;
+                position: fixed;
+                top: 0;
+                opacity: 0.3;
+                -moz-opacity: 0.3;
+                width: 100%;
+                -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+                filter: alpha(opacity=30);
+                background: #000;
+                -khtml-opacity: 0.3;
+                z-index: 1000;
+            }
+
+            .loader {
+                background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+                /* width: 32px;*/
+                height: 32px;
+                position: relative;
+                left: 48%;
+            }
+
+            .red-label {
+                list-style: none;
+                color: #f00;
+            }
+
+            .bootstrap-sf1 {
+                overflow: hidden;
+            }
+
+            .bootstrap-sf1 .paddingline {
+                /*padding-top :5px;*/
+            }
+
+            .bootstrap-sf1 {
+                background-color: #FFF;
+
+            }
+
+            .bootstrap-sf1 .btn-block {
+                display: block;
+                width: 100%;
+                text-align: center;
+            }
+
+            .bootstrap-sf1 .padding-label {
+                padding-right: 20px;
+                float: left;
+                width: 40%;
+                text-align: right;
+            }
+
+            .bootstrap-sf1 .padding-values {
+                float: right;
+                text-align: left;
+                width: 60%;
+                background-color: rgb(255, 255, 255);
+                color: rgb(22, 50, 92) !important;
+                transition: border .1s linear, background-color .1s linear;
+                min-height: 1.875rem;
+            }
+
+            .bootstrap-sf1 .output-label {
+                display: inline-block;
+                color: rgb(112, 110, 107);
+                font-size: 0.79rem;
+                line-height: 1.5;
+                margin-right: .75rem;
+                margin-bottom: .125rem;
+                font-weight: normal !important;
+            }
+
+            .slds-button-block {
+                display: -ms-flexbox;
+                -ms-flex-pack: center;
+
+                text-align: center;
+                margin: 10px;
+            }
+
+            .slds-scope table {
+                width: auto;
+            }
+
+            .disableSelect {
+                pointer-events: none;
+                opacity: 0.5;
+            }
+
+
+            /*@media (min-width: 768px) {
+          .bootstrap-sf1 .row {
+               min-width:1122px;
+          }
+        }*/
+
+            @media (min-width: 800px) and (max-width: 1334px) {
+                .bootstrap-sf1 .row {
+                    min-width: 50%;
+                }
+
+                .bootstrap-sf1 .padding-values select {
+                    width: 100% !important;
+                }
+
+                .bootstrap-sf1 .padding-values span select {
+                    width: 58% !important;
+                }
+
+                .bootstrap-sf1 .padding-values select:disabled {
+                    width: 58% !important;
+                }
+            }
+
+
+
+            .slds-scope .slds-text-title--caps,
+            .slds-scope .slds-text-title_caps {
+                font-size: .79rem !important;
+            }
+
+            body .lookupHoverDetail.individualPalette>div>.bPageBlock {
+                width: 395px !important;
+            }
+
+            .messageText {
+                padding-bottom: -5px;
+            }
+
+            .messageCell .messageText br {
+                display: none;
+            }
+        </style>
+
+        <apex:outputpanel id="scriptPanel">
+            <script type="text/javascript">
+                function fireSaveEvent() {
+                    /*if('{!isSaveSucess}' == 'true')
+                    {
+                        // Fire event only when save is success 
+                        //(this will relocate focus to Call List Navigation tab)
+                        sforce.console.fireEvent('saveCamMem', 'Refresh Call List after Save Campaign Member', null);
+
+                        //Close tab when save success
+                        //sforce.console.getEnclosingTabId(closeSubtab);
+                    }*/
+                    apexRedirect();
+
+                }
+
+                var closeSubtab = function closeSubtab(result) {
+                    var tabId = result.id;
+                    if (tabId) {
+                        sforce.console.closeTab(tabId);
+                    }
+                };
+            </script>
+        </apex:outputpanel>
+
+    </head>
+
+    <body style="background-color: #FFF">
+
+
+        <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+        <div class="loadingBox overlay"></div>
+
+        <!-- // End Ajax Request -->
+
+        <!-- REQUIRED SLDS WRAPPER -->
+        <div class="slds-scope">
+
+            <!-- PAGE HEADER -->
+            <div class="slds-page-header">
+
+                <!-- LAYOUT GRID -->
+                <div class="slds-grid">
+
+                    <!-- GRID COL -->
+                    <div class="slds-col slds-has-flexi-truncate">
+                        <!-- HEADING AREA -->
+                        <!-- MEDIA OBJECT = FIGURE + BODY -->
+                        <div class="slds-media slds-no-space slds-grow">
+                            <div class="slds-media__figure">
+
+                                <span class="slds-icon_container slds-icon-standard-campaign" style="width:32px;height:32px;">
+                                    <span aria-hidden="true" class="slds-icon slds-icon_medium">
+                                        <img src="/apexpages/slds/latest/assets/icons/standard/campaign_members.svg" style="width:100%;" class="pageTitleIcon" title="Campaign Member"
+                                        />
+                                    </span>
+                                </span>
+
+
+
+                            </div>
+                            <div class="slds-media__body">
+                                <!--<p class="slds-breadcrumb__item">{!$Label.RTL_Campaign_Member_History_Title}</p> -->
+                                <nav>
+                                    <ol class="slds-breadcrumb slds-line-height_reset">
+                                        <li class="slds-breadcrumb__item">
+                                            <span>{!$Label.RTL_Campaign_Member_History_Title}</span>
+                                        </li>
+                                    </ol>
+                                </nav>
+                                <h1 class="slds-page-header__title slds-m-right_small slds-align-middle slds-wrapper" title="CampaignMember">
+                                    <apex:outputPanel id="header_title">
+                                        <apex:outputPanel rendered="{!if(currentObject.ContactId != null,'true','false')}">
+                                            {!currentObject.contact.account.name+' ('+currentObject.campaign.Name+')'}
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!if(currentObject.ContactId == null,'true','false')}">
+                                            {!objLead.Name+' ('+currentObject.campaign.Name+')'}
+                                        </apex:outputPanel>
+                                    </apex:outputPanel>
+                                </h1>
+                            </div>
+
+                        </div>
+                        <!-- / MEDIA OBJECT -->
+                        <!-- /HEADING AREA -->
+                    </div>
+
+                </div>
+                <!-- / LAYOUT GRID -->
+            </div>
+            <!-- / PAGE HEADER -->
+
+            <!-- PRIMARY CONTENT WRAPPER -->
+            <div>
+
+
+                <!-- Main form -->
+                <apex:form >
+                    <!-- THis section would be hide and value will be overided by dynamic generated 
+                    Keep this section always top and over dynamic created product lines(via Interface)
+
+                -->
+                    <apex:outputPanel rendered="{!IF(currentObject.id==null,true,false)}">
+                        <div class="productHidden" style="display:none;">
+                            <apex:inputField id="group1" value="{!currentObject.RTL_Product_Group_1__c}" />
+                            <apex:inputField id="reason1" value="{!currentObject.RTL_Reason_1__c}" />
+                            <apex:inputField id="group2" value="{!currentObject.RTL_Product_Group_2__c}" />
+                            <apex:inputField id="reason2" value="{!currentObject.RTL_Reason_2__c}" />
+                            <apex:inputField id="group3" value="{!currentObject.RTL_Product_Group_3__c}" />
+                            <apex:inputField id="reason3" value="{!currentObject.RTL_Reason_3__c}" />
+                            <apex:inputField id="group4" value="{!currentObject.RTL_Product_Group_4__c}" />
+                            <apex:inputField id="reason4" value="{!currentObject.RTL_Reason_4__c}" />
+                            <apex:inputField id="group5" value="{!currentObject.RTL_Product_Group_5__c}" />
+                            <apex:inputField id="reason5" value="{!currentObject.RTL_Reason_5__c}" />
+                        </div>
+                    </apex:outputPanel>
+                    <apex:actionFunction name="setTabId" action="{!setTabId}" reRender="tabStamp">
+                        <apex:param name="tabId" value="" assignTo="{!primaryTab}" />
+                    </apex:actionFunction>
+                    <apex:actionFunction name="apexSave" action="{!apexSave}" oncomplete="fireSaveEvent();" rerender="scriptPanel,statusMessage"
+                    />
+                    <apex:actionFunction name="apexRedirect" action="{!redirectAfterSave}" />
+
+
+                    <apex:actionFunction action="{!requestCampaignData}" name="requestData" reRender="saveButton,section3,saveButton2,header_title,section1_1,section1_2{!IF(currentObject.id==null,',productList','')}"
+                        status="loadRequestStatus" oncomplete="refreshCampaignMemberView('{!IF(currentObject.contact.id != null,currentObject.contact.account.name,objLead.Name)}','{!CampaingNameEscaped}')"
+                    />
+
+                    <apex:actionstatus id="loadRequestStatus">
+                        <apex:facet name="start">
+                            <div class="demo-only demo--inverse" style="position: relative; z-index: 1001 !important;">
+                                <div class="slds-spinner_container slds-is-fixed">
+                                    <div role="status" class="slds-spinner slds-spinner_medium">
+                                        <span class="slds-assistive-text">{$Label.RTL_Campaign_Reassign_Loading}</span>
+                                        <div class="slds-spinner__dot-a"></div>
+                                        <div class="slds-spinner__dot-b"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </apex:facet>
+                    </apex:actionstatus>
+
+                    <apex:outputPanel id="statusMessage">
+                        <apex:pageMessages escape="false"></apex:pageMessages>
+                    </apex:outputPanel>
+
+                    <div class="slds-form-element slds-button-block">
+                        <apex:commandButton id="saveButton" value="{!$Label.Save}" onclick="disableSave();apexSave();return false;" styleClass="saveButtonId slds-button slds-button_brand"
+                            disabled="{!!isCampaignActive}" />
+                        <apex:commandButton value="{!$Label.Cancel}" immediate="true" action="{!canceltoview}" html-formnovalidate="formnovalidate"
+                            styleClass="slds-button slds-button--neutral" />
+                        <apex:outputPanel rendered="{!IF(currentObject.id==NULL,false,true)}">
+                            <apex:commandButton value="{!$Label.RTL_CampaignMemberEdit_ViewHistory}" styleclass="slds-button slds-button--neutral" immediate="true"
+                                onclick="openSubTab('/apex/RTL_CampaignMemberHistory?id={!currentObject.Id}&retURL={!currentObject.Id}','Campaign Member History','Campaign Member History',true);return false;"
+                            />
+                        </apex:outputPanel>
+                    </div>
+
+                    <!-- Campaign Member Information  -->
+                    <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                        <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_CampaignMemberEdit_SecInformation}</h3>
+                    </div>
+
+                    <apex:outputPanel id="section1">
+                        <div class="bootstrap-sf1">
+                            <div class="row " style="margin: 10px;max-width:100% !important;">
+
+                                <apex:outputPanel id="section1_1">
+                                    <!-- Row 1 -->
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:5px;">
+
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$Label.RTL_ViewCampaignMember_CampaignNameTH}" />
+                                        </span>
+                                        <div class="padding-values">
+
+                                            <a href="javascript:openSubTab('/{!currentObject.CampaignId}',' {!currentObject.campaign.Name}',' {!currentObject.campaign.Name}',true);"
+                                                id="lookup{!currentObject.CampaignId}" style="position:absolute;" onmouseover="LookupHoverDetail.getHover(this.id, '/{!currentObject.CampaignId}/m?retURL=/{!currentObject.CampaignId}&isAjaxRequest=1').show();"
+                                                onfocus="LookupHoverDetail.getHover(this.id, '/{!currentObject.CampaignId}/m?retURL=/{!currentObject.CampaignId}&isAjaxRequest=1').show();"
+                                                onmouseout="LookupHoverDetail.getHover(this.id).hide();" onblur="LookupHoverDetail.getHover(this.id).hide();">
+                                                {!currentObject.campaign.Name}
+                                            </a>
+
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:5px;">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.CreatedDate.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:inputField value="{!currentObject.CreatedDate}" style="position:absolute;" />
+                                        </div>
+                                    </div>
+
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline"></div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline"></div>
+
+                                    <!-- Row 2 -->
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$Label.RTL_ViewCampaignMember_CustomerName}" />
+                                        </span>
+                                        <div class="padding-values">
+
+
+                                            <apex:outputPanel rendered="{!if(currentObject.ContactId != null,'true','false')}">
+                                                <a href="javascript:openSubTab('/{!currentObject.contact.accountId}','{!currentObject.contact.account.name}','{!currentObject.contact.account.name}',true);"
+                                                    id="lookup{!currentObject.contact.accountId}" onmouseover="LookupHoverDetail.getHover(this.id, '/{!currentObject.contact.accountId}/m?retURL=/{!currentObject.contact.accountId}&isAjaxRequest=1').show();"
+                                                    onfocus="LookupHoverDetail.getHover(this.id, '/{!currentObject.contact.accountId}/m?retURL=/{!currentObject.contact.accountId}&isAjaxRequest=1').show();"
+                                                    onmouseout="LookupHoverDetail.getHover(this.id).hide();" onblur="LookupHoverDetail.getHover(this.id).hide();">
+                                                    {!currentObject.contact.account.name}
+                                                </a>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel rendered="{!if(currentObject.ContactId == null,'true','false')}">
+                                                <a href="javascript:openSubTab('/{!currentObject.LeadId}','{!currentObject.Lead.Name}','{!currentObject.Lead.Name}',true);"
+                                                    id="lookup{!currentObject.LeadId}" onmouseover="LookupHoverDetail.getHover(this.id, '/{!currentObject.LeadId}/m?retURL=/{!currentObject.LeadId}&isAjaxRequest=1').show();"
+                                                    onfocus="LookupHoverDetail.getHover(this.id, '/{!currentObject.LeadId}/m?retURL=/{!currentObject.LeadId}&isAjaxRequest=1').show();"
+                                                    onmouseout="LookupHoverDetail.getHover(this.id).hide();" onblur="LookupHoverDetail.getHover(this.id).hide();">
+                                                    {!currentObject.Lead.Name}
+                                                </a>
+                                            </apex:outputPanel>
+
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_CampHis_Phone__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext value="{!currentObject.RTL_CampHis_Phone__c}" />
+                                        </div>
+                                    </div>
+                                    <!-- Outbound Existing Customer -->
+                                    <apex:outputPanel rendered="{!if(currentObject.ContactId == null,'true','false')}">
+                                        <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                            <span class="padding-label">
+                                                <apex:outputlabel styleclass="output-label" value="{!$Label.RTL_CampaignMember_ExtCustomer}" />
+                                            </span>
+                                            <apex:outputPanel rendered="{!if(currentObject.Customer__c == null,'true','false')}">
+                                                <apex:inputField id="Account" value="{!currentObject.Customer__c}" />
+                                            </apex:outputPanel>
+                                            <apex:outputPanel rendered="{!if(currentObject.Customer__c != null,'true','false')}">
+                                                <a href="javascript:openSubTab('/{!currentObject.Customer__c}','{!currentObject.Customer__r.Name}','{!currentObject.Customer__r.Name}',true);"
+                                                    id="lookup{!currentObject.Customer__c}" onmouseover="LookupHoverDetail.getHover(this.id, '/{!currentObject.Customer__c}/m?retURL=/{!currentObject.Customer__c}&isAjaxRequest=1').show();"
+                                                    onfocus="LookupHoverDetail.getHover(this.id, '/{!currentObject.Customer__c}/m?retURL=/{!currentObject.Customer__c}&isAjaxRequest=1').show();"
+                                                    onmouseout="LookupHoverDetail.getHover(this.id).hide();" onblur="LookupHoverDetail.getHover(this.id).hide();">
+                                                    {!currentObject.Customer__r.Name}
+                                                </a>
+                                            </apex:outputPanel>
+                                        </div>
+                                        <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                            <span class="padding-label">
+                                                <apex:outputlabel styleclass="output-label" />
+                                            </span>
+                                            <div class="padding-values">
+                                                <apex:outputtext />
+                                            </div>
+                                        </div>
+                                    </apex:outputPanel>
+
+                                    <!-- Row 3 -->
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Age__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext value="{!currentObject.RTL_Age__c}" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Last_Contact_Status__c.Label}"
+                                            />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext value="{!lastContactStatus}" />
+                                        </div>
+                                    </div>
+                                </apex:outputPanel>
+                                <!-- Row 4 -->
+                                <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                    <span class="padding-label">
+                                        <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Income__c.Label}" />
+                                    </span>
+                                    <div class="padding-values">
+                                        <apex:outputtext value="{!currentObject.RTL_Income__c}" />
+                                    </div>
+                                </div>
+                                <!--div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                          <span class="padding-label"><apex:outputlabel styleclass="output-label"  value="{!$ObjectType.CampaignMember.fields.No_of_Attempts__c.Label}" /></span>
+                          <div class="padding-values"><apex:outputtext value="{!currentObject.No_of_Attempts__c}" /></div>
+                        </div-->
+                                <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                    <span class="padding-label">
+                                        <span class="slds-required">*</span>
+                                        <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Contact_Status__c.Label}" />
+                                    </span>
+                                    <div class="padding-values">
+                                        <apex:inputField id="statusvalues" styleClass="removeUnused" required="true" value="{!currentObject.RTL_Contact_Status__c}"
+                                        />
+                                    </div>
+                                </div>
+
+                                <!-- Row 5 -->
+                                <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                    <span class="padding-label">
+                                        <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Occupation__c.Label}" />
+                                    </span>
+                                    <div class="padding-values">
+                                        <apex:outputText value="{!currentObject.RTL_Occupation__c}" style="position:absolute;" />
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                    <span class="padding-label">
+                                        <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Reason__c.Label}" />
+                                    </span>
+                                    <div class="padding-values">
+                                        <apex:inputfield value="{!currentObject.RTL_Reason__c}" style="position:absolute;" />
+                                    </div>
+                                </div>
+
+                                <!-- Row 6 -->
+                                <!--div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                             <span class="padding-label"><apex:outputlabel styleclass="output-label"  value="{!$ObjectType.CampaignMember.fields.RTL_Contact_Staff_Name__c.Label}" /></span>
+                            <div class="padding-values"><apex:outputText value="{!currentObject.RTL_Contact_Staff_Name__r.Name}"/></div>
+                            
+                        </div-->
+                                <apex:outputPanel id="section1_2">
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Campaign_Channel_formula__c.Label}"
+                                            />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext value="{!campaignChannelFormula}" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Offer_Result__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:inputField value="{!currentObject.RTL_Offer_Result__c}" />
+                                        </div>
+                                    </div>
+                                </apex:outputPanel>
+
+                                <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                    <span class="padding-label">
+                                        <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_TMB_Campaign_Source__c.Label}"
+                                        />
+                                    </span>
+                                    <div class="padding-values">
+                                        <apex:outputText value="{!currentObject.RTL_TMB_Campaign_Source__c}" />
+                                    </div>
+                                </div>
+                                <!-- LGSWS2 -->
+                                <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                    <span class="padding-label">
+                                    </span>
+                                    <div class="padding-values">
+                                    </div>
+                                </div>
+                                <!-- Row 8 -->
+                                <apex:outputPanel id="sectionLeadScore">
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.Lead_Score__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext value="{!currentObject.Lead_Score__c}" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.Lead_Score_Level__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:selectList id="leadScoreSelect" value="{!currentObject.Lead_Score_Level__c}" 
+                                                multiselect="false" size="1"
+                                                styleClass="removeUnused"
+                                                onchange="passSelectedValue(this.value)" >
+                                                <apex:selectOptions value="{!options}" />
+                                            </apex:selectList>
+                                            <apex:actionFunction name="passSelectedValues" action="{!handleSelectedValue}" reRender="sectionLeadScore">
+                                                <apex:param name="selectedValueParam" value="" assignTo="{!selectedValue}" />
+                                            </apex:actionFunction>
+                                        </div>
+                                    </div>    
+                                </apex:outputPanel>
+                                <!-- Row 9 -->
+                                <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                    <span class="padding-label">
+                                        <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.Partner_Lead_ID__c.Label}" />
+                                    </span>
+                                    <div class="padding-values">
+                                        <apex:outputText value="{!currentObject.Partner_Lead_ID__c}" style="position:absolute;" />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+
+                    <!-- Invitation Campaign Only  -->
+                    <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                        <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_CampaignMemberEdit_SecInvitation}</h3>
+                    </div>
+
+                    <apex:outputPanel id="section2">
+                        <div class="bootstrap-sf1">
+                            <div class="row" style="margin: 10px;">
+
+
+                                <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                    <span class="padding-label">
+                                        <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Invitation_Status__c.Label}" />
+                                    </span>
+                                    <div class="padding-values">
+                                        <apex:inputField value="{!currentObject.RTL_Invitation_Status__c}" />
+                                    </div>
+                                </div>
+                                <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                    <span class="padding-label">
+                                        <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Attendant_Status__c.Label}" />
+                                    </span>
+                                    <div class="padding-values">
+                                        <apex:inputField value="{!currentObject.RTL_Attendant_Status__c}" />
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+
+                    <!-- Segmentation / Promotion / Product Feature -->
+                    <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                        <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_CampaignMemberEdit_SecSegmentation}</h3>
+                    </div>
+
+                    <apex:outputPanel id="section3">
+                        <div class="bootstrap-sf1">
+                            <div class="row" style="margin: 10px;">
+
+                                <!-- Row 1 -->
+                                <div class="slds-grid slds-wrap slds-grid_pull-padded">
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Segmentation__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext value="{!currentObject.RTL_Segmentation__c}" />
+                                        </div>
+                                    </div>
+
+
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Promotion__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext escape="false" value="{!currentObject.RTL_Promotion__c}" />
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Row 2 -->
+                                <!--CR RTL_Personalized_Message__c-->
+
+                                <div class="slds-grid slds-wrap slds-grid_pull-padded">
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Product_Feature__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext escape="false" value="{!currentObject.RTL_Product_Feature__c}" style="width:100%;height:100%;" />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Personalized_Message__c.Label}"
+                                            />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext value="{!currentObject.RTL_Personalized_Message__c}" style="width:100%;height:100%;" />
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Row 3 -->
+                                <div class="slds-grid slds-wrap slds-grid_pull-padded">
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_TMB_Campaign_Reference__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext escape="false" value="{!currentObject.RTL_TMB_Campaign_Reference__c}" style="width:100%;height:100%;display: block;white-space: pre-line;"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Remark__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext escape="false" value="{!currentObject.RTL_Remark__c}" style="width:100%;height:100%;display: block;white-space: pre-line;"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <!--END CR RTL_Personalized_Message__c-->
+                                <!-- Row 4 LGSws2-->
+                                <div class="slds-grid slds-wrap slds-grid_pull-padded">
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.LGS_Child_Campaign_ID__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext escape="false" value="{!currentObject.LGS_Child_Campaign_ID__c}" style="width:100%;height:100%;display: block;white-space: pre-line;"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_W2L_Campaign_Name__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext escape="false" value="{!currentObject.RTL_W2L_Campaign_Name__c}" style="width:100%;height:100%;display: block;white-space: pre-line;"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Row 5 -->
+                                <div class="slds-grid slds-wrap slds-grid_pull-padded">
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.LGS_Campaign_Start_Date__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext escape="false" value="{!currentObject.LGS_Campaign_Start_Date__c}" style="width:100%;height:100%;display: block;white-space: pre-line;"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                        <span class="padding-label">
+                                        </span>
+                                        <div class="padding-values">
+                                        </div>
+                                    </div>
+                                </div>
+                                <!-- Row 6 -->
+                                <div class="slds-grid slds-wrap slds-grid_pull-padded">
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                        <span class="padding-label">
+                                            <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.LGS_Campaign_End_Date__c.Label}" />
+                                        </span>
+                                        <div class="padding-values">
+                                            <apex:outputtext escape="false" value="{!currentObject.LGS_Campaign_End_Date__c}" style="width:100%;height:100%;display: block;white-space: pre-line;"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-12 col-sm-6 col-md-6 paddingline" style="padding-bottom:10px;">
+                                        <span class="padding-label">
+                                        </span>
+                                        <div class="padding-values">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+
+                    <!-- Update Campaign Product Interest -->
+                    <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                        <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_CampaignMemberEdit_SecCampaignProduct}</h3>
+                    </div>
+                    <apex:outputPanel id="productList">
+                        <apex:outputPanel rendered="{!ISNULL(CampaignProduct)|| CampaignProduct.size == 0}">
+                            <div class="slds-p-around_x-small slds-border_bottom slds-border_top">
+                                <span style="font-size: 12px;margin-left: 20px;">
+                                    <apex:outputText value="{!$Label.RTL_No_Record_Display}"></apex:outputText>
+                                </span>
+                            </div>
+                            <div class="slds-m-around--medium">
+                            </div>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!(!ISNULL(CampaignProduct) && CampaignProduct.size > 0)}">
+                            <apex:outputPanel id="section4">
+                                <div class="slds-form-element slds-m-around--medium slds-m-top--large" id="responsive">
+                                    <apex:outputPanel id="section00">
+                                        <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal" style="text-align: center;font-size: 12px; width: 100%;">
+                                            <thead>
+
+                                                <tr class="slds-text-title--caps section-header-title slds-p-horizontal--small slds-truncate">
+                                                    <th scope="col"> {!$Label.RTL_CampaignMemberEdit_ColNo} </th>
+                                                    <th scope="col"> {!$Label.RTL_CampaignMemberEdit_ColProductGroup} </th>
+                                                    <th scope="col"> {!$Label.RTL_CampaignMemberEdit_ColProductSubGroup}</th>
+                                                    <th scope="col"> {!$Label.RTL_CampaignMemberEdit_ColProductName} </th>
+                                                    <th scope="col"> {!$Label.RTL_CampaignMemberEdit_ColOfferResult} </th>
+                                                    <th scope="col"> {!$Label.RTL_CampaignMemberEdit_ColReason} </th>
+                                                    <th scope="col"> {!$Label.RTL_CampaignMemberEdit_ColOpportunity} </th>
+                                                    <th scope="col"></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <apex:variable var="index" value="{!1}" />
+
+                                                <apex:repeat value="{!CampaignProduct}" var="each">
+                                                    <tr class="dataRow productLine" data-idx="{!index}">
+                                                        <td data-label="{!$Label.RTL_CampaignMemberEdit_ColNo}">
+                                                            <apex:outputtext value="{!each.rowNum}" />
+                                                        </td>
+                                                        <td data-label="{!$Label.RTL_CampaignMemberEdit_ColProductGroup}">
+                                                            <apex:inputField styleclass="group" value="{!currentObject[each.apiProductGroup]}" html-disabled="true" style="display: none;"
+                                                            />
+                                                            <apex:outputField value="{!currentObject[each.apiProductGroup]}" />
+                                                        </td>
+                                                        <td data-label="{!$Label.RTL_CampaignMemberEdit_ColProductSubGroup}">
+                                                            <apex:outputField value="{!currentObject[each.apiProductSubGroup]}" />
+                                                        </td>
+                                                        <td data-label="{!$Label.RTL_CampaignMemberEdit_ColProductName}">
+                                                            <apex:outputText value="{!currentObject[each.apiProductName]}" />
+                                                        </td>
+                                                        <td data-label="{!$Label.RTL_CampaignMemberEdit_ColOfferResult}">
+                                                            <apex:inputField value="{!currentObject[each.apiOfferResult]}" styleClass="removeNA{!index}" onchange="disableReason('removeNA{!index}');"
+                                                                rendered="{!!each.readOnly}" />
+                                                            <apex:outputField value="{!currentObject[each.apiOfferResult]}" rendered="{!each.readOnly}" />
+                                                        </td>
+                                                        <td data-label="{!$Label.RTL_CampaignMemberEdit_ColReason}">
+
+                                                            <apex:outputPanel rendered="{!!each.readOnly}">
+                                                                <!-- <apex:outputPanel rendered="{!IF(currentObject.id!=null,true,false)}"> -->
+                                                                <span id="reasonOfferresult{!index}" class="reasonCol">
+                                                                    <apex:inputField styleclass="reason" value="{!currentObject[each.apiReason]}" />
+                                                                </span>
+                                                                <!-- </apex:outputPanel> -->
+                                                                <!-- <apex:outputPanel rendered="{!IF(currentObject.id==null,true,false)}">
+                                            <apex:selectList value="{!currentObject[each.apiReason]}" size="1">
+                                                <apex:selectOptions value="{!reasonOfNotInterestOption}"/>
+                                            </apex:selectList>
+                                    </apex:outputPanel> -->
+
+                                                            </apex:outputPanel>
+
+                                                            <apex:outputPanel rendered="{!each.readOnly}">
+                                                                <apex:outputField value="{!currentObject[each.apiReason]}" />
+                                                            </apex:outputPanel>
+
+                                                        </td>
+                                                        <td data-label="{!$Label.RTL_CampaignMemberEdit_ColOpportunity} ">
+                                                            <apex:outputField value="{!currentObject[each.apiOpportunity]}" />
+                                                        </td>
+                                                        <td data-label="More Detail">
+                                                            <apex:commandLink rendered="{!((currentObject[each.apiProductName] == 'Home Loan' || currentObject[each.apiProductName] == 'Refinance Home Loan' || currentObject[each.apiProductName] == 'Home Equity' ) && !ISNULL(objLead.RTL_W2L_Source_Collateral_Type__c)) || (currentObject[each.apiProductName] == 'CYC' || currentObject[each.apiProductName] == 'CYB' || currentObject[each.apiProductName] == 'NEW' || currentObject[each.apiProductName] == 'USED' || currentObject[each.apiProductName] == 'CYC Revolving')}"
+                                                                onclick="openMoreDetailSubTab('{!currentObject[each.apiProductName]}','{!index}');return false;">More Detail</apex:commandLink>
+                                                        </td>
+                                                    </tr>
+                                                    <apex:variable var="index" value="{!index + 1}" />
+                                                </apex:repeat>
+                                            </tbody>
+                                        </table>
+
+                                    </apex:outputPanel>
+                                </div>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+
+                    <!-- Memo -->
+                    <div class="slds-section__title slds-theme--shade primaryPaletteBorder">
+                        <h3 class="section-header-title slds-p-horizontal--small slds-truncate">{!$Label.RTL_CampaignMemberEdit_SecMemo}</h3>
+                    </div>
+
+                    <apex:outputPanel id="section5">
+                        <div class="bootstrap-sf1">
+                            <div class="row" style="margin: 10px;">
+                                <!-- Row 1 -->
+                                <div class="col-xs-12 col-sm-6 col-md-6 paddingline">
+                                    <span class="padding-label">
+                                        <apex:outputlabel styleclass="output-label" value="{!$ObjectType.CampaignMember.fields.RTL_Memo__c.Label}" />
+                                    </span>
+                                    <div class="padding-values">
+                                        <apex:inputField value="{!currentObject.RTL_Memo__c}" style="width:100%;height:100%;" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+
+                    <div class="slds-form-element slds-button-block">
+                        <apex:commandButton id="saveButton2" value="{!$Label.Save}" onclick="disableSave();apexSave();return false;" styleClass="saveButtonId slds-button slds-button_brand"
+                            disabled="{!!isCampaignActive}" />
+                        <apex:commandButton value="{!$Label.Cancel}" immediate="true" action="{!canceltoview}" html-formnovalidate="formnovalidate"
+                            styleClass="slds-button slds-button--neutral" />
+                        <apex:outputPanel rendered="{!IF(currentObject.id==NULL,false,true)}">
+                            <apex:commandButton value="{!$Label.RTL_CampaignMemberEdit_ViewHistory}" styleclass="slds-button slds-button--neutral" immediate="true"
+                                onclick="openSubTab('/apex/RTL_CampaignMemberHistory?id={!currentObject.Id}&retURL={!currentObject.Id}','Campaign Member History','Campaign Member History',true);return false;"
+                            />
+                        </apex:outputPanel>
+                    </div>
+
+                </apex:form>
+            </div>
+            <!-- / PRIMARY CONTENT WRAPPER -->
+
+        </div>
+
+    </body>
+
+    <apex:outputPanel id="tabStamp">
+        <script type="text/javascript">
+            var _primaryTab = '{!primaryTab}';
+        </script>
+    </apex:outputPanel>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            sforce.console.getEnclosingPrimaryTabId(function (result) {
+                _primaryTab = result.id;
+                setTabId(_primaryTab);
+            });
+            removeNAfromOfferResult();
+            if (sforce.console.isInConsole()) {
+
+                var contactid = '{!currentObject.ContactId}';
+
+                var name = '';
+                //var campaignName = '{!currentObject.campaign.name}';
+                var campaignName = '{!CampaingNameEscaped}';
+                var cmpName = campaignName.replace(/'/g, "\\'");
+
+                if (contactid != null && contactid != '') {
+                    name = '{!currentObject.contact.account.name}';
+                } else {
+                    name = '{!objLead.Name}';
+                }
+
+                setTabName(name, campaignName);
+
+                sforce.console.setTabIcon("{!URLFOR($Resource.RTL_Campaignmember_Logo)}", null);
+                //sforce.console.setTabIcon("{!URLFOR($Resource.RTL_Campaignmember_Logo)}", null, checkResult);
+                sforce.console.getEnclosingPrimaryTabId(function (result) {
+                    if (result.id != 'null') {
+                        sforce.console.setTabIcon("{!URLFOR($Resource.RTL_Campaignmember_Logo)}", result.id);
+                    }
+
+                });
+
+                //***** Comment by gade -> check with may what for this method
+                //document.getElementsByClassName("inputField")[0].focus();
+            }
+
+            //_maintab = sforce.console.getEnclosingPrimaryTabId(mainTab);
+
+            if ("{!currentObject.id}" == "") {
+                requestData();
+            }
+
+            removeUnusedFromContactStatus();
+
+        });
+
+        function removeNAfromOfferResult() {
+            for (var i = 1; i <= 5; i++) {
+
+                if ($('select.removeNA' + i).length > 0) {
+                    $('select.removeNA' + i + ' option[value="N/A"]').remove();
+                    $('select.removeNA' + i + ' option[value="Not Qualified"]').remove();
+                    $('select.removeNA' + i + ' option[value="Referred"]').remove();
+                    disableReason('removeNA' + i);
+
+                }
+            }
+        }
+
+        function refreshCampaignMemberView(name, campaignName) {
+            //setTabName(name,campaignName);
+            //removeUnusedFromContactStatus();
+
+            $('.productLine').each(function (index) {
+                var idx = $(this).data("idx");
+                var groupVal = $(this).find(".group").val();
+
+                $(this).find(".group").trigger('onchange');
+
+                var groupId = "group" + idx;
+                var reasonId = "reason" + idx;
+
+                $("[id$='" + groupId + "']").val(groupVal);
+                $("[id$='" + groupId + "']").trigger('onchange');
+
+                var $options = $("[id$='" + reasonId + "'] > option").clone();
+                $(this).find(".reason").html('');
+                $(this).find(".reason").append($options);
+            });
+
+            removeNAfromOfferResult();
+
+        }
+
+        function setTabName(name, campaignName) {
+            var tabname = name + '(' + campaignName + ')';
+            sforce.console.setTabTitle(tabname);
+        }
+
+        function checkResult(result) {
+            if (result.success) {
+                console.log('Tab icon set successfully!');
+            } else {
+                console.log('Tab icon cannot be set!');
+            }
+        }
+
+
+        function disableReason(a) {
+            var text = 'select.' + a;
+            var _offerresult = $(text).val();
+            var index = text.slice(-1);
+
+            var text2 = '[id$=\'reasonOfferresult' + index + '\'] select';
+
+
+            // console.log( $(text).val() );
+            // console.log( $(text2).val() );
+
+            if (_offerresult == "Interested" || _offerresult == "") {
+                //$(text2).hide();
+                $(text2).val('');
+                $(text2).prop('disabled', true);
+
+                //disableSelectcurrentObject
+                $('[id$="reasonOfferresult' + index + '"]').addClass('disableSelect');
+
+            } else {
+                //$(text2).show();
+                $(text2).prop('disabled', false);
+                $('[id$="reasonOfferresult' + index + '"]').removeClass('disableSelect');
+            }
+
+        }
+
+        function openViewHistory() {
+            if (sforce.one) {
+                sforce.one.navigateToURL('/apex/RTL_CampaignMemberHistory?id={!currentObject.Id}&retURL={!currentObject.Id}&nooverride=1', false);
+            }
+            else {
+                window.open('/apex/RTL_CampaignMemberHistory?id={!currentObject.Id}&retURL={!currentObject.Id}&nooverride=1');
+            }
+        }
+
+        function openSubTab(url, label, name, openimmediately) {
+            // try {
+            //     if(!sforce.console.isInConsole()) throw '';
+            //     sforce.console.getEnclosingPrimaryTabId(function (primarytab) {
+            //         sforce.console.openSubtab(primarytab.id, url, openimmediately, label, null, function (result) {
+            //             // do any processing here if passes or fails, use result.success (boolean)
+            //         }, name);
+            //     });
+            // } catch (error) {
+            //     openViewHistory();
+            // }
+            var theme = '{!$User.UIThemeDisplayed}';
+            if (theme == 'Theme4t') {
+                sforce.one.navigateToURL(url);
+            } else {
+                sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                    "componentDef": "c:workspaceAPIforVF",
+                    "attributes": {
+                        "action": 'openTabUrlWithTabId',
+                        "url": url,
+                        "tabId": _primaryTab,
+                        "replace": true,
+                        "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                            var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                            return v.toString(16);
+                        }),
+                    }
+                })), false);
+            }
+        }
+
+
+        function disableSave() {
+            //document.getElementsByClassName('saveButtonId')[0].style.visibility = 'hidden';
+            //document.getElementsByClassName('saveButtonId')[0].disabled = true;
+            //document.getElementsByClassName('saveButtonId')[0].value = 'Saving...';
+
+            $(".saveButtonId").attr("disabled", "true");
+            $(".saveButtonId").val("Saving...");
+
+            $(".saveButtonId").css("border-color", "#c4c4c4");
+            $(".saveButtonId").css("color", "#909090");
+
+        }
+
+        function enableSave() {
+            $(".saveButtonId").removeAttr("disabled")
+            $(".saveButtonId").val("Save");
+
+            $(".saveButtonId").css("border-color", "#7f7f7f");
+            $(".saveButtonId").css("color", "#333");
+        }
+
+        //overwrite hyperlink lookup function
+        var _navigateToUrl = window.navigateToUrl;
+        var navigateToUrl = function (url, data1, data2) {
+            if (sforce.console.isInConsole()) {
+
+                tabName = '';
+                sforce.console.getEnclosingPrimaryTabId(function (result) {
+                    if (result.id == 'null') {
+                        sforce.console.openPrimaryTab(null, url, true, tabName, null, 'salesforceTab');
+                    }
+                    else {
+                        sforce.console.openSubtab(result.id, url, true, tabName, null);
+                    }
+                });
+            }
+            else {
+                _navigateToUrl(url, data1, data2);
+            }
+        }
+
+        $("a[id^=lookup]").on('click', function (event) {
+            if (sforce.console.isInConsole()) {
+                event.preventDefault();
+                var objId = this.id.substring(6, 21);
+                //console.log('objId'+objId);
+                var tabName = '';
+                openTab(objId, '/', tabName);
+            }
+
+        });
+
+        $('body').on('mouseover', '.reasonCol', function (e) {
+
+
+            if ($(this).hasClass('disableSelect')) {
+                $(this).find('select').prop('disabled', true);
+            }
+            else {
+                $(this).find('select').prop('disabled', false);
+            }
+
+        });
+
+        function openTab(recid, url, tabName) {
+            if (!sforce.console.isInConsole()) {
+                //window.parent.location.replace(url+recid);
+                sforce.one.navigateToURL(url + recid);
+            }
+            else {
+                sforce.console.getEnclosingPrimaryTabId(function (result) {
+                    if (result.id == 'null') {
+                        sforce.console.openPrimaryTab(null, url + recid, true, tabName, null, 'salesforceTab');
+                    }
+                    else {
+                        sforce.console.openSubtab(result.id, url + recid, true, tabName, null);
+                    }
+                });
+            }
+        }
+        //End overwrite hyperlink lookup function
+
+        function removeUnusedFromContactStatus() {
+            //Hide --None--
+            var e = document.querySelectorAll('[id$="statusvalues"]')[0];
+            if (e && !e[0].value) { e.remove(0); }
+
+            var _contactstatus = '{!currentObject.RTL_Contact_Status__c}';
+            if (_contactstatus != "Unused") {
+                $('select.removeUnused option[value="Unused"]').remove();
+            }
+
+        }
+        function refreshTab() {
+            //location.reload();
+            requestData();
+            //alert();
+        }
+
+        function openMoreDetailSubTab(prdName,index) {
+            var recId = '{!currentObject.Id}';
+            var navigateTo = '';
+            // let AutoloanList = ['CYC', 'CYB', 'NEW', 'USED'];
+            let HomeloanList = ['Refinance Home', 'Loan Home Equity', 'Home Loan'];
+            var tabName = '';
+            var compDefinition;
+            let AutoloanList = '{!ALPrdNameSet}';
+
+            if (AutoloanList.includes(prdName)) {
+                navigateTo = 'c:CampaignMember_AutoLoanCalInfo';
+                tabName = 'Auto Loan Information';
+                compDefinition = {
+                    "componentDef": navigateTo,
+                    "state": {
+                        "c__campaignMemberId": recId,
+                        'c__productNumber' : index
+                    }
+                };
+            }
+            else if (HomeloanList.includes(prdName)) {
+                navigateTo = 'c:CampaignMember_HomeLoanCalInfo';
+                tabName = 'Home Loan Information';
+                compDefinition = {
+                    "componentDef": navigateTo,
+                    "state": {
+                        "c__campaignMemberId": recId,
+                    }
+                };
+            }
+
+
+            // Base64 encode the compDefinition JS object
+            var encodedCompDef = btoa(JSON.stringify(compDefinition));
+            var url = "/one/one.app#" + encodedCompDef;
+
+            var theme = '{!$User.UIThemeDisplayed}';
+
+            if (theme == 'Theme4t') {
+                sforce.one.navigateToURL(url);
+            } else {
+                sforce.console.getEnclosingPrimaryTabId(function openSub(result) {
+                    var primaryTab = result.id;
+                    sforce.console.openSubtab(primaryTab, url, true, tabName, null, null);
+                });
+            }
+        }
+        function passSelectedValue(selectedValue) {
+        // Update the value of the apex:param component
+            console.log('selectedValue',selectedValue);   
+            passSelectedValues(selectedValue);
+    }
+
+
+    </script>
+
+    </html>
+</apex:page>

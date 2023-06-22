@@ -1,0 +1,130 @@
+<aura:component controller="T_Performance_P1Controller" implements="force:hasRecordId,lightning:utilityItem,flexipage:availableForAllPageTypes,lightning:isUrlAddressable,force:appHostable" >
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" /> 
+    <aura:attribute name="branchCode" type="String" /> 
+    <aura:attribute name="financePerf" type="Object"/>
+    <aura:attribute name="saleInfo" type="Sale_Info__c"/>
+    <aura:attribute name="sumProductObj" type="Object[]"/>
+    <aura:attribute name="selectedPeriod" type="String" default="year"/>
+    <aura:attribute name="selectedYear" type="String" />
+    <aura:attribute name="selectedMonth" type="String"/>
+    <aura:attribute name="loading" type="Boolean"/>
+    <aura:attribute name="salePerfObj" type="Sale_Performance__c"/>
+    <aura:attribute name="appIncentive" type="Decimal"/>
+    <aura:attribute name="selectedEmpId" type="String" default="04998"/>
+    <aura:attribute name="sumFiActPoint" type="Integer"/>
+    <aura:attribute name="sumFiTargPoint" type="Integer"/>
+    <aura:attribute name="waterMarkImage" type="String" />
+    <aura:attribute name="dataAsOfMonth" type="Integer" />
+    <aura:attribute name="dataAsOfYear" type="String" />
+    <aura:attribute name="licenseObj" type="Object"/>
+    <aura:attribute name="lastAvailDataTimeObj" type="Object"/>
+    <aura:attribute name="targetProductObj" type="Object"/>
+    <aura:attribute name="isSumBankWideSuccess" type="Boolean"/>
+    <aura:attribute name="isLoadingGraphData" type="Boolean" default="false"/>
+    <aura:attribute name="tabChangeWhileLoading" type="Boolean" default="false"/>
+    <aura:attribute name="helpLink" type="String" />
+    <aura:attribute name="summaryLink" type="String" />
+    <aura:attribute name="sumTransBankWideWrapper" type="Object" />
+    <aura:attribute name="notifyError" type="String" />
+    <!-- <aura:attribute name="sumProductloading" type="Boolean" default="true"/> -->
+
+    <!-- <aura:attribute name="sectionALoding" type="Boolean" default="true"/> -->
+    <!-- <aura:attribute name="sectionBLoding" type="Boolean" default="true"/> -->
+    <aura:attribute name="sectionCLoading" type="Boolean" default="true"/>
+    <aura:attribute name="sectionDLoading" type="Boolean" default="true"/>
+    
+    <lightning:workspaceAPI aura:id="workspace" />
+    <aura:method name="reloadData" action="{!c.reloadData}" access="public">
+    <!-- Water Mark -->
+
+        <!-- <aura:attribute name="GreetingParam" type="String" default="Hello"/> 
+        <aura:attribute name="PersonNameParam" type="String" default="John"/>  -->
+    </aura:method>
+    <!-- <aura:handler name="periodChange" value="{!v.selectedPeriod}" action="{!c.periodChange}"/> -->
+    <!-- <lightning:card title="">     -->
+        <div class="page-container" style="position: relative;">
+
+            <!-- <aura:if isTrue="{!v.loading}">
+                <div class="exampleHolder">
+                    <lightning:spinner alternativeText="Loading" size="medium" />
+                </div>
+            </aura:if> -->
+            
+            <div class="slds-no-print">
+                <div class="slds-grid slds-wrap container">
+                        <aura:if isTrue="{!v.notifyError}">
+                            <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px;">
+                                <article class="slds-card test" style="background: #ffffd1; width:100%;height:100%;">
+                                    <div class="slds-card__body slds-card__body_inner">
+                                        <div class="notify-container">
+                                            <div class="warning-icon">
+                                                <lightning:icon iconName="utility:warning" size="x-small" variant="warning" alternativeText="Warning!" title="Warning" />
+                                            </div>
+                                            <div class="notify-txt">
+                                                <span class="error-title">คำเตือน</span>
+                                                <span class="error-msg">{!v.notifyError}</span>
+                                            </div>
+                                        </div>
+                                       
+                                    </div>
+                                </article>
+                                
+                            </div>
+                        </aura:if>
+
+                        <div class="slds-col slds-size_1-of-1">
+                            <article class="slds-card test" style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;padding-bottom: 6px;'}">
+                                <aura:if isTrue="{!v.loading == true}">
+                                    <div class="exampleHolder">
+                                        <lightning:spinner style="z-index: 1"  alternativeText="Loading" size="medium" />
+                                    </div>
+                                </aura:if>
+                                <div class="slds-card__body slds-card__body_inner">
+                                    <c:T_Performance_P1_SectionA saleInfo="{!v.saleInfo}" appIncentive="{!v.appIncentive}" licenseObj="{!v.licenseObj}" helpLink="{!v.helpLink}" summaryLink="{!v.summaryLink}" notifyError="{!v.notifyError}"/>
+                                </div>
+                            </article>
+                            
+                        </div>
+                    <!-- <aura:if isTrue="{!v.saleInfo.Channel__c == 'Branch'}"> -->
+                        <div class="slds-col slds-size_1-of-3" style="margin-top: 10px; margin-right: 10px;">
+                            <article class="slds-card" style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;padding-bottom: 6px;'}">
+                                <aura:if isTrue="{!v.loading == true}">
+                                    <div class="exampleHolder">
+                                        <lightning:spinner style="z-index: 1" alternativeText="Loading" size="medium" />
+                                    </div>
+                                </aura:if>
+                                <div class="slds-card__body slds-card__body_inner padding-card" style="height: 320px;">
+                                    <c:T_Performance_P1_SectionB salePerfObj="{!v.salePerfObj}" sumFiActPoint="{!v.sumFiActPoint}" sumFiTargPoint="{!v.sumFiTargPoint}" dataAsOfMonth="{!v.dataAsOfMonth}" dataAsOfYear="{!v.dataAsOfYear}"
+                                    targetProductObj = "{!v.targetProductObj}" selectedMonth="{!v.selectedMonth}" selectedYear="{!v.selectedYear}" selectedPeriod="{!v.selectedPeriod}"/>
+                                </div>
+                            </article>
+                        </div>
+                    <!-- </aura:if> -->
+                    <div class="slds-col" style="margin-top: 10px; ">
+                        <article class="slds-card" style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                            <aura:if isTrue="{!v.sectionCLoading == true}">
+                                <div class="exampleHolder">
+                                    <lightning:spinner style="z-index: 1" alternativeText="Loading" size="medium" />
+                                </div>
+                            </aura:if>
+                            <div class="slds-card__body slds-card__body_inner" style="padding-bottom: 10px; height: 325px;">
+                                <c:T_Performance_P1_SectionC selectedPeriod="{!v.selectedPeriod}" selectedMonth="{!v.selectedMonth}" selectedYear="{!v.selectedYear}" financePerf="{!v.financePerf}" parent="{!this}" defaultYear="{!v.dataAsOfYear}" selectedEmpId="{!v.selectedEmpId}" lastAvailDataTimeObj="{!v.lastAvailDataTimeObj}" notifyError="{!v.notifyError}"/>
+                            </div>
+                        </article>
+                    </div>
+                    <div class="slds-col slds-size_1-of-1" style="margin-top: 10px;">
+                        <article class="slds-card" style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                            <aura:if isTrue="{!v.sectionDLoading == true}">
+                                <div class="exampleHolder">
+                                    <lightning:spinner style="z-index: 1" alternativeText="Loading" size="medium" />
+                                </div>
+                            </aura:if>
+                            <div class="slds-card__body slds-card__body_inner padding-card">
+                                <c:T_Performance_P1_SectionD sumProductObj="{!v.sumProductObj}" selectedEmpId="{!v.selectedEmpId}" selectedMonth="{!v.dataAsOfMonth}" selectedYear="{!v.dataAsOfYear}"/>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+            </div>
+        </div>
+</aura:component>

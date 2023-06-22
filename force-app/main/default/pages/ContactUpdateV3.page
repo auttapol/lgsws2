@@ -1,0 +1,578 @@
+<apex:page standardController="Contact" extensions="ContactUpdateExtensionV3" title="Update Contact" lightningStylesheets="true">
+
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionStatus onstart="startLoading('Updating ... ');" onstop="endLoading();" id="Status1" />
+    <apex:includeScript value="/support/console/34.0/integration.js" />
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 0 0;
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            left: 50%;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+    <script type="text/javascript">
+
+        if ((typeof sforce != 'undefined') && (sforce != null)) {
+            function testSetTabTitle() {
+                sforce.console.setTabTitle('Edit Contact');
+            }
+
+            // save the existing onload function, if any
+            var orig_onload;
+            if (window.onload) {
+                orig_onload = window.onload;
+            }
+
+            window.onload = function () {
+                // call the existing onload function, if any
+                if (orig_onload) {
+                    orig_onload();
+                }
+
+                testSetTabTitle();
+            }
+        }
+        function startLoading(text) {
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading() {
+            $('.loadingBox').hide();
+        }
+
+        function noenter(ev) {
+            if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+                save();
+                return false;
+            } else {
+                return true;
+            }
+        }
+
+        function save() {
+            checkID();
+            doSave();
+            // console.log('save success!');
+        }
+
+        function checkID() {
+            var isValid = $("[id$=isIDValid]");
+            var id = $("[id$=idNum]").val();
+            if (id.length != 13) {
+                isValid.val(false);
+
+                return false;
+            }
+            for (i = 0, sum = 0; i < 12; i++) {
+                sum += parseFloat(id.charAt(i)) * (13 - i);
+            }
+
+            if ((11 - sum % 11) % 10 != parseFloat(id.charAt(12))) {
+                isValid.val(false);
+                return false;
+            }
+            isValid.val(true);
+            return true;
+        }
+
+        function checkIsSalesforceOne() {
+            var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+            var theme = '{!$User.UIThemeDisplayed}';
+            var recordId = '{!contact.Id}';
+            var accid = '{!contact.Account__c}';
+            if (theme == 'Theme4u' && isLightningMode) {
+                // $("#main-wrapper").css('display', 'block');
+                sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                    "componentDef": "c:ContactCreation",
+                    "attributes": {
+                        "accid": accid,
+                        "recordId": recordId,
+                        "theme": theme,
+                        "action": 'openTabUrl',
+                        "replace": true
+                    }
+                })), true);
+            } else if( theme=="Theme4t" ){
+                // sforce.one.navigateToURL('/apex/EditContactMobileLayoutV3?id={!contact.Id}');
+                sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                    "componentDef": "c:ContactCreation",
+                    "attributes": {
+                        "accid": accid,
+                        "recordId": recordId,
+                        "theme": theme,
+                        "action": 'openTabUrl',
+                        "replace": true
+                    }
+                })), true);
+            }
+            else if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                sforce.one.navigateToURL('/apex/EditContactMobileLayoutV3?id={!contact.Id}');
+
+            }
+            else {
+                $("#main-wrapper").css('display', 'block');
+            }
+        }
+
+
+        $(document).ready(function () {
+            //$("textarea[id*='photoshow']").attr("style","display:none");
+            $('#contact_photo_section').hide();
+            $("#photoshow").attr("style", "display:none");
+            $("#photohide").attr("style", "display:none");
+            // Use to redirect if user used salesforce in salesforce1 application   
+            checkIsSalesforceOne();
+            if ({!isLoadSuccess        
+}){
+            if ({!isVisible        
+})
+        {
+            $('[id$=":contact_photo_section"]').hide();
+        }
+                         }
+        $("[id$=province]").on("change", function () {
+            $('[id$=district] option[value!="0"]').remove();
+            $('[id$=subdis] option[value!="0"]').remove();
+            $('[id$=postcode] option[value!="0"]').remove();
+
+
+        });
+        $("[id$=district]").on("change", function () {
+            $('[id$=subdis] option[value!="0"]').remove();
+            $('[id$=postcode] option[value!="0"]').remove();
+
+
+        });
+        $("[id$=subdis]").on("change", function () {
+            $('[id$=postcode] option[value!="0"]').remove();
+
+        });
+    });
+
+        function renderPhoto() {
+            // console.log('add on complete to manage contact photo here');
+        }
+
+    </script>
+    <div id="main-wrapper" style='display:none;'>
+        <apex:sectionHeader title="Contact" subtitle="Edit Contact" />
+        <apex:Form onkeypress="return noenter(event)">
+            <!-- Server Function Proxy Start -->
+            <!-- NOTE : name attribute is function name in page  Exampler name="doSave"  -->
+            <!--<apex:actionFunction action="{!save}" Rerender="statusMessage" status="Status1" name="doSave" oncomplete="if({!isUpdateSuccess}) viewContact();" />-->
+
+            <apex:actionFunction action="{!viewContact}" name="viewContact" />
+            <apex:actionFunction name="selectProvince" action="{!Provinceselected}" reRender="district" />
+            <apex:actionFunction name="selectDistrict" action="{!DistrictSelected}" reRender="subdis" />
+            <apex:actionFunction name="selectSubDistrict" action="{!SubDistrictSelected}" reRender="postcode" />
+            <apex:actionFunction name="CountryChange" action="{!CheckCountry}" reRender="PhoneAddress" />
+
+            <!-- Server Function Proxy End -->
+            <apex:outputPanel id="displaySectionVisible-main" rendered="{!isVisible}">
+
+                <apex:PageBlock mode="edit">
+                    <apex:outputPanel id="statusMessage">
+                        <apex:pageMessages />
+                    </apex:outputPanel>
+
+                    <apex:PageBlockSection columns="2" title="Contact Information">
+
+                        <apex:inputField value="{!contact.Salutation }" taborderhint="1" rendered="{!isNotCoreBank}" />
+                        <apex:inputField value="{!contact.ID_Type_PE__c}" taborderhint="5" rendered="{!isNotCoreBank}" />
+                        <apex:pageBlockSectionItem rendered="{!isNotCoreBank}">
+                            <apex:outputLabel >First Name</apex:outputLabel>
+                            <apex:outputPanel layout="block" styleClass="requiredInput">
+                                <apex:outputPanel layout="block" styleClass="requiredBlock" />
+                                <apex:inputField value="{!contact.FirstName}" Label="First Name" taborderhint="2" />
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:inputField value="{!contact.ID_Number_PE__c}" id="idNum" taborderhint="6" rendered="{!isNotCoreBank}" />
+                        <apex:pageBlockSectionItem rendered="{!isNotCoreBank}">
+                            <apex:outputLabel >Last Name</apex:outputLabel>
+                            <apex:outputPanel layout="block" styleClass="requiredInput">
+                                <apex:outputPanel layout="block" styleClass="requiredBlock" />
+                                <apex:inputField value="{!contact.Last_Name__c}" taborderhint="3" Label="Last Name" />
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:inputField value="{!contact.Position__c}" taborderhint="7" rendered="{!isNotCoreBank}" />
+                        <apex:inputField value="{!contact.Date_of_Birth__c}" taborderhint="4" rendered="{!isNotCoreBank}" />
+                        <apex:inputField value="{!contact.Authorized_person_of_signature__c}" taborderhint="8" rendered="{!isNotCoreBank}" />
+
+                        <apex:outputField value="{!contact.Name}" label="Customer Name/Company(TH)" rendered="{!!isNotCoreBank}" />
+                        <apex:inputField value="{!contact.Main_contact__c}" taborderhint="9" rendered="{!!isNotCoreBank}" />
+                        <apex:outputField value="{!contact.Account__c }" label="Customer Name/Company(TH)" />
+                        <apex:inputField value="{!contact.Main_contact__c}" taborderhint="9" rendered="{!isNotCoreBank}" />
+
+                        <apex:pageBlockSectionItem rendered="{!!isNotCoreBank}"></apex:pageBlockSectionItem>
+
+
+
+                        <apex:pageBlockSectionItem >
+                            <apex:outputText value="Contact Photo" />
+                            <apex:inputField value="{!contact.Photo__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <!--
+                <apex:pageBlockSectionItem >
+                <apex:outputText value="Contact Photo" />
+                <apex:inputField value="{!contact.Photo__c}" />
+                </apex:pageBlockSectionItem>  
+             -->
+
+                        <!-- 
+                <apex:pageBlockSectionItem >
+                <apex:outputText value="Contact Photo" />
+                <apex:commandbutton oncomplete="LaunchLightbox()" value="Add Photo" />
+                </apex:pageBlockSectionItem>  
+-->
+
+                    </apex:PageBlockSection>
+
+                    <apex:outputPanel rendered="{!isNotCoreBank}">
+                        <apex:PageBlockSection columns="2" title="Phone & Address" id="PhoneAddress">
+                            <apex:inputText maxlength="18" value="{!contact.MobilePhone}" tabindex="100" />
+                            <apex:inputField value="{!contact.C_AddressLine1_PE__c}" taborderhint="14" />
+                            <apex:inputText maxlength="18" value="{!contact.Phone}" tabindex="110" />
+                            <apex:inputField value="{!contact.C_AddressLine3_PE__c}" taborderhint="15" />
+                            <apex:inputText maxlength="10" value="{!contact.Primary_Phone_Ext_PE__c}" tabindex="120" />
+                            <apex:inputField value="{!contact.C_AddressLine2_PE__c}" taborderhint="16" />
+                            <apex:inputText maxlength="18" value="{!contact.Fax}" tabindex="130" />
+
+                            <apex:pageBlockSectionItem rendered="{!IsCountryAsTH}">
+                                <apex:outputLabel value="Province" for="province" />
+                                <apex:selectList value="{!selectedProvince}" multiselect="false" size="1" id="province" onchange="selectProvince();" tabindex="170">
+                                    <apex:selectOptions value="{!ProvinceOptionList}"></apex:selectOptions>
+                                </apex:selectList>
+                            </apex:pageBlockSectionItem>
+                            <apex:inputField value="{!contact.C_Province_PE__c}" rendered="{!IsOtherCountry}" taborderhint="17" />
+                            <apex:inputField value="{!contact.Email}" taborderhint="13" />
+
+                            <apex:pageBlockSectionItem rendered="{!IsCountryAsTH}">
+                                <apex:outputLabel value="District" for="district" />
+                                <apex:selectList value="{!selectedDistrict}" multiselect="false" size="1" id="district" onchange="selectDistrict();" tabindex="180">
+                                    <apex:selectOptions value="{!DistrictOptionList}"></apex:selectOptions>
+                                </apex:selectList>
+                            </apex:pageBlockSectionItem>
+                            <apex:inputField value="{!contact.C_AddressLine5_PE__c}" rendered="{!IsOtherCountry}" taborderhint="18" />
+
+                            <!-- 
+                    CR - Mix Berry
+                    Modified: Narathip(Max)
+                    Date: 01/11/2018
+                    Email: nrt@ii.co.th
+                    Description: Add Facebook ID field and Line ID field
+                 -->
+                            <apex:inputField value="{!contact.Facebook_ID__c}" />
+
+                            <apex:pageBlockSectionItem rendered="{!IsCountryAsTH}">
+                                <apex:outputLabel value="Sub District" for="subdis" />
+                                <apex:selectList value="{!selectedSubDistrict}" multiselect="false" size="1" id="subdis" onchange="selectSubDistrict();"
+                                    tabindex="190">
+                                    <apex:selectOptions value="{!SubDistrictOptionList}"></apex:selectOptions>
+                                </apex:selectList>
+                            </apex:pageBlockSectionItem>
+                            <apex:inputField value="{!contact.C_AddressLine4_PE__c}" rendered="{!IsOtherCountry}" taborderhint="19" />
+
+                            <!-- 
+                    CR - Mix Berry
+                    Modified: Narathip(Max)
+                    Date: 01/11/2018
+                    Email: nrt@ii.co.th
+                    Description: Add Facebook ID field and Line ID field
+                 -->
+                            <apex:inputField value="{!contact.Line_ID__c}" />
+
+
+                            <apex:pageBlockSectionItem rendered="{!IsCountryAsTH}">
+                                <apex:outputLabel value="Postal Code" for="postcode" />
+                                <apex:selectList value="{!selectedPostcode}" multiselect="false" size="1" id="postcode" tabindex="200">
+                                    <apex:selectOptions value="{!PostcodeOptionList}"></apex:selectOptions>
+                                </apex:selectList>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:inputField label="Postal Code" value="{!contact.C_Zipcode_PE__c}" rendered="{!IsOtherCountry}" taborderhint="20" />
+
+                            <apex:PageBlockSectionItem >
+                            </apex:PageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Country" for="country" />
+                                <apex:selectList value="{!selectedCountry}" multiselect="false" size="1" id="country" onchange="CountryChange();" tabindex="210">
+                                    <apex:selectOptions value="{!CountriesOptionList}"></apex:selectOptions>
+                                </apex:selectList>
+                            </apex:pageBlockSectionItem>
+
+                        </apex:PageBlockSection>
+                    </apex:outputPanel>
+
+
+                    <apex:PageBlockSection columns="2" title="Support Information">
+                        <apex:inputField value="{!contact.Value_Style__c}" taborderhint="23" />
+                        <apex:inputField value="{!contact.Difficult_to_deal__c}" taborderhint="24" />
+                        <apex:inputField value="{!contact.Decision_Map__c}" taborderhint="25" />
+                        <apex:inputField value="{!contact.Product_Decision__c}" taborderhint="26" />
+                        <apex:inputField value="{!contact.Decision_Map2__c}" taborderhint="27" />
+                        <apex:inputField value="{!contact.Product_Decision_2_2__c}" taborderhint="28" />
+                        <apex:inputField value="{!contact.Decision_Map3__c}" taborderhint="29" />
+                        <apex:inputField value="{!contact.Product_Decision_3_2__c}" taborderhint="30" />
+                        <apex:inputTextarea value="{!contact.Description2__c}" rows="5" style="height: auto;width: 100%;" />
+
+                        <apex:inputHidden value="{!isIDValid}" id="isIDValid" />
+                    </apex:PageBlockSection>
+
+                    <apex:pageBlockButtons >
+                        <apex:commandButton value="Save" action="{!save}" tabindex="280" rendered="{!IsNotCoreBank}" />
+                        <apex:commandButton value="Save" action="{!save}" tabindex="280" rendered="{!!IsNotCoreBank}" />
+                        <apex:commandButton value="Cancel" action="{!cancel}" tabindex="290" />
+                    </apex:pageBlockButtons>
+                </apex:PageBlock>
+            </apex:outputPanel>
+            <apex:outputPanel id="displaySectionInvisible" rendered="{!!isVisible}">
+                <apex:PageBlock mode="edit">
+                    <apex:outputPanel id="statusMessage">
+                        <apex:pageMessages />
+                    </apex:outputPanel>
+
+                    <apex:PageBlockSection columns="2" title="Contact Information">
+                        <apex:inputField value="{!contact.Salutation }" taborderhint="1" rendered="{!isNotCoreBank}" />
+                        <apex:pageBlockSectionItem rendered="{!isNotCoreBank}">
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.ID_Type_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem rendered="{!isNotCoreBank}">
+                            <apex:outputLabel >First Name</apex:outputLabel>
+                            <apex:outputPanel layout="block" styleClass="requiredInput">
+                                <apex:outputPanel layout="block" styleClass="requiredBlock" />
+                                <apex:inputField value="{!contact.FirstName}" Label="First Name" taborderhint="2" />
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem rendered="{!isNotCoreBank}">
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.ID_Number_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem rendered="{!isNotCoreBank}">
+                            <apex:outputLabel >Last Name</apex:outputLabel>
+                            <apex:outputPanel layout="block" styleClass="requiredInput">
+                                <apex:outputPanel layout="block" styleClass="requiredBlock" />
+                                <apex:inputField value="{!contact.Last_Name__c}" taborderhint="3" Label="Last Name" />
+                            </apex:outputPanel>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem rendered="{!isNotCoreBank}">
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Position__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem rendered="{!isNotCoreBank}">
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Date_of_Birth__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem rendered="{!isNotCoreBank}">
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Authorized_person_of_signature__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:outputField value="{!contact.Name}" label="Customer Name/Company(TH)" rendered="{!!isNotCoreBank}" />
+                        <apex:pageBlockSectionItem rendered="{!!isNotCoreBank}">
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Main_contact__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:outputField value="{!contact.Account__c }" label="Customer Name/Company(TH)" />
+                        <apex:pageBlockSectionItem rendered="{!isNotCoreBank}">
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Main_contact__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isNotCoreBank}"></apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputText value="Contact Photo" />
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                    </apex:PageBlockSection>
+
+                    <apex:outputPanel rendered="{!isNotCoreBank}">
+                        <apex:PageBlockSection columns="2" title="Phone & Address" id="PhoneAddress">
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.contact.Fields.MobilePhone.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.contact.Fields.C_AddressLine1_PE__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.contact.Fields.Phone.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.contact.Fields.C_AddressLine3_PE__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.contact.Fields.Primary_Phone_Ext_PE__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.contact.Fields.C_AddressLine2_PE__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.contact.Fields.Fax.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+
+
+                            <apex:pageBlockSectionItem rendered="{!IsCountryAsTH}">
+                                <apex:outputLabel value="Province" for="province" />
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+
+
+                            <!-- 
+                    CR - Mix Berry
+                    Modified: Narathip(Max)
+                    Date: 01/11/2018
+                    Email: nrt@ii.co.th
+                    Description: Add Facebook ID field and Line ID field
+                 -->
+                            <apex:PageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Contact.Fields.Facebook_ID__c.label}" />
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:PageBlockSectionItem>
+                            <apex:PageBlockSectionItem >
+                            </apex:PageBlockSectionItem>
+                            <apex:PageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Contact.Fields.Line_ID__c.label}" />
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:PageBlockSectionItem>
+                            <apex:PageBlockSectionItem >
+                            </apex:PageBlockSectionItem>
+
+                            <apex:pageBlockSectionItem rendered="{!IsOtherCountry}">
+                                <apex:outputLabel value="{!$ObjectType.contact.Fields.C_Province_PE__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem rendered="{!IsOtherCountry}">
+                                <apex:outputLabel value="{!$ObjectType.contact.Fields.Email.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+
+                            <apex:pageBlockSectionItem rendered="{!IsCountryAsTH}">
+                                <apex:outputLabel value="District" for="district" />
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.contact.Fields.C_AddressLine5_PE__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!-- <apex:PageBlockSectionItem >
+                </apex:PageBlockSectionItem> -->
+
+                            <apex:pageBlockSectionItem rendered="{!IsCountryAsTH}">
+                                <apex:outputLabel value="Sub District" for="subdis" />
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.contact.Fields.C_AddressLine4_PE__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!-- <apex:PageBlockSectionItem >
+                </apex:PageBlockSectionItem> -->
+                            <apex:pageBlockSectionItem rendered="{!IsCountryAsTH}">
+                                <apex:outputLabel value="Postal Code" for="postcode" />
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.contact.Fields.C_Zipcode_PE__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+
+                            <apex:PageBlockSectionItem >
+                            </apex:PageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="Country" for="country" />
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+
+
+                        </apex:PageBlockSection>
+                    </apex:outputPanel>
+
+
+                    <apex:PageBlockSection columns="2" title="Support Information">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Value_Style__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Difficult_to_deal__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Decision_Map__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Product_Decision__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Decision_Map2__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Product_Decision_2_2__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Decision_Map3__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Product_Decision_3_2__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.contact.Fields.Description2__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:inputHidden value="{!isIDValid}" id="isIDValid" />
+                    </apex:PageBlockSection>
+
+                    <apex:pageBlockButtons >
+                        <apex:commandButton value="Save" action="{!save}" tabindex="280" rendered="{!IsNotCoreBank}" />
+                        <apex:commandButton value="Save" action="{!save}" tabindex="280" rendered="{!!IsNotCoreBank}" />
+                        <apex:commandButton value="Cancel" action="{!cancel}" tabindex="290" />
+                    </apex:pageBlockButtons>
+                </apex:PageBlock>
+            </apex:outputPanel>
+
+        </apex:Form>
+    </div>
+</apex:page>

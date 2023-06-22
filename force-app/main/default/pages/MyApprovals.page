@@ -1,0 +1,92 @@
+<apex:page showHeader="false" sidebar="false" standardStylesheets="false" controller="ApprovalsController" applyHtmlTag="false" applyBodyTag="false">
+    <html>
+        <head>
+            <apex:stylesheet value="{!URLFOR($Resource.approvals, 'style.css')}"/>
+            <apex:stylesheet value="{!URLFOR($Resource.approvals, 'custom.css')}"/>
+            <apex:stylesheet value="{!URLFOR($Resource.approvals, 'icons.css')}"/>
+            <apex:includeScript value="{!$Resource.approvals_underscore_1_5_1}"/>
+            <apex:includeScript value="{!$Resource.approvals_jQuery_2_0_2}"/>
+            <style type="text/css">
+                .truncate {
+                  width: 60%;
+                  white-space: nowrap;
+                  overflow: hidden;
+                  text-overflow: ellipsis;
+                }
+            </style>
+            <script type="text/html" id='approvalList'>
+                <% for(var i = 0; i < approvals.length; i++){ %>
+                  <% if (approvals[i].firstOfSObjectType) { %>      
+                    <p class="man phm pvs caps bg-12 text-color-1 f6"><%= approvals[i].sObjectLabel %></p>
+                  <% } %>
+                    <ul class="list-plain fw-normal bg-2 man pan">                 
+                    <li class="approvalListItem pos-rel ht-75 bg-1" onClick="sforce.one.navigateToSObject('<%= approvals[i].approvalStepId %>');">
+                      <span class="pos-abs pam ht-75 w-100p bg-3 border-top border--10 js-approvalOverlay">
+                        <img class="fl mrm sq-45 brm" src="<%= approvals[i].submiterPhotoUrl %>"/>
+                        <p class="man text-color-1 f5 truncate"><%= approvals[i].recordName %></p>
+                        <p class="man text-color-2 f6 truncate"><%= approvals[i].submiterName %></p>
+                        <p class="pos-abs corner-tr mtm mrm text-color-2 f6 fr"><%= approvals[i].submitDate %></p>
+                      </span>
+                    </li>
+                  </ul>
+                <% } %>  
+            </script>
+
+            <script type="text/html" id='noApprovals'>
+                <span class="pos-abs pam ht-75 w-100p border-top border--10 js-approvalOverlay">
+                    <p class="man text-color-1 f2">You have no pending approvals!</p> <br/>
+                    <p class="man text-color-1 f2">You're either a very efficient person, or a small cog in a big wheel :)</p>
+                </span>                 
+            </script>
+        </head>
+        <body>
+            <section class="pos-abs w-100p bttm-0 bg-2 scrollable" style="top:5px">
+
+              <article class="clear">
+                <a href="javascript:void(0)" title="My Pending Approvals" class="dib mhm mvxs">
+                  <span class="dib lh-44 f2 text-color-1">
+                    <strong>My Pending Approvals</strong>
+                  </span>                  
+                </a>
+                 <span onclick="getPendingApprovals();" class="dib lh-44 mls text-color-1 icon-utility-refresh"></span> 
+                <div id="container">
+                </div>
+              </article>
+
+            </section>      
+        </body> 
+    </html>
+    <script type="text/javascript">
+
+        var compiledApprovalListViewTempl = _.template($("#approvalList").html());
+        var compiledNoApprovalsTempl = _.template($("#noApprovals").html());
+
+        $(document).ready(function () {
+            getPendingApprovals();
+        });
+
+        function getPendingApprovals () {
+            Visualforce.remoting.Manager.invokeAction(
+                '{!$RemoteAction.ApprovalsController.getPendingApprovals}',
+                function(result, event) {
+                    if (event.status) {
+                        $('#container').empty();
+
+                        if (result.length == 0){
+                            $('#container').append(compiledNoApprovalsTempl());
+                        }else{
+                            $('#container').append(compiledApprovalListViewTempl({approvals : result}));
+                        }
+                        $(document).trigger('onTemplateReady');
+                                          
+                    } else if (event.type === 'exception') {
+                        alert("ERROR: Could not find approvals.");
+                    } else {
+                        alert("ERROR: Could not approvals.");
+                    }
+                },
+                {escape: true}
+            );          
+        }
+    </script>
+</apex:page>

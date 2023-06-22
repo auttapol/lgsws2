@@ -1,0 +1,359 @@
+<apex:page standardStylesheets="true" standardController="Account" extensions="CommercialCsvKYCSectionPageController" tabStyle="Account"
+    lightningStylesheets="true" action="{!initialData}">
+
+    <style>
+        .bPageBlock {
+            border: 0 !important;
+            box-shadow: none !important;
+        }
+
+        th,
+        td {
+            text-align: left !important;
+        }
+
+        .kyc-container td {
+            color: var(--lwc-inputStaticColor, rgb(24, 24, 24));
+        }
+
+        .kyc-container {
+            /* display: flex; */
+            /* margin-left: -13px;
+            margin-top: -16px; */
+            display: flex;
+            /* margin-left: -32px; */
+            margin-top: -30px;
+        }
+
+        .section-row {
+            width: 100%;
+            display: flex;
+            border-bottom: var(--lwc-borderWidthThin, 1px) solid var(--lwc-colorBorder, rgb(229, 229, 229));
+            padding: 4px 0;
+        }
+
+        .txt-label {
+            width: 27.5%;
+            max-width: 203px;
+            color: var(--lwc-colorTextLabel, rgb(68, 68, 68));
+            font-size: var(--lwc-formLabelFontSize, 0.75rem);
+        }
+
+        .txt-value {
+            /* margin-left: -10px; */
+            width: 64%;
+            color: var(--lwc-inputStaticColor, rgb(24, 24, 24));
+            font-size: var(--lwc-inputStaticFontSize, 0.875rem);
+            font-weight: var(--lwc-inputStaticFontWeight, 400);
+        }
+
+        @media (max-width: 80.2em) {
+            .txt-label {
+                width: 32.5%;
+            }
+
+        }
+
+        /* @media (max-width: 1450px) {
+            .txt-label {
+                width: 32.5%;
+            }
+        }
+         */
+
+        .alert-txt {
+            color: red;
+        }
+
+        .warning-txt {
+            color: #d09b05;
+        }
+
+        .kyc-container tr {
+            border-bottom: var(--lwc-borderWidthThin, 1px) solid var(--lwc-colorBorder, rgb(229, 229, 229));
+        }
+
+        .col1 .bPageBlock .detailList .labelCol {
+            width: 12%;
+        }
+
+        .col2 .bPageBlock .detailList .labelCol {
+            width: 12%;
+        }
+
+
+        @media (max-width: 1282px) {
+            .col1 .bPageBlock .detailList .labelCol {
+                width: 15.3%;
+            }
+
+            .col2 .bPageBlock .detailList .labelCol {
+                width: 15%;
+            }
+        }
+
+        @media (min-width: 1479px) {
+            .col1 .bPageBlock .detailList .labelCol {
+                width: 9.4%;
+            }
+
+            .col2 .bPageBlock .detailList .labelCol {
+                width: 9.4%;
+            }
+        }
+
+        /* 1803 */
+
+        @media screen and (min-width: 1803px) {
+            .col1 .bPageBlock .detailList .labelCol {
+                width: 6.8%;
+            }
+
+            .col2 .bPageBlock .detailList .labelCol {
+                width: 7.1%;
+            }
+        }
+
+        .col1 {
+            /* width: 51.4%; */
+            width: 49.7%;
+            margin-right: 1.5rem;
+            margin-left: -8px;
+        }
+
+        /* @media (max-width: 1100px) {
+            .col1 {
+                width: 52%;
+            }
+        } */
+
+        @media (max-width: 609px) {
+            /* .col1 {
+                width: 54.5%;
+            } */
+            .col1 .bPageBlock .detailList .labelCol {
+                width: 100%;
+            }
+        }
+
+        .col2 th label {
+            margin-left: -4px;
+        }
+
+        body.vf-body,
+        body.sfdcBody,
+        .slds-vf-scope.vf-body,
+        .slds-vf-scope.sfdcBody {
+            padding: 0.75rem 0px !important;
+        }
+
+        body .bPageBlock,
+        .slds-vf-scope .bPageBlock {
+            padding: 0.5rem 0 !important;
+        }
+    </style>
+    <apex:form id="page">
+        <div class="kyc-container">
+            <apex:actionFunction name="getCVSObject" action="{!getCVSObject}" rerender="scriptSection,page" />
+            <apex:actionFunction name="setCVSRetryState" action="{!setCVSRetryState}" rerender="page" />
+            <apex:actionFunction name="setTouchStatusVariable" action="{!setTouchStatusVariable}" reRender="page">
+                <!-- <apex:param value="" name="tstatus"/> -->
+                <apex:param value="" name="tmsg"/>
+            </apex:actionFunction>
+            <!-- <apex:actionFunction name="setSubDebtTransVariable" action="{!setSubDebtTransVariable}" reRender="page"/> -->
+
+            <div class="col1">
+                <apex:pageBlock >
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem >
+                            <!-- <apex:outputLabel value="Account Name" for="account__name"/> -->
+                            <apex:outputLabel value="{!$ObjectType.Account.fields.KYC_Update__c.Label}" />
+                            <!-- <span class="{!IF(CONTAINS(Account.KYC_Update__c,'ใกล้หมดอายุ'), 'warning-txt', IF(CONTAINS(Account.KYC_Update__c,'กรุณาปรับปรุงข้อมูล'),'alert-txt',''))}"> -->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputPanel styleClass="{!IF(CONTAINS(Account.KYC_Update__c,'ใกล้หมดอายุ'), 'warning-txt', IF(CONTAINS(Account.KYC_Update__c,'กรุณาปรับปรุงข้อมูล'),'alert-txt',''))}">
+                                    <apex:outputField value="{!Account.KYC_Update__c}"></apex:outputField>
+                                </apex:outputPanel>
+
+                            </apex:pageBlockSectionItem>
+                            <!-- </span> -->
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem >
+                            <!-- <apex:outputLabel value="Account Site" for="account__site"/> -->
+                            <!-- <apex:inputText value="{!account.site}" id="account__site"/>  -->
+                            <apex:outputLabel value="{!$ObjectType.Account.fields.KYC_flag__c.Label}" />
+                            <apex:outputField value="{!Account.KYC_flag__c}"></apex:outputField>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <!-- <apex:outputLabel value="Account Site" for="account__site"/> -->
+                            <!-- <apex:inputText value="{!account.site}" id="account__site"/>  -->
+                            <apex:outputLabel value="{!$ObjectType.Account.fields.E_KYC__c.Label}" />
+                            <apex:outputField value="{!Account.E_KYC__c}"></apex:outputField>
+                        </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!subDebtTransFlag}" />
+                            <apex:outputText value="{!subDebtTransDetail}"></apex:outputText>
+                        </apex:pageBlockSectionItem>
+
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </div>
+
+            <div class="col2" style="width: 49%;">
+                <apex:pageBlock >
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.Account.fields.IAL__c.Label}" />
+                            <apex:outputField value="{!Account.IAL__c}"></apex:outputField>
+                        </apex:pageBlockSectionItem>
+                        <apex:outputPanel rendered="{!IF(Account.Action_Box__c!=null,true,false)}">
+                            <apex:pageBlockSectionItem >
+                                <!-- <apex:outputLabel value="{!$ObjectType.Account.fields.Action_Box__c.Label}" /> -->
+                                <apex:outputPanel style="color: red; margin-left: -4px;">
+                                    <apex:outputField value="{!Account.Action_Box__c}"></apex:outputField>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                        </apex:outputPanel>
+
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="ttb touch" />
+
+                            <apex:outputPanel >
+                                <font color="{!fontColorError}">
+                                    <apex:outputText rendered="{!isCVSInvalidToken == true }" value="{!webServiceErrMsg}" styleClass="noRowsHeader" />
+                                </font>
+                                <!-- <apex:outputPanel rendered="{!isError == false}"><font color="{!fontColorTTBTouch}"><apex:outputText value="{!ttbtouch}"></apex:outputText></font></apex:outputPanel> -->
+                                <apex:outputPanel ><font color="{!fontColorTTBTouch}"><apex:outputText value="{!ttbtouch}"></apex:outputText></font></apex:outputPanel>
+                            </apex:outputPanel>
+                            <!-- <apex:outputPanel rendered="{!isCVSInvalidToken == true }">
+                                    <apex:outputText value="{!webServiceErrMsg}" styleClass="noRowsHeader" />
+                            </apex:outputPanel> -->
+
+                            <!-- <apex:outputPanel rendered="{!isCVSRetryTimeout == true }">
+                                    <apex:outputText value="{!webServiceErrMsg}" styleClass="noRowsHeader" />
+                            </apex:outputPanel> -->
+
+                            <!-- <apex:outputPanel rendered="{!isError == false}" style="color: red; margin-left: -4px;">
+                                <apex:outputPanel>{!ttbtouch}</apex:outputPanel>
+                            </apex:outputPanel> -->
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </div>
+        </div>
+    </apex:form>
+    <apex:outputPanel id="scriptSection">
+        <script type="text/javascript">
+            function setTouchStatus() {
+                var responseObj = `{!responseObj}`;
+                var resultObj = responseObj ? JSON.parse(responseObj) : null;
+                var ttbtouch = '';
+                // var touchStatus = '{!isCVSInvalidToken}';
+                if (resultObj['touchStatus'] == 'YES') {
+                    let last_login = resultObj['LastLoginSuccessDate'];
+                    let date_format = '';
+                    if (last_login) {
+                        const date = new Date(last_login);
+                        date_format = date.toLocaleDateString('th-TH', {
+                            year: '2-digit',
+                            month: 'short',
+                            day: 'numeric',
+                        })
+                    }
+                    ttbtouch = 'มี (เข้าใช้งานล่าสุด ' + date_format + ')';
+                    setTouchStatusVariable(ttbtouch)
+                    // this.fontColorTTBTouch = '';
+                } 
+                
+            }
+
+            function setSubDebtTrans(){
+                var subDebtTransDetail = `{!subDebtTransDetail}`;
+            }
+
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            async function retryCVSWebService() {
+                console.log('retry cvs web service')
+                var isInvalidToken = '{!isCVSInvalidToken}' == 'true' ? true : false;
+                var retryRemain = '{!cvsRetryRemain}';
+                var totalRetry = '{!cvsRetry}';
+                var retryDelay = '{!cvsRetryDelay}';
+                console.log('call retry', isInvalidToken, retryRemain)
+                if (isInvalidToken && retryRemain > 0) {
+                    setCVSRetryState();
+                    await sleep(retryDelay)
+                    // console.log('view pdpa')
+                    await getCVSObject()
+                    setTouchStatus()
+                }
+            }
+
+            async function initial() {
+                await setTouchStatus();
+                retryCVSWebService();
+            }
+
+            initial();
+            // setTouchStatus();
+            // $(document).ready(function () {
+                // retryCVSWebService();
+            // });
+        </script>
+    </apex:outputPanel>
+    <!-- <div class="kyc-container">
+        
+        <div style="width: 49.7%;">
+        <div class="section-row">
+            <div class="txt-label">
+                <apex:outputLabel value="{!$ObjectType.Account.fields.KYC_Update__c.Label}"/>
+            </div>
+            <div class="{!IF(CONTAINS(Account.KYC_Update__c,'ใกล้หมดอายุ'), 'warning-txt', IF(CONTAINS(Account.KYC_Update__c,'กรุณาปรับปรุงข้อมูล'),'alert-txt','')) + ' txt-value'}">
+                <apex:outputField value="{!Account.KYC_Update__c}"></apex:outputField>
+            </div>
+        </div>
+        
+        <div class="section-row">
+            <div class="txt-label">
+                <apex:outputLabel value="{!$ObjectType.Account.fields.KYC_flag__c.Label}"/>
+            </div>
+            <div class="txt-value">
+                <apex:outputField value="{!Account.KYC_flag__c}"></apex:outputField>
+            </div>
+        </div>
+            <div class="section-row">
+            <div class="txt-label">
+                <apex:outputLabel value="{!$ObjectType.Account.fields.E_KYC__c.Label}"/>
+            </div>
+            <div class="txt-value">
+                <apex:outputField value="{!Account.E_KYC__c}"></apex:outputField>
+            </div>
+        </div>
+    </div>
+    <div style="width: 48%; margin-left: 28px;">
+        <div class="section-row">
+            <div class="txt-label">
+                <apex:outputLabel value="{!$ObjectType.Account.fields.IAL__c.Label}"/>
+            </div>
+            <div class="txt-value">
+                <apex:outputField value="{!Account.IAL__c}"></apex:outputField>
+            </div>
+        </div>
+        
+        <apex:outputPanel rendered="{!IF(Account.Action_Box__c!=null,true,false)}">
+        <div class="section-row">
+            <div class="txt-value alert-txt">
+                <apex:outputField value="{!Account.Action_Box__c}"></apex:outputField>
+            </div>
+        </div>
+        </apex:outputPanel>
+    </div>
+    </div> -->
+
+
+
+
+
+</apex:page>

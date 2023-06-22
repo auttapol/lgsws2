@@ -1,0 +1,114 @@
+<aura:component>
+    <!-- <ltng:require scripts="{!join(',',
+    $Resource.ChartJs_v3_9_1 + '/chart.js',
+    $Resource.ChartJs_v3_9_1 + '/plugin.js')}" afterScriptsLoaded="{!c.scriptsLoaded}" /> -->
+    <ltng:require scripts="{!$Resource.ChartJs}" afterScriptsLoaded="{!c.scriptsLoaded}" />
+    <aura:attribute name="chartObj" type="Object" access="public"/>
+    <aura:attribute name="chartNeedleObj" type="Object" access="public"/>
+    <aura:attribute name="monthLst" type="List"/>
+    <aura:attribute name="selectedPeriod" type="String"/>
+    <aura:attribute name="selectedYear" type="String"/>
+    <aura:attribute name="selectedMonth" type="String"/>
+    <aura:attribute name="currentYear" type="String"/>
+    <aura:attribute name="previousYear" type="String"/>
+    <aura:attribute name="financePerf" type="Object"/>
+    <aura:attribute name="defaultYear" type="String"/>
+    <aura:attribute name="selectedEmpId" type="String"/>
+    <aura:attribute name="lastAvailDataTimeObj" type="Object"/>
+    <aura:attribute name="notifyError" type="String" />
+    
+    <aura:attribute name="parent" type="Aura.Component"/>
+    <aura:attribute name="scriptLoaded" type="Boolean" default="false"/>
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" /> 
+    <aura:handler name="change" value="{!v.financePerf}" action="{!c.valueChange}"/>
+    <aura:handler name="change" value="{!v.defaultYear}" action="{!c.handleDefaultYear}"/>
+
+    <div class="slds-grid" style="flex-direction: column;">
+        <div class="section-row" style="font-weight: bold;">
+              <lightning:tabset selectedTabId="t_year">
+                <lightning:tab onactive="{! c.handleTab }" label="Year" id="year">
+                </lightning:tab>
+                <lightning:tab onactive="{! c.handleTab }" label="Month" id="month">
+                </lightning:tab>
+            </lightning:tabset>
+        </div>
+        <div class="content-body">
+          <div class="section-row" style="font-size: smaller; display: flex; margin-top: 5px;">
+            <div class="slds-col slds-size_1-of-2" style="display: flex; align-items: center;">
+                <span style="font-size: 15px; font-weight: bold;">{!v.selectedYear} Financial Performance</span>
+            </div>
+            <div class="slds-col slds-size_1-of-2">
+                <fieldset class="slds-form-element">
+                    <div style="display: flex; justify-content: flex-end;">
+                        <div class="sub-select-title">
+                            <span style="font-size: 11px;">Select Year</span>
+                        </div>
+                      <div class="slds-radio_button-group">
+                        <span class="slds-button slds-radio_button">
+                          <input type="radio" name="{!'sub-select1_'+v.selectedEmpId}" id="{!'sub-select1_'+v.selectedEmpId}" value="year" onchange="{!c.selectYear}" checked="{!v.selectedYear == v.previousYear}" disabled="{!v.notifyError}"/>
+                          <label class="slds-radio_button__label" for="{!'sub-select1_'+v.selectedEmpId}">
+                            <span class="slds-radio_faux">{!v.previousYear}</span>
+                          </label>
+                        </span>
+                        <span class="slds-button slds-radio_button">
+                          <input type="radio" name="{!'sub-select2_'+v.selectedEmpId}" id="{!'sub-select2_'+v.selectedEmpId}" value="month" onchange="{!c.selectYear}" checked="{!v.selectedYear == v.currentYear}" disabled="{!v.notifyError}"/>
+                          <label class="slds-radio_button__label" for="{!'sub-select2_'+v.selectedEmpId}">
+                            <span class="slds-radio_faux">{!v.currentYear}</span>
+                          </label>
+                        </span>
+                      </div>
+                    </div>
+                  </fieldset>
+            </div>
+            
+        </div>
+        <div class="section-row" style="font-size: smaller; display: flex; height: 0px;">
+          <aura:if isTrue="{!v.selectedPeriod == 'month'}">
+            <div class="slds-col slds-size_1-of-1">
+                <fieldset class="slds-form-element">
+                    <div style="display: flex; justify-content: flex-end;">
+                        <div class="sub-select-title">
+                            <span style="font-size: 11px;">Select Month</span>
+                        </div>
+                      <div class="slds-select_container" style="width: 113px;">
+                        <select class="slds-select" id="select-01" onchange="{!c.handleSelectedMonth}">
+                          <aura:iteration items="{!v.monthLst}" var="month">
+                            <option value="{!month.init}" selected="{!month.init == v.selectedMonth}">{!month.month}</option>
+                          </aura:iteration>
+                        </select>
+                      </div>
+                    </div>
+                  </fieldset>
+            </div>
+          </aura:if>
+      </div>
+        <div class="section-row" style="display: flex; align-items: center; flex-direction: column; margin-bottom: 10px; margin-top: -15px;">
+            <!-- <div class="slds-grid slds-wrap chart-container">
+              <canvas aura:id="chart" id="chartJSContainer" width="250" height="160"></canvas>
+            </div>
+            <div>
+              <img src="{!$Resource.T_Performance_Graph_Description}" style="width: 330px;" alt="User avatar"/>
+            </div> -->
+            <div class="slds-grid slds-wrap chart-container">
+              <!-- <canvas aura:id="chart" id="chartJSContainer" width="250" height="160"></canvas> -->
+                <canvas aura:id="chart" id="chartJSContainer" width="250" height="160"></canvas>
+                <canvas aura:id="chartNeedle" id="secondContainer" width="250" height="160" style="position: absolute;"></canvas>
+                <canvas aura:id="chartLabel" id="chartLabel" width="250" height="160" style="padding-bottom: 50px; position: absolute;"></canvas>
+            </div>
+            <div>
+              <img src="{!$Resource.T_Performance_Graph_Description}" style="width: 330px;" alt="User avatar"/>
+            </div>
+        </div>
+        <div class="section-row" style="display: flex; justify-content: center; font-weight: bold;">
+            <span class="f_title">Individual:</span>
+            <span><lightning:formattedNumber value="{!v.financePerf.individualPerf}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+        </div>
+        <div class="section-row" style="display: flex; justify-content: center; font-weight: bold;">
+            <span class="f_title">Avg. Bankwide:</span>
+
+            <span><lightning:formattedNumber value="{!v.financePerf.avgBankWide}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+        </div>
+        </div>
+        
+    </div>
+</aura:component>

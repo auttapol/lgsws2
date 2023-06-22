@@ -1,0 +1,374 @@
+<aura:component controller="T_Performance_P4Controller">
+    <aura:attribute name="userType" type="String" default="Branch" />
+    <aura:attribute name="branchProfile" type="Object" />
+    <aura:attribute name="branchPerformance" type="Object" />
+    <aura:attribute name="historyData" type="Object" />
+    <aura:attribute name="yearData" type="Object" />
+    <aura:attribute name="sumFinancialProduct" type="Object" />
+    <aura:attribute name="monthList" type="List" />
+    <aura:attribute name="yearList" type="List" />
+    <aura:attribute name="defaultMonth" type="String" />
+    <aura:attribute name="defaultYear" type="String" />
+    <aura:attribute name="selectMonth" type="String" />
+    <aura:attribute name="selectYear" type="String" />
+    <aura:attribute name="defaultMonthItp" type="String" />
+    <aura:attribute name="defaultYearItp" type="String" />
+    <aura:attribute name="defaultMonthLbpf" type="String" />
+    <aura:attribute name="defaultYearLbpf" type="String" />
+    <aura:attribute name="defaultMonthSif" type="String" />
+    <aura:attribute name="defaultYearSif" type="String" />
+    <aura:attribute name="defaultMonthIdp" type="String" />
+    <aura:attribute name="defaultYearIdp" type="String" />
+    <aura:attribute name="dataAsOfMonthSecB" type="String" />
+    <aura:attribute name="dataAsOfYearSecB" type="String" />
+    <aura:attribute name="monthSaleInOut" type="String" />
+    <aura:attribute name="yearSaleInOut" type="String" />
+    <aura:attribute name="dataAsOfMonthHistory" type="String" />
+    <aura:attribute name="isShow" type="Boolean" default="false" />
+    <aura:attribute name="loaded" type="Boolean" default="false" />
+    <aura:attribute name="channel" type="String" />
+    <aura:attribute name="helpAndSummary" type="String" />
+    <aura:attribute name="helpLink" type="String" />
+    <aura:attribute name="summaryLink" type="String" />
+    <aura:attribute name="firstRender" type="Boolean" default="false" />
+    <aura:attribute name="tabYear" type="Boolean" default="false" />
+    <aura:attribute name="tabHistory" type="Boolean" default="false" />
+    <aura:attribute name="cmpParent" type="Aura.Component"/>
+    
+    <!-- Water Mark -->
+    <aura:attribute name="waterMarkImage" type="String" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />  
+    <aura:handler name="change" value="{!v.branchPerformance}" action="{!c.onInit}"/>
+
+    <aura:if isTrue="{!v.userType == 'Branch'}">
+        <lightning:tabset aura:id="tabs" onselect="{! c.handleSelect }" variant="scoped">
+            <div class = "btn-section">
+                <lightning:button label = "Help &amp; คู่มือ" iconName="utility:help"   onclick="{!c.onHelp}" class= " help-button" ></lightning:button> 
+                <lightning:button label="Branch Summary"  iconName="standard:document"  onclick="{!c.onSummary}" class= "summary-button"  ></lightning:button>
+            </div> 
+            <lightning:tab label="Year">
+                <aura:if isTrue="{! v.loaded }">
+                    <lightning:spinner  style="z-index: 1" alternativeText="Loading" size="medium" />
+                </aura:if> 
+                <div class="slds-grid slds-wrap tab-style" style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;align-items: initial;'}">              
+                    <aura:if isTrue="{!empty(v.yearData)}">
+                        No Data          
+                        <aura:set attribute="else">   
+                            <aura:if isTrue="{!and(v.dataAsOfMonthSecB,v.dataAsOfYearSecB)!=null}">
+                                <div class="slds-col slds-size_1-of-1">
+                                    <span style="float: right;margin-right: 5px;margin-bottom: 5px;font-weight: 700;">{!v.dataAsOfMonthSecB}&nbsp;{!v.dataAsOfYearSecB}</span>
+                                </div>
+                            </aura:if>
+                            <aura:iteration items="{!v.yearData}" var="branchObj" indexVar="index">                 
+                                <aura:if isTrue="{!(index+1) % 4 == 1 }">
+                                        <div class="slds-col slds-size_1-of-2 table-line-top-left">               
+                                            <div class="slds-grid slds-wrap">
+                                                <div class="slds-col slds-size_1-of-1" style="text-align: center; font-weight: bold; margin-bottom: 20px;margin-top: 5px;">
+                                                    <span>{!branchObj.No}.{!branchObj.Name}</span> <span style="margin-left: 5px;"><lightning:formattedNumber value="{!branchObj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                </div>
+                                                <aura:iteration items="{!branchObj}" var="obj" indexVar="index2">
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-left: 10px;">
+                                                            <span>{!obj.No}</span> <span style="margin-left: 5px;">{!obj.Name}</span>
+                                                        </div>
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-right: 10px;">
+                                                            <span style="float: right;"><lightning:formattedNumber value="{!obj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                        </div>
+                                                </aura:iteration>
+                                                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px">
+                                                
+                                                </div>
+                                            </div>                                 
+                                        </div>
+                                </aura:if>
+                                <aura:if isTrue="{!(index+1) % 4 == 2 }">
+                                        <div class="slds-col slds-size_1-of-2 table-line-top-right">
+                                            <div class="slds-grid slds-wrap">
+                                                <div class="slds-col slds-size_1-of-1" style="text-align: center; font-weight: bold; margin-bottom: 20px;margin-top: 5px;">
+                                                    <span>{!branchObj.No}.{!branchObj.Name}</span> <span style="margin-left: 5px;"><lightning:formattedNumber value="{!branchObj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                </div>
+                                                <aura:iteration items="{!branchObj}" var="obj">
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-left: 10px;">
+                                                            <span>{!obj.No}</span> <span style="margin-left: 5px;">{!obj.Name}</span>
+                                                        </div>
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-right: 10px;">
+                                                            <span style="float: right;"><lightning:formattedNumber value="{!obj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                        </div>
+                                                </aura:iteration>
+                                                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px">
+                                                
+                                                </div>
+                                            </div>                        
+                                        </div>
+                                </aura:if>
+                                <aura:if isTrue="{!(index+1) % 4 == 3 }">
+                                        <div class="slds-col slds-size_1-of-2 table-line-bottom-left">                                 
+                                            <div class="slds-grid slds-wrap">
+                                                <div class="slds-col slds-size_1-of-1" style="text-align: center; font-weight: bold; margin-bottom: 20px;margin-top: 5px;">
+                                                    <span>{!branchObj.No}.{!branchObj.Name}</span> <span style="margin-left: 5px;"><lightning:formattedNumber value="{!branchObj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                </div>
+                                                <aura:iteration items="{!branchObj}" var="obj">
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-left: 10px;">
+                                                            <span>{!obj.No}</span> <span style="margin-left: 5px;">{!obj.Name}</span>
+                                                        </div>
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-right: 10px;">
+                                                            <span style="float: right;"><lightning:formattedNumber value="{!obj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                        </div>
+                                                </aura:iteration>
+                                                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px">
+                                                
+                                                </div>
+                                            </div>                             
+                                        </div>
+                                </aura:if>
+                                <aura:if isTrue="{!(index+1) % 4 == 0 }">
+                                        <div class="slds-col slds-size_1-of-2 table-line-bottom-right">               
+                                            <div class="slds-grid slds-wrap">
+                                                <div class="slds-col slds-size_1-of-1" style="text-align: center; font-weight: bold; margin-bottom: 20px;margin-top: 5px;">
+                                                    <span>{!branchObj.No}.{!branchObj.Name}</span> <span style="margin-left: 5px;"><lightning:formattedNumber value="{!branchObj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                </div>
+                                                <aura:iteration items="{!branchObj}" var="obj">
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-left: 10px;">
+                                                            <span>{!obj.No}</span> <span style="margin-left: 5px;">{!obj.Name}</span>
+                                                        </div>
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-right: 10px;">
+                                                            <span style="float: right;"><lightning:formattedNumber value="{!obj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                        </div>
+                                                </aura:iteration>
+                                                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px">
+                                                
+                                                </div>
+                                            </div>
+                                        </div>
+                                </aura:if>                                                      
+                            </aura:iteration>    
+                        </aura:set>  
+                    </aura:if>   
+                </div>
+            </lightning:tab>
+            <lightning:tab label="History">
+                <aura:if isTrue="{! v.loaded }">
+                    <lightning:spinner style="z-index: 1" alternativeText="Loading" size="medium" />
+                </aura:if>
+                <div class="slds-grid slds-wrap tab-style" style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;align-items: initial;'}">
+                    <div class="slds-grid slds-wrap slds-size_1-of-1">
+                        <div class="slds-col slds-size_1-of-3" style="width: 20%;margin-bottom:20px">
+                            <lightning:select aura:id="year" name="select" label="Select a Year" value="{!v.selectYear}" onchange="{!c.handleYear}" >
+                                <option value="">-- None --</option>        
+                                <aura:iteration items="{!v.yearList}" var="year">
+                                    <option text="{!year.label}" value="{!year.value}"/>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                        <div class="slds-col slds-size_1-of-3" style="width: 20%;margin-left: 10px;margin-bottom:20px">
+                            <lightning:select aura:id="month" name="select" label="Select a Month" value="{!v.selectMonth}" onchange="{!c.handleMonth}">
+                                <option value="">-- None --</option>        
+                                <aura:iteration items="{!v.monthList}" var="month">
+                                    <option text="{!month.label}" value="{!month.value}"/>
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                        <div class="slds-col slds-size_1-of-3" style="margin-top: 20px;margin-bottom:20px;margin-left:10px">
+                            <lightning:button variant="brand" label="Show" onclick="{!c.showHandle}" /> 
+                        </div>
+                    </div>              
+                    <aura:if isTrue="{!and(empty(v.historyData),v.isShow )}">
+                        No Data          
+                        <aura:set attribute="else">
+                                <div class="slds-col slds-size_1-of-1">
+                                    <span style="float: right;margin-right: 10px;margin-bottom: 5px;font-weight: 700;">{!v.dataAsOfMonthHistory}</span>
+                                </div>  
+                            <aura:iteration items="{!v.historyData}" var="branchObj" indexVar="index">
+                                <aura:if isTrue="{!(index+1) % 4 == 1 }">                                 
+                                        <div class="slds-col slds-size_1-of-2 table-line-top-left">               
+                                            <div class="slds-grid slds-wrap">
+                                                <div class="slds-col slds-size_1-of-1" style="text-align: center; font-weight: bold; margin-bottom: 20px;margin-top: 5px;">
+                                                    <span>{!branchObj.No}.{!branchObj.Name}</span> <span style="margin-left: 5px;"><lightning:formattedNumber value="{!branchObj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                </div>
+                                                <aura:iteration items="{!branchObj}" var="obj">                                                
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-left: 10px;">
+                                                            <span>{!obj.No}</span> <span style="margin-left: 5px;">{!obj.Name}</span>
+                                                        </div>
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-right: 10px;">
+                                                            <span style="float: right;"><lightning:formattedNumber value="{!obj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                        </div>
+                                                </aura:iteration>
+                                                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px">
+                                                </div>
+                                            </div>                                 
+                                        </div>
+                                </aura:if>
+                                <aura:if isTrue="{!(index+1) % 4 == 2 }">                               
+                                        <div class="slds-col slds-size_1-of-2 table-line-top-right">
+                                            <div class="slds-grid slds-wrap">
+                                                <div class="slds-col slds-size_1-of-1" style="text-align: center; font-weight: bold; margin-bottom: 20px;margin-top: 5px;">
+                                                    <span>{!branchObj.No}.{!branchObj.Name}</span> <span style="margin-left: 5px;"><lightning:formattedNumber value="{!branchObj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                </div>
+                                                <aura:iteration items="{!branchObj}" var="obj">                                                  
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-left: 10px;">
+                                                            <span>{!obj.No}</span> <span style="margin-left: 5px;">{!obj.Name}</span>
+                                                        </div>
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-right: 10px;">
+                                                            <span style="float: right;"><lightning:formattedNumber value="{!obj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                        </div>
+                                                </aura:iteration>
+                                                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px">
+                                                
+                                                </div>
+                                            </div>                        
+                                        </div>
+                                </aura:if>
+                                <aura:if isTrue="{!(index+1) % 4 == 3 }">                                
+                                        <div class="slds-col slds-size_1-of-2 table-line-bottom-left">                                 
+                                            <div class="slds-grid slds-wrap">
+                                                <div class="slds-col slds-size_1-of-1" style="text-align: center; font-weight: bold; margin-bottom: 20px;margin-top: 5px;">
+                                                    <span>{!branchObj.No}.{!branchObj.Name}</span> <span style="margin-left: 5px;"><lightning:formattedNumber value="{!branchObj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                </div>
+                                                <aura:iteration items="{!branchObj}" var="obj">                                                 
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-left: 10px;">
+                                                            <span>{!obj.No}</span> <span style="margin-left: 5px;">{!obj.Name}</span>
+                                                        </div>
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-right: 10px;">
+                                                            <span style="float: right;"><lightning:formattedNumber value="{!obj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                        </div>
+                                                </aura:iteration>
+                                                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px">
+                                                
+                                                </div>
+                                            </div>                             
+                                        </div>
+                                </aura:if>
+                                <aura:if isTrue="{!(index+1) % 4 == 0 }">                            
+                                        <div class="slds-col slds-size_1-of-2 table-line-bottom-right">               
+                                            <div class="slds-grid slds-wrap">
+                                                <div class="slds-col slds-size_1-of-1" style="text-align: center; font-weight: bold; margin-bottom: 20px;margin-top: 5px;">
+                                                    <span>{!branchObj.No}.{!branchObj.Name}</span> <span style="margin-left: 5px;"><lightning:formattedNumber value="{!branchObj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                </div>
+                                                <aura:iteration items="{!branchObj}" var="obj">                                                
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-left: 10px;">
+                                                            <span>{!obj.No}</span> <span style="margin-left: 5px;">{!obj.Name}</span>
+                                                        </div>
+                                                        <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-right: 10px;">
+                                                            <span style="float: right;"><lightning:formattedNumber value="{!obj.KPI_Value__c}" minimumFractionDigits="2" maximumFractionDigits="2"/>%</span>
+                                                        </div>
+                                                </aura:iteration>
+                                                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px">
+                                                
+                                                </div>
+                                            </div>
+                                        </div>
+                                </aura:if>
+                            </aura:iteration>
+                        </aura:set>
+                    </aura:if>
+                </div>
+            </lightning:tab>
+        </lightning:tabset>
+    </aura:if>
+    <aura:if isTrue="{!v.userType == 'RASC'}">
+        <lightning:tabset>
+            <div class = "btn-section">
+                <lightning:button label = "Help &amp; คู่มือ" iconName="utility:help"   onclick="{!c.onHelp}" class= " help-button" ></lightning:button> 
+                <!-- <lightning:button label="Branch Summary"  iconName="standard:document"  onclick="{!c.onSummary}" class= "summary-button"  ></lightning:button> -->
+            </div> 
+                    <div class="slds-grid slds-wrap tab-style" style="align-items: initial;">
+                        <aura:if isTrue="{!empty(v.sumFinancialProduct)}">
+                            No Data          
+                            <aura:set attribute="else"> 
+                                <aura:if isTrue="{!and(v.dataAsOfMonthSecB,v.dataAsOfYearSecB)!=null}">
+                                    <div class="slds-col slds-size_1-of-1">
+                                        <span style="float: right;margin-right: 5px;margin-bottom: 5px;font-weight: 700;">As Of {!v.dataAsOfMonthSecB}&nbsp;{!v.dataAsOfYearSecB}</span>
+                                    </div>
+                                </aura:if>
+                                <!-- 1.Customer -->
+                                <div class="slds-col slds-size_1-of-2 table-line-top-left">               
+                                    <div class="slds-grid slds-wrap">
+                                        <div class="slds-col slds-size_1-of-1" style="text-align: center; font-weight: bold; margin-bottom: 20px;margin-top: 5px;">
+                                            <span>1.Customer</span> <span style="margin-left: 5px;"></span>
+                                        </div>
+                                            <!-- <aura:iteration items="{!v.branchPerformance.Customer}" var="obj" indexVar = "idx2">
+                                                <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-left: 10px;">
+                                                    <span style="margin-left: 5px;"></span>
+                                                </div>
+                                             </aura:iteration> -->
+                                        <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px">
+                                        </div>
+                                    </div>                                 
+                                </div>
+                                <!-- 2. People -->
+                                <div class="slds-col slds-size_1-of-2 table-line-top-right">
+                                    <div class="slds-grid slds-wrap">
+                                        <div class="slds-col slds-size_1-of-1" style="text-align: center; font-weight: bold; margin-bottom: 20px;margin-top: 5px;">
+                                            <span>2.People</span> <span style="margin-left: 5px;"></span>
+                                        </div>
+                                            <!-- <aura:iteration items="{!v.branchPerformance.People}" var="obj" indexVar="idx2">
+                                                <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-left: 10px;">
+                                                    <span></span> <span style="margin-left: 5px;"></span>
+                                                </div>
+                                            </aura:iteration> -->
+                                        <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px">
+                                        </div>
+                                    </div>                        
+                                </div>
+                                <!--  3.Financial -->
+                                <div class="slds-col slds-size_1-of-2 table-line-bottom-left">                                 
+                                    <div class="slds-grid slds-wrap">
+                                        <div class="slds-col slds-size_1-of-1" style="text-align: center; font-weight: bold; margin-bottom: 5px;margin-top: 5px;">
+                                            <span>3.Financial</span> <span style="margin-left: 5px;"></span>
+                                        </div>
+                                            <aura:if isTrue="{!not(empty(v.sumFinancialProduct))}">
+                                                <table class="slds-table slds-table_cell-buffer slds-table_bordered table-channel" >
+                                                    <thead>
+                                                        <tr >
+                                                            <th  scope="col">
+                                                                <div class="slds-truncate" style="text-align: start; margin-left:50px;" title="channel">{!v.channel}</div>
+                                                            </th>
+                                                            <th  scope="col">
+                                                                <div class="slds-truncate" style="text-align: center; " title="Unit">Unit</div>
+                                                            </th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <aura:iteration items="{!v.sumFinancialProduct}" var="obj" indexVar="idx2">
+                                                            <tr class="slds-hint-parent">
+                                                                <td  scope="row">
+                                                                    <div style="display:flex">
+                                                                        <span style="width:60%; text-align: start;">{!idx2+1}. {!obj.indecatorName}</span> 
+                                                                        <span style="width:40%; text-align: center;" ><lightning:formattedNumber value="{!obj.sumActual}" minimumFractionDigits="2" maximumFractionDigits="2"/></span> 
+                                                                    </div>
+                                                                </td>
+                                                                <td style="text-align: center;">
+                                                                    <span>{!obj.salesUnit}</span>
+                                                                </td>
+                                                            </tr>
+                                                        </aura:iteration>
+                                                    </tbody>
+                                                </table>
+                                            </aura:if>
+                                        <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px">
+                                        </div>
+                                    </div>                             
+                                </div>
+                                <!-- 4.Operation and Risk -->
+                                <div class="slds-col slds-size_1-of-2 table-line-bottom-right">               
+                                    <div class="slds-grid slds-wrap">
+                                        <div class="slds-col slds-size_1-of-1" style="text-align: center; font-weight: bold; margin-bottom: 20px;margin-top: 5px;">
+                                            <span>4.Operation and Risk</span> <span style="margin-left: 5px;"></span>
+                                        </div>
+                                          <!--   <aura:iteration items="{!v.branchPerformance.Operation_and_Risk}" var="obj" indexVar="idx2">
+                                                <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-left: 10px;">
+                                                    <span></span> <span style="margin-left: 5px;"></span>
+                                                </div>
+                                                 <div class="slds-col slds-size_1-of-2" style="margin-bottom: 10px;padding-right: 10px;">
+                                                     <span style="float: right;"></span>
+                                                </div>
+                                            </aura:iteration> -->
+                                        <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px">
+                                        </div>
+                                    </div>
+                                </div>
+                        </aura:set>
+                    </aura:if>
+                </div>
+        </lightning:tabset>
+    </aura:if>
+</aura:component>

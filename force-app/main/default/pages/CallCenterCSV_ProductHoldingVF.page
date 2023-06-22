@@ -1,0 +1,83 @@
+<apex:page standardController="Account" showHeader="false" sidebar="false" cache="true" tabStyle="Account" lightningStylesheets="true" title="{!$Label.Product_Holding}">
+
+    <apex:includeScript value="/support/console/47.0/integration.js" />
+    <apex:includeLightning />
+    <apex:slds />
+
+    <style>
+        #productholding_cmp lightning-datatable lightning-button button {
+            line-height: 0.625rem;
+            white-space: unset;
+        }
+    </style>
+
+    <div id="productholding_cmp"></div>
+    <script>
+
+        $Lightning.use("c:CallCenterCSV_ProductHoldingApp", function () {
+            var params = '{!$CurrentPage.parameters.params}' ? JSON.parse(atob('{!$CurrentPage.parameters.params}')) : '';
+            if (params) {
+                $Lightning.createComponent(params.componentDef, params.attributes,
+                    "productholding_cmp",
+                    function (cmp) {
+                        console.log('component created: ' + params.componentDef);
+                    });
+            } else {
+                var AccountId = '{! Account.Id }';
+                var TMBCustId = '{! Account.TMB_Customer_ID_PE__c }';
+                var theme = '{!$User.UITheme}';
+                if (theme != 'Theme3') {
+                    sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                        "componentDef": "c:CallCenterCSV_ProductHolding",
+                        "attributes": {
+                            recordId: AccountId,
+                            tmbCustId: TMBCustId,
+                            theme: theme,
+                            // uuid: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                            //     var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                            //     return v.toString(16);
+                            // }),
+                        }
+                    })), true);
+                } else {
+                    $Lightning.createComponent("c:CallCenterCSV_ProductHolding",
+                        {
+                            recordId: AccountId,
+                            tmbCustId: TMBCustId,
+                            theme: theme,
+                        },
+                        "productholding_cmp",
+                        function (cmp) {
+
+                            sforce.console.setTabTitle('{!$Label.Product_Holding}');
+                            $A.eventService.addHandler({
+                                "event": "c:CallCenterCSV_ProductHoldingEvent",
+                                "handler": function (event) {
+                                    var params = event.getParam('params');
+                                    var tabName = event.getParam('tabName');
+                                    var url = '/apex/CallCenterCSV_ProductHoldingVF?' + 'params=' + params;
+
+                                    if (sforce.console.isInConsole()) {
+                                        sforce.console.getEnclosingPrimaryTabId(function (primaryTab) {
+                                            sforce.console.openSubtab(primaryTab.id, url, true, tabName, null, function (result) {
+
+                                            }, 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                                                var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                                                return v.toString(16);
+                                            }));
+                                        });
+                                    }
+                                    else {
+                                        window.open(url);
+                                    }
+                                }
+                            });
+
+                        });
+                }
+
+            }
+        });
+
+    </script>
+</apex:page>

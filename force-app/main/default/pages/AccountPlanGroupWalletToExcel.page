@@ -1,0 +1,606 @@
+<apex:page standardcontroller="AcctPlanProdStrategy__c" extensions="AcctPlanProStrGrpWalletCtrlV2"
+           showchat="false" showheader="false" sidebar="false"
+           applybodytag="false" applyhtmltag="true" standardstylesheets="true"
+           contenttype="application/vnd.ms-excel#GroupWallet.xls" cache="true"
+           readOnly="true">
+    <head>
+        <title>Product Strategy</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+            .table-responsive {
+                overflow-x: auto;
+            }
+            .bootstrap-sf1 thead th.alt {
+                background-color: #006DCC;
+                color: white;
+                text-align: center;
+                vertical-align: top !important;
+                position: relative;
+            }   
+            .bootstrap-sf1 thead th.alt {
+                background-color: #006DCC;
+                color: white;
+                text-align: center;
+                vertical-align: top !important;
+                position: relative;
+            }   
+        </style>
+    </head>
+    <body>
+    
+    <div class="bootstrap-sf1">
+        <!-- /Section 1 -->
+        <div class="col-sm-8 col-md-6 col-lg-6">
+            <div class="form-group">
+                <apex:outputpanel id="targetPanel1">
+                    <div style="padding-top: 30px;">
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <td class="forceBackground" style="background-color: #006DCC; color: white;border: none;text-align:left;font-weight: bold;" width="30%">Year</td>
+                                    <td style="border: none;">
+                                        <span class="form-control text-center calculate">
+                                            {!groupprofile.Year__c}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="forceBackground" style="background-color: #006DCC; color: white;border: none;text-align:left;font-weight: bold;">Group Name</td>
+                                    <td style="border: none;text-align:right;">
+                                        <span class="form-control text-center calculate">
+                                            {!groupprofile.GroupName__c}
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </apex:outputpanel>
+            </div>
+        </div>
+        <br />
+ 
+        <!-- Start Main Table -->  
+        <table class="table" style="margin-bottom : 0px;">
+            <tr>
+                <th colspan="{!noOfRecords + 7}" class="text-left" style="background-color: #006DCC; color: white;text-align:left;">
+                    Group's wallet
+                </th>
+            </tr>
+            <tr>
+                <th colspan="5" class="text-left" style="background-color:#fff;text-align:left;">
+                    <span style="color:#000;">
+                    </span>
+                </th>
+            </tr>
+            <tr>
+                <!-- Start label -->
+                <td class="leftSection">
+                    <table class="table table-hover table-wrapper" >
+                        
+                        <tr class="headerLabel">
+                            <th class="forceBackground text-center" style="vertical-align: middle;background-color: #006DCC; color: white;text-align:middle;">
+                                Type of Wallet<br/><br/><br/>
+                            </th>
+                        </tr>
+                        <tr class="toggleAccount"><td class="forceBackground text-center" style="background-color: #006DCC;">&nbsp;</td></tr>
+                        <tr><td class="text-left SEQ1"><label>1. NIIc</label></td></tr>
+                        <tr><td class="text-left SEQ2"><label>2. NIId</label></td></tr>
+                        <tr><td class="text-left SEQ3"><label>3. Fee</label></td></tr>
+                        <tr><td class="text-left SEQ4"><label>Recurring Fee</label></td></tr>
+                        <tr><td class="text-left SEQ5"><label>3.1 TF Fee</label></td></tr>
+                        <tr><td class="text-left SEQ6"><label>3.2 FX Fee</label></td></tr>
+                        <tr><td class="text-left SEQ7"><label>3.3 L/G Fee</label></td></tr>
+                        <tr><td class="text-left SEQ8"><label>3.4 Cash Fee</label></td></tr>
+                        <tr><td class="text-left SEQ9"><label>3.5 AS Fee</label></td></tr>
+                        <tr><td class="text-left SEQ10"><label>Non Recurring Fee</label></td></tr>
+                        <tr><td class="text-left SEQ11"><label>3.6 Credit Fee</label></td></tr>
+                        <tr><td class="text-left SEQ12"><label>3.7 BA Fee</label></td></tr>
+                        <tr><td class="text-left SEQ13"><label>3.8 Derivative Fee</label></td></tr>
+                        <tr><td class="text-left SEQ14"><label>3.9 IB Fee</label></td></tr> 
+                        <tr>
+                            <td class="forceBackground text-left" style="background-color: #006DCC; color: white;text-align:left;">Total</td>
+                        </tr>
+                    </table>
+                </td>
+                <!-- End label -->
+                <!-- Start section 1 : Summary Wallet Sizing -->
+                <td class="leftSection" style="border-right: 1px solid #dadee2 !important;">
+                    <apex:variable value="{!SummaryWalletSizingReport}" var="pro"/>
+                    <table class="table table-hover table-wrapper">
+                        <tr class="headerLabel">
+                            <th class="forceBackground text-center" style="background-color: #006DCC; color: white;">
+                                Group Wallet Sizing<br/>(Yearly)<br/><br/>
+                            </th>
+                        </tr>
+                        <tr class="toggleAccount"><td style="background-color: #006DCC; color: white;text-align:right;"><b>As of Date : </b></td></tr>
+                        <tr ><td class="SEQ1">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.WalletSizing.NIIc__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ2">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.WalletSizing.NIId__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ3">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.WalletSizing.Fee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ4">&nbsp;</td></tr>
+                        <tr ><td class="SEQ5">
+                             <apex:outputtext value="{0, number, ###,##0}" >
+                                <apex:param value="{!pro.WalletSizing.TFFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ6">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.WalletSizing.FXFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ7">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.WalletSizing.LGFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ8">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.WalletSizing.CashFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ9">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.WalletSizing.ASFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ10">&nbsp;</td></tr>
+                        <tr ><td class="SEQ11">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.WalletSizing.CreditFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ12">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.WalletSizing.BAFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ13">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.WalletSizing.DerivativeFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ14">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.WalletSizing.IBFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr class="info endRow"><td class="SEQTotal" style="background-color: #c6e4ec;">
+                             <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}" >
+                                <apex:outputtext value="{0, number, ###,##0}">
+                                    <apex:param value="{!pro.WalletSizing.GrandTotal__c}"/>
+                                </apex:outputtext>
+                            </apex:outputpanel>
+                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'TargetbyGroup'}" >
+                                <apex:outputtext value="{0, number, ###,##0}">
+                                    <apex:param value="{!pro.WalletSizing.TargetbyGroup__c}"/>
+                                </apex:outputtext>
+                            </apex:outputpanel>
+                        </td></tr>
+                     </table>    
+                  </td>
+          <!-- End section 1 : Summary Wallet Sizing -->            
+                
+          <!-- Start section 2 : Wallet Sizing Item -->       
+          <apex:variable value="{!(pageNumber * size)+1-size}" var="rowNum"/>  
+         
+          <apex:repeat value="{!walletSizingListFull}" var="pro">
+            <td class="toggleAccount leftSection" style="border-right: 1px solid #dadee2 !important;">
+              <table class="table table-hover table-wrapper">
+                        <tr class="headerLabel">
+                            <th class="forceBackground text-center" style="background-color: #006DCC; color: white;text-align:center;vertical-align: middle;">
+                                <apex:outputpanel rendered="{!pro.SummaryType__c == 'None'}" >
+                                      {!rowNum}.<br/>
+                                      <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                 </apex:outputpanel>
+                                 <apex:outputpanel rendered="{!pro.Account_Plan_Company_Profile__c != null}" >
+                                     <apex:outputpanel rendered="{!pro.IsProductStrategy__c}" >
+                                         <apex:outputText value="{!pro.Account_Plan_Company_Profile__r.AccountName__c}"/><br/>
+                                     </apex:outputpanel>
+                                     <apex:outputpanel rendered="{! !pro.IsProductStrategy__c}" >
+                                         <apex:outputText value="{!pro.Account_Plan_Company_Profile__r.AccountName__c}"/><br/>
+                                     </apex:outputpanel>
+                                 </apex:outputpanel>
+                                 <apex:outputpanel rendered="{!pro.Account_Plan_Company_Profile__c == null}" >
+                                     <apex:outputText value="{!pro.Account__r.Name}"/><br/>
+                                 </apex:outputpanel>     
+                            </th>
+                        </tr>
+                        <tr><td style="background-color: #006DCC;"></td></tr>
+                        <tr ><td class="forceBackground text-center" style="background-color: #006DCC; color: white;text-align:center;vertical-align: middle;">
+                            <b>
+                             <apex:outputtext value="{0, date, dd/MM/yyyy hh:mm}">
+                                <apex:param value="{!pro.RefreshDate__c + 07/24}"/>
+                             </apex:outputtext>
+                             </b>
+                        </td></tr>
+                        <tr ><td class="SEQ1">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.NIIc__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ2">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.NIId__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ3">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.Fee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ4">&nbsp;</td></tr>
+                        <tr ><td class="SEQ5">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.TFFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ6">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.FXFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ7">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.LGFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ8">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.CashFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ9">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.ASFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ10">&nbsp;</td></tr>
+                        <tr ><td class="SEQ11">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.CreditFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ12">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.BAFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ13">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.DerivativeFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr ><td class="SEQ14">
+                             <apex:outputtext value="{0, number, ###,##0}">
+                                <apex:param value="{!pro.IBFee__c}"/>
+                             </apex:outputtext>
+                        </td></tr>
+                        <tr class="info endRow"><td  class="SEQTotal" style="background-color: #c6e4ec;">
+                             <apex:outputpanel rendered="{!pro.SummaryType__c != 'TargetbyGroup'}" >
+                                <apex:outputtext value="{0, number, ###,##0}">
+                                    <apex:param value="{!pro.GrandTotal__c}"/>
+                                </apex:outputtext>
+                            </apex:outputpanel>
+                            <apex:outputpanel rendered="{!pro.SummaryType__c == 'TargetbyGroup'}" >
+                                <apex:outputtext value="{0, number, ###,##0}">
+                                    <apex:param value="{!pro.TargetbyGroup__c}"/>
+                                </apex:outputtext>
+                            </apex:outputpanel>
+                        </td></tr>
+                     </table>    
+          </td>  
+        </apex:repeat>
+        <!-- End section 2 : Wallet Sizing Item --> 
+          
+        <!-- Start section 3 : Summary Report -->  
+        <apex:repeat value="{!SummaryReport}" var="pro">
+          <td class="leftSection">
+                <apex:variable value="{0, number, ###,##0}" var="FormatDisplay"/>  
+                <table class="table table-hover table-wrapper">
+                        <tr class="headerLabel">
+                            <th class="forceBackground text-center" style="vertical-align: middle;background-color: #006DCC; color: white;text-align:center;">              
+                                <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c != 'None'}" >
+                                    <!-- apex:outputtext value="{!pro.SummaryType}" escape="false"/ -->
+                                    <apex:outputtext value="{!pro.SummaryTypeForExcel}" escape="false"/>
+                                </apex:outputpanel>
+                                <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'ExistingSOW'}" >
+                                    <apex:variable value="{0, number, #0.00}%" var="FormatDisplay"/>
+                                </apex:outputpanel> 
+                                <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AspirationSOW'}" >
+                                    <apex:variable value="{0, number, #0.00}%" var="FormatDisplay"/>
+                                </apex:outputpanel> 
+                            </th>
+                        </tr>
+                        <tr class="toggleAccount"><td class="forceBackground text-center" style="background-color: #006DCC;">&nbsp;</td></tr>
+                        <tr ><td class="SEQ1">
+                             <apex:outputtext value="{!FormatDisplay}" >
+                                <apex:param value="{!pro.WalletSizing.NIIc__c}" />
+                             </apex:outputtext>&nbsp;
+                                 
+                        </td></tr>
+                        <tr ><td class="SEQ2">
+                             <apex:outputtext value="{!FormatDisplay}">
+                                <apex:param value="{!pro.WalletSizing.NIId__c}"/>
+                             </apex:outputtext>&nbsp;
+                              
+                        </td></tr>
+                        <tr ><td class="SEQ3">
+                             <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'AspirationSOW' 
+                                                                                && pro.WalletSizing.SummaryType__c != 'ExpectedIncrementalNI'
+                                                                                && pro.WalletSizing.SummaryType__c != 'AspirationSOWStep6'
+                                                                                && pro.WalletSizing.SummaryType__c != 'ExpectedSOW'
+                                                                                && pro.WalletSizing.SummaryType__c != 'CompareExpectedtoAspirationSOW' 
+                                                                                }">
+                                <apex:param value="{!pro.WalletSizing.Fee__c}"/>
+                             </apex:outputtext>&nbsp;
+                                
+                        </td></tr>
+                        <tr ><td class="SEQ4">&nbsp;</td></tr>
+                        <tr ><td class="SEQ5">
+                             <apex:outputtext value="{!FormatDisplay}" >
+                                <apex:param value="{!pro.WalletSizing.TFFee__c}"/>
+                             </apex:outputtext>&nbsp;
+                              
+                        </td></tr>
+                        <tr ><td class="SEQ6">
+                             <apex:outputtext value="{!FormatDisplay}">
+                                <apex:param value="{!pro.WalletSizing.FXFee__c}"/>
+                             </apex:outputtext>&nbsp;
+                              
+                        </td></tr>
+                        <tr ><td class="SEQ7">
+                             <apex:outputtext value="{!FormatDisplay}">
+                                <apex:param value="{!pro.WalletSizing.LGFee__c}"/>
+                             </apex:outputtext>&nbsp;
+                             
+                        </td></tr>
+                        <tr ><td class="SEQ8">
+                             <apex:outputtext value="{!FormatDisplay}">
+                                <apex:param value="{!pro.WalletSizing.CashFee__c}"/>
+                             </apex:outputtext>&nbsp;
+                              
+                        </td></tr>
+                        <tr ><td class="SEQ9">
+                            <apex:outputtext value="{!FormatDisplay}" rendered="{!/*pro.WalletSizing.SummaryType__c != 'ExistingSOW'*/ /*proformance page*/
+                                                                                pro.WalletSizing.SummaryType__c != 'ExpectedIncrementalNIStep5' 
+                                                                                && pro.WalletSizing.SummaryType__c != 'AspirationSOWStep6'
+                                                                                && pro.WalletSizing.SummaryType__c != 'ExpectedSOW'
+                                                                                && pro.WalletSizing.SummaryType__c != 'CompareExpectedtoAspirationSOW'
+                                                                                }">
+                                <apex:param value="{!pro.WalletSizing.ASFee__c}"/>
+                             </apex:outputtext>&nbsp;
+                             
+                        </td></tr>
+                        <tr ><td class="SEQ10">&nbsp;</td></tr>
+                        <tr ><td class="SEQ11">
+                             <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'ExistingSOW'}">
+                                <apex:param value="{!pro.WalletSizing.CreditFee__c}"/>
+                             </apex:outputtext>&nbsp;
+                              
+                        </td></tr>
+                        <tr ><td class="SEQ12">
+                             <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'ExistingSOW'}">
+                                <apex:param value="{!pro.WalletSizing.BAFee__c}"/>
+                             </apex:outputtext>&nbsp;
+                             
+                        </td></tr>
+                        <tr ><td class="SEQ13">
+                             <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'ExistingSOW' 
+                                                                                && pro.WalletSizing.SummaryType__c != 'AspirationSOW'
+                                                                                && pro.WalletSizing.SummaryType__c != 'AspirationSOWStep6'
+                                                                                && pro.WalletSizing.SummaryType__c != 'ExpectedSOW'
+                                                                                && pro.WalletSizing.SummaryType__c != 'CompareExpectedtoAspirationSOW'
+                                                                                }">
+                                <apex:param value="{!pro.WalletSizing.DerivativeFee__c}"/>
+                             </apex:outputtext>&nbsp;
+                             
+                        </td></tr>
+                        <tr ><td class="SEQ14">
+                             <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'ExistingSOW'
+                                                                                && pro.WalletSizing.SummaryType__c != 'AspirationSOW'
+                                                                                && pro.WalletSizing.SummaryType__c != 'AspirationSOWStep6'
+                                                                                && pro.WalletSizing.SummaryType__c != 'ExpectedSOW'
+                                                                                && pro.WalletSizing.SummaryType__c != 'CompareExpectedtoAspirationSOW'
+                                                                                }">
+                                <apex:param value="{!pro.WalletSizing.IBFee__c}"/>
+                             </apex:outputtext>&nbsp;
+                             
+                        </td></tr>
+                        <tr class="info endRow"><td class="SEQTotal" style="background-color: #c6e4ec;">
+                             <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                <apex:outputtext value="{!FormatDisplay}" rendered="{! pro.WalletSizing.SummaryType__c != 'ExistingSOW' /*proformance page*/
+                                                                                    && pro.WalletSizing.SummaryType__c != 'AspirationSOW'
+                                                                                    && pro.WalletSizing.SummaryType__c != 'ExpectedSOW'
+                                                                                    && pro.WalletSizing.SummaryType__c != 'AspirationSOWStep6'
+                                                                                    && pro.WalletSizing.SummaryType__c != 'CompareExpectedtoAspirationSOW'
+                                                                                    }">
+                                    <apex:param value="{!pro.WalletSizing.GrandTotal__c}"/>
+                                </apex:outputtext>&nbsp;
+                                
+                                <apex:outputtext rendered="{! pro.WalletSizing.SummaryType__c == 'ExistingSOW' /*proformance page*/
+                                                            || pro.WalletSizing.SummaryType__c == 'AspirationSOW'
+                                                            || pro.WalletSizing.SummaryType__c == 'ExpectedSOW'
+                                                            || pro.WalletSizing.SummaryType__c == 'AspirationSOWStep6'
+                                                            || pro.WalletSizing.SummaryType__c == 'CompareExpectedtoAspirationSOW'
+                                                            }">
+                                    -
+                                </apex:outputtext>&nbsp;
+                            </apex:outputpanel>
+                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'TargetbyGroup'}" >
+                                <apex:outputtext value="{!FormatDisplay}">
+                                    <apex:param value="{!pro.WalletSizing.TargetbyGroup__c}"/>
+                                </apex:outputtext>&nbsp;
+                            </apex:outputpanel>
+                        </td></tr>
+                     </table>
+            </td>
+        </apex:repeat>
+        <!-- End section 3 : Summary Report -->            
+        </tr>
+        </table>
+        <!-- End Main Table -->    
+
+        <!-- Grand Total -->
+        <apex:outputPanel id="outstandingtable">
+            <table>
+                <tr>
+                    <td>
+                        <table class="table ">
+                            <tr>
+                                <td class="forceBackground text-center" style="vertical-align: middle; width: 350px;background-color: #006DCC; color: white;text-align:center;">
+                                    <b>Outstanding</b>
+                                </td>
+                                <td class="forceBackground  text-center" style="background-color: #006DCC; color: white;text-align:center;border-right: 1px solid #dadee2;">
+                                    <span> <b> Group Actual Performance <br />(YTD) </b></span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class=" text-left" ><label>1) Average loan outstanding</label></td>
+                                <td class="text-left" style="border-right: 1px solid #dadee2;">
+                                    <apex:outputtext value="{0, number, ###,##0}">
+                                        <apex:param value="{!AvgLoan}" />
+                                    </apex:outputtext>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class=" text-left" ><label>2) Ending loan outstanding</label></td>
+                                <td class="text-left" style="border-right: 1px solid #dadee2;">
+                                    <apex:outputtext value="{0, number, ###,##0}">
+                                        <apex:param value="{!EndLoan}" />
+                                    </apex:outputtext>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class=" text-left" ><label>3) Average CASA</label></td>
+                                <td class="text-left" style="border-right: 1px solid #dadee2;">
+                                    <apex:outputtext value="{0, number, ###,##0}">
+                                        <apex:param value="{!AvgCASA}" />
+                                    </apex:outputtext>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class=" text-left" ><label>4) Ending CASA</label></td>
+                                <td  class="text-left" style="border-right: 1px solid #dadee2;">
+                                    <apex:outputtext value="{0, number, ###,##0}">
+                                        <apex:param value="{!EndCASA}" />
+                                    </apex:outputtext>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class=" text-left" ><label>5) TF Volume</label></td>
+                                <td class="text-left" style="border-right: 1px solid #dadee2;">
+                                    <apex:outputtext value="{0, number, ###,##0}">
+                                        <apex:param value="{!TFVolume}" />
+                                    </apex:outputtext>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class=" text-left" ><label>6) FX volume</label></td>
+                                <td  class="text-left" style="border-right: 1px solid #dadee2;">
+                                    <apex:outputtext value="{0, number, ###,##0}">
+                                        <apex:param value="{!FXvolume }" />
+                                    </apex:outputtext>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                    
+                    <td style="padding:0px; " id="customerUnderstandingToggle">
+                        
+                        <table class="table customerUnderstanding">
+                            <tr>
+                            <apex:variable value="{!(pageNumber2 * size)+1-size}" var="rowNum2"/>  
+                                <apex:repeat value="{!customerUnderstandingListFull}" var="cus">
+                                    <td style="padding:0px;">
+                                        <table class="table ">
+                                        
+                                            <tr>
+                                                <td class="forceBackground text-center" style="border-right: 1px solid #dadee2; width: 170px;background-color: #006DCC; color: white;text-align:center;">
+                                                    <b>{!rowNum2}.<br/>
+                                                    <apex:outputText value="{!cus.AccountName__c}"></apex:outputText></b>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border-right: 1px solid #dadee2;">
+                                                <apex:outputtext value="{0, number, ###,##0}">
+                                                    <apex:param value="{!cus.Average_loan_outstanding__c}" />
+                                                </apex:outputtext>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border-right: 1px solid #dadee2;">
+                                                    <apex:outputtext value="{0, number, ###,##0}">
+                                                    <apex:param value="{!cus.Ending_loan_outstanding__c}" />
+                                                </apex:outputtext>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border-right: 1px solid #dadee2;">
+                                                <apex:outputtext value="{0, number, ###,##0}">
+                                                    <apex:param value="{!cus.Average_CASA__c}" />
+                                                </apex:outputtext>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border-right: 1px solid #dadee2;">
+                                                <apex:outputtext value="{0, number, ###,##0}">
+                                                    <apex:param value="{!cus.Ending_CASA__c}" />
+                                                </apex:outputtext>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border-right: 1px solid #dadee2;">
+                                                <apex:outputtext value="{0, number, ###,##0}">
+                                                    <apex:param value="{!cus.TF_Volume__c}" />
+                                                </apex:outputtext>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td style="border-right: 1px solid #dadee2;">
+                                                <apex:outputtext value="{0, number, ###,##0}">
+                                                    <apex:param value="{!cus.FX_volume__c}" />
+                                                </apex:outputtext>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <apex:variable var="rowNum2" value="{!rowNum2 + 1}" />
+                                </apex:repeat>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </apex:outputPanel>    
+        <!-- End Grand Total -->  
+    </div> 
+
+    
+    
+    <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+    <apex:includescript value="{!$Resource.AccountPlan_Mustache}" />
+    <apex:includescript value="/support/console/22.0/integration.js" />
+ 
+    </body>
+</apex:page>

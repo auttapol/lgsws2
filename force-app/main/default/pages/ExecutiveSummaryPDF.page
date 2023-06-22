@@ -1,0 +1,430 @@
+<apex:page standardController="Executive_Summary__c"  extensions="ExecutiveSummaryPDFCtrl" renderAs="PDF" applyHtmlTag="false" showHeader="false" standardStylesheets="false" title="Executive Summary PDF"   id="thePage" >
+    <head>
+        <apex:stylesheet value="{!$Resource.AccountPlanPDF}" />
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+
+        
+        <style> 
+            html,body{
+            line-height: 16px;
+            }
+            .page-break {
+            page-break-after: always;  
+            padding: 2mm 5mm;
+            height: 100%;
+            }
+            .page-break-before{
+            page-break-before: always; 
+            padding: 2mm 5mm;
+            }
+            .htmlDetailElementTable td{
+                border: none !important;
+            }
+            .checkImg{
+                padding-top: 5px;
+            }
+            .text_underline{
+                text-decoration: underline;
+            }
+            .text_bold {
+                font-family: sans-serif;
+                font-weight: bold;
+                text-align: center;
+                align-content: middle;
+            }
+            .width-20,.rateNI td{
+                width: 20%;
+                text-align: right;
+            }
+            img {
+                border: 0;
+                margin:2px;
+            }
+
+
+        </style>
+        <script type="text/javascript">
+
+            // $(document).ready(function() {
+            //  savePDF();
+            // });
+            // window.onload = function(){
+            //     savePDF();
+            // };
+        </script>
+
+    </head>
+    <body>
+    <!-- <apex:form>
+        <apex:outputPanel id="messages">
+            <apex:pageMessages></apex:pageMessages> 
+        </apex:outputPanel> 
+
+        <apex:actionFunction name="savePDF" action="{!SavePDF}" reRender="thePage"/>
+    </apex:form> -->
+
+        <div class="container">
+            <apex:image value="{!$Resource.TMBLogo}" style="width: 90px; "/>
+            <br/><br/>
+            <table class="table table-bordered">
+                <tr>
+                    <td colspan="2">
+                        <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;">
+                            <b class="text_bold">Company Name : </b> 
+                            <apex:outputfield value="{!ExecutiveSummary.Customer_Name__r.Name}"></apex:outputfield>
+                        </apex:outputPanel>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;">
+                            <b class="text_bold">Customer ID : </b>
+                            <apex:outputtext value="{!ExecutiveSummary.Customer_Name__r.TMB_Customer_ID_PE__c}"></apex:outputtext>
+                        </apex:outputPanel>
+                    </td>
+                    <td>
+                        <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;">
+                            <b class="text_bold">Master Scale : </b> 
+                            <apex:outputtext value="{!ExecutiveSummary.Master_Scale__c}"></apex:outputtext>
+                        </apex:outputPanel>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <apex:outputPanel layout="block" style="padding: 5px;">
+                            <b class="text_bold">Team Head : </b> 
+                            <apex:outputfield value="{!ExecutiveSummary.Team_Head__r.Name}"></apex:outputfield>
+                            <br/><br/>
+                            <apex:image value="{!ExecutiveSummary.Team_Head__r.fullphotourl}" style="padding-left:6em; text-align:center;" rendered="{!ExecutiveSummary.Team_Head__r.fullphotourl != null && ExecutiveSummary.Team_Head__r.fullphotourl !=''}"/>
+                            <apex:image value="{!$Resource.FullPhotoUser }" style="padding-left:6em;" rendered="{!ExecutiveSummary.Team_Head__r.fullphotourl == null || ExecutiveSummary.Team_Head__r.fullphotourl ==''}"/>
+                        </apex:outputPanel>
+                    </td>
+                    <td>
+                        <apex:outputPanel layout="block" style="padding: 5px;">
+                            <b class="text_bold">RM : </b> 
+                            <apex:outputfield value="{!ExecutiveSummary.RM_Owner_Name__r.Name}"></apex:outputfield>
+                            <br/><br/>
+                            <apex:image value="{!ExecutiveSummary.RM_Owner_Name__r.fullphotourl}" style="padding-left:6em; text-align:center;" rendered="{!ExecutiveSummary.RM_Owner_Name__r.fullphotourl != null && ExecutiveSummary.RM_Owner_Name__r.fullphotourl !=''}"/>
+                            <apex:image value="{!$Resource.FullPhotoUser }" style="padding-left:6em;" rendered="{!ExecutiveSummary.RM_Owner_Name__r.fullphotourl == null || ExecutiveSummary.RM_Owner_Name__r.fullphotourl ==''}"/>
+                        </apex:outputPanel>
+                    </td>
+                </tr>
+            </table>
+            <div class="page-break clear-both" > 
+                <br/>
+                <h1 class="text_bold">Business Profile : </h1>
+                <br/>
+                <br/>
+                <span>
+                    <apex:outputfield value="{!ExecutiveSummary.Customer_Name__r.Name}"></apex:outputfield>
+                    &nbsp;<strong>becomes</strong> <b class="text_bold">Customer since</b>&nbsp;
+                    <apex:outputfield value="{!ExecutiveSummary.TMB_Customer_Since__c}"></apex:outputfield>
+                </span>
+                <br/>
+                <br/>
+                <table class="table table-bordered">
+                    <tr>
+                        <td width="20%" >
+                            <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;">
+                            <b class="text_bold">Company Industry</b> 
+                            </apex:outputPanel>
+                        </td>
+                        <td width="35%">
+                            <apex:outputfield value="{!ExecutiveSummary.Company_Industry_Info__r.Name}"></apex:outputfield>
+                        </td>
+                        <td width="27%">
+                            <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;">
+                            <b class="text_bold">Business Established Since</b> 
+                            </apex:outputPanel>
+                        </td>
+                        <td width="18%">
+                            <apex:outputfield value="{!ExecutiveSummary.Business_Established_Since__c}"></apex:outputfield>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td width="20%" >
+                            <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;">
+                            <b class="text_bold">Business Code</b>
+                            </apex:outputPanel>
+                        </td>
+                        <td width="35%" style=" word-wrap: break-word;">
+                            <apex:outputfield value="{!ExecutiveSummary.Business_Code__c}"></apex:outputfield>
+                        </td>
+                        <td width="27%">
+                            <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;">
+                            <b class="text_bold">No. of Employee</b> 
+                            </apex:outputPanel>
+                        </td>
+                        <td width="18%">
+                            <apex:outputfield value="{!ExecutiveSummary.No_of_Employee__c}"></apex:outputfield>
+                        </td>
+                    </tr>
+                </table>
+                <br/>
+                <br/>
+                <span>
+                    <b class="text_bold">Business Information:</b>
+                    <br/>
+                    <br/>
+                    <apex:outputfield value="{!ExecutiveSummary.Other_Information__c}" ></apex:outputfield>
+                </span>
+                <br/>
+                <br/>
+                <table>
+                <span>
+                    <b class="text_bold">Shareholding Structure:</b>
+                    <br/>
+                    <br/>
+                    <div style="text-align: justify;" >
+                    <apex:outputfield value="{!ExecutiveSummary.Shareholding_Structure__c}" ></apex:outputfield>
+                    </div>
+                </span>
+                </table>
+                
+                
+            </div>
+            <div class="page-break-after"> 
+                <br/>
+                <table class="table" width="100%" >
+                        <tr style="background-color:#e5e5e5;">
+                            <th colspan="2" class="text_bold" style="border-left:1px solid black;border-right:1px solid black;border-top:1px solid black;border-bottom:1px solid black">
+                                <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;">
+                                    ttb Guests
+                                </apex:outputPanel>
+                            </th>
+                        </tr>
+                        <tr>
+                            <td align="center" style="padding: 5px;vertical-align: middle;border-left:1px solid black;border-right:1px solid black" width="50%">
+                                    <apex:outputtext value="{!ExecutiveSummary.TMB_Guests__r.Photo__c}" rendered="{!ExecutiveSummary.TMB_Guests__r.Photo__c != null && ExecutiveSummary.TMB_Guests__r.Photo__c !=''}"   escape="false" />
+                                    <apex:image value="{!$Resource.FullBodyPhoto }"  rendered="{!ExecutiveSummary.TMB_Guests__r.Photo__c == null || ExecutiveSummary.TMB_Guests__r.Photo__c ==''}"/>
+                              
+                                </td>
+                            <td align="center" style="padding: 5px ;vertical-align: middle;border-left:1px solid black;border-right:1px solid black" width="50%">
+                                <apex:outputtext value="{!ExecutiveSummary.TMB_Guests_2__r.Photo__c}" rendered="{!ExecutiveSummary.TMB_Guests_2__r.Photo__c != null && ExecutiveSummary.TMB_Guests_2__r.Photo__c !=''}" escape="false" />
+                                <apex:image value="{!$Resource.FullBodyPhoto }"  rendered="{!ExecutiveSummary.TMB_Guests_2__r.Photo__c == null || ExecutiveSummary.TMB_Guests_2__r.Photo__c ==''}"/>
+                                
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center" style="padding: 5px;border-left:1px solid black;border-right:1px solid black" width="50%">
+                                <span style="font-size:16px">คุณ&nbsp;<apex:outputfield value="{!ExecutiveSummary.TMB_Guests__r.Name}"></apex:outputfield></span>
+                            </td>
+                            <td align="center" style="border-left:1px solid black;border-right:1px solid black" width="50%">
+                                <span style="font-size:16px">คุณ&nbsp;<apex:outputfield value="{!ExecutiveSummary.TMB_Guests_2__r.Name}"></apex:outputfield></span>
+                            </td>
+                           
+                        </tr>
+                        <tr>
+                            <td align="center" style="padding: 5px;border-left:1px solid black;border-right:1px solid black" width="50%">
+                                <apex:outputfield value="{!ExecutiveSummary.TMB_Guests__r.Position__c}"></apex:outputfield>
+                                
+                            </td>
+                            <td align="center" style="border-left:1px solid black;border-right:1px solid black" width="50%">
+                                <apex:outputfield value="{!ExecutiveSummary.TMB_Guests_2__r.Position__c}">&nbsp;</apex:outputfield>
+ 
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px;border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black" width="50%">
+                                <h1>ข้อมูลทั่วไป</h1>
+                                <ul>
+                                <apex:outputPanel rendered="{!ExecutiveSummary.TMB_Guests__r.Age__c != 0}">
+                                    <li>Age : <apex:outputfield value="{!ExecutiveSummary.TMB_Guests__r.Age__c}"></apex:outputfield></li>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!ExecutiveSummary.TMB_Guests__r.Description2__c != null}">
+                                    <li style="word-wrap: break-word;"><apex:outputfield value="{!ExecutiveSummary.TMB_Guests__r.Description2__c}" style="border:none !important;"></apex:outputfield></li>
+                                </apex:outputPanel>
+                                </ul>
+                            </td>
+                            <td style="border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black" width="50%">
+                                <h1>ข้อมูลทั่วไป</h1> 
+                                <ul>
+                                <apex:outputPanel rendered="{!ExecutiveSummary.TMB_Guests_2__r.Age__c != 0}">
+                                    <li>Age : <apex:outputfield value="{!ExecutiveSummary.TMB_Guests_2__r.Age__c}"></apex:outputfield></li>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!ExecutiveSummary.TMB_Guests_2__r.Description2__c != null}">
+                                    <li style="word-wrap: break-word;"><apex:outputfield value="{!ExecutiveSummary.TMB_Guests_2__r.Description2__c}" style="border:none !important;"></apex:outputfield></li>
+                                </apex:outputPanel>
+                                </ul>
+                            </td>
+                        </tr>
+
+                        <!-- TMB Guest 3 & 4 -->
+                    <tr>
+                            <td align="center" style="padding: 5px;vertical-align: middle;border-left:1px solid black;border-right:1px solid black" width="50%">
+                                <apex:outputtext value="{!ExecutiveSummary.TMB_Guests_3__r.Photo__c}"  rendered="{!ExecutiveSummary.TMB_Guests_3__r.Photo__c != null && ExecutiveSummary.TMB_Guests_3__r.Photo__c !=''}" escape="false"/>
+                                <apex:image value="{!$Resource.FullBodyPhoto }"  rendered="{!ExecutiveSummary.TMB_Guests_3__r.Photo__c == null || ExecutiveSummary.TMB_Guests_3__r.Photo__c ==''}"/>
+                                
+                            </td>
+                            <td align="center" style="padding: 5px;vertical-align: middle;border-left:1px solid black;border-right:1px solid black" width="50%">
+                               
+                                <apex:outputtext value="{!ExecutiveSummary.TMB_Guests_4__r.Photo__c}"  rendered="{!ExecutiveSummary.TMB_Guests_4__r.Photo__c != null && ExecutiveSummary.TMB_Guests_4__r.Photo__c !=''}" escape="false"/>
+                                <apex:image value="{!$Resource.FullBodyPhoto }"  rendered="{!ExecutiveSummary.TMB_Guests_4__r.Photo__c == null || ExecutiveSummary.TMB_Guests_4__r.Photo__c ==''}"/>
+                                
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center" style="padding: 5px;border-left:1px solid black;border-right:1px solid black" width="50%">
+                                <span style="font-size:16px">คุณ&nbsp;<apex:outputfield value="{!ExecutiveSummary.TMB_Guests_3__r.Name}"></apex:outputfield></span>
+                            </td>
+                            <td align="center" style="border-left:1px solid black;border-right:1px solid black" width="50%">
+                            
+                                <span style="font-size:16px">คุณ&nbsp;<apex:outputfield value="{!ExecutiveSummary.TMB_Guests_4__r.Name}"></apex:outputfield></span>
+                                
+                            </td>
+                        </tr>
+                        <tr>
+                            <td align="center" style="padding: 5px;border-left:1px solid black;border-right:1px solid black" width="50%">
+                                <apex:outputfield value="{!ExecutiveSummary.TMB_Guests_3__r.Position__c}"></apex:outputfield>
+                            </td>
+                            <td align="center" style="border-left:1px solid black;border-right:1px solid black" width="50%">
+                            
+                                <apex:outputfield value="{!ExecutiveSummary.TMB_Guests_4__r.Position__c}"></apex:outputfield>
+                                 
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px;border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black" width="50%">
+                                <h1>ข้อมูลทั่วไป</h1>
+                                <ul>
+                                <apex:outputPanel rendered="{!ExecutiveSummary.TMB_Guests_3__r.Age__c != 0}">
+                                    <li>Age : <apex:outputfield value="{!ExecutiveSummary.TMB_Guests_3__r.Age__c}"></apex:outputfield></li>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!ExecutiveSummary.TMB_Guests_3__r.Description2__c != null}">
+                                    <li ><apex:outputfield value="{!ExecutiveSummary.TMB_Guests_3__r.Description2__c}" style="border:none !important;">
+                                    </apex:outputfield></li>
+                                </apex:outputPanel>
+                                </ul>
+                            </td>
+                            <td style="border-left:1px solid black;border-right:1px solid black;border-bottom:1px solid black" width="50%">
+                            
+                                <h1>ข้อมูลทั่วไป</h1> 
+                                <ul>
+                                <apex:outputPanel rendered="{!ExecutiveSummary.TMB_Guests_4__r.Age__c != 0}">
+                                    <li>Age : <apex:outputfield value="{!ExecutiveSummary.TMB_Guests_4__r.Age__c}"></apex:outputfield></li>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{!ExecutiveSummary.TMB_Guests_4__r.Description2__c != null}">
+                                    <li><apex:outputfield value="{!ExecutiveSummary.TMB_Guests_4__r.Description2__c}" style="border:none !important;word-wrap: break-word;"></apex:outputfield></li>
+                                </apex:outputPanel>
+                                </ul>
+                                
+                            </td>
+                        </tr>
+
+                    </table>
+                <br/>
+                <div class="page-break-before"></div> 
+                <h1 class="text_bold">ttb Business : </h1>
+                <br/>
+                <br/>
+                <span><apex:outputfield value="{!ExecutiveSummary.TMB_Business__c}"></apex:outputfield></span>
+                <br/>
+                <br/>
+                
+                    <table class="table table-bordered rateNI">
+                        <tr>
+                            <td class="text_bold" rowspan="2" style="width: 10% !important;">
+                                <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;text-align: center;">
+                                    <br/><br/>Type of Wallet<br/><br/><br/>
+                                </apex:outputPanel>
+                            </td>
+                            <td class="text_bold">
+                                <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;text-align: center;">
+                                    Year&nbsp;<apex:outputfield value="{!ExecutiveSummary.Last_Year__c}"></apex:outputfield>
+                                </apex:outputPanel>
+                            </td>
+                            <td class="text_bold" colspan="3">
+                                <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;text-align: center;">
+                                    Year&nbsp;<apex:outputfield value="{!ExecutiveSummary.This_Year__c}"></apex:outputfield>
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                         <tr>
+                            <td class="text_bold">
+                                <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 6px;text-align: center;">
+                                   <br/> Actual&nbsp;<br/><br/><!--<apex:outputfield value="{!ExecutiveSummary.Customer_Name__c}"></apex:outputfield>-->
+                                </apex:outputPanel>
+                            </td>
+                            <td class="text_bold">
+                                <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 6px;text-align: center;">
+                                  <br/> Wallet Sizing&nbsp;<br/><br/><!--<apex:outputfield value="{!ExecutiveSummary.Customer_Name__c}"></apex:outputfield>-->
+                                </apex:outputPanel>
+                            </td>
+                             <td class="text_bold">
+                                <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 6px;text-align: center;">
+                                  <br/>Run Rate&nbsp;<br/><br/><!--<apex:outputfield value="{!ExecutiveSummary.Customer_Name__c}"></apex:outputfield>-->
+                                </apex:outputPanel>
+                            </td>
+                             <td class="text_bold">
+                                <apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 6px;text-align: center;">
+                                   Expected Incremental NI&nbsp;<br/><br/><!--<apex:outputfield value="{!ExecutiveSummary.Customer_Name__c}"></apex:outputfield>-->
+                                </apex:outputPanel>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="text_bold"><apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;text-align: center;">NIIc</apex:outputPanel></td>
+                            <td ><apex:outputfield value="{!ExecutiveSummary.Actual_NIIc_Last_Year__c }" ></apex:outputfield></td>
+                            <td ><apex:outputfield value="{!ExecutiveSummary.Wallet_NIIc_This_Year__c }"></apex:outputfield></td>
+                            <td ><apex:outputfield value="{!ExecutiveSummary.Run_Rate_NIIc_This_Year__c }"></apex:outputfield></td>
+                            <td ><apex:outputfield value="{!ExecutiveSummary.Expected_Incremental_NIIc__c }"></apex:outputfield></td>
+                        </tr>
+                        <tr>
+                            <td class="text_bold"><apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;text-align: center;">NIId</apex:outputPanel></td>
+                            <td align="right"><apex:outputfield value="{!ExecutiveSummary.Actual_NIId_Last_Year__c }"></apex:outputfield></td>
+                            <td align="right"><apex:outputfield value="{!ExecutiveSummary.Wallet_NIId_This_Year__c }"></apex:outputfield></td>
+                            <td align="right"><apex:outputfield value="{!ExecutiveSummary.Run_Rate_NIId_This_Year__c }"></apex:outputfield></td>
+                            <td align="right"><apex:outputfield value="{!ExecutiveSummary.Expected_Incremental_NIId__c }"></apex:outputfield></td>
+                        </tr>
+                        <tr>
+                            <td class="text_bold"><apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;text-align: center;">Fees</apex:outputPanel></td>
+                            <td align="right"><apex:outputfield value="{!ExecutiveSummary.Actual_Fees_Last_Year__c }"></apex:outputfield></td>
+                            <td align="right"><apex:outputfield value="{!ExecutiveSummary.Wallet_Fees_This_Year__c }"></apex:outputfield></td>
+                            <td align="right"><apex:outputfield value="{!ExecutiveSummary.Run_Rate_Fees_This_Year__c }"></apex:outputfield></td>
+                            <td align="right"><apex:outputfield value="{!ExecutiveSummary.Expected_Incremental_Fees__c }"></apex:outputfield></td>
+                        </tr>
+                        <tr>
+                            <td class="text_bold"><apex:outputPanel layout="block" style="background-color:#e5e5e5;padding: 5px;text-align: center;">Total</apex:outputPanel></td>
+                            <td align="right"><apex:outputfield value="{!ExecutiveSummary.Total_Actual_Last_Year__c }"></apex:outputfield></td>
+                            <td align="right"><apex:outputfield value="{!ExecutiveSummary.Total_Wallet_This_Year__c }"></apex:outputfield></td>
+                            <td align="right"><apex:outputfield value="{!ExecutiveSummary.Total_Run_Rate_This_Year__c }"></apex:outputfield></td>
+                            <td align="right"><apex:outputfield value="{!ExecutiveSummary.Total_Expected_Incremental__c }"></apex:outputfield></td>
+                        </tr>
+                    </table> 
+                <br/>
+                <br/>
+                <h1 class="text_bold">Strategy : </h1>
+                    <br/><apex:outputField value="{!ExecutiveSummary.Customer_Strategy__c}" ></apex:outputField>
+                   
+                
+            <div class="page-break-after"> 
+                <br/>
+                <br/>
+                <h1 class="text_bold">Action : </h1>
+                <br/>
+                                
+                <apex:outputfield value="{!ExecutiveSummary.Action__c}"></apex:outputfield>
+                
+                <br/>
+                <br/>
+                <h1 class="text_bold">Talk Point : </h1>
+                <br/>
+                
+                <apex:outputfield value="{!ExecutiveSummary.Talk_Point__c }" ></apex:outputfield>
+                
+                <br/>
+                <br/>
+                <h1 class="text_bold">Financial Highlights : </h1>
+                <br/>
+                <br/>
+                <apex:outputfield value="{!ExecutiveSummary.Financial_Highlight__c }" ></apex:outputfield>
+                <br/>
+                <br/>
+                <h1 class="text_bold">Open Compliants : </h1>
+                <apex:outputfield value="{!ExecutiveSummary.Customer_Name__r.Opened_Complaint__c }" ></apex:outputfield>
+                 <br/>
+                <br/>
+            </div>
+        </div>
+        </div>
+    </body>
+</apex:page>

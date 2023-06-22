@@ -1,0 +1,95 @@
+<apex:page standardController="Account" extensions="requestAddAccountTeamExtenstion" title="Request Add Account Team" lightningStylesheets="true" >
+    
+    <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+    <apex:sectionHeader title="Customer" subtitle="Request to be Account Team"/>
+    <style>
+        .btnStyle {
+            margin: 0px 0px 2px 0px;
+        }
+        .pageTitleIcon {
+            border-radius: 5px;
+            background-position: initial;
+            display: block !important;
+            background-image:  url(/apexpages/slds/latest/assets/icons/custom/custom23.svg);
+            background-color: #B070E6;
+            background-size: contain;
+            background-position: 0 0;
+        }
+
+        @media (max-width: 1208px) {
+            .btnStyle {
+                margin: 0px 0px 0px 0px;
+            }
+            .pageTitleIcon {
+                border-radius: 5px;
+                background-position: initial;
+                display: block !important;
+                background-image:  url(/apexpages/slds/latest/assets/icons/custom/custom23.svg);
+                background-color: #B070E6;
+                background-size: contain;
+                background-position: 0 0;
+            }
+        }
+    </style>
+    <apex:form id="allpage">
+        <apex:actionFunction name="confirmApprover" action="{!confirmApprover}" status="loading"  reRender="allpage"/>
+
+        <apex:actionstatus id="loading">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div class="slds" style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <div id="spin" class="slds-spinner_container">
+                        <div class="slds-spinner slds-spinner--medium" aria-hidden="false" role="alert">
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div>
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+        
+        <apex:pageBlock >
+            <apex:outputPanel id="statusMessage">
+                <apex:pageMessages ></apex:pageMessages>
+            </apex:outputPanel>
+            
+            <apex:outputPanel rendered="{!!isInApprovalProcess}">
+                <apex:outputPanel rendered="{!hasApprover}">
+                    <div style="text-align: center;margin-top: 20px;"> 
+                        <apex:outputText value="{!$Label.RequestAccountteamMessage1}" escape="false"/>
+                    </div>
+
+                    <div style="text-align: center;margin-top: 20px;"> 
+                        <apex:outputText value="Team role : {!teamRoleProfile}" escape="false"/>
+                    </div>
+                    
+                    <c:approverTableComponent approvers="{!approvers}"/>
+
+                    <div style="margin-left: 20%; margin-top: 20px; margin-right: 20%;">
+                        <apex:outputLabel value="Comment :" style="padding-right: 20px;font-weight: bold;"/>
+                        <br/>
+                        <apex:inputtextarea style="width: 100%;margin-top: 5px;" cols="75" rows="10" id="Remark" value="{!remark}" html-maxLength="100000"/>
+                    </div>
+                </apex:outputPanel>
+    
+                <apex:outputPanel rendered="{!!hasApprover}">
+                    <div style="text-align: center; margin-top: 20px;"> <apex:outputText value="{!errorMessage}" escape="false"/></div>
+                </apex:outputPanel>
+
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{!isInApprovalProcess}">
+                <div style="text-align: center;margin-top: 20px;"> 
+                    <apex:outputText value="{!$Label.RequestChangeOwnerMessage2}" escape="false"/>
+                </div>
+            </apex:outputPanel>
+            
+            <div style="text-align: center; margin-top: 20px;">
+                <apex:commandButton styleClass="btnStyle" value="Confirm request" onclick="confirmApprover();return false;" rendered="{!hasApprover}"/>
+                <apex:commandButton value="Cancel" action="{!cancelAction}" />
+            </div>
+        </apex:pageBlock>
+    </apex:form>
+</apex:page>

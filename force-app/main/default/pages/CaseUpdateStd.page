@@ -1,0 +1,1591 @@
+<apex:page standardController="Case" extensions="CaseUpdateStdExtension" lightningStylesheets="true"  >
+
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+    <apex:includeScript value="/support/console/47.0/integration.js"/>
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    <apex:sectionHeader title="Case Edit" subtitle="{!caseObj.CaseNumber }"/>
+
+
+    <style>
+        .sub-cat {
+            text-indent: 20px;
+        }
+        .sub-cat2 {
+            text-indent: 40px;
+        }
+        .detailList .dataCol input[type="text"], body .detailList .dataCol input[type="date"], body .detailList .dataCol input[type="password"], 
+          body .detailList .dataCol textarea, body .detailList .dataCol select,  .detailList .dataCol input[type="text"], 
+        .detailList .dataCol input[type="date"], .detailList .dataCol input[type="password"],  .detailList .dataCol textarea, 
+         .detailList .dataCol select{
+            min-width: 10rem !important;
+        }
+        .colGeneral{
+            width: 80% !important;
+        }
+        .colGeneral2{
+            width: 20% !important;
+        }
+       
+       .labelCol.vfLabelColTextWrap {
+            white-space: nowrap !important;
+       }
+
+        @media screen and (min-width: 800px) {
+            .onDesktop{
+                padding-left:10%;
+            }
+        }
+
+        @media only screen and (min-device-width : 375px) and (max-device-width : 667px) {
+            .onIPhone{
+                 width:375px;
+            }
+        }
+
+        html,html body{
+            overflow: auto;
+            -webkit-overflow-scrolling:touch;
+        }
+        body{
+            position:absolute;
+            left:0;
+            right:0;
+            top:0;
+            bottom:0;
+        }
+
+        select {
+            max-width: {! IF($User.UITheme == 'Theme3', '', '20rem !important') };
+        }
+
+    </style>
+
+    <div class="onIPhone">
+        <apex:form id="frm">
+
+            <div id="spinner" style="display: none">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" />
+                </div>
+            </div>
+
+            <apex:actionstatus id="loading">
+                <apex:facet name="start">
+                    <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                        &nbsp;
+                    </div>
+                    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                        <img src="/img/loading32.gif" />
+                    </div>
+                </apex:facet>
+            </apex:actionstatus>
+
+            <apex:outputPanel id="statusMessage" rendered="{!!isAllowedEdit}" >
+                <apex:pageMessages />
+            </apex:outputPanel>
+
+            <apex:PageBlock mode="edit" rendered="{!isAllowedEdit}" id="main">
+
+                <apex:outputPanel id="statusMessage">
+                    <apex:pageMessages />
+                </apex:outputPanel>
+
+                <apex:pageBlockButtons title="Case Edit">
+                    <apex:commandButton value="{!$Label.Save}" onclick="preSaveValidatePicklist();return false;" tabindex="280" />
+                    <apex:commandButton value="{!$Label.Cancel}" onClick="closeCase();return false;" tabindex="290" />
+                </apex:pageBlockButtons>
+
+                <!-- General Field -->
+                <apex:panelGrid columns="2"  id="gridGeneral" columnClasses="colGeneral, colGeneral2">
+                <apex:PageBlockSection columns="2">
+                    <!-- <apex:repeat value="{!$ObjectType.Case.FieldSets.Case_Header}" var="f">
+                        <apex:inputField value="{!caseObj[f.fieldPath]}" required="{!OR(f.required, f.dbrequired)}" />
+                    </apex:repeat> -->
+                    <apex:inputField value="{!caseObj.CaseNumber}" />
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Status.Label}" for="pick1" />
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                            <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                            <apex:selectList value="{!caseObj.Status}" multiselect="false" size="1" required="true">
+                                <apex:selectOptions value="{!CaseStatus_Options}" />
+                            </apex:selectList>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:repeat value="{!$ObjectType.Case.FieldSets.Case_Header}" var="f">
+                        <apex:inputField value="{!caseObj[f.fieldPath]}" required="{!OR(f.required, f.dbrequired)}" />
+                    </apex:repeat>
+                    <apex:outputField value="{!caseObj.OwnerId}" />
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.AccountId.Label}" />
+                        <apex:actionRegion >
+                            <apex:inputField value="{!caseObj.AccountId}">
+                                <apex:actionSupport event="onchange" status="loading" action="{!getAccountId}" reRender="scriptSection,statusMessage,productSession" oncomplete="hideSelectProductNext();CustomerPrePopulatePicklistVal();">
+                                    <apex:param value="{!caseObj.AccountId}" name="accountId" />
+                                </apex:actionSupport>
+                            </apex:inputField>
+                        </apex:actionRegion>
+                    </apex:pageBlockSectionItem>
+                    <!-- <apex:inputField value="{!caseObj.Contact_Person_Phone__c}" /> -->
+                    <!-- <apex:inputField value="{!caseObj.Opportunity__c}" /> -->
+                    
+                    <apex:repeat value="{!$ObjectType.Case.FieldSets.Case_Standard}" var="f">
+                        <apex:inputField value="{!caseObj[f.fieldPath]}" required="{!OR(f.required, f.dbrequired)}" />
+                    </apex:repeat>
+                    <apex:inputField value="{!caseObj.Contact_Person_Phone_2__c}"/>
+                    <apex:inputField value="{!caseObj.FCR__c}" rendered="{!isShowFCR}" />
+                    <apex:outputLabel value="" rendered="{!!isShowFCR}" />
+                </apex:PageBlockSection>
+                <apex:PageBlockSection columns="1" >
+                    <apex:pageBlockSectionItem />
+                    <apex:pageBlockSectionItem />
+                    <apex:pageBlockSectionItem />
+                    <apex:pageBlockSectionItem />
+                    <apex:pageBlockSectionItem />
+                    <apex:pageBlockSectionItem />
+                    <apex:inputField value="{!caseObj.To_Ext_1__c}"/>
+                    <apex:inputField value="{!caseObj.To_Ext_2__c}"/>
+                </apex:PageBlockSection>
+        
+            </apex:panelGrid> 
+                <apex:PageBlockSection columns="2" title="Service Request Details" id="cusSegment">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.PTA_Segment__c.Label}" for="optLv0" />
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                            <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                            <apex:actionRegion >
+                                <select id="optLv0" name="optLv0" value="{!caseObj.PTA_Segment__c}" onchange="selectSegmentPicklist();">
+                                    <option value=''> -- None -- </option>
+                                </select>
+
+                                <!-- <apex:selectList id="optLv0" value="{!caseObj.PTA_Segment__c}" multiselect="false" size="1" onchange="selectSegmentPicklist();">
+                                    <apex:selectOptions value="{!PTA_Segment_Options}" />
+                                </apex:selectList> -->
+
+                            </apex:actionRegion>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem />
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Category__c.Label}"/>
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                            <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                            <apex:actionRegion >
+                                <select id="optLv1" name="optLv1" value="{!caseObj.Category__c}">
+                                    <option value=''> -- None -- </option>
+                                </select>
+                            </apex:actionRegion>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem />
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Sub_Category__c.Label}"/>
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                            <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                            <apex:actionRegion >
+                                <select id="optLv2" name="optLv2" value="{!caseObj.Sub_Category__c}">
+                                    <option value=''> -- None -- </option>
+                                </select>
+                            </apex:actionRegion>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem />
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Product_Category__c.Label}"/>
+                        <apex:outputPanel layout="block">
+                            <apex:outputPanel layout="block" />
+                            <apex:actionRegion >
+                                <select id="optLv3" name="optLv3" value="{!caseObj.Product_Category__c}">
+                                    <option value=''> -- None -- </option>
+                                </select>
+                            </apex:actionRegion>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem />
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Case.fields.Issue__c.Label}"/>
+                        <apex:outputPanel layout="block">
+                            <apex:outputPanel layout="block" />
+                            <apex:actionRegion >
+                                <select id="optLv4" name="optLv4" value="{!caseObj.Issue__c}">
+                                    <option value=''> -- None -- </option>
+                                </select>
+                            </apex:actionRegion>
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem />
+
+                    <apex:outputField value="{!caseObj.Responsible_BU__c }" id="responseBUtxt" />
+                    <apex:pageBlockSectionItem />
+                </apex:PageBlockSection>
+
+                <apex:PageBlockSection columns="3" >
+                    <apex:outputField value="{!caseObj.SLA_Day__c }" id="slatxt" style="width:30%"/>
+                    <apex:outputField value="{!caseObj.TAT__c }" id="TATtxt" style="width:40%"/>
+                </apex:PageBlockSection>
+                <apex:PageBlockSection columns="2">
+
+                    <apex:inputField value="{!caseObj.Description}" style="height: 150px; width: 600px;"/> 
+
+                    <apex:outputPanel >
+                        <div style="font-size: 18px;color:#0000CD;padding:3px; text-decoration: underline;">
+                              ..Guideline..
+                        </div>
+                        <div style="font-size: 14px;color:#1E90FF;padding:3px;">
+                            <apex:outputText value="{!caseObj.Guideline__c}" id="Guideline" label=""/>  
+                        </div>
+                    </apex:outputPanel>
+                </apex:PageBlockSection>
+
+                <apex:PageBlockSection columns="2">
+                    <!-- Start Left Column  -->
+                    <apex:pageBlockSection columns="1" id="generalLeft">
+                        <apex:inputField id="pick7" value="{!caseObj.Journey__c}" />
+                        <apex:inputField value="{!caseObj.Branch_Code__c}" />
+                        <apex:inputField value="{!caseObj.Return_Reason__c}" />
+                        <apex:inputField value="{!caseObj.Root_Cause_List__c}" />
+                        <apex:inputField value="{!caseObj.Root_Cause__c}" style="height: 70px; width: 320px;" />
+                        <apex:inputField value="{!caseObj.Call_Confirm_Status__c}" />
+                        <apex:inputField value="{!caseObj.Customer_BOT__c}" />
+                    </apex:pageBlockSection>
+                    <!-- Start Right Column  -->
+                    <apex:pageBlockSection columns="1" id="generalRight">
+                        <apex:inputField value="{!caseObj.Origin}" />
+                        <apex:inputField value="{!caseObj.Staff_ID__c}" />
+                        <br />
+                        <apex:inputField value="{!caseObj.Resolution_LIst__c}" />
+                        <apex:inputField value="{!caseObj.Resolution__c}" style="height: 70px; width: 320px;" />
+                        <apex:inputField value="{!caseObj.Goodwill__c}" />
+                    </apex:pageBlockSection>
+                </apex:PageBlockSection>
+                <!-- End General Field -->
+
+                <!-- [2020-03-26] Add Select Template. -->
+                <!-- Function after select -->
+                <apex:actionFunction action="{!SetCaseTemplate}" name="SetTemplate" reRender="caseTemplate" oncomplete="hideSelectProductNext();hideCardNoTwo();">
+                    <apex:param value="" name="templateName" />
+                </apex:actionFunction>
+
+                <!-- More Detail Section -->
+                <apex:PageBlockSection columns="1" title="More Detail" id="caseTemplate" >
+                    <!-- Card Section -->
+                    <apex:PageBlockSection columns="2" id="cardSession" rendered="{!OR(templateCard,templateCardProduct)}">
+                        <apex:pageBlockSection columns="1" id="CardLeft">
+                            <apex:inputField id="cardNumber" value="{!caseObj.Card_No_Temp__c}" onkeypress="allowCardTwo()" onblur="hideCardNoTwo()"/>
+                            <apex:inputField value="{!caseObj.Amount_Received_Deposit_to_Account__c}" />
+                        </apex:PageBlockSection>
+                        <apex:pageBlockSection columns="1" id="CardRight">
+                            <apex:inputField id="cardNumber2" value="{!caseObj.Card_No2_Temp__c}" />
+                            <apex:inputField id="approvedAmount" value="{!caseObj.Approved_Amount__c}" />                            
+                        </apex:pageBlockSection>
+                    </apex:PageBlockSection>
+                    <!-- End Card Section -->
+
+                    <!-- Product Section -->
+                    <apex:pageBlockSection columns="2" id="productSession" rendered="{!OR(templateCardProduct,templateProduct)}">
+                        <!-- Start Left Column  -->
+                        <apex:pageBlockSection columns="1" id="ProductLeft">
+                            <!--Product Number 1-->
+                            <apex:inputField id="productType1" value="{!caseObj.Product_Type_1__c}" />
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Product_Number_1__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputField id="productNumberForEdit1" value="{!caseObj.Product_Number_Temp_1__c}" onkeypress="removeProductFull('1');"
+                                                    />
+                                    <a href="#" id="gotoProductNumber1" class="btn btn-success" style="text-decoration:none" onclick="window.open('/apex/CustomerProductListsPage?itemNumber=1&accountId={!caseobj.accountid}', 'mywin', 'scrollbars=1,resizable=1,width=900,height=700,left=50,top=10'); return false;">{!$Label.Case_Choose_Button}</a>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:outputPanel style="display:none;">
+                                <apex:inputText id="productNumberForEditFull1" value="{!productNumberForEditFull1}" />
+                                <apex:inputField id="productNumberFull1" value="{!caseObj.Product_Number_Full_1__c}" />
+                                <apex:inputField id="productNumberMark1" value="{!caseObj.Product_Number_1__c}" />
+                            </apex:outputPanel>
+                            <apex:inputField id="productSuffix1" value="{!caseObj.Suffix_1__c}" />
+
+                            <!--Product Number 3-->
+                            <apex:inputField id="productType3" value="{!caseObj.Product_Type_3__c}" />
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Product_Number_3__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputText id="productNumberForEdit3" value="{!productNumberForEdit3}" size="21" maxlength="21" onkeypress="removeProductFull('3');"/>
+                                    <a href="#" id="gotoProductNumber3" class="btn btn-success" style="text-decoration:none" onclick="window.open('/apex/CustomerProductListsPage?itemNumber=3&accountId={!caseobj.accountid}', 'mywin', 'scrollbars=1,resizable=1,width=900,height=700,left=50,top=10'); return false;">{!$Label.Case_Choose_Button}</a>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:outputPanel style="display:none;">
+                                <apex:inputText id="productNumberForEditFull3" value="{!productNumberForEditFull3}" />
+                                <apex:inputField id="productNumberFull3" value="{!caseObj.Product_Number_Full_3__c}" />
+                                <apex:inputField id="productNumberMark3" value="{!caseObj.Product_Number_3__c}" />
+                            </apex:outputPanel>
+                            <apex:inputField id="productSuffix3" value="{!caseObj.Suffix_3__c}" />
+                        </apex:pageBlockSection>
+
+                        <!-- Start Right Column  -->
+                        <apex:pageBlockSection columns="1" id="ProductRight">
+                            <!--Product Number 2-->
+                            <apex:inputField id="productType2" value="{!caseObj.Product_Type_2__c}" />
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Product_Number_2__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputText id="productNumberForEdit2" value="{!productNumberForEdit2}" size="21" maxlength="21" onkeypress="removeProductFull('2');"
+                                                    />
+                                    <a href="#" id="gotoProductNumber2" class="btn btn-success" style="text-decoration:none" onclick="window.open('/apex/CustomerProductListsPage?itemNumber=2&accountId={!caseobj.accountid}', 'mywin', 'scrollbars=1,resizable=1,width=900,height=700,left=50,top=10'); return false;">{!$Label.Case_Choose_Button}</a>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:outputPanel style="display:none;">
+                                <apex:inputText id="productNumberForEditFull2" value="{!productNumberForEditFull2}" />
+                                <apex:inputField id="productNumberFull2" value="{!caseObj.Product_Number_Full_2__c}" />
+                                <apex:inputField id="productNumberMark2" value="{!caseObj.Product_Number_2__c}" />
+                            </apex:outputPanel>
+                            <apex:inputField id="productSuffix2" value="{!caseObj.Suffix_2__c}" />
+                            <apex:inputField id="approvedAmount" value="{!caseObj.Approved_Amount__c}" rendered="{!NOT(templateCardProduct)}"/>
+                        </apex:pageBlockSection>
+                    </apex:pageBlockSection>
+                    <!-- End Product Section -->
+
+                    <!-- Card Operation Process Section -->
+                    <apex:PageBlockSection columns="2" title="Card Operation Process" rendered="{!AND(isAccessibleATM_ADM,OR(templateCard,templateCardProduct))}">
+                        <apex:repeat value="{!$ObjectType.Case.FieldSets.Card_Operation_Process}" var="f">
+                            <apex:inputField value="{!caseObj[f.fieldPath]}" required="{!OR(f.required, f.dbrequired)}" />
+                        </apex:repeat>
+                        <apex:outputPanel />
+                        <apex:inputField value="{!caseObj.Card_Comment__c}" style="height: 70px; width: 600px;" />
+                    </apex:PageBlockSection>
+                    <!-- End Card Operation Process Section -->
+
+                    <!-- Deposit Section -->
+                    <apex:PageBlockSection columns="2" id="Deposit" rendered="{!AND(isAccessibleATM_ADM,templateDepositWithdraw)}">
+                        <!-- Start Left Column  -->
+                        <apex:pageBlockSection columns="1" id="depositLeft">
+                            <apex:inputField value="{!caseObj.Transaction_Date__c}" />
+
+                            <!--Product Number 1-->
+                            <apex:inputField id="productType1" value="{!caseObj.Product_Type_1__c}" />
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Product_Number_1__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputField id="productNumberForEdit1" value="{!caseObj.Product_Number_Temp_1__c}" onkeypress="removeProductFull('1');"
+                                                    />
+                                    <a href="#" id="gotoProductNumber1" class="btn btn-success" style="text-decoration:none" onclick="window.open('/apex/CustomerProductListsPage?itemNumber=1&accountId={!caseobj.accountid}', 'mywin', 'scrollbars=1,resizable=1,width=900,height=700,left=50,top=10'); return false;">{!$Label.Case_Choose_Button}</a>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:outputPanel style="display:none;">
+                                <apex:inputText id="productNumberForEditFull1" value="{!productNumberForEditFull1}" />
+                                <apex:inputField id="productNumberFull1" value="{!caseObj.Product_Number_Full_1__c}" />
+                                <apex:inputField id="productNumberMark1" value="{!caseObj.Product_Number_1__c}" />
+                            </apex:outputPanel>
+                            <apex:inputField id="productSuffix1" value="{!caseObj.Suffix_1__c}" />
+
+                            <apex:inputField value="{!caseObj.Amount_Withdrawal_Deposit__c}" />
+                            <apex:inputField value="{!caseObj.Amount_Received_Deposit_to_Account__c}" />
+                        </apex:PageBlockSection>
+
+                        <!-- Start Right Column  -->
+                        <apex:pageBlockSection columns="1" id="DepositRight">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Transaction_Time__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputField value="{!caseObj.Transaction_Time__c}" />
+                                    <apex:outputLabel value="ตัวอย่าง 13:20  หรือ 1320" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:inputField value="{!caseObj.Transaction_Type__c}" />
+                            <apex:inputField value="{!caseObj.Transaction_Method__c}" />
+                            <apex:inputField value="{!caseObj.ATM_Bank_Owner__c}" />
+                            <apex:inputField value="{!caseObj.ATM_ADM_Location__c }" />
+                        </apex:PageBlockSection>
+                    </apex:PageBlockSection>
+                    <!-- End Deposit Section -->
+
+                    <!-- Money Transfer Section -->
+                    <apex:PageBlockSection columns="2" id="MoneyTransfer" rendered="{!AND(isAccessibleATM_ADM,templateMoneyTransfer)}">
+                        <!-- Start Left Column  -->
+                        <apex:pageBlockSection columns="1" id="MoneyTransferLeft">
+                            <apex:inputField value="{!caseObj.Transaction_Date__c}" />
+
+                            <!--Product Number 1-->
+                            <apex:inputField id="productType1" value="{!caseObj.Product_Type_1__c}" />
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Product_Number_1__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputField id="productNumberForEdit1" value="{!caseObj.Product_Number_Temp_1__c}" onkeypress="removeProductFull('1');"
+                                                    />
+                                    <a href="#" id="gotoProductNumber1" class="btn btn-success" style="text-decoration:none" onclick="window.open('/apex/CustomerProductListsPage?itemNumber=1&accountId={!caseobj.accountid}', 'mywin', 'scrollbars=1,resizable=1,width=900,height=700,left=50,top=10'); return false;">{!$Label.Case_Choose_Button}</a>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:outputPanel style="display:none;">
+                                <apex:inputText id="productNumberForEditFull1" value="{!productNumberForEditFull1}" />
+                                <apex:inputField id="productNumberFull1" value="{!caseObj.Product_Number_Full_1__c}" />
+                                <apex:inputField id="productNumberMark1" value="{!caseObj.Product_Number_1__c}" />
+                            </apex:outputPanel>
+                            <apex:inputField id="productSuffix1" value="{!caseObj.Suffix_1__c}" />
+
+                            <apex:inputField value="{!caseObj.Transfer_Source__c }" />
+                            <apex:inputField value="{!caseObj.ATM_ADM_Location__c }" />
+                            <apex:inputField value="{!caseObj.Inter_Bank_Recipient_Account_No_Temp__c}" />
+                            <apex:inputField value="{!caseObj.Deposit_Amount__c}" />
+                            <apex:inputField value="{!caseObj.Recipient_Bank__c}" />
+                        </apex:PageBlockSection>
+
+                        <!-- Start Right Column  -->
+                        <apex:pageBlockSection columns="1" id="MoneyTransferRight">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Transaction_Time__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputField value="{!caseObj.Transaction_Time__c}" />
+                                    <apex:outputLabel value="ตัวอย่าง 13:20  หรือ 1320" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+
+                            <!--Product Number 2-->
+                            <apex:inputField id="productType2" value="{!caseObj.Product_Type_2__c}" />
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Product_Number_2__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputText id="productNumberForEdit2" value="{!productNumberForEdit2}" size="21" maxlength="21" onkeypress="removeProductFull('2');"
+                                                    />
+                                    <a href="#" id="gotoProductNumber2" class="btn btn-success" style="text-decoration:none" onclick="window.open('/apex/CustomerProductListsPage?itemNumber=2&accountId={!caseobj.accountid}', 'mywin', 'scrollbars=1,resizable=1,width=900,height=700,left=50,top=10'); return false;">{!$Label.Case_Choose_Button}</a>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:outputPanel style="display:none;">
+                                <apex:inputText id="productNumberForEditFull2" value="{!productNumberForEditFull2}" />
+                                <apex:inputField id="productNumberFull2" value="{!caseObj.Product_Number_Full_2__c}" />
+                                <apex:inputField id="productNumberMark2" value="{!caseObj.Product_Number_2__c}" />
+                            </apex:outputPanel>
+                            <apex:inputField id="productSuffix2" value="{!caseObj.Suffix_2__c}" />
+
+                            <apex:inputField value="{!caseObj.Transaction_Method__c}" />
+                            <apex:inputField value="{!caseObj.ATM_Bank_Owner__c}" />
+                            <apex:inputField value="{!caseObj.Transfer_Amount__c}" />
+                            <apex:inputField value="{!caseObj.Prompt_Pay_Temp__c}" />
+                        </apex:PageBlockSection>
+                    </apex:PageBlockSection>
+                    <!-- End Money Transfer Section -->
+
+                    <!-- Check Invaild Transfer Section -->
+                    <apex:PageBlockSection columns="2" id="CheckInvalidTransfer" rendered="{!AND(isAccessibleATM_ADM,templateCheckInvalidTransfer)}">
+                        <!-- Start Left Column  -->
+                        <apex:pageBlockSection columns="1" id="CheckInvalidTransferLeft">
+                            <apex:inputField value="{!caseObj.Transaction_Date__c}" />
+
+                            <!--Product Number 1-->
+                            <apex:inputField id="productType1" value="{!caseObj.Product_Type_1__c}" />
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Product_Number_1__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputField id="productNumberForEdit1" value="{!caseObj.Product_Number_Temp_1__c}" onkeypress="removeProductFull('1');"
+                                                    />
+                                    <a href="#" id="gotoProductNumber1" class="btn btn-success" style="text-decoration:none" onclick="window.open('/apex/CustomerProductListsPage?itemNumber=1&accountId={!caseobj.accountid}', 'mywin', 'scrollbars=1,resizable=1,width=900,height=700,left=50,top=10'); return false;">{!$Label.Case_Choose_Button}</a>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:outputPanel style="display:none;">
+                                <apex:inputText id="productNumberForEditFull1" value="{!productNumberForEditFull1}" />
+                                <apex:inputField id="productNumberFull1" value="{!caseObj.Product_Number_Full_1__c}" />
+                                <apex:inputField id="productNumberMark1" value="{!caseObj.Product_Number_1__c}" />
+                            </apex:outputPanel>
+                            <apex:inputField id="productSuffix1" value="{!caseObj.Suffix_1__c}" />
+
+                            <apex:inputField value="{!caseObj.Transfer_Source__c }" />
+                            <apex:inputField value="{!caseObj.Transfer_Amount__c}" />
+                        </apex:PageBlockSection>
+
+                        <!-- Start Right Column  -->
+                        <apex:pageBlockSection columns="1" id="CheckInvalidTransferRight">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Transaction_Time__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputField value="{!caseObj.Transaction_Time__c}" />
+                                    <apex:outputLabel value="ตัวอย่าง 13:20  หรือ 1320" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:inputField value="{!caseObj.Recipient_Bank__c}" />
+                            <apex:inputField value="{!caseObj.Inter_Bank_Recipient_Account_No_Temp__c}" />
+                            <apex:inputField value="{!caseObj.Wrong_Transfer_Account__c}" />
+                            <apex:inputField value="{!caseObj.Correct_Recipient_Bank__c}" />
+                            <apex:inputField value="{!caseObj.Correct_Bank_Recipient_Account_No__c}" />
+                            <apex:inputField value="{!caseObj.Correct_Target_Account__c}" />
+                        </apex:PageBlockSection>
+                    </apex:PageBlockSection>
+                    <!-- End Check Invaild Transfer Section -->
+
+                    <!-- Bill Pay Topup Section -->
+                    <apex:PageBlockSection columns="2" id="BillPayTopup" rendered="{!AND(isAccessibleATM_ADM,templateBillPayTopup)}">
+                        <!-- Start Left Column  -->
+                        <apex:pageBlockSection columns="1" id="BillPayTopupLeft">
+                            <apex:inputField value="{!caseObj.Transaction_Date__c}" />
+                            <apex:inputField id="productType1" value="{!caseObj.Product_Type_1__c}" />
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Product_Number_1__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputField id="productNumberForEdit1" value="{!caseObj.Product_Number_Temp_1__c}" onkeypress="removeProductFull('1');"
+                                                    />
+                                    <a href="#" id="gotoProductNumber1" class="btn btn-success" style="text-decoration:none" onclick="window.open('/apex/CustomerProductListsPage?itemNumber=1&accountId={!caseobj.accountid}', 'mywin', 'scrollbars=1,resizable=1,width=900,height=700,left=50,top=10'); return false;">{!$Label.Case_Choose_Button}</a>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:outputPanel style="display:none;">
+                                <apex:inputText id="productNumberForEditFull1" value="{!productNumberForEditFull1}" />
+                                <apex:inputField id="productNumberFull1" value="{!caseObj.Product_Number_Full_1__c}" />
+                                <apex:inputField id="productNumberMark1" value="{!caseObj.Product_Number_1__c}" />
+                            </apex:outputPanel>
+                            <apex:inputField id="productSuffix1" value="{!caseObj.Suffix_1__c}" />
+                            <apex:inputField value="{!caseObj.Fund_Transfer_Bill_Payment_Amount__c}" />
+                            <apex:inputField value="{!caseObj.Amount_Deposit_Withdrawal__c}" />
+                            <apex:inputField value="{!caseObj.Biller_Provider_Name__c}" />
+                        </apex:PageBlockSection>
+                        
+                        <!-- Start Right Column  -->
+                        <apex:pageBlockSection columns="1" id="BillPayTopupRight">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Transaction_Time__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputField value="{!caseObj.Transaction_Time__c}" />
+                                    <apex:outputLabel value="ตัวอย่าง 13:20  หรือ 1320" />
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+                            <apex:inputField value="{!caseObj.ATM_Bank_Owner__c}" />
+                            <apex:inputField value="{!caseObj.Branch_ATM_Shop_Location_Transaction__c}" style="height: 50px; width: 320px;"/>
+                            <apex:inputField value="{!caseObj.Recipient_Account_No_Temp__c}" />
+                            <apex:inputField value="{!caseObj.Recipient_Bank__c}" />
+                            <apex:inputField value="{!caseObj.Ref_1__c}" />
+                            <apex:inputField value="{!caseObj.Ref_2__c}" />
+                        </apex:PageBlockSection>
+                    </apex:PageBlockSection>
+                    <!-- End Bill Pay Topup Section -->
+
+                    <!-- Check Cheque Section -->
+                    <apex:PageBlockSection columns="2" id="CheckCheque" rendered="{!AND(isAccessibleATM_ADM,templateCheque)}">
+                        <!-- Start Left Column  -->
+                        <apex:pageBlockSection columns="1" id="ChequeLeft">       
+                            <!--Product Number 1-->
+                            <apex:inputField id="productType1" value="{!caseObj.Product_Type_1__c}" />
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Case.fields.Product_Number_1__c.Label}" />
+                                <apex:outputPanel >
+                                    <apex:inputField id="productNumberForEdit1" value="{!caseObj.Product_Number_Temp_1__c}" onkeypress="removeProductFull('1');"
+                                                    />
+                                    <a href="#" id="gotoProductNumber1" class="btn btn-success" style="text-decoration:none" onclick="window.open('/apex/CustomerProductListsPage?itemNumber=1&accountId={!caseobj.accountid}', 'mywin', 'scrollbars=1,resizable=1,width=900,height=700,left=50,top=10'); return false;">{!$Label.Case_Choose_Button}</a>
+                                </apex:outputPanel>
+                            </apex:pageBlockSectionItem>
+
+                            <apex:outputPanel style="display:none;">
+                                <apex:inputText id="productNumberForEditFull1" value="{!productNumberForEditFull1}" />
+                                <apex:inputField id="productNumberFull1" value="{!caseObj.Product_Number_Full_1__c}" />
+                                <apex:inputField id="productNumberMark1" value="{!caseObj.Product_Number_1__c}" />
+                            </apex:outputPanel>
+                            <apex:inputField id="productSuffix1" value="{!caseObj.Suffix_1__c}" />
+
+                            <apex:inputField value="{!caseObj.Cheque_Ordered_Date__c}" />
+                            <apex:inputField value="{!caseObj.No_of_Cheque_to_Order__c}" />
+                        </apex:PageBlockSection>
+
+                        <!-- Start Right Column  -->
+                        <apex:pageBlockSection columns="1" id="ChequeRight">
+                            <apex:inputField value="{!caseObj.Range_of_Cheque_No_From__c}" />
+                            <apex:inputField value="{!caseObj.Range_of_Cheque_No_To__c}" />
+                            <apex:inputField value="{!caseObj.No_of_Cheque_to_Stop__c}" />
+                            <apex:inputField value="{!caseObj.Cheque_Reference_No__c}" />
+                    
+                        </apex:PageBlockSection>
+                    </apex:PageBlockSection>
+                    <!-- End Cheque Section -->
+
+                    <!-- ATM Process Section -->
+                    <apex:PageBlockSection columns="2" title="ATM Process" rendered="{!AND(isAccessibleATM_ADM,OR(templateDepositWithdraw,templateMoneyTransfer,templateCheckInvalidTransfer))}">
+                        <!-- Start Left Column  -->
+                        <apex:pageBlockSection columns="1" id="AtmProcessLeft">
+                            <apex:repeat value="{!$ObjectType.Case.FieldSets.ATM_Process_Left}" var="f">
+                                <apex:inputField value="{!caseObj[f.fieldPath]}" required="{!OR(f.required, f.dbrequired)}" />
+                            </apex:repeat>
+                        </apex:pageBlockSection>
+                        <!-- Start Right Column  -->
+                        <apex:pageBlockSection columns="1" id="AtmProcessRight">
+                        <apex:repeat value="{!$ObjectType.Case.FieldSets.ATM_Process_Right}" var="f">
+                                <apex:inputField value="{!caseObj[f.fieldPath]}" required="{!OR(f.required, f.dbrequired)}" />
+                            </apex:repeat>
+                        </apex:pageBlockSection>
+                    </apex:PageBlockSection>
+                    <!-- End ATM Process Section -->
+
+                    <!-- SE Process Section -->
+                    <apex:PageBlockSection columns="2" title="CS Process" rendered="{!AND(isAccessibleSE_Process,templateCreditService)}">
+                        <apex:repeat value="{!$ObjectType.Case.FieldSets.CS_Process}" var="f">
+                            <apex:inputField value="{!caseObj[f.fieldPath]}" required="{!OR(f.required, f.dbrequired)}" />
+                        </apex:repeat>
+                    </apex:PageBlockSection>
+
+                    <!-- KYC Section -->
+                    <apex:PageBlockSection columns="2" rendered="{!AND(caseObj.id != null,templateKYC)}">
+                        <!-- Start Left Column  -->
+                        <apex:pageBlockSection columns="1" id="generalLeft">
+                            <apex:outputField value="{!caseObj.KYC_Data_type__c}" />
+                            <apex:outputField value="{!caseObj.KYC_Number__c}" />
+                        </apex:pageBlockSection>
+                        <!-- Start Right Column  -->
+                        <apex:pageBlockSection columns="1" id="generalRight">
+                            <apex:outputField value="{!caseObj.KYC_Risk_Level__c}" />
+                            <apex:inputField value="{!caseObj.KYC_Approver__c}" />
+
+                            <!-- <apex:outputField value="{!caseObj.Description}" /> -->
+                        </apex:pageBlockSection>
+                    </apex:PageBlockSection>
+                    <!-- End KYC Section -->
+
+                    <apex:PageBlockSection rendered="{!AND(isAccessibleSE_Process,templateCreditService)}">
+                        <apex:inputField value="{!caseObj.CS_Comment__c}" style="height: 70px; width: 600px;" />
+                    </apex:PageBlockSection>
+
+                    <apex:PageBlockSection columns="2" title="Zone Process" rendered="{!AND(isAccessibleSE_Process,templateCreditService)}">
+                        <apex:repeat value="{!$ObjectType.Case.FieldSets.Zone_Process}" var="f">
+                            <apex:inputField value="{!caseObj[f.fieldPath]}" required="{!OR(f.required, f.dbrequired)}" />
+                        </apex:repeat>
+                    </apex:PageBlockSection>
+
+                    <apex:PageBlockSection rendered="{!AND(isAccessibleSE_Process,templateCreditService)}">
+                        <apex:inputField value="{!caseObj.Zone_Comment__c}" style="height: 70px; width: 600px;" />
+                    </apex:PageBlockSection>
+
+                    <apex:PageBlockSection columns="2" title="UW Process" rendered="{!AND(isAccessibleSE_Process,templateCreditService)}">
+                        <apex:repeat value="{!$ObjectType.Case.FieldSets.UW_Process}" var="f">
+                            <apex:inputField value="{!caseObj[f.fieldPath]}" required="{!OR(f.required, f.dbrequired)}" />
+                        </apex:repeat>
+                    </apex:PageBlockSection>
+
+                    <apex:PageBlockSection rendered="{!AND(isAccessibleSE_Process,templateCreditService)}">
+                        <apex:inputField value="{!caseObj.UW_Comment__c}" style="height: 70px; width: 600px;" />
+                    </apex:PageBlockSection>
+
+                    <apex:PageBlockSection columns="2" title="AAD Process" rendered="{!AND(isAccessibleSE_Process,templateCreditService)}">
+                        <apex:repeat value="{!$ObjectType.Case.FieldSets.AAD_Process1}" var="f">
+                            <apex:inputField value="{!caseObj[f.fieldPath]}" required="{!OR(f.required, f.dbrequired)}" />
+                        </apex:repeat>
+                        <apex:outputLabel ></apex:outputLabel>
+                        <!-- Add blank space -->
+                        <apex:repeat value="{!$ObjectType.Case.FieldSets.AAD_Process2}" var="f">
+                            <apex:inputField value="{!caseObj[f.fieldPath]}" required="{!OR(f.required, f.dbrequired)}" />
+                        </apex:repeat>
+                        <apex:outputLabel ></apex:outputLabel>
+                        <!-- Add blank space -->
+                        <apex:repeat value="{!$ObjectType.Case.FieldSets.AAD_Process3}" var="f">
+                            <apex:inputField value="{!caseObj[f.fieldPath]}" required="{!OR(f.required, f.dbrequired)}" />
+                        </apex:repeat>
+                    </apex:PageBlockSection>
+                    <apex:PageBlockSection rendered="{!AND(isAccessibleSE_Process,templateCreditService)}">
+                        <apex:inputField value="{!caseObj.AAD_Comment__c}" style="height: 70px; width: 600px;" />
+                    </apex:PageBlockSection>
+                    <!-- end SE Process Section -->
+                </apex:PageBlockSection>
+                <!-- End More Detail Section -->
+            </apex:PageBlock>
+            <!-- redirectTab({!checkedStatusNew}, {!exceptionFlag}, {!validateFormFag}, '{!caseObjJson}'); -->
+            <apex:actionFunction name="save" status="loading" action="{!newSave}" rerender="scriptSection, main, frm" oncomplete="prePopulatePicklistVal();redirectTab();">
+                <apex:param name="lv0" value="" assignTo="{!caseObj.PTA_Segment__c}" />
+                <apex:param name="lv1" value="" assignTo="{!caseObj.Category__c}" />
+                <apex:param name="lv2" value="" assignTo="{!caseObj.Sub_Category__c}" />
+                <apex:param name="lv3" value="" assignTo="{!caseObj.Product_Category__c}" />
+                <apex:param name="lv4" value="" assignTo="{!caseObj.Issue__c}" />
+            </apex:actionFunction>
+            <apex:actionFunction name="cancelCase" action="{!cancel}" status="loading" /> 
+
+        </apex:form>
+    </div>
+
+<script type="text/javascript">
+
+    $(document).ready(function(){
+
+        //add css style to customer product session
+        $('[id$="servicedetail"]').addClass("onDesktop");
+
+        var noneOpt = '<option value=""> -- None -- </option>'
+
+        $('#optLv1').html(noneOpt)
+        $('#optLv2').html(noneOpt)
+        $('#optLv3').html(noneOpt)
+        $('#optLv4').html(noneOpt)
+
+        hideCardNoTwo();
+        //init hide field product 2,3
+        hideSelectProductNext();
+
+        populateSegmentOninit();
+
+        prePopulatePicklistVal();
+
+        preSetTemplate();
+    });
+
+    function preSetTemplate(){
+        // [2020-03-26] Add Select Template.
+        if ("{!caseObj.Current_Service_Template__c}" != null
+                && "{!caseObj.Current_Service_Template__c}" != ""
+                && {!isFirstLoad}
+            ) {
+            SetTemplate("{!caseObj.Current_Service_Template__c}");
+        }
+    }
+
+    function hideCardNoTwo(){
+        var cardNo1 =$('[id$="cardNumber"]').val();
+        if(cardNo1==''){
+            $('[id$=cardNumber2]').val('');
+            $('[id$="cardNumber2"]').prop('disabled', true);
+        }
+        else{
+            $('[id$=cardNumber2]').removeAttr("disabled");
+        }
+
+    }
+    function allowCardTwo(){
+        var cardNo1 ="{!caseObj.Card_No_Temp__c}";
+        $('[id$=cardNumber2]').removeAttr("disabled");
+    }
+    function showSelectProductNext(item)
+    {
+        var i = parseInt(item);
+
+        $('[id$=productType'+(i+1)+']').removeAttr("disabled");          //Product_Type_x__c
+        $('[id$=productNumberForEdit'+(i+1)+']').removeAttr("disabled"); //parameter
+        $('[id$=productSuffix'+(i+1)+']').removeAttr("disabled");        //Suffix_x__c
+        $('[id$=gotoProductNumber'+(i+1)+']').show();                    //choose button x
+    }
+
+    function hideSelectProductNext() {
+       //disable Select Product Number 2,3
+        var product1 ="{!caseObj.Product_Number_1__c}";
+        var product2 ="{!caseObj.Product_Number_2__c}";
+        var productfull1 ="{!caseObj.Product_Number_Full_1__c}";
+        var productfull2 ="{!caseObj.Product_Number_Full_2__c}";
+
+        if(product1=='' && productfull1==''){
+
+            $('[id$="productType2"]').prop('disabled', true);          //Product_Type_2__c
+            $('[id$="productNumberForEdit2"]').prop('disabled', true); //parameter
+            $('[id$="productSuffix2"]').prop('disabled', true);        //Suffix_2__c
+            $('[id$="gotoProductNumber2"]').hide();                    //choose button 2
+        }
+
+        if(product2=='' && productfull2 ==''){
+            $('[id$="productType3"]').prop('disabled', true);          //Product_Type_3__c
+            $('[id$="productNumberForEdit3"]').prop('disabled', true); //parameter
+            $('[id$="productSuffix3"]').prop('disabled', true);        //Suffix_3__c
+            $('[id$="gotoProductNumber3"]').hide();                    //choose button 3
+        }
+    }
+
+    function disableSelect(data)
+    {
+        data.forEach(function(entry) {
+
+            $('select[name$="'+entry+'"]').prop( "disabled", 'disabled' );
+
+        });
+
+    }
+
+    /*
+        Convert Lightning Project
+        - compatible classic, console and desktop lighting
+    */
+    var checkedStatusNew = '{! checkedStatusNew }' === 'true' ? true : false;
+    var checkedexceptionFlag = '{! exceptionFlag }' === 'true' ? true : false;
+
+    function redirectTab(statusFlag, exceptionFlag, validateFormFag, caseObjJson) {
+        var validateField = ['PTA_Segment__c', 'Category__c', 'Sub_Category__c', 'Product_Category__c', 'Issue__c'];
+        var caseObj = JSON.parse(caseObjJson);
+
+        if(caseObj.PTA_Segment__c) {
+            getSegmentMap(caseObj.PTA_Segment__c, function (result, event) {
+                if (event.status) {
+                    if (result.some(function (serviceType) {
+                        return serviceType.Service_Level1__c == caseObj.Category__c && serviceType.Service_Level2__c == caseObj.Sub_Category__c && serviceType.Service_Level3__c == caseObj.Product_Category__c && serviceType.Service_Level4__c == caseObj.Issue__c;
+                    })) {
+                        var caseObjId = '{!caseObj.id}';
+                        var retURL = caseObjId ? '/' + caseObjId : '/500/o';
+
+                        checkedStatusNew = checkedStatusNew || !statusFlag ? true : false;
+
+                        if (checkedStatusNew && !exceptionFlag && validateFormFag) {
+                            if (sforce.console.isInConsole()) {
+                                sforce.console.getEnclosingPrimaryTabId(function (praimatyTab) {
+                                    sforce.console.getEnclosingTabId(function (result) {
+                                        sforce.console.refreshPrimaryTabById(praimatyTab.id, true, function (resultRefresh) {
+
+                                        });
+                                        sforce.console.closeTab(result.id, function () {
+                                            // sforce.one.navigateToURL(retURL);
+                                        });
+                                    });
+                                });
+                            }
+                            else {
+                                window.location.href = retURL;
+                            }
+                        }
+
+                        checkedStatusNew = checkedStatusNew || statusFlag ? true : false;
+                    }
+                }
+            });
+        }
+    }
+    function testGetFocusedPrimaryTabId() {
+            sforce.console.getFocusedPrimaryTabId(showTabId);
+        }
+        var showTabId = function showTabId(result) {
+            //Display the tab ID
+            // alert('Tab ID: ' + result.id);
+            sforce.console.closeTab(result.id);
+        };
+
+    function closeCase() {
+        var theme = '{!$User.UIThemeDisplayed}';
+        var caseObjId = '{!caseObj.id}';
+        var retURL = caseObjId ? '/'+caseObjId : '/500/o';
+        if (sforce.console.isInConsole()) {
+            // if ('{!$User.UITheme}' == 'Theme3') {
+            // console.log('IN CONSOLE');
+            var type = '{!type}';
+            // console.log('type: ',type);
+            
+            if (type == 'Inquiry_Case'){
+                sforce.console.getFocusedPrimaryTabId(showTabId);
+            }else {
+                cancel();
+            }
+            // }
+            // else {
+            // }
+            // sforce.console.getEnclosingTabId(function (result) {
+            //     sforce.console.closeTab(result.id, function() {
+            //         // sforce.one.navigateToURL(retURL);
+            //     });
+            // });
+        }
+        else {
+            cancel();
+        }
+    }
+
+    
+    function cancel() {
+            var theme = '{!$User.UIThemeDisplayed}';
+            var caseObjId = '{!caseObj.id}';
+            var retURL = caseObjId ? '/' + caseObjId : '/500/o';
+            if (theme == 'Theme4t') {
+                    sforce.one.back(true);
+            }
+            else {
+                if (caseObjId) {
+                    refreshTab(caseObjId);
+                } else {
+                    refreshTab('/500/o');
+                }
+            }
+
+        }
+
+        function refreshTab(recordId) {
+            // console.log(recordId);
+            sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                "componentDef": "c:workspaceAPIforVF",
+                "attributes": {
+                    "action": 'closeAndRefresh',
+                    "recordId": recordId,
+                    "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    }),
+                }
+            })), true);
+        }
+
+    function removeProductFull(item){
+        $('[id$=productNumberFull'+item+']').val('');
+        $('[id$=productNumberForEditFull'+item+']').val('');
+
+        showSelectProductNext(item);
+    }
+
+    var closeSubtab = function closeSubtab(result) {
+        //Now that we have the tab ID, we can close it
+        var tabId = result.id;
+        sforce.console.closeTab(tabId);
+    };
+
+    function setProductNumberMainPage(pNumber,pNumberMark,pSuffix,pType,item){
+        //parameter on apex class
+        $('[id$=productNumberForEdit'+item+']').val(pNumberMark);
+        $('[id$=productNumberForEditFull'+item+']').val(pNumber);
+
+        //custom fields
+        $('[id$=productNumberFull'+item+']').val(pNumber);     //Product_Number_Full_x__c
+        $('[id$=productNumberMark'+item+']').val(pNumberMark); //Product_Number_x__c
+        $('[id$=productType'+item+']').val(pType);             //Product_Type_x__c
+        $('[id$=productSuffix'+item+']').val(pSuffix);         //Suffix_x__c
+    }
+
+    function selectOptionFocus(pickNumber){
+         $('[id$='+pickNumber+']').focus();
+    }
+
+    var lv0Map;
+    var lv1Map;
+    var lv2Map;
+    var lv3Map;
+    var lv4Map;
+    var fullMap;
+
+    var lv0;
+    var lv1;
+    var lv2;
+    var lv3;
+    var lv4;
+
+
+    function ShowSpin(){
+        $('#spin').show();
+    }
+
+    function HideSpin(){
+        $('#spin').hide();
+    }
+
+    function getSegmentMap(segment, callback) {
+        Visualforce.remoting.Manager.invokeAction(
+            '{!$RemoteAction.CaseUpdateStdExtension.selectSegmentPicklist}',
+            segment,
+            callback,
+            { escape: false }
+        );
+    }
+
+    function enableSelect(data) {
+        data.forEach(function (entry) {
+            $('select[name$="' + entry + '"]').prop('disabled', false);
+        });
+    }
+
+    function generatePickOption(optLst, noneOpt, selectedVal) {
+        var options = $.map(optLst, function (opt) {
+            if (opt == undefined) {
+                return '';
+            }
+
+            if (opt == '-- None --') {
+                if(selectedVal == undefined){
+                    return '<option selected value=""> -- None -- </option>';
+                }
+                return noneOpt;
+            }
+
+            if (selectedVal != null && selectedVal != "" && opt == selectedVal) {
+                return '<option selected value=\'' + opt + '\'>' + opt + '</option>';
+            }
+
+            return '<option value=\'' + opt + '\'>' + opt + '</option>';
+
+        }).join('');
+
+        return options;
+    }
+
+    function selectSegmentFinish() {
+        this.lv0 = $("select[id$='optLv0']").val();
+        
+        var key = '';
+        key = key.concat(this.lv0);
+        
+        var optLst = addNoneOpt(lv1Map[key]);
+        
+        var noneOpt = '<option value=""> -- None -- </option>';
+        
+        var options = generatePickOption(optLst, noneOpt);
+        
+        $('#optLv1').html(options);
+        
+        $('#optLv2').html(noneOpt);
+        $('#optLv3').html(noneOpt);
+        $('#optLv4').html(noneOpt);
+        
+        enableSelect(['optLv1', 'optLv2', 'optLv3', 'optLv4']);
+    
+        resetPickVal();
+        selectOptionFocus('optLv1');
+    }
+    
+    function addNoneOpt(arr1) {
+        var arr2 = ['-- None --'];
+        if (arr1 != undefined) {
+            arr1.sort();
+        }
+        var lcns = arr2.concat(arr1);
+        return lcns;
+    }
+    
+    function resetPickVal() {
+        $("span[id$='responseBUtxt']").html("");
+        $("span[id$='slatxt']").html("");
+        $("span[id$='Guideline']").html("");
+        $("span[id$='TATtxt']").html("");
+        
+        $("select[id$='pick6']").val("");
+        $("select[id$='pick7']").val("");
+    }
+    
+    function pickComplete(key) {
+        var serviceType = fullMap.get(key);
+        
+        if (serviceType != undefined) {
+            if(serviceType.Responsible_BU__c != undefined){
+                 $("span[id$='responseBUtxt']").html(serviceType.Responsible_BU__c); 
+              }else{
+                 $("span[id$='responseBUtxt']").html(""); 
+             }
+              
+             if(serviceType.SLA__c != undefined){
+               $("span[id$='slatxt']").html(serviceType.SLA__c ); 
+            }else{
+               $("span[id$='slatxt']").html("");   
+            }
+            
+            if(serviceType.TAT__c != undefined){
+               $("span[id$='TATtxt']").html(serviceType.TAT__c ); 
+            }else{
+               $("span[id$='TATtxt']").html("");   
+            }
+            
+            if(serviceType.Guideline__c != undefined){
+                var str = serviceType.Guideline__c;
+                var res = str.replace(new RegExp('\r?\n','g'), '<br />');
+                $("span[id$='Guideline']").html(res);
+            }else{
+                $("span[id$='Guideline']").html("");
+             }
+            
+           // $("select[id$='pick6']").val(serviceType.Problem_Type__c);
+            $("select[id$='pick7']").val(serviceType.Journey__c);
+
+            // [2020-03-26] Add Select Template.
+            SetTemplate(serviceType.Service_Template__c);
+
+        } else {
+            resetPickVal();
+        }
+    }
+
+    function selectSegmentPicklist() {
+        disableSelect(['optLv1', 'optLv2', 'optLv3', 'optLv4']);
+        this.lv0 = $("select[id$='optLv0']").val();
+        
+        getSegmentMap(this.lv0, function (result, event) {
+            if (event.status) {
+                MappingSTM(result);
+                resetPickVal();
+                selectSegmentFinish();
+            }
+        });
+    }
+    
+    function clearNone(str){
+        if(str == '-- None --'){
+            return '';
+        }
+        return str;
+    }
+
+    function populateSegmentOninit(){
+        var optLst =  JSON.parse('{!PTA_Segment_Options_Str}');
+        optLst = addNoneOpt(optLst);
+
+        var noneOpt = '<option value=""> -- None -- </option>';
+        var options = generatePickOption(optLst, noneOpt);
+        $('#optLv0').html(options)
+    }
+
+    function MappingSTM(STMLst){
+        var lv1M = new Map();
+        var lv2M = new Map();
+        var lv3M = new Map();
+        var lv4M = new Map();
+        var fullM = new Map();
+        
+        for(var i in STMLst){
+            var stm = STMLst[i];
+            
+            if(stm.Segment__c == undefined){
+                continue;
+            }
+
+            var lv1S = new Set();
+            var lv2S = new Set();
+            var lv3S = new Set();
+            var lv4S = new Set();
+
+            var keylv1 = stm.Segment__c;
+            var keylv2 = keylv1.concat(stm.Service_Level1__c);
+            var fullKey = keylv2.concat(stm.Service_Level2__c);
+
+            if(lv1M.has(keylv1)){
+                lv1S = lv1M.get(keylv1);
+            }
+
+            if(lv2M.has(keylv2)){
+                lv2S = lv2M.get(keylv2);
+            }
+
+            lv1S.add(stm.Service_Level1__c);
+            lv2S.add(stm.Service_Level2__c);
+
+            lv1M.set(keylv1, lv1S);
+            lv2M.set(keylv2, lv2S);
+
+
+            if(stm.Service_Level3__c != undefined){
+                var keylv3 = keylv2.concat(stm.Service_Level2__c);
+                    
+                if(lv3M.has(keylv3)){
+                    lv3S = lv3M.get(keylv3);
+                }
+                    
+                lv3S.add(stm.Service_Level3__c);
+                lv3M.set(keylv3, lv3S);
+                    
+                fullKey = keylv3.concat(stm.Service_Level3__c);
+                    
+                if(stm.Service_Level4__c != undefined){
+                    var keylv4 = keylv3.concat(stm.Service_Level3__c);
+                        
+                    if(lv4M.has(keylv4)){
+                        lv4S = lv4M.get(keylv4);
+                    }
+                        
+                    lv4S.add(stm.Service_Level4__c);
+                    lv4M.set(keylv4, lv4S);
+
+                    fullKey = keylv4.concat(stm.Service_Level4__c);
+                }
+            }
+            fullM.set(fullKey, stm);
+        }
+        
+        this.lv1Map = convertMapToArr(lv1M);
+        this.lv2Map = convertMapToArr(lv2M);
+        this.lv3Map = convertMapToArr(lv3M);
+        this.lv4Map = convertMapToArr(lv4M);
+        this.fullMap = fullM;
+    }
+
+    function convertMapToArr(defaultMap) {
+        var newMap = {};
+
+        defaultMap.forEach(function(value, key) {
+            newMap[key] = setToArr(value);
+        });
+
+        return newMap;
+    }
+
+    function setToArr(conSet){
+        var arr = [];
+
+        conSet.forEach(function(value) {
+            arr.push(value);
+        });
+        // for (let item of conSet){
+        //     arr.push(item);
+        // } 
+        return arr;
+    }
+
+    jQuery(function ($) {
+        $(document).on('change', '#optLv1', 
+            function () {
+                disableSelect(['optLv2', 'optLv3', 'optLv4']);
+                
+                this.lv0 = $("select[id$='optLv0']").val();
+                this.lv1 = $('#optLv1').val();
+                
+                var key = this.lv0 + '' + this.lv1;
+
+                var optLst = addNoneOpt(lv2Map[key]);
+                
+                var noneOpt = '<option value=""> -- None -- </option>';
+                
+                var options = generatePickOption(optLst, noneOpt);
+                
+                $('#optLv2').html(options)
+                
+                $('#optLv3').html(noneOpt);
+                $('#optLv4').html(noneOpt);
+                
+                enableSelect(['optLv2', 'optLv3', 'optLv4']);
+                
+                if(lv2Map[key] == undefined){
+                    pickComplete(key);
+                }else{
+                    resetPickVal();
+                    selectOptionFocus('optLv2');
+                }
+            }
+        );
+        
+        $(document).on('change', '#optLv2',
+            function () {
+                disableSelect(['optLv3', 'optLv4']);
+                
+                this.lv0 = $("select[id$='optLv0']").val();
+                this.lv1 = $('#optLv1').val();
+                this.lv2 = $('#optLv2').val();
+                
+                var key = '';
+                key = key.concat(this.lv0, this.lv1, this.lv2);
+                
+                var optLst = addNoneOpt(lv3Map[key]);
+                
+                var noneOpt = '<option value=""> -- None -- </option>';
+                
+                var options = generatePickOption(optLst, noneOpt);
+                
+                $('#optLv3').html(options);
+                
+                $('#optLv4').html(noneOpt);
+                
+                enableSelect(['optLv3', 'optLv4']);
+                
+                if(lv3Map[key] == undefined){
+                    pickComplete(key);
+                }else{
+                    resetPickVal();
+                    selectOptionFocus('optLv3');
+                }
+            }
+        );
+        
+        $(document).on('change', '#optLv3',
+            function () {
+                disableSelect(['optLv4']);
+                           
+                this.lv0 = $("select[id$='optLv0']").val();
+                this.lv1 = $('#optLv1').val();
+                this.lv2 = $('#optLv2').val();
+                this.lv3 = $('#optLv3').val();
+                
+                var key = '';
+                key = key.concat(this.lv0, this.lv1, this.lv2, this.lv3);
+                
+                var optLst = addNoneOpt(lv4Map[key]);
+                        
+                var noneOpt = '<option value=""> -- None -- </option>';
+                
+                var options = generatePickOption(optLst, noneOpt);
+
+                $('#optLv4').html(options)
+                
+                enableSelect(['optLv4']);
+                
+                if(lv4Map[key] == undefined){
+                    pickComplete(key);
+                }else{
+                    resetPickVal();
+                    selectOptionFocus('optLv4');
+                }
+            }
+        );
+        
+        $(document).on('change', '#optLv4',
+            function () {
+                this.lv0 = $("select[id$='optLv0']").val();
+                this.lv1 = $('#optLv1').val();
+                this.lv2 = $('#optLv2').val();
+                this.lv3 = $('#optLv3').val();
+                this.lv4 = $('#optLv4').val();
+                
+                var key = '';
+                key = key.concat(this.lv0, this.lv1, this.lv2, this.lv3, this.lv4);
+                
+                if (this.lv4 != null && this.lv4 != '') {
+                    pickComplete(key);
+                }else{
+                    resetPickVal();
+                }
+            }
+        );
+    });
+    </script>
+    
+    <apex:outputPanel id="scriptSection">
+        <script type="text/javascript">
+        function CustomerPrePopulatePicklistVal(){
+            document.getElementById("spinner").style.display = "block";
+            this.lv0 = $("select[id$='optLv0']").val();
+            this.lv1 = $('#optLv1').val();
+            this.lv2 = $('#optLv2').val();
+            this.lv3 = $('#optLv3').val();
+            this.lv4 = $('#optLv4').val();
+            
+            if(this.lv0 == '' && this.lv1 == '' && this.lv2 == '' && this.lv3 == '' && this.lv4 == ''){
+                if ("{!caseObj.PTA_Segment__c}" != null && "{!caseObj.PTA_Segment__c}" != ""){
+                    segment = "{!caseObj.PTA_Segment__c}";
+                    
+                    getSegmentMap(segment, function (result, event) {
+                        if (event.status) {
+                            MappingSTM(result);
+
+                            var key = '';
+                            
+                            var optLst = JSON.parse('{!PTA_Segment_Options_Str}');
+                            optLst = addNoneOpt(optLst);
+                            
+                            var noneOpt = '<option value=""> -- None -- </option>';
+                            var selectedVal = "{!caseObj.PTA_Segment__c}";
+                            
+                            var options = generatePickOption(optLst, noneOpt, selectedVal);
+                            $("select[id$='optLv0']").html(options);
+                            
+                            if(this.lv1 == '' || this.lv1 == '-- None --'){
+                                var key = '';
+                                key = key.concat("{!caseObj.PTA_Segment__c}");
+
+                                var optLst = addNoneOpt(lv1Map[key]);
+                                
+                                var noneOpt = '<option value=""> -- None -- </option>';
+                                
+                                var options = generatePickOption(optLst, noneOpt);
+                                $('#optLv1').html(options)
+                                // selectOptionFocus('optLv1');
+                            }
+                        }
+                    });
+                }
+            }
+            document.getElementById("spinner").style.display = "none";
+        }
+        
+        function prePopulatePicklistVal() {
+            document.getElementById("spinner").style.display = "block";
+            this.lv0 = $("select[id$='optLv0']").val();
+
+            populateSegmentOninit();
+            
+            var segment = '';
+            
+            if ("{!caseObj.PTA_Segment__c}" != null && "{!caseObj.PTA_Segment__c}" != ""){
+                segment = "{!caseObj.PTA_Segment__c}";
+            }
+            
+            getSegmentMap(segment, function (result, event) {
+                if (event.status) {
+                    MappingSTM(result);
+                    
+                    PopulatePicklistVal();
+                }
+            });
+        }
+        
+        function PopulatePicklistVal() {
+            this.lv0 = $("select[id$='optLv0']").val();
+            this.lv1 = $('#optLv1').val();
+            this.lv2 = $('#optLv2').val();
+            this.lv3 = $('#optLv3').val();
+            this.lv4 = $('#optLv4').val();
+            
+            if ("{!caseObj.PTA_Segment__c}" != null && "{!caseObj.PTA_Segment__c}" != "") {
+                var key = '';
+                var noneOpt = '<option value=""> -- None -- </option>';
+                var selectedVal = "{!caseObj.PTA_Segment__c}";
+                
+                var optLst = JSON.parse('{!PTA_Segment_Options_Str}');
+
+                if(optLst.indexOf(selectedVal) == -1){
+                    optLst.push(selectedVal);
+                }
+
+                optLst = addNoneOpt(optLst);
+                
+                var options = generatePickOption(optLst, noneOpt, selectedVal);
+                $("select[id$='optLv0']").html(options);
+                
+                if(this.lv1 == '' || this.lv1 == '-- None --'){
+                    var key = '';
+                    key = key.concat("{!caseObj.PTA_Segment__c}");
+
+                    var optLst = addNoneOpt(lv1Map[key]);
+                    
+                    var noneOpt = '<option value=""> -- None -- </option>';
+                    
+                    var options = generatePickOption(optLst, noneOpt);
+                    $('#optLv1').html(options)
+                    // selectOptionFocus('optLv1');
+                }
+            }
+            
+            if ("{!caseObj.Category__c}" != null && "{!caseObj.Category__c}" != "") {
+                var key = '';
+                key = key.concat("{!caseObj.PTA_Segment__c}");
+                
+                var noneOpt = '<option value=""> -- None -- </option>';
+                var selectedVal = "{!caseObj.Category__c}";
+                
+
+                var optLst = lv1Map[key];
+
+                if(optLst == undefined){
+                    optLst = [selectedVal];
+                }else if(optLst.indexOf(selectedVal) == -1){
+                    optLst.push(selectedVal);
+                }
+
+                optLst = addNoneOpt(optLst);
+                
+                var options = generatePickOption(optLst, noneOpt, selectedVal);
+                $('#optLv1').html(options);
+                
+                if(this.lv2 == '' || this.lv2 == '-- None --'){
+                    key = key.concat("{!caseObj.Category__c}");
+
+                    optLst = addNoneOpt(lv2Map[key]);
+                    
+                    options = generatePickOption(optLst, noneOpt);
+                    
+                    $('#optLv2').html(options);
+                    // selectOptionFocus('optLv2');
+                }
+            }
+            
+            if ("{!caseObj.Sub_Category__c}" != null && "{!caseObj.Sub_Category__c}" != "") {
+                var key = '';
+                key = key.concat("{!caseObj.PTA_Segment__c}", "{!caseObj.Category__c}");
+                
+                
+                var noneOpt = '<option value=""> -- None -- </option>';
+                var selectedVal = "{!caseObj.Sub_Category__c}";
+                
+                var optLst = lv2Map[key];
+
+                if(optLst == undefined){
+                    optLst = [selectedVal];
+                }else if(optLst.indexOf(selectedVal) == -1){
+                    optLst.push(selectedVal);
+                }
+
+                optLst = addNoneOpt(optLst);
+
+                var options = generatePickOption(optLst, noneOpt, selectedVal);
+                $('#optLv2').html(options)
+                
+                if(this.lv3 == '' || this.lv3 == '-- None --'){
+                    key = key.concat("{!caseObj.Sub_Category__c}");
+                    
+                    optLst = addNoneOpt(lv3Map[key]);
+                    
+                    options = generatePickOption(optLst, noneOpt);
+                    
+                    $('#optLv3').html(options);
+                    // selectOptionFocus('optLv3');
+                }
+            }
+            
+            if ("{!caseObj.Product_Category__c}" != null && "{!caseObj.Product_Category__c}" != "") {
+                var key = '';
+                key = key.concat("{!caseObj.PTA_Segment__c}", "{!caseObj.Category__c}", "{!caseObj.Sub_Category__c}");
+                
+                var noneOpt = '<option value=""> -- None -- </option>';
+                var selectedVal = "{!caseObj.Product_Category__c}";
+
+
+                var optLst = lv3Map[key];
+                
+                if(optLst == undefined){
+                    optLst = [selectedVal];
+                }else if(optLst.indexOf(selectedVal) == -1){
+                    optLst.push(selectedVal);
+                }
+
+                optLst = addNoneOpt(optLst);
+                
+                var options = generatePickOption(optLst, noneOpt, selectedVal);
+                $('#optLv3').html(options)
+                
+                if(this.lv4 == '' || this.lv4 == '-- None --'){
+                    key = key.concat("{!caseObj.Product_Category__c}");
+                    
+                    optLst = addNoneOpt(lv4Map[key]);
+                    
+                    options = generatePickOption(optLst, noneOpt);
+                    
+                    $('#optLv4').html(options);
+                    // selectOptionFocus('optLv4');
+                }
+            }
+            
+            if ("{!caseObj.Issue__c}" != null && "{!caseObj.Issue__c}" != "") {
+                var key = '';
+                key = key.concat("{!caseObj.PTA_Segment__c}", "{!caseObj.Category__c}", "{!caseObj.Sub_Category__c}", "{!caseObj.Product_Category__c}");
+                
+                var noneOpt = '<option value=""> -- None -- </option>';
+                var selectedVal = "{!caseObj.Issue__c}";
+
+                var optLst = lv4Map[key];
+
+                if(optLst == undefined){
+                    optLst = [selectedVal];
+                }else if(optLst.indexOf(selectedVal) == -1){
+                    optLst.push(selectedVal);
+                }
+
+                optLst = addNoneOpt(optLst);
+
+                
+                var options = generatePickOption(optLst, noneOpt, selectedVal);
+                $('#optLv4').html(options);
+                // selectOptionFocus('optLv4');
+            }
+
+            document.getElementById("spinner").style.display = "none";
+        }
+
+        function preSaveValidatePicklist() {
+            this.lv0 = $("select[id$='optLv0']").val();
+            this.lv1 = $('#optLv1').val();
+            this.lv2 = $('#optLv2').val();
+            this.lv3 = $('#optLv3').val();
+            this.lv4 = $('#optLv4').val();
+            
+            this.lv0 = clearNone(this.lv0);
+            this.lv1 = clearNone(this.lv1);
+            this.lv2 = clearNone(this.lv2);
+            this.lv3 = clearNone(this.lv3);
+            this.lv4 = clearNone(this.lv4);
+
+            save(this.lv0, this.lv1, this.lv2, this.lv3, this.lv4);
+        }
+        
+        </script>
+    </apex:outputPanel>
+    
+</apex:page>

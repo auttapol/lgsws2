@@ -1,0 +1,777 @@
+<apex:page controller="CustomerProductHoldingsCtrl" showchat="false" sidebar="false" showheader="false"
+           standardstylesheets="true" tabstyle="Account" title="{!$Label.Product_Holding}">
+    <!-- Includes Js -->
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+    <!-- Salesconsole JS API -->
+    <apex:includescript value="/support/console/36.0/integration.js" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+
+    <!-- Style for Ajax Request -->
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+            /* width: 32px;*/
+            height: 32px;
+            position: absolute;
+            left: 48%;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+        .textWrap .bPageBlock .pbTitle{
+            width:100%
+        }
+
+        @media only screen and (max-width: 415px) {
+        .bPageBlock{
+            width:1000px;
+        }
+        
+        
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+    <!-- // End Ajax Request -->
+
+    <div style="overflow-y: hidden;">
+    <apex:sectionheader title="Details of Product Holdings" subtitle="{!acct.Name}" />
+    <a class="normallink" href="/{!AccId}">back to customer single view</a>
+    
+    <!--<a class="console" href="javascript:srcUp('/{!AccId}');">back to customer single view</a> -->
+    <!-- Main form -->
+    <apex:form onkeypress="return noenter(event)" id="mainform">
+        <apex:actionfunction action="{!startRequest}"
+                             rerender="section1,section2,section3,section4,section5,section6,tbSummary,rpsum,alertbox"
+                             status="status"
+                             name="doRest" />
+        <apex:actionfunction action="{!logAuthorizedProductHolding}" status="status" rerender="" name="logUnAuthorized" />
+
+        <h1 style="display:none;">{!RMID}</h1>
+        <!-- Alert Box -->
+        <apex:outputPanel id="alertbox">
+        <div class="bootstrap-sf1" style="{!IF( ( !isAccessibleCusHoldLow && !isAccessibleCusHoldMid && !isAccessibleCusHoldHig ) || ViewState.isError||ViewState.isDepositError||ViewState.isCreditError||ViewState.isLoanError||ViewState.isInvestmentError== true,'','display:none')}" >
+            <div class="alert alert-dismissible alert-danger">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <h4>Warning!</h4>
+                
+                <p style="display:{!if( !isAccessibleCusHoldLow && !isAccessibleCusHoldMid && !isAccessibleCusHoldHig ,'block','none')};">
+                    {!$Label.Data_Condition_NotAuthorizedMsg}
+                </p>
+                
+                <!-- Quick Fix to display errors that return from backend 
+                (handle only PartyAcctRelInq|javax.script.ScriptException: java.lang.Exception: record not found)
+                {!ViewState.ProductHoldings.SoapStatus} <br/>
+                {!ViewState.ProductHoldings.SoapMessage}
+                -->
+                <p style="display:{!if(ViewState.ProductHoldings.SoapMessage ==
+                    'PartyAcctRelInq|javax.script.ScriptException: java.lang.Exception: Record not found'
+                    || (ViewState.ProductHoldings.SoapMessage == 
+                    'PartyAcctRelInq|account not found')
+                    ,'block','none')};">
+                    {!$Label.INT_No_Active_Product}
+                </p>
+                <p style="display:{!if(
+                    (ViewState.isDepositError||ViewState.isCreditError||ViewState.isLoanError) == false 
+                    && (ViewState.isInvestmentError== true) 
+                    && (ViewState.ProductHoldings.SoapMessage !=
+                    'PartyAcctRelInq|javax.script.ScriptException: java.lang.Exception: Record not found')
+                    && (ViewState.ProductHoldings.SoapMessage != 
+                    'PartyAcctRelInq|account not found')
+                    ,'block','none')};">
+                    {!$Label.INT_Investment_Incomplete_Info}
+                </p>
+                 <p style="display:{!if(
+                    (ViewState.isDepositError||ViewState.isCreditError||ViewState.isLoanError) == true
+                    && (ViewState.ProductHoldings.SoapMessage !=
+                    'PartyAcctRelInq|javax.script.ScriptException: java.lang.Exception: Record not found'
+                    && ViewState.ProductHoldings.SoapMessage != 'PartyAcctRelInq|account not found')
+                    || (ViewState.ProductHoldings.SoapStatus == null
+                            && ViewState.ProductHoldings.SoapMessage == null
+                            && !BEGINS(ViewState.ErrorMessages
+                            , 'System.CalloutException IO Exception: Time out')
+                            )
+                        || (ViewState.ProductHoldings.SoapStatus == 'ERROR'
+                            && ViewState.ProductHoldings.SoapMessage !=
+                            'PartyAcctRelInq|javax.script.ScriptException: java.lang.Exception: Record not found'
+                            && ViewState.ProductHoldings.SoapMessage !=
+                            'PartyAcctRelInq|account not found'
+                            )
+                    ,'block','none')};">
+                    {!pageMessage}
+                </p>
+                <!-- Quick Fix to display errors that return from backend 
+                (handle only PartyAcctRelInq|javax.script.ScriptException: java.lang.Exception: record not found)-->
+
+                <!-- Quick Fix to display Product Holding Timeout -->
+                <p style="display:{!if(ViewState.ProductHoldings.SoapStatus == null
+                        && ViewState.ProductHoldings.SoapMessage == null
+                        && BEGINS(ViewState.ErrorMessages
+                        , 'System.CalloutException IO Exception: Time out'),'block','none')};">
+                    {!$Label.Product_Holding_Timeout}
+                    <br/>
+                    <apex:outputText escape="false" value="{!$Label.Product_Holding_ReRequest}" />
+                </p>
+                <!-- Quick Fix to display Product Holding Timeout -->
+
+                <h5><a class="alert-link" href="#section-deposit" style="{!IF(ViewState.isDepositError == false,'display:none','')}" >{!$Label.ERR003}</a></h5>
+                <h5><a class="alert-link" href="#section-credit" style="{!IF(ViewState.isCreditError == false,'display:none','')}">{!$Label.ERR004}</a></h5>
+                <h5><a class="alert-link" href="#section-loan" style="{!IF(ViewState.isLoanError == false,'display:none','')}">{!$Label.ERR005}</a></h5>
+                <!--<h5><a class="alert-link" href="#section-ban" style="{!IF(ViewState.isBancError == false,'display:none','')}">{!$Label.ERR006}</a></h5> -->
+                <h5><a class="alert-link" href="#section-investment" style="{!IF(ViewState.isInvestmentError == false,'display:none','')}">{!$Label.ERR007}</a></h5>
+            </div>
+        </div>
+        </apex:outputPanel>
+
+
+        <!-- Summary 1-->
+        <apex:pageblock id="section1" title="{!$Label.Customer_Product_Holding_Summary }" mode="view" >
+          <!--  //trick-->   
+            <script>
+                _customername = '{!CustomerName}';
+
+
+            </script>
+
+            <table class="list" id="" border="0" cellpadding="0" cellspacing="0">
+                <colgroup span="5"></colgroup>
+                <thead class="">
+                    <tr class="headerRow">
+                        <th class="headerRow" width="20%" scope="col" colspan="1" id="sc1col1"><span id="">{!$Label.Product_Group}</span></th>
+                        <th class="headerRow" width="15%" style="text-align: center;" scope="col" colspan="1" id="sc1col2"><span id="">{!$Label.Number_of_Product}</span></th>
+                        <th class="headerRow" width="15%" style="text-align: center;" scope="col" colspan="1" id=""><span id="">{!$Label.Number_of_Account}</span></th>
+                        <th class="headerRow" width="25%" style="text-align: center;" scope="col" colspan="1" id=""><span id="">{!$Label.Outstanding}</span></th>
+                        <th class="headerRow" width="25%" style="text-align: center;" scope="col" colspan="1" id=""><span id="">{!$Label.Limit_ODLimit}</span></th>
+                    </tr>
+                </thead>
+                <tbody id="">
+                    <apex:repeat id="rpsum" var="vv" value="{!ViewState.ProductSummaryLabels}">
+                        <tr class="dataRow odd" onmouseover="if (window.hiOn){hiOn(this);}" onmouseout="if (window.hiOff){hiOff(this);}" onblur="if (window.hiOff){hiOff(this);}" onfocus="if (window.hiOn){hiOn(this);}">
+                            <td class="dataCell" id="" colspan="1">
+                                <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                                    <a href="#{!ViewState.PanelSections[vv]}"
+                                       target="_self">
+                                        {!vv}
+                                    </a>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{! !isAccessibleCusHoldLow}">
+                                    <span>{!$Label.Data_Condition_Hidden_Text}</span>
+                                </apex:outputPanel>
+                                
+                            </td>
+                            <td class="dataCell" align="center" id="" colspan="1">
+                                <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                                    <apex:outputtext value="{0, number, ###,###}">
+                                        <apex:param value="{!ViewState.ProductHoldingSummaries[ViewState.ProductSummaryUpperCaseLabels[vv]].NoOfProduct}" />
+                                    </apex:outputtext>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{! !isAccessibleCusHoldLow}">
+                                    <span>{!$Label.Data_Condition_Hidden_Text}</span>
+                                </apex:outputPanel>
+                            </td>
+                            <td class="dataCell" align="center" id="" colspan="1">
+                                <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                                    <apex:outputtext value="{0, number, ###,###}">
+                                        <apex:param value="{!ViewState.ProductHoldingSummaries[ViewState.ProductSummaryUpperCaseLabels[vv]].NoOfAccount}" />
+                                    </apex:outputtext>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{! !isAccessibleCusHoldLow}">
+                                    <span>{!$Label.Data_Condition_Hidden_Text}</span>
+                                </apex:outputPanel>
+                            </td>
+                            <td class="dataCell" align="right" id="" colspan="1">
+                                <apex:outputPanel rendered="{!isAccessibleCusHoldMid}">
+                                    <span style="{!IF(ViewState.ProductHoldingSummaries[ViewState.ProductSummaryUpperCaseLabels[vv]].GetOutstanding != 0 && (ViewState.ProductSummaryUpperCaseLabels[vv] != '1' || IsEmployee == false),'','display:none;')}">
+                                        {!ViewState.ProductHoldingSummaries[ViewState.ProductSummaryUpperCaseLabels[vv]].GetMakedOutstanding}
+                                    </span>
+                                    <span style="{!IF(ViewState.ProductHoldingSummaries[ViewState.ProductSummaryUpperCaseLabels[vv]].GetOutstanding == 0 && (ViewState.ProductSummaryUpperCaseLabels[vv] != '1' || IsEmployee == false),'','display:none;')}">-</span>
+                                    <span style="{!IF(IsEmployee == true && ViewState.ProductSummaryUpperCaseLabels[vv] == '1','','display:none;')}">xxx</span>
+                            	</apex:outputPanel>
+                                <apex:outputPanel rendered="{! !isAccessibleCusHoldMid}">
+                                    <span>{!$Label.Data_Condition_Hidden_Text}</span>
+                                </apex:outputPanel>
+                            </td>
+                            <td class="dataCell" align="right" id="" colspan="1">
+                                <apex:outputPanel rendered="{!isAccessibleCusHoldMid}">
+                                    <span style="{!IF(ViewState.ProductHoldingSummaries[ViewState.ProductSummaryUpperCaseLabels[vv]].GetLimit != 0 && (ViewState.ProductSummaryUpperCaseLabels[vv] != '3' || IsEmployee == false),'','display:none;')}">
+                                       <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                                            <apex:param value="{!ViewState.ProductHoldingSummaries[ViewState.ProductSummaryUpperCaseLabels[vv]].GetLimit}" />
+                                        </apex:outputtext>
+                                    </span>
+                                    <span style="{!IF(ViewState.ProductHoldingSummaries[ViewState.ProductSummaryUpperCaseLabels[vv]].GetLimit == 0 && (ViewState.ProductSummaryUpperCaseLabels[vv] != '3' || IsEmployee == false),'','display:none;')}">-</span>
+                                    <span style="{!IF(IsEmployee == true && ViewState.ProductSummaryUpperCaseLabels[vv] == '3','','display:none;')}">xxx</span>
+                                </apex:outputPanel>
+                                <apex:outputPanel rendered="{! !isAccessibleCusHoldMid}">
+                                    <span>{!$Label.Data_Condition_Hidden_Text}</span>
+                                </apex:outputPanel>
+
+                                
+                                <!--<span style="{!IF(ViewState.ProductHoldingSummaries[ViewState.ProductSummaryUpperCaseLabels[vv]].GetLimit == 0,'display:none;','')}">
+                                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                                        <apex:param value="{!ViewState.ProductHoldingSummaries[ViewState.ProductSummaryUpperCaseLabels[vv]].GetLimit}" />
+                                    </apex:outputtext>
+                                </span>
+                                <span style="{!IF(ViewState.ProductHoldingSummaries[ViewState.ProductSummaryUpperCaseLabels[vv]].GetLimit == 0,'','display:none;')} padding-right:5px;">-</span> -->
+                            </td>
+                        </tr>
+                    </apex:repeat>
+                </tbody>
+            </table>
+        </apex:pageblock>
+        <!-- Section Deposit Product Details : with 10 columns -->
+        <div id="section-deposit" ></div>
+        <apex:pageblock id="section2" title="{!$Label.Deposit_Product_Details}" mode="view"  >         
+            <apex:pageblocktable value="{!ViewState.ProductHoldings.DepositeProducts}" var="dp">
+                <apex:column style="width:15%;" headervalue="{!$Label.Account_Number}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputLink onclick="redirectURL('/apex/DepositProductDetailsView?p={!dp.Params}','{!dp.MarkedDepositAccountNumber}');return false;" value="" rendered="{!IF( dp.SoapStatus != 'ERROR' ,true,false ) }">{!dp.MarkedDepositAccountNumber}</apex:outputLink>
+                        <apex:outputText rendered="{!IF( dp.SoapStatus == 'ERROR',true,false ) }" style="color:red" value="{!dp.MarkedDepositAccountNumber}"></apex:outputText>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Product_Sub_Group}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                        <apex:outputtext style="" value="{!dp.SubProductGroup}" />
+                        <apex:outputtext style="color:red;" value="{!$Label.ERR008}" rendered="{!dp.SoapStatus == 'ERROR'}" />
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Product_Name}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                    	<apex:outputtext style="" value="{!dp.ProductName}" rendered="{!dp.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+                <!--<apex:column style="width:8%;" headervalue="{!$Label.Opened_Date}">
+                    <apex:outputtext style="" value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!dp.OpenedDate}" />
+                    </apex:outputtext>
+                </apex:column> -->
+                <apex:column style="width:8%;" headervalue="{!$Label.Status}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                        <apex:outputtext style="" value="{!dp.Status}" rendered="{!IF( dp.SoapStatus != 'ERROR',true,false ) }"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+
+                <apex:column style="width:10%;" headervalue="{!$Label.Ledger_Balance_Deposit}">      
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldMid}">
+                    <apex:outputtext style="" value="{!dp.MarkedLedgerBalance}" rendered="{!IF( dp.SoapStatus != 'ERROR' ,true,false ) }"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldMid }"/>
+                </apex:column>
+                
+                <apex:column headervalue="{!$Label.Avg_Outstanding_MTD}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldMid}">
+                    <apex:outputtext style="" value="{!dp.MarkedAvgOutStanding}" rendered="{!IF( dp.SoapStatus != 'ERROR' ,true,false ) }" />
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldMid }"/>
+                <!--    <apex:outputtext style="" value="" />-->
+                </apex:column>
+                <!-- This field is hidden -->
+                <!--<apex:column headervalue="{!$Label.Interest_Earned_YTD}">
+                    <apex:outputtext style="" value="{0, number, ###,###}">
+                        <apex:param value="{!dp.IntEarning}" />
+                    </apex:outputtext>
+                </apex:column>-->
+                
+                <apex:column style="width:10%;" headervalue="{!$Label.Available_Balance_Deposit}">      
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldMid}">
+                    <apex:outputtext style="" value="{!dp.MarkedOutStanding}" rendered="{!IF( dp.SoapStatus != 'ERROR' ,true,false ) }"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldMid }"/>
+                </apex:column>
+
+                <apex:column headervalue="{!$Label.Other}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                    <apex:outputtext style="" value="{!dp.Other}" rendered="{!IF( dp.SoapStatus != 'ERROR' ,true,false ) }"/>
+                    </apex:outputPanel>
+                    <apex:outputtext style="" value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column headervalue="{!$Label.Has_Joint}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                    <apex:outputtext style="" value="{!dp.HasJoint}" rendered="{!IF( dp.SoapStatus != 'ERROR' ,true,false ) }"/>
+                    </apex:outputPanel>
+                    <apex:outputtext style="" value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+            </apex:pageblocktable>
+        </apex:pageblock>
+        <!-- Section 3-->
+        <div id="section-credit"></div>
+        <apex:pageblock title="{!$Label.Credit_Card_RDC_Product_Details}" id="section3" mode="view">
+            <apex:pageblocktable value="{!ViewState.ProductHoldings.CreditCardRDCProducts}" var="cr">
+                <apex:column style="width:15%;" headervalue="{!$Label.Card_Number}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputLink onclick="redirectURL('/apex/CreditCardDetailsView?p={!cr.Params}','{!cr.MarkedCardNumber}');return false;" value="" rendered="{!cr.SoapStatus!='ERROR'}">{!cr.MarkedCardNumber}</apex:outputLink>
+                        <apex:outputText rendered="{!cr.SoapStatus == 'ERROR'}" style="color:red;" value="{!cr.MarkedCardNumber}"></apex:outputText>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Product_Sub_Group}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                        <apex:outputtext style="" value="{!cr.SubProductGroup}" />
+                        <apex:outputtext style="color:red;" value="{!$Label.ERR008}" rendered="{!cr.SoapStatus == 'ERROR'}" />
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Product_Name}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                    	<apex:outputtext style="" value="{!cr.ProductName}" rendered="{!cr.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+                <!--<apex:column style="width:8%;" headervalue="{!$Label.Activated_Date}">
+                    <apex:outputtext style="" value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!cr.OpenedDate}" />
+                    </apex:outputtext>
+                </apex:column> -->
+                <apex:column style="width:8%;" headervalue="{!$Label.Status}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                    	<apex:outputtext style="" value="{!cr.Status}" rendered="{!cr.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+                <apex:column style="width:10%;" headervalue="{!$Label.Outstanding_Credit}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldMid}">
+                    	<apex:outputtext style="" value="{!cr.MarkedOutstanding}" rendered="{!cr.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldMid }"/>
+                </apex:column>
+                <apex:column headervalue="{!$Label.Limit}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldMid}">
+                        <apex:outputtext style="{!IF(isEmployee == true,'display:none;','')}" value="{0, number, ###,###}" rendered="{!cr.SoapStatus != 'ERROR'}">
+                            <apex:param value="{!cr.VLimit}" />
+                        </apex:outputtext>
+                        <apex:outputtext style="{!IF(isEmployee == true,'','display:none;')}" value="xxx" rendered="{!cr.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldMid }"/>
+                </apex:column>
+            </apex:pageblocktable>
+        </apex:pageblock>
+        <!-- Section 4-->
+        <div id="section-loan"></div>
+        <apex:pageblock title="{!$Label.Loan_Product_Details}" mode="view" id="section4">
+            <apex:pageblocktable value="{!ViewState.ProductHoldings.LoanProducts}" var="ln">
+                <apex:column style="width:15%;" headervalue="{!$Label.Account_Number}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputLink onclick="redirectURL('/apex/LoanProductDetailView?p={!ln.Params}','{!ln.MarkedLoanAccountNumber}');return false;" value="" rendered="{!ln.SoapStatus != 'ERROR'}">{!ln.MarkedLoanAccountNumber}</apex:outputLink>
+                        <apex:outputText rendered="{!ln.SoapStatus == 'ERROR'}" style="color:red" value="{!ln.MarkedLoanAccountNumber}"></apex:outputText>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Product_Sub_Group}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                        <apex:outputtext style="" value="{!ln.SubProductGroup}" />
+                        <apex:outputtext style="color:red;" value="{!$Label.ERR008}" rendered="{!ln.SoapStatus == 'ERROR'}" />
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Product_Name}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                    	<apex:outputtext style="" value="{!ln.ProductName}" rendered="{!ln.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+                <!--<apex:column style="width:8%;" headervalue="{!$Label.Opened_Date}">
+                    <apex:outputtext style="" value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!ln.OpenedDate}" />
+                    </apex:outputtext>
+                </apex:column>-->
+                <apex:column style="width:8%;" headervalue="{!$Label.Status}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                    	<apex:outputtext style="" value="{!ln.Status}" rendered="{!ln.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+                <apex:column style="width:10%;" headervalue="{!$Label.Outstanding_Deposit}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldMid}">
+                   		<apex:outputtext style="" value="{!ln.MarkedOutstanding}" rendered="{!ln.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldMid }"/>
+                </apex:column>
+                <apex:column headervalue="{!$Label.Limit}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputtext value="{0, number, ###,###}" rendered="{!ln.SoapStatus != 'ERROR'}">
+                            <apex:param value="{!ln.VLimit}" />
+                        </apex:outputtext>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column style="width:8%;" headervalue="{!$Label.Contract_End_Date}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <!--<apex:outputtext style="" value="{0,date,dd/MM/yyyy}">
+                            <apex:param value="{!ln.ConvertedMaturityDate}" />
+                        </apex:outputtext>-->
+                        <apex:outputtext style="" value="{!ln.ConvertedMaturityDate}" rendered="{!ln.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column style="width:10%;" headervalue="{!$Label.Has_Co_borrower}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                    	<apex:outputtext style="" value="{!ln.HasCoBorrower}" rendered="{!ln.SoapStatus != 'ERROR'}" />
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                
+            </apex:pageblocktable>
+        </apex:pageblock>
+        <!-- Section 5-->
+        <div id="section-ban"></div>
+        <apex:outputPanel styleClass="textWrap">
+        <apex:pageblock title="{!$Label.Bancassurance_Product_Details}" mode="view" id="section5" >
+            <apex:pageblocktable value="{!ViewState.ProductHoldings.Bancassurances}" var="bc">
+                <apex:column style="width:15%;" headervalue="{!$Label.Policy_No}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputLink onclick="redirectURL('/apex/BancassuranceProductView?p={!bc.Params}','{!bc.PolicyNo}');return false;" value="" rendered="{!bc.SoapStatus != 'ERROR'}">{!bc.PolicyNo}</apex:outputLink>
+                        <apex:outputText rendered="{!bc.SoapStatus == 'ERROR'}" style="color:red;" value="{!bc.PolicyNo}"></apex:outputText>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Product_Sub_Group}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                        <apex:outputtext value="{!bc.SubProductGroup}" />
+                        <apex:outputtext style="color:red;" value="{!$Label.ERR008}" rendered="{!bc.SoapStatus == 'ERROR'}" />
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Product_Name}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                    	<apex:outputtext value="{!bc.ProductName}" rendered="{!bc.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+                <apex:column style="width:8%;" headervalue="{!$Label.Insurance_Company}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                    	<apex:outputtext value="{!bc.InsuranceCompany}" rendered="{!bc.SoapStatus != 'ERROR'}" />
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column style="width:8%;" headervalue="{!$Label.Opened_Date}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                            <apex:param value="{!bc.OpenedDate}" />
+                        </apex:outputtext>-->
+                        <apex:outputtext style="" value="{!bc.ConvertedOpenedDate}" rendered="{!bc.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column style="width:8%;" headervalue="{!$Label.Status}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                    	<apex:outputtext value="{!bc.Status}" rendered="{!bc.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+                <apex:column headervalue="{!$Label.Sum_Insure}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputtext value="{0, number, ###,###}" rendered="{!bc.SoapStatus != 'ERROR'}">
+                            <apex:param value="{!bc.SumInsure}" />
+                        </apex:outputtext>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column headervalue="{!$Label.AFYP}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputtext value="{0, number, ###,###}" rendered="{!bc.SoapStatus != 'ERROR'}">
+                            <apex:param value="{!bc.AFYP}" />
+                        </apex:outputtext>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column headervalue="{!$Label.Expiry_Date}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                    <apex:outputtext style="" value="{!bc.ConvertedExpiryDate}" rendered="{!bc.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+            </apex:pageblocktable>
+        </apex:pageblock>
+        </apex:outputPanel>
+        <!-- Section 6-->
+        <div id="section-investment"></div>
+        <apex:pageblock title="{!$Label.Investment_Product_Details}" mode="view" id="section6">
+            <apex:pageblocktable value="{!ViewState.ProductHoldings.InvestmentProducts}" var="iv">
+                <apex:column headervalue="{!$Label.Unit_Holder_No}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputLink onclick="redirectURL('/apex/InvestmentProductDetailView?p={!iv.Params}','{!iv.FundCode}'+'-'+'{!iv.UnitHolderNo}');return false;" value="" rendered="{!iv.SoapStatus != 'ERROR'}">{!iv.UnitHolderNo}</apex:outputLink>
+                        <!--
+                        <apex:outputText rendered="{!iv.SoapStatus == 'ERROR'}" style="color:red;" value="{!iv.UnitHolderNo}"></apex:outputText>-->
+                        <!-- Quick Fix to display errors that return from backend 
+                            (handle only MFUHAccountSummaryInqRq|javax.script.ScriptException: java.lang.Exception: Record not found )-->
+                        <apex:outputText rendered="{!iv.SoapStatus == 'ERROR' && iv.SoapMessage != 'MFUHAccountSummaryInqRq|javax.script.ScriptException: java.lang.Exception: Record not found'}" style="color:red;" value="{!iv.UnitHolderNo}"></apex:outputText>
+                        <apex:outputText rendered="{!iv.SoapStatus == 'ERROR' && iv.SoapMessage == 'MFUHAccountSummaryInqRq|javax.script.ScriptException: java.lang.Exception: Record not found'}" style="color:red;" value="{!iv.UnitHolderNo}"></apex:outputText>
+                        <!-- Quick Fix to display errors that return from backend 
+                            (handle only MFUHAccountSummaryInqRq|javax.script.ScriptException: java.lang.Exception: Record not found )-->
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column headervalue="{!$Label.Product_Name}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                        <apex:outputtext style="" value="{!iv.ProductName}" rendered="{!iv.SoapStatus != 'ERROR'}"/>
+                        <!--
+                        <apex:outputtext style="color:red;" value="{!$Label.ERR008}" rendered="{!iv.SoapStatus == 'ERROR'}" />
+                        -->
+                        <!-- Quick Fix to display errors that return from backend 
+                            (handle only MFUHAccountSummaryInqRq|javax.script.ScriptException: java.lang.Exception: Record not found )-->
+                        <apex:outputtext style="color:red;" value="{!$Label.ERR008}" rendered="{!iv.SoapStatus == 'ERROR' && iv.SoapMessage != 'MFUHAccountSummaryInqRq|javax.script.ScriptException: java.lang.Exception: Record not found'}" />
+                        <apex:outputtext style="color:red;" value="{!$Label.INT_Investment_Record_Not_Found}" rendered="{!iv.SoapStatus == 'ERROR' && iv.SoapMessage == 'MFUHAccountSummaryInqRq|javax.script.ScriptException: java.lang.Exception: Record not found'}" />
+                        <!-- Quick Fix to display errors that return from backend 
+                            (handle only MFUHAccountSummaryInqRq|javax.script.ScriptException: java.lang.Exception: Record not found )-->
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column>
+                <!-- <apex:column headervalue="{!$Label.Product_Sub_Group}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldLow}">
+                    	<apex:outputtext style="" value="{!iv.SubProductGroup}" rendered="{!iv.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldLow }"/>
+                </apex:column> -->
+                <apex:column headervalue="{!$Label.Asset_Class}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                    	<apex:outputtext style="" value="{!iv.AssetClass}" rendered="{!iv.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column headervalue="{!$Label.Issuer_Fund_House}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                    	<apex:outputtext style="" value="{!iv.IssuerFundHouse}" rendered="{!iv.SoapStatus != 'ERROR'}"/>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                
+                <apex:column style="text-align: right;" headervalue="{!$Label.Number_of_unit}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputtext value="{0, number, ###,##0.0000}" rendered="{!iv.SoapStatus != 'ERROR'}">
+                            <apex:param value="{!iv.NumberOfUnit}" />
+                        </apex:outputtext>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+
+                <!-- SCR No. 2017-1-1804 for Average field Add on 18/10/2017 -->
+                <apex:column style="text-align: right;" headervalue="{!$Label.NAV_Unit}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputtext value="{0, number, ###,##0.0000}" rendered="{!iv.SoapStatus != 'ERROR'}">
+                            <apex:param value="{!iv.NavUnit}" />
+                        </apex:outputtext>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <!-- End SCR No. 2017-1-1804 for Average field Add on 18/10/2017 -->
+
+                <apex:column style="text-align: right;" headervalue="{!$Label.Cost_of_Investment}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputtext value="{0, number, ###,##0.00}" rendered="{!iv.SoapStatus != 'ERROR'}">
+                            <apex:param value="{!CEILING(iv.CostOfInvestment*100)/100}" />
+                        </apex:outputtext>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                
+                <!-- SCR No. 2017-1-1804 for Average field Add on 18/10/2017 -->
+                <apex:column style="text-align:right;">
+                        <apex:facet name="header">
+                            <apex:outputPanel >
+                                <apex:outputText value="{!$Label.Average_cost_per_unit_summary}" escape="false"></apex:outputText>
+                            </apex:outputPanel>
+                        </apex:facet>
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputtext value="{0, number, ###,##0.0000}" rendered="{!iv.SoapStatus != 'ERROR'}">
+                            <!-- <apex:param value="{!iv.AverageCostPerUnit}" /> -->
+                            <apex:param value="{!CEILING(iv.AverageCostPerUnit*10000)/10000}" />
+                        </apex:outputtext>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <!-- End SCR No. 2017-1-1804 for Average field Add on 18/10/2017 -->
+                
+                
+                <!--<apex:column headervalue="{!$Label.Opened_Date}">
+                    <apex:outputtext style="" value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!iv.OpenedDate}" />
+                    </apex:outputtext>
+                </apex:column>-->
+                <!--<apex:column headervalue="{!$Label.Units}">
+                    <apex:outputtext style="" value="{0, number, ###,###}">
+                        <apex:param value="{!iv.Units}" />
+                    </apex:outputtext>
+                </apex:column>-->
+                <!--<apex:column headervalue="{!$Label.Initial_Value_Cost}">
+                    <apex:outputtext style="" value="{0, number, ###,###}">
+                        <apex:param value="{!iv.InitialValue}" />
+                    </apex:outputtext>
+                </apex:column>-->
+                <apex:column style="text-align: right;" headervalue="{!$Label.Market_Value}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputtext style="" value="{0, number, ###,##0.00}" rendered="{!iv.SoapStatus != 'ERROR'}">
+                            <apex:param value="{!CEILING(iv.MarketValue*100)/100}" />
+                        </apex:outputtext>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+                <apex:column style="text-align: right;" headervalue="{!$Label.Unrealized_G_L}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputtext style="" value="{0, number, ###,##0.00}" rendered="{!iv.SoapStatus != 'ERROR'}">
+                            <apex:param value="{!CEILING(iv.UnrealizedGL*100)/100}" />
+                        </apex:outputtext>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+
+                <apex:column style="text-align: right;" headervalue="{!$Label.percent_of_Unrealized_G_L}">
+                    <apex:outputPanel rendered="{!isAccessibleCusHoldHig}">
+                        <apex:outputtext style="" value="{0, number, ###,##0.00}" rendered="{!iv.SoapStatus != 'ERROR'}">
+                            <apex:param value="{! IF(iv.CostOfInvestment != 0, (CEILING(iv.UnrealizedGL*100)/100) / (CEILING(iv.CostOfInvestment*100)/100) * 100, 0.00) }" />
+                        </apex:outputtext>
+                    </apex:outputPanel>
+                    <apex:outputtext value=" {!$Label.Data_Condition_Hidden_Text} " rendered="{! !isAccessibleCusHoldHig }"/>
+                </apex:column>
+               
+                
+            </apex:pageblocktable>
+        </apex:pageblock>
+    </apex:form>
+    </div>
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+    <script>
+    // Global variable
+    var _isInConsole = false;
+    var _isInSF1 = false;
+    var _primaryTabId ='';
+    var _customername ='{!$Label.Product_Holding}';
+
+    function startLoading(text){
+        $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+        $('.loadingBox').show();
+    }
+    function endLoading(){
+        $('.loadingBox').hide();
+        hideNormalLink();
+    }
+    
+    function redirectURL(url,pageName){
+            if(_isInConsole){
+                // In Sales Console
+                OpenTabPage(url,pageName);
+                
+            }else if(_isInSF1){
+                //In Salesforce1
+                sforce.one.navigateToURL(url);
+            }else{
+                //Desktop Version
+                window.location.href = url;
+            }
+            //endLoading();
+     }
+    /*-------------------------------------------------------------------------
+            Salesforce :  Sale Console Js
+        ---------------------------------------------------------------------------*/
+    function IsInConsole() {
+
+
+
+
+        if (sforce.console.isInConsole()) {
+            _isInConsole = true;
+            _isInSF1 = false;
+            // Then get primary tab id
+            sforce.console.getEnclosingPrimaryTabId(MainTabId);
+            sforce.console.setTabTitle(_customername);
+
+        }
+        // Ref. https://developer.salesforce.com/docs/atlas.en-us.salesforce1.meta/salesforce1/vf_dev_best_practices_pages_multipurpose.htm
+        else if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+            _isInConsole = false;
+            _isInSF1 = true;
+
+        }
+        else {
+            _isInConsole = false;
+            _isInSF1 = false;
+        }
+
+        console.log('_isInConsole = ' +  _isInConsole);
+         console.log('_isInSF1 = ' +  _isInSF1);
+
+
+    }
+    function hideNormalLink(){
+        if(_isInConsole){
+            // In Sales Console
+            $('.normallink').hide();
+            $('.console').show();
+            $('.sf1').hide();
+        }else if(_isInSF1){
+            // In Salesforce1
+            $('.normallink').hide();
+            $('.console').hide();
+            $('.sf1').show();
+        }else{
+            // Normal web
+            $('.normallink').show();
+            $('.console').hide();
+            $('.sf1').hide();
+        }
+    }
+    function OpenTabPage(url,pagename){
+
+        // Open new sub tab
+        sforce.console.openSubtab(_primaryTabId , url, true, pagename, null, openSuccess, _customername+pagename);
+    }
+    var MainTabId = function getMainTabId(result  /* primary tab info */) {
+        //Now that we have the primary tab ID, we can open a new subtab in it
+        _primaryTabId = result.id;
+    };
+    var openSuccess = function openSuccess(result) {
+        //Report whether we succeeded in opening the subtab
+        if (result.success == true) {
+
+        } else {
+
+        }
+    };
+
+    /*-------------------------------------------------------------------------
+            Salesforce :  Main Function
+        ---------------------------------------------------------------------------*/
+    $(document).ready(function () {
+        $('.normallink').hide();
+        $('.console').hide();
+        
+        //Check Application
+        IsInConsole();
+        // On Pageload send ajax request
+       
+        if( {!isAccessibleCusHoldHig} == true || {!isAccessibleCusHoldMid} == true  || {!isAccessibleCusHoldLow} == true)
+        {
+            startLoading("SendingRequest ...");
+        	doRest();    
+        }
+        else
+        {
+            logUnAuthorized();
+        }
+        
+    });
+
+   
+
+    </script>
+</apex:page>

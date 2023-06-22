@@ -1,0 +1,125 @@
+<apex:page standardController="ECM_Repository__c" extensions="DeleteCaseECMController" lightningStylesheets="true">
+
+	<apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+	<apex:includeScript value="/support/console/47.0/integration.js"/>
+	<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+	<apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+
+	<apex:form id="form">
+		<div id="spin" style="display:none;" >
+            <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+            	           &nbsp;
+            	       </div>
+           
+          	<div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+            	<img src="/img/loading32.gif" />
+           	</div>
+        </div>
+
+        <apex:outputPanel id="statusMessage" rendered="{!errorMessage}">
+    		<apex:pageMessages />
+    		<div align="center" draggable="false" >
+				<apex:commandButton onclick="closeTab(false);return false;" value="Cancel"/>
+				<apex:actionFunction action="{!cancel}" name="closeSaleMode"/>
+			</div>
+    	</apex:outputPanel>
+    	<apex:actionFunction action="{!cancel}" name="closeSaleMode"/>
+	    <apex:actionFunction action="{!deleteECM}" name="deleteFileECM" oncomplete="closeTab(true);"/>
+        <apex:actionFunction action="{!redirect}" name="redirect"/>
+    
+	</apex:form>
+	<script type="text/javascript">
+		var showPopUP = {!displayPopUp};
+		$(document).ready(function(){
+			if(showPopUP){
+        		console.log('page loaded'+showPopUP);
+        		popUp();
+        	}
+    	});
+    	function popUp() {
+			if (confirm("Are you sure to delete this file?") == true) {
+				deleteFile();
+			} else {
+				closeTab(false);
+			}
+        }
+
+    	function closeTab(oncomplete) {
+			if(sforce.console.isInConsole()){
+				console.log('isInConsole');
+				if (oncomplete) {
+					// close ECM Object Tab
+					sforce.console.getEnclosingTabId(function (result) {
+						var EnclosingTabId = result.id;
+						sforce.console.getSubtabIds(EnclosingTabId, function (result2) {
+
+							sforce.console.getEnclosingPrimaryTabId(function (result) {
+								primaryTabId = result.id;
+								sforce.console.refreshPrimaryTabById(primaryTabId, true, function () {
+								}, true);
+								if ('{!$User.UITheme}' != 'Theme3') {
+									if (result2.ids.findIndex(function (find) { return find == EnclosingTabId; }) != -1) {
+										sforce.console.closeTab(result2.ids[result2.ids.length - 2]);
+									}
+								}
+								sforce.console.closeTab(EnclosingTabId);
+							});
+
+						});
+					});
+					// sforce.console.getEnclosingTabId(function (result) {
+					// 	var tabId = result.id;
+					// 	sforce.console.getSubtabIds(tabId, function (result2) {
+					// 		if ('{!$User.UITheme}' != 'Theme3') {
+					// 			if (result2.ids.findIndex(function (find) { return find == tabId; }) != -1) {
+					// 				sforce.console.closeTab(result2.ids[result2.ids.length - 2]);
+					// 			}
+					// 		}
+					// 		sforce.console.closeTab(tabId);
+					// 		doPrimaryTabRefresh();
+					// 	});
+					// });
+				}
+				else {
+					doPrimaryTabRefresh();
+					sforce.console.getEnclosingTabId(callCloseTab);
+				}
+            }
+            else{
+                redirect();
+                //closeSaleMode();
+            }
+        }
+        var callCloseTab= function callCloseTab(result) {
+			var tabId = result.id;
+            sforce.console.closeTab(result.id);
+        }
+
+        function deleteFile() {
+			deleteFileECM();
+			ShowSpin();
+        }
+
+        function ShowSpin(){
+			//uploadFile();
+            $('#spin').show();
+            // console.log('Start');
+        }
+        function HideSpin(){
+            $('#spin').hide();  
+            // console.log('Stop');    
+			} 
+			
+		var refreshPrimaryTab = function showTabId(result) {
+			var tabId = result.id;
+			console.log(tabId);
+			sforce.console.refreshPrimaryTabById(tabId, true);
+		};
+
+		function doPrimaryTabRefresh() {
+			sforce.console.getEnclosingPrimaryTabId(refreshPrimaryTab);            
+		}
+
+	</script>
+
+</apex:page>

@@ -1,0 +1,306 @@
+<apex:page standardController="Call_Report__c" sidebar="true" tabStyle="Call_Report__c" extensions="VisitPlanController" title="New Visit Plan"
+ lightningStylesheets="true">
+    <apex:includeScript value="/support/console/48.0/integration.js"/>
+    <script>function setFocusOnLoad() { }</script>
+    <script>
+        $j = jQuery.noConflict();
+        function callclose() {
+            //window.parent.closeModal();
+            //location.href='/apex/CallReportViewDetail?CallReportID={!CallReport.id}&isdtp=vw';        
+        }
+
+        function checkIsSalesforceOne() {
+            var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+            var theme = '{!$User.UIThemeDisplayed}';
+            var recordType = '{!CallReport.RecordTypeID }';
+            var recordTypeName = '{!recordTypeObj.Name}';
+            var accid = '{!CallReport.Customer_name__c}';
+            var opptyid = '{!OppID}';
+            var leadid = '{!LeadID}';
+            var recordId = '{!CallReport.Id}';
+            var IdForCancel = '{!IdForCancel}';
+            var OwnerID = '{!CallReport.OwnerId}';
+            var isLead = {!IsLead};
+            // console.log(accid);
+            // console.log(opptyid);
+            // console.log(leadid);
+            // console.log(recordId);
+            // console.log(IdForCancel);
+            // console.log(theme);
+            // console.log(isLead);
+            // this condition is proxy 
+            if ((theme == 'Theme4u' || theme == 'Theme4d' || theme == 'Theme4t') && isLightningMode) {
+                    // $j('#main-wrapper').show();
+                    sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                        "componentDef": "c:VisitPlanCreationComponent",
+                        "attributes": {
+                            "isLead" : isLead,
+                            "owner" : OwnerID,
+                            "cancelId":IdForCancel,
+                            "recordId": recordId,
+                            "recordTypeId": recordType,
+                            "recordTypeName":recordTypeName,
+                            "accid" : accid,
+                            "leadid" : leadid,
+                            "opptyid" : opptyid,
+                            "theme": theme,
+                            "action": 'openTabUrl',
+                            "replace": true
+                        }
+                    })), true);
+            } else if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                // ----------------------- this block is add for test desktop mode ----------------------- 
+                if ('{!MobileVisitPlanID}' != ''){
+                        //sforce.one.navigateToURL('/apex/VisitPlanProxy?id={!MobileVisitPlanID}' );
+                        sforce.one.navigateToURL('/apex/VisitPlanCreateMobileLayout?id={!MobileVisitPlanID}' );
+                } else {
+                    //sforce.one.navigateToURL('/apex/VisitPlanProxy?RecordType={!MobileRecordType}' );
+                    sforce.one.navigateToURL('/apex/VisitPlanCreateMobileLayout?OppID={!OppID}&sObjectID={!SobjectId}&RecordType={!MobileRecordType}&CF00N9000000DneE6_lkid={!MobileRetUrl}' );
+                }
+            } else {
+                $j("#main-wrapper").css('display','block');
+            }
+
+        }
+        $j(document).ready(function () {
+            checkIsSalesforceOne();
+            $j('[id$="tmbperson"]').attr('disabled', 'disabled');
+        });
+
+        function disableEnableField() {
+
+            $j('[id$="tmbperson"]').attr('disabled', 'disabled');
+            $j('[id$="tmbperson"]').css("cursor", "default");
+            $j('[id$="tmbperson"]').css("color", "#333");
+            $j('[id$="tmbperson"]').css("background-color", "#e6e6e6");
+            $j('[id$="tmbperson"]').css("border", "2px");
+            $j('[id$="tmbperson"]').css("border-color", "#e6e6e6");
+
+        }
+
+        var closeSubtab = function closeSubtab(result) {
+            var tabId = result.id;
+            sforce.console.closeTab(tabId);
+        };
+        function checkConsole() {
+            if (sforce.console.isInConsole()) {
+                sforce.console.getEnclosingTabId(closeSubtab);
+            } else {
+                window.location.href = "../a0A";
+            }
+        }
+
+        function refreshTab(){
+            // console.log('refresh');
+            sforce.console.getEnclosingPrimaryTabId(refresh);
+        } 
+
+        var refresh = function refresh(result) {
+            //Now that we have the primary tab ID, we can close it
+            var tabId = result.id;
+            // console.log(tabId);
+            sforce.console.refreshPrimaryTabById(tabId,false);
+        };
+
+    </script>
+    <style>
+        .invisible {
+            display: none !important;
+        }
+
+        .tmbperson {
+            cursor: default;
+            color: #333;
+            background-color: #e6e6e6;
+            border: 2px solid #e6e6e6;
+        }
+    </style>
+
+    <div id="main-wrapper" style='display:none'>
+        <apex:sectionHeader title="Visit Plan / Reports {!if(IsCreate,'','Edit')}" subtitle="{!if(isCreate,'New Visit Plan / Report',Callreport.Name)}"
+        />
+        <apex:form id="theForm">
+            <apex:actionstatus id="status">
+                <apex:facet name="start">
+                    <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                        &nbsp;
+                    </div>
+                    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                        <img src="/img/loading32.gif" />
+                    </div>
+                </apex:facet>
+            </apex:actionstatus>
+            <apex:pageBlock mode="Edit">
+                <apex:actionFunction name="onChangemainpurpose" action="{!dependentPicklist}" status="status" reRender="subpurpose,outcome,statusMessage"
+                />
+
+                <apex:outputpanel id="statusMessage">
+                    <apex:pagemessages ></apex:pagemessages>
+                </apex:outputpanel>
+
+                <apex:pageBlockButtons >
+                    <apex:commandButton value="Save" action="{!modalsave}" rendered="{! !isClosed}" status="status"  oncomplete="refreshTab();" reRender="status,statusMessage"
+                    />
+                    <!--<apex:commandButton value="Cancel"  onclick="window.history.go(-1); return false;" /> -->
+                    <apex:commandButton value="Cancel" action="{!Cancel}" style="{!if(isClosed,'margin-left:50px;','')}" oncomplete="checkConsole();"
+                    />
+                </apex:pageBlockButtons>
+
+                <!--  <apex:outputPanel id="thePanel">
+              <apex:outputText escape="false" value="{!jsScript}"> </apex:outputText>
+                <apex:outputText escape="false" value="{!VisitView}"> </apex:outputText> 
+            </apex:outputPanel>-->
+
+                <apex:outputPanel rendered="{!isSuccess}">
+                    <script>
+                        callclose();
+                    </script>
+                </apex:outputPanel>
+
+                <apex:PageBlockSection columns="2" title="Information" id="theSection1">
+                    <apex:outputField value="{!CallReport.Customer_name__c }" label="Customer Name" rendered="{! !IsCreate && !IsLead}" />
+                    <apex:outputField value="{!CallReport.Lead__c }" label="Lead" rendered="{! !IsCreate && IsLead}" />
+                    <apex:pageBlockSectionItem rendered="{!IsCreate && !IsLead}">
+                        <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Customer_name__c.Label}" for="cbxlevel1" />
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                            <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                            <apex:Inputfield value="{!CallReport.Customer_name__c }" label="Customer Name" rendered="{!IsCreate && !ISLead}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem rendered="{!IsCreate && IsLead}">
+                        <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Lead__c.Label}" for="cbxlevel1" />
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                            <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                            <apex:Inputfield value="{!CallReport.Lead__c }" label="Lead" rendered="{!IsCreate && IsLead}" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+
+                    <apex:outputField value="{!CallReport.RecordTypeID }" id="recordtype" />
+
+                    <apex:outputField value="{!CallReport.Date_of_Visit__c }" rendered="{! !IsCreate}" />
+
+                    <apex:pageBlockSectionItem rendered="{!isCreate}">
+                        <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Date_of_Visit__c.Label}" for="cbxlevel1" />
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                            <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                            <apex:inputfield value="{!CallReport.Date_of_Visit__c }" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:outputField value="{!CallReport.Status__c }" />
+
+                    <apex:inputfield value="{!CallReport.Start_Visit_Time__c }" />
+                    <apex:outputField value="{!CallReport.OwnerID}" />
+                    <apex:inputfield value="{!CallReport.End_Visit_Time__c }" />
+
+                    <apex:pageBlockSectionItem rendered="{! !isLead}"></apex:pageBlockSectionItem>
+                    <apex:outputField value="{!CallReport.Customer_name__c}" rendered="{!isLead}" />
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Categories__c.Label}" for="cbxlevel1" />
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                            <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                            <apex:InputField value="{!CallReport.Categories__c }" /></apex:outputPanel>
+
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Rating__c.Label}" for="cbxlevel1" />
+                        <!--<apex:outputPanel styleClass="requiredBlock" layout="block" />-->
+                    	<apex:inputField value="{!CallReport.Rating__c}" id="Rating"/>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Main_purpose__c.Label}" for="cbxlevel1" />
+                        <apex:outputPanel styleClass="requiredInput" layout="block">
+                            <apex:outputPanel styleClass="requiredBlock" layout="block" />
+                            <apex:inputField value="{!CallReport.Main_purpose__c}" id="mainpurpose" onchange="onChangemainpurpose();" />
+                            <apex:inputField value="{!CallReport.Sub_Purpose__c}" id="subpurpose" />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    
+                     <apex:pageBlockSectionItem >
+                    </apex:pageBlockSectionItem>
+                    
+                    <!-- start UAN add New -->
+                     <apex:pageBlockSectionItem >
+                        <!--<apex:outputLabel value="NextStep" for="nextstep" />-->
+                        <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Next_Step__c.Label}" for="cbxlevel1" />
+                    	<apex:inputField label="Next Step" value="{!CallReport.Next_Step__c}" id="nextstep"/>                   
+                    </apex:pageBlockSectionItem>
+                    
+                    <!-- end UAN add New -->
+                    <!-- <apex:pageBlockSectionItem ></apex:pageBlockSectionItem> -->
+
+
+
+                    <!-- Edit by Danudath -->
+                    <!-- </apex:PageBlockSection>
+                <apex:PageBlockSection columns="2" id="theSection"> -->
+
+                    <!-- <apex:pageBlockSectionItem>
+
+                        <apex:outputLabel value="{!$ObjectType.Call_Report__c.fields.Sub_Purpose__c.Label}" for="subpurpose" />
+                        <c:multiselectpicklist leftlabel="Available" leftoption="{!subpurposeAvailableList}" rightlabel="Selected" rightoption="{!subpurposeSelectedList}"
+                            size="5" width="100%" id="subpurpose">
+                        </c:multiselectpicklist>
+
+                    </apex:pageBlockSectionItem> -->
+
+
+                    <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                    <apex:inputField value="{!CallReport.Customer_Counterparty__c    }" />
+                    <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem id="tmbctpt">
+
+                        <apex:outputLabel value="TMB Counterparty" styleClass="labStyle" />
+
+                        <apex:outputPanel id="theSection">
+                            <apex:repeat value="{!VisitPlanInviteeList}" var="invitee">
+                                <apex:outputPanel styleClass="requiredInput" layout="block">
+                                    <apex:inputfield value="{!invitee.TMB_Person__c}" id="tmbperson" />
+                                    <apex:commandLink value="Delete" action="{!removeTMBPerson}" oncomplete="disableEnableField();" status="status" reRender="theSection">
+                                        <apex:param name="removeIndex" assignTo="{!removeIndex}" value="{!invitee.SEQ__c}" />
+                                    </apex:commandLink>
+                                </apex:outputPanel>
+                                <br />
+                            </apex:repeat>
+                            <apex:outputLabel value="Action" styleClass="invisible" />
+                            <apex:commandButton value="Add" action="{!AddTMBPerson}" oncomplete="disableEnableField();" status="status" reRender="theSection"
+                            />
+                        </apex:outputPanel>
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                    <apex:inputField value="{!CallReport.Additional_Party__c }" label="Additional Party" />
+
+
+                </apex:PageBlockSection>
+                <apex:PageBlockSection columns="2" title="Visit Result" id="theresultSection">
+                    <apex:outputField value="{!CallReport.Complete_Date__c  }" />
+                    <apex:inputField value="{!CallReport.Outcome__c  }" />
+                    <apex:inputField value="{!CallReport.Actual_Visit_Date__c   }" />
+                    <apex:inputField value="{!CallReport.Loss_Incomplete_reason__c   }" />
+                    <apex:inputField value="{!CallReport.Meeting_Place__c}" />
+                </apex:PageBlockSection>
+                <apex:PageBlockSection columns="2" id="theresultSection2">
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Business talk and opportunity" styleClass="labStyle" />
+                        <apex:inputField value="{!CallReport.Business_talk_and_opportunity__c}" id="businesstalk" style="width: 100%; height: 250px"
+                        /></apex:pageBlockSectionItem>
+                </apex:PageBlockSection>
+            </apex:pageBlock>
+
+            <!-- Danudath  -->
+        </apex:form>
+
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includeScript value="/support/console/22.0/integration.js" />
+    </div>
+
+
+
+
+</apex:page>

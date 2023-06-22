@@ -1,0 +1,54 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction"
+                access="global"
+                controller="campaignMemberCallLogCtrl">
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="display" type="list" />
+    <aura:attribute name="recordLimit" type="Integer" />
+    <aura:attribute name="marketingCode" type="String" />
+    <aura:attribute name="iconName" type="String" default="utility:chevrondown"/>
+
+    <aura:attribute name="collapseSize" type="Integer" default="2" />
+    <aura:attribute name="expandSize" type="Integer" default="5" />
+
+    <aura:attribute name="isExpanded" type="Boolean" default="true" />
+    <aura:attribute name="isViewMore" type="Boolean" default="false" />
+
+    <div class="slds-card slds-m-top_medium">
+        <div class="{! 'slds-section' + (v.isExpanded ? ' slds-is-open' : '')}">
+
+            <div class="spinnerHolder">
+                <lightning:spinner alternativeText="Loading" size="small" aura:id="apexSpinner"/>
+            </div>
+            <h3 class="slds-section__title">
+                <button aria-controls="expando-unique-id" aria-expanded="{!v.isExpanded}" class="slds-button slds-section__title-action" onclick="{!c.changeState}">
+                    <lightning:icon iconName="{!v.iconName}" alternativeText="chevrondown" title="chevrondown" size="x-small" />
+                    <span class="slds-truncate" title="Log A Call">Log A Call</span>
+                </button>
+            </h3>
+
+            <div aria-hidden="false" class="slds-section__content" id="expando-unique-id">
+
+                <ul class="slds-timeline">       
+                    <aura:iteration items="{!v.display}" var="task">
+                        <c:customCallLog_OBEntry activity="{!task}" marketingCode="{!v.marketingCode}"/>
+                    </aura:iteration>
+                </ul>
+            </div>
+        </div>
+        <div class="slds-m-around_xx-small">
+            <aura:if isTrue="{!v.isViewMore}" >
+                <button class="slds-button slds-button_neutral slds-align_absolute-center" onclick="{!c.viewLessTask}">
+                    View Less
+                </button>
+                <aura:set attribute="else">
+                    <button class="slds-button slds-button_neutral slds-align_absolute-center" onclick="{!c.viewMoreTask}">
+                        View More
+                    </button>
+                </aura:set>
+            </aura:if>
+        </div>
+    </div>
+</aura:component>

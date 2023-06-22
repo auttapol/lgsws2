@@ -1,0 +1,145 @@
+<apex:page controller="CSViewECMFileController" sidebar="false" showHeader="false" action="{!getStream}" title="View Uploaded File">
+
+<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+<apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />   
+<apex:includeScript value="/support/console/39.0/integration.js"/>
+<apex:includescript value="{!URLFOR($Resource.PDFJS, '/build/pdf.js')}" />
+
+<apex:slds />
+
+<style>
+    .center-screen {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        min-height: 100vh;
+    }
+
+    .button-center{
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-top:10px;
+        margin-bottom: 20px;
+    }
+
+    .button-next{
+        margin-left: 10px;
+    }
+
+    .button-prev{
+        margin-right: 10px;
+    }
+</style>
+
+<!-- <script src="//mozilla.github.io/pdf.js/build/pdf.js"></script> -->
+
+    <!-- <h1>PDF.js 'Hello, base64!' example</h1> -->
+    <div class="button-center">
+        <div class="button-prev"><button class="slds-button slds-button_brand" id="prev">Previous</button></div>
+     
+        <span>Page: <span id="page_num"></span> / <span id="page_count"></span></span>
+        
+        <div class="button-next"><button class="slds-button slds-button_brand" id="next">Next</button></div>
+    </div>
+    <div class="center-screen"><canvas id="the-canvas"></canvas></div>
+    <script>
+        // atob() is used to convert base64 encoded PDF to binary-like data.
+        // (See also https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/
+        // Base64_encoding_and_decoding.)
+        var srcData = "{!ecmFile}";
+        var pdfData = atob(srcData);
+
+
+        // Loaded via <script> tag, create shortcut to access PDF.js exports.
+        var pdfjsLib = window['pdfjs-dist/build/pdf'];
+
+        // The workerSrc property shall be specified.
+        // pdfjsLib.GlobalWorkerOptions.workerSrc = '//mozilla.github.io/pdf.js/build/pdf.worker.js';
+
+        var pdfDoc = null,
+        pageNum = 1,
+        pageRendering = false,
+        pageNumPending = null,
+        scale = 2,
+        canvas = document.getElementById('the-canvas'),
+        ctx = canvas.getContext('2d');
+        /**
+        * Get page info from document, resize canvas accordingly, and render page.
+        * @param num Page number.
+        */
+        function renderPage(num) {
+            pageRendering = true;
+            // Using promise to fetch the page
+            pdfDoc.getPage(num).then(function(page) {
+                var viewport = page.getViewport({ scale: scale, });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+                // Render PDF page into canvas context
+                var renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport,
+                };
+                var renderTask = page.render(renderContext);
+                // Wait for rendering to finish
+                    renderTask.promise.then(function () {
+                    pageRendering = false;
+                    if (pageNumPending !== null) {
+                        // New page rendering is pending
+                        renderPage(pageNumPending);
+                        pageNumPending = null;
+                    }
+                });
+            });
+        // Update page counters
+            document.getElementById('page_num').textContent = num;
+        }
+        /**
+         * If another page rendering in progress, waits until the rendering is
+         * finised. Otherwise, executes rendering immediately.
+         */
+        function queueRenderPage(num) {
+            if (pageRendering) {
+                pageNumPending = num;
+            } else {
+                renderPage(num);
+            }
+        }
+        /**
+        * Displays previous page.
+        */
+        function onPrevPage() {
+            if (pageNum <= 1) {
+                return;
+            }
+            pageNum--;
+            queueRenderPage(pageNum);
+        }
+        document.getElementById('prev').addEventListener('click', onPrevPage);
+        /**
+        * Displays next page.
+        */
+        function onNextPage() {
+            if (pageNum >= pdfDoc.numPages) {
+                return;
+            }
+            pageNum++;
+            queueRenderPage(pageNum);
+        }
+        document.getElementById('next').addEventListener('click', onNextPage);
+        /**
+         * Asynchronously downloads PDF.
+         */
+        var loadingTask = pdfjsLib.getDocument({data: pdfData});
+        loadingTask.promise.then(function(pdfDoc_) {
+            pdfDoc = pdfDoc_;
+            document.getElementById('page_count').textContent = pdfDoc.numPages;
+            // Initial/first page rendering
+            renderPage(pageNum);
+    });
+    </script>   
+
+
+</apex:page>

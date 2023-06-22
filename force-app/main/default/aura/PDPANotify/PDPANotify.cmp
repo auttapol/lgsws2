@@ -1,0 +1,39 @@
+<aura:component implements="flexipage:availableForRecordHome,force:hasRecordId" access="global" controller="pdpaCalloutUtil">
+    <aura:attribute name="recordId" type="Id" />
+	<aura:attribute name="tmbCustId" type="String" />
+	<aura:attribute name="theme" type="String" />
+	<aura:attribute name="message" type="String" />
+	<aura:attribute name="isNeedUpdate" type="Boolean" default="false"/>
+	<aura:attribute name="isCallServiceError" type="Boolean" default="false"/>
+	<aura:attribute name="isShowErrorMsg" type="Boolean" default="false"/>
+	<aura:attribute name="account" type="Object" />
+	<aura:attribute name="retrySetTimeOut" type="Integer" />
+    <aura:attribute name="numOfRetryTime" type="Integer" />
+    <aura:handler name="change" value="{!v.account}" action="{!c.handlerAccount}" />
+
+
+	<aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+	<force:recordData aura:id="recordLoader" recordId="{!v.recordId ? v.recordId : v.pageReference.state.c__recordId}"
+        fields="Name, TMB_Customer_ID_PE__c, RTL_Is_Employee__c" targetFields="{!v.account}" />
+
+	<aura:if isTrue="{!v.isNeedUpdate}">
+		<div class=" slds-is-relative">
+			<div class="slds-notify slds-notify_toast slds-theme_error" style="width: 99%;" role="status">
+				<div class="slds-notify__content">
+					<h2 class="slds-text-heading_small ">
+						{!v.message}
+					</h2>
+				</div>
+			</div>
+		</div>
+	</aura:if>
+
+	<aura:if isTrue="{!v.isShowErrorMsg}">
+		<div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom" style="background-color: 	rgb(255, 255, 255);">
+			{!v.message}
+			<aura:if isTrue="{!v.isCallServiceError}">
+				<a onclick="{!c.onInit}"> Retry</a>
+			</aura:if>
+		</div>
+	</aura:if>
+</aura:component>

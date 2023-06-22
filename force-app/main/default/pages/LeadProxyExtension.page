@@ -1,0 +1,119 @@
+<apex:page standardController="Lead" extensions="LeadProxyExtensionCtrl" showChat="false" showHeader="false">
+    <apex:slds />
+    <apex:includeScript value="/support/console/48.0/integration.js" />
+
+    <div class="slds-spinner_container">
+        <div id="mySpinner" role="status" class="slds-spinner slds-spinner_medium">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+        </div>
+    </div>
+
+    <apex:form >
+        <apex:actionFunction name="page" action="{!redirectPage}" status="InsertStatus" />
+        <apex:actionFunction name="mobile" action="{!redirectMobile}" status="InsertStatus" />
+    </apex:form>
+
+    <script type="text/javascript">
+        // Support IE Browser
+        if (!String.prototype.includes) {
+            String.prototype.includes = function (str) {
+                return this.indexOf(str) !== -1;
+            }
+        }
+        if (!Array.prototype.includes) {
+            Object.defineProperty(Array.prototype, "includes", {
+                enumerable: false,
+                value: function (obj) {
+                    var newArr = this.filter(function (el) {
+                        return el == obj;
+                    });
+                    return newArr.length > 0;
+                }
+            });
+        }
+
+        var theme = '{!$User.UIThemeDisplayed}';
+        var recordId = '{!Lead.Id}';
+        var recordTpyeId = '{!Lead.RecordTypeId}' ? '{!Lead.RecordTypeId}' : '{!recordTypeId}';
+        var recordTypeName = '{!Lead.RecordType.DeveloperName}' ? '{!Lead.RecordType.DeveloperName}' : '{!recordTypeName}';
+        var referralId = '{!referralId}';
+        var isCommercial = recordTypeName.includes('Commercial');
+        var isRetail = recordTypeName.includes('Retail');
+        //console.log(decodeURIComponent(escape(window.atob(window.btoa(unescape(encodeURIComponent('{!LeadFromSearch.Company}')))))););
+        var encodeCompany = window.btoa(unescape(encodeURIComponent('{!LeadFromSearch.Company}')));
+        var encodeFirstName = window.btoa(unescape(encodeURIComponent('{!LeadFromSearch.FirstName}')));
+        var encodeLastName = window.btoa(unescape(encodeURIComponent('{!LeadFromSearch.LastName}')));
+        var encodeTitle = window.btoa(unescape(encodeURIComponent('{!LeadFromSearch.Title}')));
+        var encodeExt__c = window.btoa(unescape(encodeURIComponent('{!LeadFromSearch.Ext__c}')));
+        var encodeReferral_Staff_Name__c = window.btoa(unescape(encodeURIComponent('{!LeadFromSearch.Referral_Staff_Name__c}')));
+        var encodeRemark__c  = window.btoa(unescape(encodeURIComponent('{!LeadFromSearch.Remark__c}')));
+        var encodeSalutation  = window.btoa(unescape(encodeURIComponent('{!LeadFromSearch.Salutation}')));
+        
+        //console.log(LeadFromSearch.ID_Type__c);
+        if (theme.includes('Theme4') && isCommercial) {
+            sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                "componentDef": "c:LeadCreation",
+                "attributes": {
+                    "recordId": recordId,
+                    "recordTypeId": recordTpyeId,
+                    "theme": theme,
+                    "defaultValue": {
+                        "RTL_Referral__c": referralId,
+                        "Customer_Type__c":'{!LeadFromSearch.Customer_Type__c}',
+                        "Mobile_No__c":'{!LeadFromSearch.Mobile_No__c}',
+                        "Office_No__c":'{!LeadFromSearch.Office_No__c}',
+                        "ID_Type__c":'{!LeadFromSearch.ID_Type__c}',
+                        "ID_Number__c":'{!LeadFromSearch.ID_Number__c}',
+                        "Salutation":encodeSalutation,
+                        "FirstName":encodeFirstName,
+                        "LastName":encodeLastName,
+                        "Name": encodeSalutation+' '+encodeFirstName+' '+encodeLastName,
+                        "Phone__c":'{!LeadFromSearch.Phone__c}',
+                        "Ext__c":encodeExt__c,
+                        "Company":encodeCompany,
+                        "Title":encodeTitle,
+                        "Email__c":'{!LeadFromSearch.Email__c}',
+                        "Remark__c":encodeRemark__c,
+                        "Preferred_Branch__c":'{!LeadFromSearch.Preferred_Branch__c}',
+                        "Referral_Staff_ID__c":'{!LeadFromSearch.Referral_Staff_ID__c}',
+                        "Referral_Staff_Name__c":encodeReferral_Staff_Name__c,
+                        "Status":'{!LeadFromSearch.Status}',
+                        "LeadSource":'{!LeadFromSearch.LeadSource}',
+                        "Contacted_Flag__c":'{!LeadFromSearch.Contacted_Flag__c}',
+                        "Pre_screening_Result__c":'{!LeadFromSearch.Pre_screening_Result__c}',
+                        "Branch_Referred__c":'{!LeadFromSearch.Branch_Referred__c}',
+                    },
+                    "uuid": !recordId ? 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    }) : '',
+                }
+            })), true);
+        }
+        else if (theme == 'Theme3' && isCommercial) {
+            page();
+        }
+        else if (theme == 'Theme4t' && isRetail) {
+            mobile();
+        }
+        else if (['Theme4u', 'Theme4d', 'Theme3'].includes(theme) && isRetail) {
+            page();
+        }
+        // Default 
+        else if (['Theme4u', 'Theme4d', 'Theme3'].includes(theme)) {
+            page();
+        }
+        else if (theme == 'Theme4t') {
+            mobile();
+        }
+        else {
+            sforce.console.getEnclosingTabId(function (result) {
+                sforce.console.closeTab(result.id, function () {
+                });
+            });
+        }
+
+    </script>
+</apex:page>

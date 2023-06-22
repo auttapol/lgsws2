@@ -1,0 +1,148 @@
+<aura:component controller="QCA_LeadSimplifiedController"
+    implements="force:appHostable,flexipage:availableForAllPageTypes,lightning:isUrlAddressable" access="global">
+    <!-- 
+        Set handler listen for status processing and Lead information
+     -->
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler name="varSimplifiedLeadProcessStatus" event="c:SimplifiedLeadProcessStatus"
+        action="{!c.onInitEvent}" />
+    <aura:handler name="strike_evt_chevron" event="c:strike_evt" action="{!c.handleSimplifiedLeadProcessStageEvent}" />
+    <aura:registerEvent name="varSimplifiedLeadProcessStatus" type="c:SimplifiedLeadProcessStatus" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <ltng:require styles="{!$Resource.Global_TMB_CSS}" />
+
+    <!-- 
+        Set default value and sObject Lead, Call_Report__c, 
+     -->
+    <aura:attribute name="leadRecordId" type="Id" />
+    <aura:attribute name="leadObj" type="Lead" default="{ 'sobjectType': 'Lead' }" />
+    <aura:attribute name="opptyObjId" type="Id" />
+
+    <!-- <aura:attribute name="visitplanObj" type="Call_Report__c" default="{ 'sobjectType': 'Call_Report__c' }" /> -->
+
+    <!-- 
+        Set default Record type Id
+     -->
+    <aura:attribute name="varMapRecordTypeId" type="Map" default="{}" />
+    <aura:attribute name="varDeepLink" type="string" />
+    <aura:attribute name="flowType" type="String" default="QCALeadType" />
+    <aura:attribute name="simplifiedLeadProcessStatus" type="String[]"
+        default="[ 'Lead Detail', 'Contact', 'Add Product', 'Convert', 'Submit to SLS' ]" />
+    <aura:attribute name="simplifiedLeadProcessStage" type="Integer" />
+    <aura:attribute name="isDisabledBackward" type="Boolean" default="false" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+
+    <ui:scrollerWrapper class="scrollerSize">
+        <aura:if isTrue="{! v.showSpinnerLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" />
+        </aura:if>
+        <lightning:layout class="slds-page-header slds-page-header_object-home">
+            <!-- PAGE HEADER -->
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:lead" alternativeText="Create Lead" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 class="slds-text-heading_label">
+
+                        <nav role="navigation" aria-label="Breadcrumbs" style="color:rgb(0, 109, 204);">
+                            <ul class="slds-breadcrumb slds-list_horizontal slds-wrap">
+                                <li class="slds-breadcrumb__item">
+                                    <a href="javascript:void(0);" onclick="{! c.redirectToSmartBDM }"
+                                        class="slds-breadcrumb__item">
+                                        <span class="slds-truncate">{!$Label.c.TMB_Smart_title}</span>
+                                    </a>
+                                </li>
+
+                                <li class="slds-breadcrumb__item">
+                                    <a href="javascript:void(0);" onclick="{! c.redirectToMyLead }"
+                                        class="slds-breadcrumb__item">
+                                        <span class="slds-truncate">{!$Label.c.My_Leads}</span>
+                                    </a>
+                                </li>
+
+                                <li class="slds-breadcrumb__item">
+                                    <a href="javascript:void(0);" class="slds-breadcrumb__item">
+                                        <span class="slds-truncate"
+                                            style="border-bottom: 1px solid;">{!$Label.c.Quick_CA}</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+
+                    </h1>
+                    <h2 class="slds-text-heading_medium">
+                        {! v.leadRecordId ? v.leadObj.Name : $Label.c.New_Customer_Title }
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+
+        <lightning:layout class="slds-p-horizontal_large slds-m-vertical_medium">
+            <aura:If isTrue="{! and(v.simplifiedLeadProcessStage != null, v.simplifiedLeadProcessStage != 5) }">
+                <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12">
+                    <c:strike_path aura:id="simplifiedLeadProcessPath" stageNames="{! v.simplifiedLeadProcessStatus }"
+                        activeChevron="{! v.simplifiedLeadProcessStage }" displayMode="linear"
+                        disableBackwardNavOnComplete="{! or(v.isDisabledBackward, v.leadObj.SmartBDM_QuickCA_ProcessStatus__c == 'SubmitSLS') }"
+                        disableForwardNavOnIncomplete="true" forceProcessFlow="false" collapseExpandButton="false"
+                        displayIconMode="true" error="false" />
+                </lightning:layoutItem>
+            </aura:If>
+        </lightning:layout>
+
+        <!-- 1st State -->
+        <aura:If isTrue="{! v.simplifiedLeadProcessStage == 0 }">
+            <c:QCA_NewLeadForm leadObj="{! v.leadObj }" leadObjId="{! v.leadRecordId }"
+                leadRecordTypeId="{! v.varMapRecordTypeId.RecordTypeLead }" />
+        </aura:If>
+
+        <!-- 2nd State -->
+        <aura:If isTrue="{! v.simplifiedLeadProcessStage == 1 }">
+            <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12">
+                <c:QCA_LogACallForm aura:id="logACallForm" leadObjId="{! v.leadRecordId }"
+                    varTaskRecordTypeId="{! v.varMapRecordTypeId.RecordTypeTask }" />
+                <c:QCA_VisitPlanReportForm aura:id="visitPlanReportForm" leadObjId="{! v.leadRecordId }"
+                    varVisitPlanReportRecordTypeId="{! v.varMapRecordTypeId.RecordTypeVisitPlanReport }"
+                    flowType="{! v.flowType }" />
+
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small btn-next">
+                    <lightning:layout multipleRows="true">
+                        <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                            <!-- <lightning:button class="slds-float_left" variant="neutral" type="button" name="previous" label="Back" onclick="" /> -->
+                        </lightning:layoutItem>
+                        <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                            <div class="slds-clearfix">
+                                <div class="slds-clearfix">
+                                    <lightning:button class="slds-float_right" variant="brand" type="button" name="save"
+                                        label="Next" onclick="{! c.onClickSubmitContactPath }" />
+                                </div>
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:layout>
+                </div>
+            </lightning:layoutItem>
+        </aura:If>
+
+        <!-- 3rd State -->
+        <aura:If isTrue="{! v.simplifiedLeadProcessStage == 2 }">
+            <c:QCA_RecommendedProductForm leadObjId="{! v.leadRecordId }" flowType="{! v.flowType }" />
+        </aura:If>
+
+        <!-- 4th State -->
+        <aura:If isTrue="{! v.simplifiedLeadProcessStage == 3 }">
+            <c:QCA_ConvertLead leadRecordId="{! v.leadRecordId }" flowType="{! v.flowType }" />
+        </aura:If>
+
+        <!-- 5th State -->
+        <aura:If isTrue="{! and(v.simplifiedLeadProcessStage == 4, v.opptyObjId != null ) }">
+            <c:QCA_SubmitToSLS opptyObjId="{! v.opptyObjId }" flowType="{! v.flowType }" />
+        </aura:If>
+
+        <!-- 6th State -->
+        <aura:If isTrue="{! v.simplifiedLeadProcessStage == 5 }">
+            <c:SmartBDMPreviewQuickCA opptyObjId="{! v.opptyObjId }" flowType="{! v.flowType }" />
+        </aura:If>
+
+    </ui:scrollerWrapper>
+
+</aura:component>

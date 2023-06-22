@@ -1,0 +1,101 @@
+<aura:component controller="CustomSearchUtilityBarController" implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId" access="global">
+    <aura:attribute name="isSelected" type="Boolean" default="false"/>
+    <aura:attribute name="isSearched" type="Boolean" default="false"/>
+    <aura:attribute name="dataList" type="List"/>
+    <aura:attribute name="searchkey" type="String"/>
+    <aura:attribute name="dataType" type="String"/>
+    <aura:attribute name="size" type="Integer" default="10"/>
+    <aura:attribute name="loadMoreSize" type="Integer" default="5"/>
+    <aura:attribute name="checkProfileAssign" type="Boolean" default="true" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />  
+
+    <aura:attribute name="loaded" type="Boolean" default="false" />
+
+    <aura:attribute name="setIntervalId"
+    type="String"
+    description="In the renderer.js, the interval id for periodically checking scroll position. Used when unrendering component to cancel interval check."
+    access="private"/>
+
+    <div style="height:435px !important;" aura:id="scroll_container" class="slds-scrollable" onscroll="{!c.onHandleScroll}">
+        <aura:if isTrue="{!v.isSelected}">
+            <aura:if isTrue="{!!v.isSearched}">
+                <aura:if isTrue="{!v.loaded}">
+                    <lightning:spinner alternativeText="Loading" />
+                </aura:if>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_4-of-4">
+                        <div class="" style="margin-top:20px;margin-left: 10px;" >{!$Label.c.CustomSearch_Utilitybar_Label}</div>
+                    </div>
+                    <div class="slds-col slds-size_4-of-4">
+                        <lightning:input style="margin-right:10px;padding-left: 10px;" name="input1" value="{!v.searchkey}" onchange="{!c.handleValueChange}"/>
+                    </div>  
+                    <div class="slds-col slds-size_4-of-4">
+                        <lightning:button class="back-btn-style" variant="brand" label="Back" onclick="{! c.handleBack}" /> 
+                        <lightning:button class="search-btn-style" variant="brand" label="Search" onclick="{! c.searchCamapignMember}" /> 
+                    </div>
+                </div>
+                <aura:set attribute="else">
+                    <div>
+                        <aura:if isTrue="{!v.loaded}">
+                            <lightning:spinner alternativeText="Loading" />
+                        </aura:if>
+                    </div>
+                    <div  class="slds-card__body slds-card__body_inner"  >   
+                        <aura:if isTrue="{!v.dataList.length > 0}">           
+                            <aura:iteration items="{!v.dataList}" var="data" indexVar="index">                         
+                                <div class="{!index lt v.size ? 'slds-show':'slds-hide'}">
+                                    <div class="slds-col slds-size_1-of-1 slds-m-vertical_medium">                
+                                        <ul class="slds-grid slds-wrap slds-grid_pull-padded">
+                                            <div class="slds-media__figure">                           
+                                                <lightning:icon class="slds-m-left_small" iconName="standard:campaign_members" alternativeText="campaign_members" title="campaign_members" />
+                                            </div>     
+                                            <div>
+                                                <div>
+                                                    <a href="javascript:void(0);"  >
+                                                        <aura:if isTrue="{!v.dataType == 'Id'}">      
+                                                            <span id="{!data.value.Id}" class="slds-m-right_x-small" onclick="{!c.navigateToMyComponent}">{!data.value.Id}</span>                                            
+                                                        </aura:if>
+                                                        <aura:if isTrue="{!v.dataType == 'Marketing Code'}">      
+                                                            <span id="{!data.value.Id}" class="slds-m-right_x-small" onclick="{!c.navigateToMyComponent}">{!data.value.RTL_Marketing_Code__c}</span>                                            
+                                                        </aura:if>
+                                                        <aura:if isTrue="{!v.dataType == 'Unique ID'}">      
+                                                            <span id="{!data.value.Id}" class="slds-m-right_x-small" onclick="{!c.navigateToMyComponent}">{!data.value.RTL_Web_Unique_ID__c}</span>                                            
+                                                        </aura:if>
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </ul>
+                                    </div>
+                                </div>                                                     
+                            </aura:iteration>    
+                            <aura:set attribute="else">
+                                <span>Not Found Record</span>
+                            </aura:set>
+                        </aura:if>  
+                        <div class="slds-col slds-size_4-of-4" style="position: sticky;bottom: 0;margin-left: -10px;padding-bottom: 10px;">
+                            <lightning:button class="back-btn-style" variant="brand" label="Back" onclick="{! c.handleBack2}" />                 
+                            <div class="{!v.dataList.length lt v.size ? 'slds-hide':'slds-show'}">
+                                <!-- <lightning:button class="search-btn-style"  variant="brand" label="Show More" title="More" onclick="{! c.handleLoadMore }"/>                      -->
+                            </div>               
+                        </div>  
+                    </div>            
+                </aura:set>
+            </aura:if>
+            <aura:set attribute="else">
+                <div class="slds-col slds-size_4-of-4">
+                    <h2 class="slds-card__header-title" style="place-content: center;">      
+                        <span class="slds-m-right_x-small" style="margin-top:10px;" onclick="{!c.handleSelectSearch}">Search List</span>
+                    </h2> 
+                </div>
+                <ul class="slds-has-dividers_around slds-has-block-links_space" style="margin-top: 10px;">
+                    <li class="slds-item">
+                        <a href="javascript:void(0);"  >
+                            <span class="slds-m-right_x-small" onclick="{!c.handleSelectSearch}">Search Campaign Member</span>                                
+                        </a>
+                    </li>             
+                </ul>          
+            </aura:set>
+        </aura:if> 
+    </div>
+</aura:component>

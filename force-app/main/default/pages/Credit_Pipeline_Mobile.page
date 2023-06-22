@@ -1,0 +1,118 @@
+<apex:page standardController="Account" extensions="ReportMobileExtension" action="{!credit}" readOnly="true" sidebar="false" showHeader="false" standardStylesheets="true">
+<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+<apex:includeScript value="/support/console/34.0/integration.js"/>
+<apex:includeScript value="{!$Resource.SFScript}"  /> 
+<apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+
+<h1 class="pageType">Opportunity Pipeline (Credit)</h1>
+
+
+
+
+
+<apex:outputPanel rendered="{!DataExist}">
+ <div class="bootstrap-sf1">
+            <div id="responseErrors"></div>
+    <div class="row" style="overflow-y: hidden;margin:5px;">
+    
+    <table class="table table-striped table-hover" >
+    <thead>
+         <tr >        
+         <th class="forceBackground text-left" >Opportunity Amt</th>
+         <th class="forceBackground text-left" >Requested Amount</th>
+         <th class="forceBackground text-left" >Actual Amount</th>
+         <th class="forceBackground text-left" >Last Modified Date</th>
+         <th class="forceBackground text-left" >Created Date</th>
+         <th class="forceBackground text-left" >Expected Complete Date</th>
+         <th class="forceBackground text-left" >Opportunity Detail</th>
+         <th class="forceBackground text-left" >Opportunity Owner</th>
+         <th class="forceBackground text-left" >Customer Name</th>
+         <th class="forceBackground text-left" >Customer Stage</th>
+         </tr>
+           </thead>
+               <tbody id="childlistbody">
+      
+                               <apex:variable var="stage" value="" />
+                               <apex:variable var="prob" value="" />
+                                    <apex:repeat value="{!Optdetail}" var="c" > 
+                                           
+                                           <apex:outputPanel id="StagePanel" rendered="{!if(stage==c.StageName,false,true)}" >
+                                                <tr class='info'>   
+                                                <td colspan='6' class='text-left' ><b>Stage:  </b>{!c.StageName} &nbsp;<b>({!StageCountMap[c.StageName]} &nbsp;<apex:outputText value="Record" rendered="{!If(StageCountMap[c.StageName]<=1,true,false)}"/> <apex:outputText value="Records" rendered="{!If(StageCountMap[c.StageName]>1,true,false)}"/>)</b></td>
+                                                
+                                                <td colspan='4' class='text-left'></td>
+                                                </tr>
+                                                 <tr class='info'>
+                                                <td colspan='6' class='text-left' style="font-size:90%">
+                                                <apex:outputText value="฿{0, number, ###,##0.00}">
+                                                <apex:param value="{!StageSumMap[c.StageName]}"/>
+                                                </apex:outputText>
+                                                </td>
+                                                <td colspan='4' class='text-left'></td>
+                                                </tr>
+                                                </apex:outputPanel>
+                                                
+                                                <apex:outputPanel id="ProbPanel" rendered="{!if(prob==TEXT(c.Probability),false,true)}" >
+                                                <tr >   
+                                                <td colspan='6' class='text-left' ><b>Probability (%):  </b>{!c.Probability}% &nbsp;<b>({!ProbCountMap[c.Probability]} &nbsp;<apex:outputText value="Record" rendered="{!If(ProbCountMap[c.Probability]<=1,true,false)}"/> <apex:outputText value="Records" rendered="{!If(ProbCountMap[c.Probability]>1,true,false)}"/>)</b></td>
+                                                
+                                                <td colspan='4' class='text-left'></td>
+                                                </tr>
+                                                <tr>
+                                                <td colspan='6' class='text-left' style="font-size:90%">
+                                                <apex:outputText value="฿{0, number, ###,##0.00}">
+                                                <apex:param value="{!ProbSumMap [c.Probability]}"/>
+                                                </apex:outputText>
+                                                </td>
+                                                <td colspan='4' class='text-left'></td>
+                                                </tr>
+                                                </apex:outputPanel>
+                                                
+                                                
+                                                <apex:variable var="stage" value="{!c.StageName}" />
+                                                <apex:variable var="prob" value="{!c.Probability}" />
+                                            <tr>
+                                                <td style="text-align:left">{!c.Pipeline_Amt__c}</td>
+                                                <td style="text-align:left">{!c.Opportunity_Amount__c}</td>
+                                                <td style="text-align:left">{!c.Opportunity_amount_adjust__c}</td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.LastModifiedDate}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.CreatedDate}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.CloseDate}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.Name}" /></td>
+                                                <td style="text-align:left" ><apex:outputField value="{!c.OwnerId}" /></td>
+                                                <!--<td style="text-align:left" ><apex:outputField value="{!c.Customer_Name__c}" /></td> -->
+                                                <td style="text-align:left" ><apex:outputText value="{!CustomerStage }" /></td>
+     
+                                                
+                                                
+                                            </tr>     
+                                        </apex:repeat>
+                                  
+                                         <apex:outputPanel id="Summary" style="" >
+                                                <tr class='info'>   
+                                                <td colspan='6' class='text-left' ><b>Grand Totals &nbsp; ({!RecordCountP} &nbsp; <apex:outputText value="Record" rendered="{!If(RecordCountP<=1,true,false)}"/> <apex:outputText value="Records" rendered="{!If(RecordCountP>1,true,false)}"/>)</b></td>
+                                                <td colspan='4' class='text-left'></td>
+                                                </tr>
+                                                
+                                                <tr class='info'> 
+                                                <td colspan='6' class='text-left' style="font-size:90%"><b>
+                                                <apex:outputText value="฿{0, number, ###,##0.00}">
+                                                <apex:param value="{!SumAmt}"/>
+                                                </apex:outputText></b>
+                                                </td>
+                                                <td colspan='4' class='text-left'></td>
+                                                </tr>
+                                                </apex:outputPanel>               
+                                    </tbody>
+                                    
+           
+          </table> 
+                                      
+
+    
+    </div>
+</div>
+
+</apex:outputPanel>
+
+</apex:page>

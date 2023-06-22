@@ -1,0 +1,132 @@
+<aura:component controller="Create_Case_Inquiry_Controller" implements="force:appHostable,flexipage:availableForAllPageTypes,force:lightningQuickAction,flexipage:availableForRecordHome,force:hasRecordId,lightning:actionOverride,lightning:isUrlAddressable,lightning:hasPageReference" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <lightning:navigation aura:id="navService" />
+	<aura:handler name="InquiryDeleteRowEvt" event="c:InquiryDeleteRowEvt" action="{!c.removeDeletedRow}" />
+    <aura:handler name="InquiryAddNewRowEvt" event="c:InquiryAddNewRowEvt" action="{!c.addNewRow}" />
+    <aura:attribute name="caseList" type="Object[]" />
+    <aura:attribute name="wrapper" type="Object[]" />
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="AccountId" type="String"/>
+    <aura:attribute name="ContactPhone" type="String" />
+    <aura:attribute name="ContactName" type="String" />
+    <aura:attribute name="CallLogId" type="String" />
+    <aura:attribute name="CallNumber" type="String" />
+    <aura:attribute name="errorMessage" type="String" />
+    <aura:attribute name="CallLogObj" type="Object" />
+    <aura:attribute name="isError" type="Boolean" default="false" />
+    <aura:attribute name="isCustom" type="Boolean" default="false" />
+    <aura:attribute name="loading" type="boolean" default="false" />
+    <aura:attribute name="isCustomTab" type="boolean" default="false" />
+    <aura:attribute name="CasePTASegment" type="String[]" />
+    <aura:attribute name="MapCaseCateLVL_1" type="Map" default="{}" />
+    <aura:attribute name="MapCaseCateLVL_2" type="Map" default="{}" />
+    <aura:attribute name="MapCaseCateLVL_3" type="Map" default="{}" />
+    <aura:attribute name="MapCaseCateLVL_4" type="Map" default="{}" />
+    <aura:attribute name="MapServiceTypeMatrix" type="Map" default="{}" />
+    <aura:attribute name="ContactPhone2" type="String" />
+    <aura:attribute name="ToExt1" type="String" />
+    <aura:attribute name="ToExt2" type="String" />
+    <!-- Inbound Popup -->
+    <aura:attribute name="taskObj" type="Object" />
+
+    <aura:If isTrue="{! v.isCustomTab }">
+        <div class="slds-modal__content slds-p-around--medium slds-grid slds-wrap" style="height: 200px;">
+            <div class="slds-notify_container slds-is-relative">
+                <lightning:button label="New Inquiry" onclick="{!c.customTabInquiry}" />
+            </div>
+        </div>
+        <aura:set attribute="else">
+            <div aura:id="editDialog" role="dialog" tabindex="-1" aria-labelledby="header43" class="slds-form">
+                <div >
+                        <aura:if isTrue="{! v.loading }">
+                                <lightning:spinner alternativeText="Loading" />
+                        </aura:if>
+                    <lightning:recordEditForm aura:id="recordViewForm" objectApiName="Case">
+        
+                    <div class="slds-modal__content slds-p-around--medium slds-grid slds-wrap">
+                        <aura:If isTrue="{! v.isError }">
+                            <div class="slds-notify_container slds-is-relative">
+                                <div class="slds-notify slds-notify_toast slds-theme_error">
+                                    <div class="slds-text-body_regular">
+                                        {! v.errorMessage }
+                                    </div>
+                                </div>
+                            </div>
+                        </aura:If>
+                        <div class="slds-size--1-of-3 slds-p-horizontal_x-small">
+                            <lightning:inputField aura:id="AccountId" fieldName="AccountId" value="{!v.AccountId}" style="margin-bottom: 20px;" />
+                        </div>
+                        <div class="slds-size--1-of-3 slds-p-horizontal_x-small">
+                            <lightning:inputField aura:id="Call_Log_ID__c" fieldName="Call_Log_ID__c" value="{!v.CallLogId}" style="margin-bottom: 20px;" />
+                        </div>
+                        <div class="slds-size--1-of-3 slds-p-horizontal_x-small">
+                            <lightning:inputField aura:id="Call_Number__c" fieldName="Call_Number__c" value="{!v.CallNumber}" />
+                        </div>
+                        <div class="slds-size--1-of-3 slds-p-horizontal_x-small">
+                            <lightning:inputField aura:id="Contact_Person_Name__c" fieldName="Contact_Person_Name__c" value="{!v.ContactName}" style="margin-bottom: 20px;" />
+                        </div>
+                        <div class="slds-size--1-of-3 slds-p-horizontal_x-small">
+                            <lightning:inputField aura:id="Contact_Person_Phone__c" fieldName="Contact_Person_Phone__c" value="{!v.ContactPhone}" style="margin-bottom: 20px;"/>
+                        </div>
+                        <div class="slds-size--1-of-3 slds-p-horizontal_x-small">
+                            <lightning:inputField aura:id="To_Ext_1__c" fieldName="To_Ext_1__c" value="{!v.ToExt1}" style="margin-bottom: 20px;"/>
+                        </div>
+                        <div class="slds-size--1-of-3 slds-p-horizontal_x-small">
+                            <lightning:inputField aura:id="Contact_Person_Phone_2__c" fieldName="Contact_Person_Phone_2__c" value="{!v.ContactPhone2}" style="margin-bottom: 20px;"/>
+                        </div>
+                        <div class="slds-size--1-of-3 slds-p-horizontal_x-small">
+                            <lightning:inputField aura:id="To_Ext_2__c" fieldName="To_Ext_2__c" value="{!v.ToExt2}" style="margin-bottom: 20px;"/>
+                        </div>
+        
+                    </div>
+                    </lightning:recordEditForm>
+                    <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                        <thead>
+                            <tr class="slds-text-title_caps">
+                                <th scope="col">
+                                    <div class="slds-truncate">No.</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" style="width: 100px;" title="PTA Segment">PTA Segment</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" style="width: 100px;" title="Category">Category</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" style="width: 100px;" title="Problem Channel">Problem Channel</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" style="width: 150px;" title="Product/Service">Product/Service</div>
+                                </th>
+                                <th scope="col">
+                                    <div class="slds-truncate" style="width: 150px;" title="Issue">Issue</div>
+                                </th>
+                                
+                            </tr>
+                        </thead>
+                        <tbody> 
+                            <!--Iterate the child Component for display Table rows 
+                               with pass the List Item Index for track the Every child Component 
+                               and pass each List Contact Instance -->
+                            <aura:iteration items="{!v.caseList}" var="item" indexVar="index">
+                                <c:CreateCaseInquiryItem MapCaseCateLVL_1="{!v.MapCaseCateLVL_1}" 
+                                MapCaseCateLVL_2="{!v.MapCaseCateLVL_2}" MapCaseCateLVL_3="{!v.MapCaseCateLVL_3}" 
+                                MapCaseCateLVL_4="{!v.MapCaseCateLVL_4}" CasePTASegment="{!v.CasePTASegment}" 
+                                CaseInstance="{!item}" rowIndex="{!index}" />
+                            </aura:iteration>
+                        </tbody>
+                    </table>
+                    
+                    
+                    <div class="slds-modal__footer slds-modal__footer_directional">     
+                        <lightning:button variant="neutral" label="Cancel" onclick="{!c.Cancel}" />
+                        <lightning:button variant="brand" label="Save" onclick="{!c.onSave}" />
+                        <lightning:button variant="brand" label="Save and Create Case" onclick="{!c.onSaveAndCreate}" />
+                    </div>
+                </div>
+            </div>
+        </aura:set>
+    </aura:If>
+    
+</aura:component>

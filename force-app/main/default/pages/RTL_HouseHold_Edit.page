@@ -1,0 +1,151 @@
+<apex:page standardController="RTL_Household__c" extensions="RTL_HouseHoldEditExtension" tabStyle="RTL_Household_Member__c" showchat="false" sidebar="false" showheader="false"
+           standardstylesheets="true" >
+     <!-- Includes Js -->
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+    <!-- Salesconsole JS API -->
+    <apex:includescript value="/support/console/36.0/integration.js" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    
+    <apex:sectionheader title="{!$Label.RTL_Household}" subtitle="{!Household.Name}" />
+    <apex:form >
+    <apex:pageBlock mode="edit" id="block"> 
+        <apex:outputpanel id="statusMessage"> 
+                <apex:pagemessages escape="false"></apex:pagemessages>
+            </apex:outputpanel>
+        <script>
+        function redirectURL(url,pageName){
+            if(_isInConsole){
+                // In Sales Console
+                OpenTabPage(url,pageName);
+            }else if(_isInSF1){
+                //In Salesforce1
+                sforce.one.navigateToURL(url);
+            }else{
+                //Desktop Version
+                window.location.href = url;
+            }
+        }
+        </script>
+        <apex:pageBlockButtons >
+            <apex:commandbutton action="{!save}" value="{!$Label.Save}" />
+            <apex:commandbutton action="{!cancel}" value="{!$Label.Cancel}"/>
+        </apex:pageBlockButtons>
+        <apex:pageBlockSection title="{!$Label.RTL_Household_Information}">
+            <apex:outputField value="{!Household.Name}"/>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.RTL_Household__c.fields.RTL_RM__c.Label}" />
+                <apex:outputPanel >
+                    <apex:outputLink onclick="redirectURL('/{!household.RTL_RM__c}','{!household.RTL_RM__r.Name}');return false;">{!household.RTL_RM__r.Name}</apex:outputLink>      
+            </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <apex:inputField value="{!Household.RTL_Benefit_Package__c}"/>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.RTL_Household__c.fields.RTL_Approver_UserName__c.Label}" />
+                <apex:outputPanel >
+                    <apex:outputLink onclick="redirectURL('/{!household.RTL_RM__r.ManagerId}','{!household.RTL_Approver_UserName__c}');return false;" >{!household.RTL_Approver_UserName__c}</apex:outputLink>
+            </apex:outputPanel>
+            </apex:pageBlockSectionItem>   
+            <apex:inputTextarea value="{!Household.RTL_Remarks__c}" rows="10" cols="50"/>
+        </apex:pageBlockSection> 
+    </apex:pageBlock>
+    </apex:form>
+    <script>
+    // Global variable
+    var _isInConsole = false;
+    var _isInSF1 = false;
+    var _primaryTabId ='';
+    var _customername ='{!Household.Name}';
+    var _tabid;
+
+    function startLoading(text){
+        $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+        $('.loadingBox').show();
+    }
+    function endLoading(){
+        $('.loadingBox').hide();
+        hideNormalLink();
+    }
+    /*-------------------------------------------------------------------------
+            Salesforce :  Sale Console Js
+        ---------------------------------------------------------------------------*/
+    function IsInConsole() {
+        if (sforce.console.isInConsole()) {
+            _isInConsole = true;
+            _isInSF1 = false;
+            // Then get primary tab id
+            sforce.console.getEnclosingPrimaryTabId(MainTabId);
+            sforce.console.setTabTitle(_customername);
+            sforce.console.setTabIcon("{!URLFOR($Resource.RTL_Household_Logo)}", null);
+        }
+        // Ref. https://developer.salesforce.com/docs/atlas.en-us.salesforce1.meta/salesforce1/vf_dev_best_practices_pages_multipurpose.htm
+        else if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+            _isInConsole = false;
+            _isInSF1 = true;
+
+        }
+        else {
+            _isInConsole = false;
+            _isInSF1 = false;
+        }
+
+        console.log('_isInConsole = ' +  _isInConsole);
+        console.log('_isInSF1 = ' +  _isInSF1);
+
+
+    }
+    function OpenTabPage(url,pagename){
+        // Open new sub tab
+        sforce.console.openSubtab(_primaryTabId , url, true, pagename, null, openSuccess,null);
+        
+    }
+    var MainTabId = function getMainTabId(result  /* primary tab info */) {
+        //Now that we have the primary tab ID, we can open a new subtab in it
+        _primaryTabId = result.id;
+        sforce.console.getFocusedPrimaryTabObjectId(setTabIcon);
+    };
+    var setTabIcon= function setTabIcon(result) {
+        var objId = result.id.toString();
+       	if(objId.startsWith('001') == false)
+        {
+        	sforce.console.setTabIcon("{!URLFOR($Resource.RTL_Household_Logo)}", _primaryTabId);
+            
+        }
+            
+    }
+    var openSuccess = function openSuccess(result) {
+        //Report whether we succeeded in opening the subtab
+        if (result.success == true) {
+
+        } else {
+
+        }
+    };
+    
+     //The callback function that closeTab will call once it has the ID for its tab
+        var callCloseTab= function callCloseTab(result) {
+            sforce.console.closeTab(result.id);
+        }
+        
+         var setTabId= function callCloseTab(result) {
+            _tabid = result.id
+        }
+
+    /*-------------------------------------------------------------------------
+            Salesforce :  Main Function
+        ---------------------------------------------------------------------------*/
+    $(document).ready(function () {
+        //Check Application
+        IsInConsole();
+        sforce.console.getEnclosingTabId(setTabId);
+
+    });
+    if (!String.prototype.startsWith) {
+  		String.prototype.startsWith = function(searchString, position) {
+    		position = position || 0;
+    		return this.indexOf(searchString, position) === position;
+  		};
+    }
+    </script>
+
+</apex:page>

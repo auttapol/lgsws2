@@ -1,0 +1,96 @@
+<apex:page showHeader="false" sidebar="false" standardController="E_Client_Suitability__c" extensions="CSReviewEclientSuitListViewCtrl" recordSetVar="EclientSelected" lightningStylesheets="true" >
+<apex:outputPanel id="errorMessagePanel">
+	<apex:messages />
+</apex:outputPanel>
+	    <apex:form >
+	    	<apex:actionFunction name="cancel" action="{!cancel}" />
+	    	<apex:actionFunction name="navigateToEclientPage" action="{!navigateToEclientPage}" />
+	    	<apex:actionFunction name="errorMsg" action="{!errorMsg}" reRender="errorMessagePanel" >
+	    		<apex:param name="errorMessage" value="" />
+	    	</apex:actionFunction>
+
+	    	<apex:actionstatus id="loadStatus">
+		        <apex:facet name="start">
+		            <div class="demo-only demo--inverse" style="height: 6rem;">
+		              <div class="slds-spinner_container slds-is-fixed">
+		                <div role="status" class="slds-spinner slds-spinner_medium">
+		                  <span class="slds-assistive-text">...</span>
+		                  <div class="slds-spinner__dot-a"></div>
+		                  <div class="slds-spinner__dot-b"></div>
+		                </div>
+		              </div>
+		            </div>
+		        </apex:facet>
+		    </apex:actionstatus>
+
+		<apex:pageBlock title="{!$Label.E_Client_CSReviewEclientSuitListView_Title_Text}">
+
+<!-- 			<apex:pageBlockSection> -->
+				<div class="lightning-section">
+							<apex:outputPanel id="error" rendered="{!!seletedOneEclient}">
+								{!$Label.E_Client_CSReviewEclientSuitListView_Error_Text}
+							</apex:outputPanel>
+
+							<apex:outputPanel id="review" rendered="{!seletedOneEclient}">
+								<apex:includeLightning />
+
+								<div id="lightning" style="width: 550px; margin: 0 auto;" />
+								<script>
+
+								           $Lightning.use("c:CSReviewEclientApp", function() {               
+								              $Lightning.createComponent("c:CSVerifyCustomer", 
+									              {
+									              	 "recordId" : "{!recordId}"
+									              },             
+									              "lightning",
+									              function(component) {
+									                $A.eventService.addHandler({ 
+									                	"event": "c:CSReviewEClientEvent", 
+									                	"handler" : evenHandler
+									                });     
+
+								              });              
+								            });            
+
+
+									    </script>
+
+								    <script>
+
+								        function evenHandler (event){
+
+								        	var action = event.getParam("action");
+								        	var message = event.getParam("message");
+
+								        	if( action == "cancel" )
+								        	{
+								        		cancel();
+								        	}
+								        	else if ( action == "verifyYes" )
+								        	{
+								        		navigateToEclientPage();
+								        	}
+								        	else if (action == "confirm")
+								        	{
+								        		navigateToEclientPage();
+								        	}
+								        	else if (action == 'error')
+								        	{
+								        		errorMsg(message);
+								        	}	
+								        }
+
+									</script>
+
+						</apex:outputPanel>
+			</div>
+
+			<apex:pageBlockButtons location="bottom">
+	            <apex:commandButton action="{!cancel}" value="{!$Label.E_Client_CSReviewEclientSuitListView_Cancel_Button_Text}"/>
+	        </apex:pageBlockButtons>
+
+		</apex:pageBlock>
+	</apex:form>
+	
+
+</apex:page>

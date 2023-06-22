@@ -1,0 +1,164 @@
+<aura:component controller="SmartBDM_CalculateWCController"
+    implements="force:appHostable,flexipage:availableForAllPageTypes" access="global">
+    <lightning:workspaceAPI aura:id="workspace" />
+    <ltng:require styles="{!$Resource.Global_TMB_CSS}" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="vfHost" type="String" default="" />
+
+    <aura:attribute name="businessGroupCodeList" type="List" />
+    <aura:attribute name="calculateRequest" type="Map" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+
+    <aura:attribute name="errorMessageList" type="List" />
+    <aura:attribute name="showErrorMessage" type="Boolean" default="false" />
+    <aura:attribute name="varDeepLink" type="string" />
+    <ui:scrollerWrapper>
+        <!-- <iframe aura:id="vfFrame" class="slds-hide" src="/apex/SmartBDM_WorkingCapitalCallout" frameborder="0" width="1" height="1"/> -->
+        <aura:if isTrue="{! v.showSpinnerLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" />
+        </aura:if>
+		
+        <nav role="navigation" aria-label="Breadcrumbs">
+			<ul class="slds-breadcrumb slds-list_horizontal slds-wrap slds-m-horizontal_x-large slds-m-vertical_medium">
+            	<li class="slds-breadcrumb__item">
+                	<a href="javascript:void(0);" onclick="{! c.redirectToSmartBDM }" class="slds-breadcrumb__item" title="{!$Label.c.TMB_Smart_title}">
+                    	<span class="slds-truncate" title="{!$Label.c.TMB_Smart_title}">{!$Label.c.TMB_Smart_title}</span>
+                    </a>
+                </li>
+                <li class="slds-breadcrumb__item ">
+                    <a href="javascript:void(0);" class="slds-breadcrumb__item textResult" title="{!$Label.c.SmartBDM_CalTools_WorkingCapital }">
+                       <span class="slds-truncate" title="{!$Label.c.SmartBDM_CalTools_WorkingCapital }">{!$Label.c.SmartBDM_CalTools_WorkingCapital }</span>
+                    </a>
+                </li>
+             </ul>
+        </nav>
+        
+        <div class="slds-grid slds-wrap">
+            <div class="slds-col slds-size_1-of-1 slds-order_2 slds-medium-order_1">
+                <lightning:layout multipleRows="true" class="slds-p-vertical_medium slds-p-horizontal_large section">
+
+                    <lightning:layoutItem class="slds-p-horizontal_xx-small slds-p-vertical_x-small" size="12" smallDeviceSize="12"
+                        mediumDeviceSize="3" largeDeviceSize="3">
+                        <div class="slds-form-element">
+                            <lightning:select aura:id="inputWorkingCapital" name="businessGroupCode" class="heightSelect"
+                                label="ประเภทธุรกิจ" required="true" value="{! v.calculateRequest.businessGroupCode }">
+                                <option value="">เลือกประเภทธุรกิจ</option>
+                                <aura:iteration items="{!v.businessGroupCodeList}" var="item">
+                                    <option value="{!item.value}" text="{!item.label}" />
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem class="slds-p-horizontal_xx-small slds-p-vertical_x-small" size="12" smallDeviceSize="12"
+                        mediumDeviceSize="4" largeDeviceSize="4">
+                        <div class="slds-form-element">
+                            <lightning:input aura:id="inputWorkingCapital" type="number" name="salePerYear"
+                                required="true" formatter="currency" min="0" label="ยอดขาย /รายได้รวมต่อปี (ล้านบาท)" step="0.01"
+                                placeholder="ระบุจำนวนเงิน" value="{! v.calculateRequest.salePerYear }" onblur="{! c.onValidInput }" />
+                        </div>
+                    </lightning:layoutItem>
+
+                    <lightning:layoutItem class="slds-p-horizontal_xx-small slds-p-vertical_x-small" size="12" smallDeviceSize="12"
+                        mediumDeviceSize="4" largeDeviceSize="4">
+                        <div class="slds-form-element">
+                            <lightning:input aura:id="inputWorkingCapital" type="number" name="tmbWcLimit"
+                                formatter="currency" min="0" label="สินเชื่อ (w/c) ที่ลูกค้ามีอยู่กับ TMB (ล้านบาท)" step="0.01"
+                                placeholder="ระบุจำนวนเงิน" value="{! v.calculateRequest.tmbWcLimit }" onblur="{! c.onValidInput }" />
+                            <div class="slds-form-element__help textHelper">(สำหรับลูกค้าปัจจุบันที่มีสินเชื่อกับ TMB)
+                            </div>
+                        </div>
+                    </lightning:layoutItem>
+					<!-- wcButton -->
+                    <lightning:layoutItem class="slds-col_bump-left slds-p-horizontal_xx-small slds-p-vertical_x-small" size="12"
+                        smallDeviceSize="12" mediumDeviceSize="1" largeDeviceSize="1">
+                        <div class="slds-form-element">
+                            <label class="slds-form-element__label button_label">&nbsp;</label>
+                            <div class="slds-form-element__control">
+                            <lightning:button class="slds-size_1-of-1" variant="brand" iconName="utility:send"
+                                iconPosition="right" title="Calculate Working capital" onclick="{! c.onSubmitToWC }" />
+                            </div>
+                        </div>
+                    </lightning:layoutItem>
+
+                </lightning:layout>
+            </div>
+            <div class="slds-col slds-size_1-of-1 slds-order_1 slds-medium-order_2">
+                <lightning:layout multipleRows="true" class="slds-p-vertical_medium slds-p-horizontal_large">
+                    <aura:renderIf isTrue="{! v.showErrorMessage }">
+                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12">
+                        <!-- <ui:message title="Error" severity="error" closable="false"></ui:message> -->
+                        <div class="slds-notify_container slds-is-relative">
+                            <div role="alert" class="slds-notify slds-notify_toast slds-theme_error fixed-minWidth">
+                                <div class="slds-notify__content">
+                                    <aura:iteration items="{! v.errorMessageList }" var="e">
+                                        <h2 class="slds-text-heading_small">
+                                            {! e.errorHeader }
+                                        </h2>
+                                        <div class="slds-text-body_regular">
+                                            {! e.errorMessage }
+                                        </div>
+                                    </aura:iteration>
+                                </div>
+                            </div>
+                        </div>
+                    </lightning:layoutItem>
+                    </aura:renderIf>
+                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12">
+
+                        <lightning:card class="section" variant="base">
+
+                            <lightning:layout class="slds-p-horizontal_medium">
+                                <lightning:layoutItem size="2" smallDeviceSize="2" mediumDeviceSize="1"
+                                    largeDeviceSize="1">
+                                    <div class="slds-form-element slds-align_absolute-center ">
+                                        <lightning:icon class="icon-blue" iconName="standard:currency"
+                                            alternativeText="currency" size="large" />
+                                    </div>
+                                </lightning:layoutItem>
+                                <lightning:layoutItem class="slds-p-left_x-small margin-auto slds-p-bottom_medium" size="11"
+                                    smallDeviceSize="10" mediumDeviceSize="11" largeDeviceSize="11">
+                                    <div
+                                        class="slds-form-element  slds-is-editing slds-form-element_1-col">
+                                        <label class="slds-form-element__label slds-p-top_x-small fontResult">สินเชื่อ (w/c)
+                                            เบื้องต้น</label>
+                                        <div class="slds-form-element__control slds-input-has-fixed-addon ">
+                                            <ui:outputNumber class="halfTextColumn" format="#,##0.00"
+                                                value="{! v.calculateRequest.wcLimit }" />
+                                            <span class="slds-form-element__addon fontResult" >ล้านบาท</span>
+                                        </div>
+                                    </div>
+
+                                </lightning:layoutItem>
+                            </lightning:layout>
+
+                        </lightning:card>
+
+                        <lightning:layout class="slds-m-around_x-small">
+                            <lightning:layoutItem size="1" smallDeviceSize="1" mediumDeviceSize="1" largeDeviceSize="1">
+                                <div class="slds-clearfix">
+                                    <div class="slds-float_right">
+                                        <lightning:icon iconName="utility:info_alt" alternativeText="info_alt"
+                                            class="slds-m-right_xx-small" size="small" />
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem class="slds-p-right_x-large" size="11" smallDeviceSize="11"
+                                mediumDeviceSize="11" largeDeviceSize="11">
+                                <div class="slds-form-element">
+                                    <span class="slds-form-element__help textHelper">
+                                        {! $Label.c.calculate_working_capital_information }
+                                    </span>
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+        </div>
+
+
+    </ui:scrollerWrapper>
+</aura:component>

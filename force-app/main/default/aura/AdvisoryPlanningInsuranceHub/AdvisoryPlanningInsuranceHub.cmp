@@ -1,0 +1,256 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global" controller="AdvisoryPlanningBAHubServices" >
+    <aura:attribute name="recordId" type="Id" />    
+    <aura:attribute name="accountId" type="Id"/>
+    <aura:attribute name="lastSyncDate" type="DateTime" />  
+    <aura:attribute name="recommend" type="Object" />    
+    <aura:attribute name="isSyncSuccess" type="Boolean" default="true"/>    
+    <aura:attribute name="errorMessage" type="String"/>
+    <aura:attribute name="refreshMessage" type="String"/>
+    
+    <aura:attribute name="countDown" type="Integer" default="60"/>
+
+    <aura:attribute name="planningRecord" type="Object"/>
+    <aura:attribute name="recordLoadError" type="String"/>
+    <aura:attribute name="isDisableRetry" type="Boolean" default="true" />
+    
+    <force:recordData aura:id="recordLoader"
+        recordId="{!v.recordId}"
+        fields="Name,Customer__c,ttb_Customer_ID__c,Customer__r.Name,Customer__r.Core_Banking_Suggested_Segment__c"
+        targetFields="{!v.planningRecord}"
+        targetError="{!v.recordLoadError}"
+    />
+    
+    
+
+    <aura:handler name="change" value="{!v.planningRecord}" action="{!c.doInit}" />
+
+    <!-- <aura:handler name="init" value="{!this}" action="{!c.doInit}"/> -->
+    <lightning:card title="{!$Label.c.RMC_BAHub_BA_Box_Header}" class=" slds-card_boundary">
+        <div  aura:id="loadingSpinner" class="spinner-div">
+            <lightning:spinner   variant="brand" size="large"/>
+        </div>
+        <aura:set attribute="actions">
+            <div aura:id="action-button" class="insurance-hub-button text-right slds-hide ">
+                <aura:if isTrue="{!v.isDisableRetry}">
+                    <lightning:icon iconName="action:refresh" class="disableButton"  alternativeText="refresh" title="refresh" size="xx-small"/>
+                    <aura:set  attribute="else">
+                        <a onclick="{!c.handleRefresh}">
+                            <lightning:icon iconName="action:refresh" alternativeText="refresh" title="refresh" size="xx-small"/>
+                        </a>
+                    </aura:set>
+                </aura:if>
+               
+                <!-- {!v.accountId} -->
+                <c:rtlPopupLink aura:id="rtlPopupLink" recordId="{!v.accountId}" />
+            </div> 
+            
+            
+        </aura:set>
+        
+        <div  aura:id="insurance-data" class="slds-hide">
+            <div class="slds-grid" style="margin-top: -0.25rem !important;">
+                <div class="slds-size_1-of-2 slds-text-align_left slds-p-left_small">
+                    <span class="data-sync">
+                        {!$Label.c.RMC_BAHub_Data_as_of}&nbsp;<lightning:formattedDateTime value="{!v.lastSyncDate}" year="numeric" month="numeric" day="numeric" hour="2-digit" minute="2-digit" hour12="false"/>
+                    </span>
+                </div>
+                <div class="slds-size_1-of-2 slds-text-align_right slds-p-right_small">
+                    <aura:if isTrue="{!v.isDisableRetry}">
+                        <span class="data-sync text-medium">
+                            {!v.refreshMessage}
+                        </span>
+                    </aura:if>
+                </div>
+            </div>
+            <aura:if isTrue="{!v.isSyncSuccess}">
+                <div class="slds-no-print">
+                    <div>
+                        <!-- Health Protection -->
+                        
+                        <article class="slds-card box slds-m-around_x-small">
+                            <div class="slds-card__header slds-grid margin-0" >
+                                <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                                    <div class="slds-media__figure">
+                                        <span class="slds-icon_container" title="insurance">
+                                            <img src="{!$Resource.RMC_BancassuranceIcon + '/icon/health-insurance.svg'}"/>
+                                        </span>
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <h2 class="slds-card__header-title color-primary">
+                                            {!$Label.c.RMC_BA_Hub_Health_Protection}
+                                        </h2>
+                                    </div>
+                                </header>
+                            </div>
+                            <div class="slds-card__body slds-card__body_inner slds-p-around_x-small">
+                                <div class="row-sub">
+                                    <div class="slds-grid slds-gutters">
+                                        <div class="slds-col slds-size_1-of-1">
+                                            <span class="color-primary">{!$Label.c.RMC_BAHub_Total_Medical_Treatment_Limit}</span>
+                                        </div>
+                                    </div>
+                                    <div class="slds-grid slds-gutters">
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <span class="color-secondary">{!$Label.c.RMC_BAHub_Existing_Medical_Treatment_Coverage}</span><br/>
+                                            <span class="color-primary text-bold text-exisiting">
+                                                <lightning:formattedNumber value="{!v.recommend.medicalTreatmentCoverage.existing}" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                            </span>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2 slds-text-align_right">
+                                            <span class="color-secondary">{!$Label.c.RMC_BAHub_Recommended_Medical_Treatment_Coverage}</span><br/>
+                                            <span class="text-recommend">
+                                                <!-- <lightning:formattedNumber value="3000000" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/> -->
+                                                <lightning:formattedNumber value="{!v.recommend.medicalTreatmentCoverage.recommended}" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="slds-grid slds-gutters">
+                                        <div class="slds-col slds-size_1-of-1 slds-p-vertical_x-small">
+                                            <!-- <lightning:progressBar value="{!(v.recommend.medicalTreatmentCoverage.existing /3000000)*100}" size="medium" variant="circular"/> -->
+                                            <lightning:progressBar value="{!(v.recommend.medicalTreatmentCoverage.existing /v.recommend.medicalTreatmentCoverage.recommended)*100}" size="medium" variant="circular"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <hr/>
+                                <div class="row-sub">
+                                    <div class="slds-grid slds-gutters">
+                                        <div class="slds-col slds-size_1-of-1">
+                                            <span class="color-primary">{!$Label.c.RMC_BAHub_Total_Cancer_and_Critical_Illness_Benefits}</span>
+                                        </div>
+                                    </div>
+                                    <div class="slds-grid slds-gutters">
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <span class="color-secondary">{!$Label.c.RMC_BAHub_Existing_Total_Cancer_and_Critical_Illness_Benefits}</span><br/>
+                                            <span class="color-primary text-bold text-exisiting">
+                                                <lightning:formattedNumber value="{!v.recommend.cancerAndCriticalIllnessBenefits.existing}" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                            </span>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2 slds-text-align_right">
+                                            <span class="color-secondary">{!$Label.c.RMC_BAHub_Recommended_Total_Cancer_and_Critical_Illness_Benefits}</span><br/>
+                                            <span class="text-recommend">
+                                                <!-- <lightning:formattedNumber value="1000000" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/> -->
+                                                <lightning:formattedNumber value="{!v.recommend.cancerAndCriticalIllnessBenefits.recommended}" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="slds-grid slds-gutters">
+                                        <div class="slds-col slds-size_1-of-1 slds-p-vertical_x-small">
+                                            <lightning:progressBar value="{!(v.recommend.cancerAndCriticalIllnessBenefits.existing /v.recommend.cancerAndCriticalIllnessBenefits.recommended)*100}" size="medium" variant="circular"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+    
+                        <!-- Retirement Saving -->
+                        <article class="slds-card box slds-m-around_x-small">
+                            <div class="slds-card__header slds-grid margin-0" >
+                                <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                                    <div class="slds-media__figure">
+                                        <span class="slds-icon_container" title="insurance">
+                                            <img src="{!$Resource.RMC_BancassuranceIcon + '/icon/life-insurance.svg'}"/>
+                                        </span>
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <h2 class="slds-card__header-title color-primary">
+                                            {!$Label.c.RMC_BAHub_Retirement_Saving}
+                                        </h2>
+                                    </div>
+                                </header>
+                            </div>
+                            <div class="slds-card__body slds-card__body_inner slds-p-around_x-small">
+                                <div class="row-sub">
+                                    <div class="slds-grid slds-gutters">
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <span class="color-secondary">{!$Label.c.RMC_BAHub_Existing_Retirements_Savings}</span><br/>
+                                            <span class="color-primary text-bold text-exisiting">
+                                                <lightning:formattedNumber value="{!v.recommend.retirementsSavings.existing}" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                            </span>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2 slds-text-align_right">
+                                            <span class="color-secondary">{!$Label.c.RMC_BAHub_Recommended_Retirements_Savings}</span><br/>
+                                            <span class="text-recommend">
+                                                <!-- <lightning:formattedNumber value="10000000" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/> -->
+                                                <lightning:formattedNumber value="{!v.recommend.retirementsSavings.recommended}" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="slds-grid slds-gutters">
+                                        <div class="slds-col slds-size_1-of-1 slds-p-vertical_x-small">
+                                            <!-- <lightning:progressBar value="{!(v.recommend.retirementsSavings.existing /10000000)*100}" size="medium" variant="circular"/> -->
+                                            <lightning:progressBar value="{!(v.recommend.retirementsSavings.existing /v.recommend.retirementsSavings.recommended)*100}" size="medium" variant="circular"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+    
+                        <!-- Loss of Life -->
+                        <article class="slds-card box slds-m-around_x-small">
+                            <div class="slds-card__header slds-grid margin-0" >
+                                <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                                    <div class="slds-media__figure">
+                                        <span class="slds-icon_container" title="insurance">
+                                            <!-- <lightning:icon iconName="utility:layout_banner" alternativeText="health" title="health" /> -->
+                                            <img src="{!$Resource.RMC_BancassuranceIcon + '/icon/wealth-insurance.svg'}"/>
+                                        </span>
+                                    </div>
+                                    <div class="slds-media__body">
+                                        <h2 class="slds-card__header-title color-primary">
+                                            {!$Label.c.RMC_BAHub_Loss_of_Life}
+                                        </h2>
+                                    </div>
+                                </header>
+                            </div>
+                            <div class="slds-card__body slds-card__body_inner slds-p-around_x-small">
+                                <div class="row-sub">
+                                    <div class="slds-grid slds-gutters">
+                                        <div class="slds-col slds-size_1-of-2">
+                                            <span class="color-secondary">{!$Label.c.RMC_BAHub_Existing_Loss_of_Life_Coverage}</span><br/>
+                                            <span class="color-primary text-bold text-exisiting">
+                                                <!-- <lightning:formattedNumber value="5000000" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/> -->
+                                                <lightning:formattedNumber value="{!v.recommend.lossOfLifeCoverage.existing}" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                            </span>
+                                        </div>
+                                        <div class="slds-col slds-size_1-of-2 slds-text-align_right">
+                                            <span class="color-secondary">{!$Label.c.RMC_BAHub_Recommended_Loss_of_Life_coverage}</span><br/>
+                                            <span class="text-recommend">
+                                                <!-- <lightning:formattedNumber value="10000000" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/> -->
+                                                <lightning:formattedNumber value="{!v.recommend.lossOfLifeCoverage.recommended}" style="decimal"  minimumFractionDigits="2" maximumFractionDigits="2"/>
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="slds-grid slds-gutters">
+                                        <div class="slds-col slds-size_1-of-1 slds-p-vertical_x-small">
+                                            <lightning:progressBar value="{!(v.recommend.lossOfLifeCoverage.existing /v.recommend.lossOfLifeCoverage.recommended)*100}" size="medium" variant="circular"/>
+                                            <!-- <lightning:progressBar value="{!(5000000 /10000000)*100}" size="medium" variant="circular"/> -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                    </div>
+                </div>
+                
+                <aura:set attribute="else">
+                    <div class="slds-grid">
+                        <div class="slds-size_1-of-1 slds-p-around_medium">
+                            <div aura:id="errorContent" class="slds-illustration slds-illustration_small">
+                                <div aura:id="svg_content"></div>
+                                <div class="slds-text-longform">
+                                  <h4 class="slds-m-bottom_x-small slds-text-title_bold" style="color: rgb(186, 5, 23);">Unable to execute webservice callout to BA Hub</h4>
+                                  <p class="slds-text-body_regular">{!v.errorMessage}</p>
+                                  <aura:if isTrue="{!v.isDisableRetry}">
+                                    <p class="text-mediumm" aura:id="refreshInfo">{!v.refreshMessage}</p>
+                                  </aura:if>
+                                  <lightning:button variant="destructive" label="Try Again" title="Try Again" onclick="{! c.handleRefresh }" disabled="{!v.isDisableRetry}"/><br/>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </aura:set>
+            </aura:if>
+        </div>
+        
+    </lightning:card>
+</aura:component>

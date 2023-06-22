@@ -1,0 +1,188 @@
+<aura:component access="global" implements="lightning:isUrlAddressable,force:appHostable"
+    controller="ForecastReportController">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler name="change" value="{!v.selectedProductGroup}" action="{!c.updateFilterlabel}" />
+    <aura:handler name="change" value="{!v.selectedYear}" action="{!c.updateFilterlabel}" />
+
+    <aura:attribute name="selectedYear" type="string" />
+    <aura:attribute name="YearOpts" type="List" />
+    <aura:attribute name="selectedReport" type="string" />
+    <aura:attribute name="selectedReportId" type="string" default="" />
+    <aura:attribute name="ReportOpts" type="Object[]" />
+    <aura:attribute name="selectedCustomerPort" type="string" />
+    <aura:attribute name="CustomerPortOpts" type="List" />
+    <aura:attribute name="searchTeam" type="string" default="" />
+    <aura:attribute name="selectedProductGroup" type="string" />
+    <aura:attribute name="ProductGroupOpts" type="List" />
+    <aura:attribute name="disabledProductGroup" type="boolean" default="false" />
+    <aura:attribute name="showTeamSelect" type="boolean" default="false" />
+    <aura:attribute name="selectedTeamList" type="List" />
+    <aura:attribute name="selectedTeamListtmp" type="List" />
+    <aura:attribute name="teamOpts" type="Object[]" />
+    <aura:attribute name="mapPortTeam" type="Object" />
+    <aura:attribute name="reportName" type="String" />
+    <aura:attribute name="hasGraphData" type="boolean" default="false" />
+    <aura:attribute name="openGraph" type="boolean" default="false" />
+
+    <aura:attribute name="filterlabel" type="string" default="Filter" />
+
+    <aura:attribute name="report1Param" type="Object" />
+    <aura:attribute name="reportParam" type="Object" />
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+    <aura:attribute name="userForecastRole" type="String" default="" />
+
+    <aura:attribute name="exportCSVData" type="Object[]" />
+    <aura:attribute name="exportCSVisHasData" type="Boolean" default="false" />
+
+    <aura:method name="exportCSV" action="{!c.exportCSV}">
+        <aura:attribute name="param1" type="Object[]" />
+        <aura:attribute name="reportName" type="String" />
+    </aura:method>
+
+
+    <!-- Unused???? -->
+    <!-- <aura:attribute name="Cube1Data" type="Object[]" />
+    <aura:attribute name="gridColumnsMockTable" type="List" access="PRIVATE" />
+    <aura:attribute name="gridDataMockTable" type="Object" default="{}" access="PRIVATE" />
+    <aura:attribute name="gridExpandedRowsMockTable" type="List" access="PRIVATE" />
+    <aura:attribute name="showData" type="boolean" default="false" />
+    <aura:attribute name="reportHeaderlst" type="Object[]" /> -->
+
+
+    <div class="slds-is-relative">
+        <aura:if isTrue="{! v.isLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </aura:if>
+
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:forecasts" alternativeText="forecasts" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <h1 class="slds-text-heading_label">
+                    Forecast
+                </h1>
+                <div class="page-section page-header">
+                    <h2 class="slds-text-heading_medium">
+                        Forecast Report
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+
+        <lightning:card>
+            <div style="padding: 0 20px 0;">
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_4-of-12" style="padding: 0 10px;">
+                        <lightning:select aura:id="selectReport" name="selectReport" label="Select report"
+                            value="{!v.selectedReport}" required="true" messageWhenValueMissing="Select report."
+                            onchange="{!c.onChangeSelectReport}">
+                            <aura:iteration items="{!v.ReportOpts}" var="option">
+                                <option text="{!option.label}" value="{!option.label}" selected="{!option.selected}" />
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div style="text-align: center;padding: 20px 0 0;">
+                        <lightning:button variant="brand" label="Generate Report" title="Generate Report"
+                            onclick="{! c.generateReport }" />
+                    </div>
+                    <div style="text-align: center;padding: 20px 0 0;">
+                        <aura:if isTrue="{!v.exportCSVisHasData}">
+                            <div style="text-align: right; margin: 0 10px;">
+                                <c:csvExporter records="{!v.exportCSVData}" fileName="{!v.reportName}" />
+                            </div>
+                        </aura:if>
+                    </div>
+                    <!-- Graph -->
+                    <aura:if isTrue="{!v.hasGraphData}">
+                        <div style="text-align: center;padding: 20px 0 0;">
+                            <lightning:button variant="brand" label="Graph" title="Graph" onclick="{! c.Graph }" />
+                        </div>
+                    </aura:if>
+                </div>
+            </div>
+
+            <lightning:accordion aura:id="accordion" activeSectionName="A" allowMultipleSectionsOpen="true">
+                <lightning:accordionSection name="A" label="{!v.filterlabel}">
+                    <div class="slds-grid slds-wrap">
+                        <div class="slds-size_1-of-4 slds-max-small-size_1-of-1" style="width: 25%;padding: 0 20px;">
+                            <lightning:select name="CustomerPort" label="Customer Port" aura:id="CustomerPort"
+                                value="{!v.selectedCustomerPort}" onchange="{!c.onChangePort}">
+                                <aura:iteration items="{!v.CustomerPortOpts}" var="option">
+                                    <option text="{!option.label}" value="{!option.label}"
+                                        selected="{!option.selected}" />
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                        <div class="slds-size_1-of-4 slds-max-small-size_1-of-1" style="width: 25%;padding: 0 20px;">
+                            <lightning:input aura:id="teamInput" name="teamInput" label="Team" value="{!v.searchTeam}"
+                                placeholder="Please select team..." messageWhenValueMissing="Select team."
+                                disabled="false" required="true" onclick="{!c.showSelectTeam}" autocomplete="off"/>
+                        </div>
+                        <div class="slds-size_1-of-4 slds-max-small-size_1-of-1" style="width: 25%;padding: 0 20px;">
+                            <lightning:select disabled="{!v.disabledProductGroup}" name="ProductGroup"
+                                label="Product Group" aura:id="ProductGroup" value="{!v.selectedProductGroup}">
+                                <aura:iteration items="{!v.ProductGroupOpts}" var="option">
+                                    <option text="{!option.label}" value="{!option.label}"
+                                        selected="{!option.selected}" />
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                        <div class="slds-size_1-of-4 slds-max-small-size_1-of-1" style="width: 25%;padding: 0 20px;">
+                            <lightning:select name="Year" label="Year" aura:id="Year" value="{!v.selectedYear}">
+                                <aura:iteration items="{!v.YearOpts}" var="option">
+                                    <option text="{!option.label}" value="{!option.id}" selected="{!option.selected}" />
+                                </aura:iteration>
+                            </lightning:select>
+                        </div>
+                    </div>
+
+                </lightning:accordionSection>
+            </lightning:accordion>
+
+
+            <aura:if isTrue="{!v.selectedReportId == '0'}">
+                <c:ForecastReport_ForecastVolume isLoading="{!v.isLoading}" report1Param="{!v.report1Param}"
+                    userProfile="{!v.userForecastRole}" parent="{!this}" />
+            </aura:if>
+            <aura:if isTrue="{!v.selectedReportId == '1'}">
+                <c:ForecastReport_LoanBalanceAndNIIcA isLoading="{!v.isLoading}" reportParam="{!v.reportParam}"
+                    userProfile="{!v.userForecastRole}" parent="{!this}" />
+            </aura:if>
+            <aura:if isTrue="{!v.selectedReportId == '2'}">
+                <c:ForecastReport_DepositAndNIIdA isLoading="{!v.isLoading}" reportParam="{!v.reportParam}"
+                    userProfile="{!v.userForecastRole}" parent="{!this}" />
+            </aura:if>
+            <aura:if isTrue="{!v.selectedReportId == '3'}">
+                <c:ForecastReport_NIProjection isLoading="{!v.isLoading}" reportParam="{!v.report1Param}"
+                    userProfile="{!v.userForecastRole}" parent="{!this}" hasGraphData="{!v.hasGraphData}"
+                    isModalOpen="{!v.openGraph}" />
+            </aura:if>
+
+        </lightning:card>
+    </div>
+
+    <aura:if isTrue="{!v.showTeamSelect}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeSelectTeamModel }"
+                        alternativeText="Close" variant="bare-inverse" class="slds-modal__close" />
+                    <h2 class="slds-text-heading_medium slds-hyphenate">Select Team</h2>
+                </header>
+
+                <div class="slds-modal__content slds-p-around_medium" style="text-align: center;padding: 40px;">
+                    <lightning:dualListbox name="languages" sourceLabel="Available" selectedLabel="Selected"
+                        options="{!v.teamOpts}" value="{!v.selectedTeamList}" />
+                </div>
+
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="brand" label="Done" title="Done" onclick="{! c.selectTeamOption }" />
+                    <lightning:button label="Cancel" title="Cancel" onclick="{! c.closeSelectTeamModel }" />
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+</aura:component>

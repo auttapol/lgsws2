@@ -1,0 +1,101 @@
+<apex:page standardController="Opportunity" 
+        extensions="GenerateBarJSController" 
+        showHeader="false" 
+        sidebar="false" 
+        language="th"
+        lightningStylesheets="true">
+    <apex:includeScript value="{!$Resource.JS_Barcode}"/>
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+    <script type="text/javascript">
+        function genbarcode(){
+            passBarcodetoCtrl(DrawCode39Barcode("{!Opportunity.CAID__c}",1),"{!Opportunity.CAID__c}");
+        }
+
+        function genJSBarcodeBase64(){
+            passBarcodetoCtrl(textToBase64Barcode("{!Opportunity.CAID__c}"),"{!Opportunity.CAID__c}");
+        }
+
+        function textToBase64Barcode(text){
+            var canvas = document.createElement("canvas");
+            JsBarcode(canvas, text);
+            return canvas.toDataURL("image/png");
+        }
+
+        $(document).ready(function () {
+            //genbarcode();
+            genJSBarcodeBase64();
+        });
+    </script>   
+    <!-- Style for Ajax Request -->
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+            /* width: 32px;*/
+            height: 32px;
+            position: absolute;
+            left: 48%;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+        .textWrap .bPageBlock .pbTitle{
+            width:100%
+        }
+
+        @media only screen and (max-width: 415px) {
+        .bPageBlock{
+            width:1000px;
+        }
+        
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+        <div class="loadingBox overlay"></div>
+        <!-- // End Ajax Request -->
+        <script>
+        function startLoading(text){
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading(){
+            $('.loadingBox').hide();
+        }
+        
+        $(document).ready(function () {
+            $('.normallink').hide();
+            $('.console').hide();            
+            // On Pageload send ajax request
+            if ({!stopPolling} != true)
+            startLoading("Generating Barcode for "+"{!Opportunity.CAID__c}");
+        });
+        
+    </script>
+    <body>
+        <apex:form >
+            <!-- this action function can be called from javascript -->
+            <apex:actionFunction name="passBarcodetoCtrl" action="{!redirectToPDF}" rerender="">
+                <apex:param name="barcodeData" value="" assignTo="{!barcodeData}" />
+                <apex:param name="CAID" value="" assignTo="{!CAID}" />
+            </apex:actionFunction>
+        </apex:form>
+    </body>
+    
+</apex:page>

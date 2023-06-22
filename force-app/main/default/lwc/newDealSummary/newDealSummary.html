@@ -1,0 +1,327 @@
+<template>
+
+   <!-- <lightning-card title="New Deal Forecast Summary">  -->
+    <template if:false={LoadingState}>
+      <lightning-spinner alternative-text="Loading" size="medium" variant="brand" ></lightning-spinner>    
+    </template>
+  
+    
+      <table class="" border="0">
+        <tr class="">
+          <th class="" scope="col">
+
+          <p><lightning-formatted-text value="Filter Opp/App Status:" class="fontBold"></lightning-formatted-text></p>
+          <select class="" id="select-01" name="optionSelect" onchange={changeHandler}>
+            <template for:each = {statusList} for:item="listViewItem">
+               <option key={listViewItem} value={listViewItem}>{listViewItem}</option>
+            </template>
+          </select>    
+           &nbsp;&nbsp;
+           <lightning-button variant="brand" label="Search" title="runAction" onclick={handleClick}  value={searchKey}></lightning-button>
+         
+          </th>
+          <th class="" scope="col">          
+            <b><lightning-formatted-text value="Start from current month to end month of year" ></lightning-formatted-text></b>
+
+          </th>
+          <!-- <th>
+            <lightning-button variant="brand" label="Show next 11 months" title="run" onclick={runNext11Month} ></lightning-button>
+          </th> -->
+          </tr>          
+     
+      </table>
+   
+
+      <div class="table-wrapper">
+    <table class="" border="1" id="summaryTable">
+
+     <thead>
+      <tr>
+        <th colspan="13" style="text-align: center; vertical-align: middle;" class="tableColorGray"><b>New Deal</b></th>
+        <th colspan="12" style="text-align: center; vertical-align: middle;" class="tableColorGray"><b>NI Amount</b></th>
+      </tr>
+      <tr class="slds-line-height_reset" if:true={monthHeaderTable}>
+        <th class="cellHeaderColor1" scope="col" >
+        Team
+       </th>
+       <th class="cellHeaderColor1" scope="col" >
+        RM
+       </th>
+       <th class="cellHeaderColor1" scope="col">
+        Short ID
+       </th>
+       <th class="cellHeaderColor1" scope="col">
+        Customer
+       </th>
+  
+       <th class="cellHeaderColor1" scope="col">
+        Opportunity
+       </th>
+       <th class="cellHeaderColor1" scope="col">
+        Product
+       </th>
+       <th class="cellHeaderColor1" scope="col">
+        <div class="slds-truncate" title="">Probability</div>
+       </th>
+       <th class="cellHeaderColor1" scope="col">
+        Income Type
+       </th>
+       <th class="cellHeaderColor1" scope="col">
+        NIM / Fee rate
+       </th>
+       <th class="cellHeaderColor1" scope="col">
+        Limit / Volume
+       </th>
+
+       <th class="cellHeaderColor1" scope="col">
+        % Utilization
+       </th>       
+
+       <th class="cellHeaderColor1" scope="col">
+        Expected income Current Y{year}
+        <lightning-helptext icon-name="utility:salesforce1" content="Sum NI from current month to end month in this year"></lightning-helptext>
+       </th>
+       <th class="cellHeaderColor1" scope="col" >
+        Opp/App Status
+       </th>   
+
+       <th class="cellHeaderColor3" scope="col" if:true={monthHeaderTable.monthName1}>
+        {monthHeaderTable.monthName1}
+       </th>
+       <th class="cellHeaderColor3" scope="col" if:true={monthHeaderTable.monthName2}>
+        {monthHeaderTable.monthName2}
+       </th>
+       <th class="cellHeaderColor3" scope="col" if:true={monthHeaderTable.monthName3}>
+        {monthHeaderTable.monthName3}
+       </th>
+       <th class="cellHeaderColor3" scope="col" if:true={monthHeaderTable.monthName4}>
+        {monthHeaderTable.monthName4}
+       </th>
+       <th class="cellHeaderColor3" scope="col" if:true={monthHeaderTable.monthName5}>
+        {monthHeaderTable.monthName5}
+       </th>
+       <th class="cellHeaderColor3" scope="col" if:true={monthHeaderTable.monthName6}>
+        {monthHeaderTable.monthName6}
+       </th>
+       <th class="cellHeaderColor3" scope="col" if:true={monthHeaderTable.monthName7}>
+        {monthHeaderTable.monthName7}
+       </th>
+       <th class="cellHeaderColor3" scope="col" if:true={monthHeaderTable.monthName8}>
+        {monthHeaderTable.monthName8}
+       </th>
+       <th class="cellHeaderColor3" scope="col" if:true={monthHeaderTable.monthName9}>
+        {monthHeaderTable.monthName9}
+       </th>
+       <th class="cellHeaderColor3" scope="col" if:true={monthHeaderTable.monthName10}>
+        {monthHeaderTable.monthName10}
+       </th>
+       <th class="cellHeaderColor3" scope="col" if:true={monthHeaderTable.monthName11}> 
+        {monthHeaderTable.monthName11}
+       </th>
+       <th class="cellHeaderColor3" scope="col" if:true={monthHeaderTable.monthName12}>
+        {monthHeaderTable.monthName12}
+       </th>
+      </tr>
+     </thead>
+
+     <tbody>     
+      <template if:true={dealForeCastArray}>
+        <template for:each={dealForeCastArray} for:item="dealforeCast">
+ 
+         <tr key={dealforeCast.rmTeamname} class="slds-hint-parent">
+          <td data-label="rmTeamname" rowspan={dealforeCast.rowspan} class="td-min-max-width">
+            {dealforeCast.rmTeamname}   
+                    
+          </td>
+         </tr>
+       
+         <template for:each={dealforeCast.dealForeCs} for:item="dealrmName">
+         
+           <tr key={dealrmName.recordId}>           
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-min-max-width">
+            {dealrmName.rmName}
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-min-max-width">
+            {dealrmName.tmbShortId}
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-min-max-width">
+            {dealrmName.customerName}
+           </td>       
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-min-max-width">
+            {dealrmName.opportunityName}
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-min-max-width">
+            {dealrmName.productName}
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap">
+            {dealrmName.probability}
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap">
+            {dealrmName.incomeType}
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap">
+            <lightning-formatted-number value={dealrmName.nimFeeRate} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+            
+           </td>
+
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap">
+            <lightning-formatted-number value={dealrmName.limitVolume} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap">            
+            <lightning-formatted-number value={dealrmName.percentUtilization} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-min-max-width">
+            <lightning-formatted-number value={dealrmName.expectedIncome} format-style="decimal" minimum-integer-digits="2"></lightning-formatted-number>
+           
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-min-max-width">
+            {dealrmName.status}
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap" if:true={monthHeaderTable.monthName1}>
+            <lightning-formatted-number value={dealrmName.month1} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap" if:true={monthHeaderTable.monthName2}>
+            <lightning-formatted-number value={dealrmName.month2} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap" if:true={monthHeaderTable.monthName3}>
+            <lightning-formatted-number value={dealrmName.month3} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap" if:true={monthHeaderTable.monthName4}>
+            <lightning-formatted-number value={dealrmName.month4} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap" if:true={monthHeaderTable.monthName5}>
+            <lightning-formatted-number value={dealrmName.month5} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap" if:true={monthHeaderTable.monthName6}>
+            <lightning-formatted-number value={dealrmName.month6} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap" if:true={monthHeaderTable.monthName7}>
+            <lightning-formatted-number value={dealrmName.month7} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap" if:true={monthHeaderTable.monthName8}>
+            <lightning-formatted-number value={dealrmName.month8} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap" if:true={monthHeaderTable.monthName9}>
+            <lightning-formatted-number value={dealrmName.month9} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap" if:true={monthHeaderTable.monthName10}>
+            <lightning-formatted-number value={dealrmName.month10} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap" if:true={monthHeaderTable.monthName11}>
+            <lightning-formatted-number value={dealrmName.month11} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+           <td key={dealrmName.recordId} data-label="rmTeamname" class="td-nowrap" if:true={monthHeaderTable.monthName12}>
+            <lightning-formatted-number value={dealrmName.month12} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number>
+           </td>
+          </tr>
+         </template>
+        </template>
+
+        </template>
+
+        <template if:true={isNoData}>
+             <tr>
+               <td colspan="13">
+                <b>No Records</b>
+               </td>              
+            </tr>    
+        </template>
+      </tbody>
+
+        <tfoot>
+         <tr if:true={totalNI}>         
+            <th colspan="13" class="cellHeaderColor1" ><b>Total</b></th>
+            <th class="cellHeaderColor3" if:true={monthHeaderTable.monthName1}>
+              <b><lightning-formatted-number value={totalNI.totalNiMonth1} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number></b>
+            </th>
+            <th class="cellHeaderColor3" if:true={monthHeaderTable.monthName2}>
+              <b><lightning-formatted-number value={totalNI.totalNiMonth2} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number></b>
+            </th>
+            <th class="cellHeaderColor3" if:true={monthHeaderTable.monthName3}>
+              <b><lightning-formatted-number value={totalNI.totalNiMonth3} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number></b>
+            </th>
+            <th class="cellHeaderColor3" if:true={monthHeaderTable.monthName4}>
+              <b><lightning-formatted-number value={totalNI.totalNiMonth4} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number></b>
+            </th>
+            <th class="cellHeaderColor3" if:true={monthHeaderTable.monthName5}>
+              <b><lightning-formatted-number value={totalNI.totalNiMonth5} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number></b>
+            </th>
+            <th class="cellHeaderColor3" if:true={monthHeaderTable.monthName6}>
+              <b><lightning-formatted-number value={totalNI.totalNiMonth6} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number></b>
+            </th>
+            <th class="cellHeaderColor3" if:true={monthHeaderTable.monthName7}>
+              <b><lightning-formatted-number value={totalNI.totalNiMonth7} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number></b>
+            </th>
+            <th class="cellHeaderColor3" if:true={monthHeaderTable.monthName8}>
+              <b><lightning-formatted-number value={totalNI.totalNiMonth8} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number></b>
+            </th>
+            <th class="cellHeaderColor3" if:true={monthHeaderTable.monthName9}>
+              <b><lightning-formatted-number value={totalNI.totalNiMonth9} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number></b>
+            </th>
+            <th class="cellHeaderColor3" if:true={monthHeaderTable.monthName10}>
+              <b><lightning-formatted-number value={totalNI.totalNiMonth10} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number></b>
+            </th>
+            <th class="cellHeaderColor3" if:true={monthHeaderTable.monthName11}>
+              <b><lightning-formatted-number value={totalNI.totalNiMonth11} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number></b>
+            </th>
+            <th class="cellHeaderColor3" if:true={monthHeaderTable.monthName12}>
+              <b><lightning-formatted-number value={totalNI.totalNiMonth12} format-style="decimal" maximum-fraction-digits="2"></lightning-formatted-number></b>
+            </th>   
+        </tr>
+      </tfoot>
+
+    </table>
+    </div>
+ 
+  
+
+    <!--- pagination-->
+    <p class="slds-m-vertical_medium content">
+     <b> Displaying {startingRecord} to {endingRecord} of {totalRecountCount} records.
+      Page {page} of {totalPage}. </b></p>  
+    <lightning-layout>  
+      <lightning-layout-item >
+        <lightning-button label="First" onclick={firstPage} disabled={isShowFirstPage} variant="brand"></lightning-button>
+        &nbsp;
+        <lightning-button label="Previous" onclick={previousHandler} disabled={isShowPrevious} variant="brand"></lightning-button>
+        &nbsp;
+        <lightning-button label="Next" onclick={nextHandler} disabled={isShownext} variant="brand"></lightning-button>
+        &nbsp;
+        <lightning-button label="End" onclick={endPage} disabled={isShowEndPage} variant="brand"></lightning-button>
+      </lightning-layout-item>  
+  </lightning-layout>
+
+
+<!--  Data table-->
+
+<!--
+       <table class="slds-table slds-table_cell-buffer slds-table_bordered " border="0">
+        <tr>
+          <th>  
+            <template if:true={newDealForecast.data} >  
+                <lightning-datatable
+                  key-field="newDealForecast.Id"
+                  data={newDealForecast.data}
+                  hide-checkbox-column="true"         
+                  columns={columns}
+                  onresize={handleResize}
+                  min-column-width="120"
+
+                  >
+                </lightning-datatable>
+              </template>      
+        </th>
+        </tr>
+      </table>
+    -->
+      <!-- wrap-text-max-lines = "3" 
+            column-widths-mode="auto" 
+          show-row-number-column="true" -->  
+      <!-- ------------ -->     
+    
+   <!--  </lightning-card> -->
+
+   </template>

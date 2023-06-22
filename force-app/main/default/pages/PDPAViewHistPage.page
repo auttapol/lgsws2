@@ -1,0 +1,233 @@
+<apex:page standardController="Account" extensions="PDPAViewHistPageController" showHeader="false" sidebar="false"
+           tabStyle="Account" docType="html-5.0" lightningStylesheets="true" action="{!calloutConsentHist}">
+    
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />  
+        
+        <!-- Import the Design System style sheet -->
+        <apex:slds />
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}"  />
+        <apex:includeScript value="/support/console/48.0/integration.js"/>
+
+        <script>
+        function ShowSpin(){
+            $('#spin').show();
+        }
+
+        function HideSpin(){
+            $('#spin').hide();          
+        }
+        
+        </script>
+        
+        <style>
+            .slds-scope .slds-text-title--caps, .slds-scope .slds-text-title_caps {
+                font-size: .79rem !important;
+            }
+            
+            .slds-scope .slds-box, .slds-scope .slds-show{
+                padding: 0.3rem;
+            }
+            
+            .slds-scope .slds-table td{
+                padding: 0.5rem 0.5rem 0.5rem 0.2rem;
+            }
+            .slds-scope .slds-table th{
+                padding: 0.2rem; 
+            }
+            .slds-scope table{
+                width: auto;
+            }
+            .th-background{
+                background-color: rgb(12, 204, 194)  !important; 
+            }
+        </style>
+    </head>
+    
+    <apex:form id="page">
+        <apex:actionStatus id="status" onstart="ShowSpin()" onstop="HideSpin()"> </apex:actionStatus>
+        <apex:actionFunction name="previous" action="{!paginationPrevious}" reRender="Table, pagination" status="status"/>
+        <apex:actionFunction name="next" action="{!paginationNext}" reRender="Table, pagination" status="status"/>
+        <apex:actionFunction name="calloutConsentHist" action="{!calloutConsentHist}" reRender="page" status="status"/>
+        <apex:actionFunction name="calloutConsentHistRetry" action="{!calloutConsentHist}" rerender="scriptSection,page"/>
+        <apex:actionFunction name="setPDPAHisRetryState" action="{!setPDPAHisRetryState}" rerender="page"/>  
+        
+        <div id="spin" style="display:none;" class="slds-spinner_container">
+            <div class="slds-spinner--brand slds-spinner slds-spinner--large" aria-hidden="false" role="alert">
+                <div class="slds-spinner__dot-a"></div>
+                <div class="slds-spinner__dot-b"></div>
+            </div>
+        </div> 
+        <apex:outputPanel rendered="{!state == '1' && (isPDPAHisInvalidToken == false || isViewPDPAHisRetryTimeout == true)}" >
+            <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom">
+                <apex:outputText value="{!$Label.PDPA_Error_Response}"  styleClass="noRowsHeader" />
+                <apex:commandLink onclick="calloutConsentHist();return false"> Retry</apex:commandLink>
+            </div>
+        </apex:outputPanel>
+
+        <apex:outputPanel rendered="{!isPDPAHisInvalidToken == true && isViewPDPAHisRetryTimeout != true}" >
+            <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom">
+                <apex:outputText value="{!webServiceErrMsg}"  styleClass="noRowsHeader" />
+            </div>
+        </apex:outputPanel>
+	
+        <apex:outputPanel rendered="{!state == '2'}" >
+            <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom">
+                <apex:outputText value="{!$Label.PDPA_Error_Not_Existing_Cust_History}"  styleClass="noRowsHeader" />
+            </div>
+        </apex:outputPanel>
+        
+        <div class="slds-form-element slds-m-around_small">
+            <apex:outputPanel id="Table" rendered="{!state == '0'}">
+                <div class="slds-m-top_xxx-small">
+                    <table class="slds-table slds-table--bordered" style="text-align: left;font-size: 12px; width: 100%;">
+                        <thead class="th-background">
+                            <tr class="slds-text-title--caps slds-section-title--divider">
+                                
+                                <th class="slds-size_1-of-12" scope="col">
+                                    <div class="slds-cell-wrap" title="{!$Label.PDPA_Action}">
+                                        {!$Label.PDPA_Action}
+                                    </div>
+                                </th>
+                                <th class="slds-size_1-of-12" scope="col"> 
+                                    <div class="slds-cell-wrap" title="{!$Label.PDPA_Consent_Type}">
+                                        {!$Label.PDPA_Consent_Type}
+                                    </div>
+                                </th>
+                                <th class="slds-size_1-of-12" scope="col"> 
+                                    <div class="slds-cell-wrap" title="{!$Label.PDPA_Accept}">
+                                        {!$Label.PDPA_Accept}
+                                    </div>
+                                </th>
+                                <th class="slds-size_1-of-12" scope="col"> 
+                                    <div class="slds-cell-wrap" title="{!$Label.PDPA_Version}">
+                                        {!$Label.PDPA_Version}
+                                    </div>
+                                </th>
+                                <th class="slds-size_2-of-12" scope="col"> 
+                                    <div class="slds-cell-wrap" title="{!$Label.PDPA_LastUpdatedDate}">
+                                        {!$Label.PDPA_LastUpdatedDate}
+                                    </div>
+                                </th>
+                                <th class="slds-size_2-of-12" scope="col"> 
+                                    <div class="slds-cell-wrap" title="{!$Label.PDPA_Consent_Sign_Date}">
+                                        {!$Label.PDPA_Consent_Sign_Date}
+                                    </div>
+                                </th>
+                                <th class="slds-size_2-of-12" scope="col"> 
+                                    <div class="slds-cell-wrap" title="{!$Label.PDPA_Channel}">
+                                        {!$Label.PDPA_Channel}
+                                    </div>
+                                </th>
+                                <th class="slds-size_2-of-12" scope="col"> 
+                                    <div class="slds-cell-wrap" title="{!$Label.PDPA_EmployeeID}">
+                                        {!$Label.PDPA_EmployeeID}
+                                    </div>
+                                </th>
+                                
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <apex:repeat value="{!consentDisplay}" var="consentHist" rendered="{!state == '0'}" >
+                                <tr class="dataRow">        
+                                    
+                                    <td data-label="" > 
+                                        <div class="slds-cell-wrap" title="">
+                                            <apex:outputPanel rendered="true">
+                                            </apex:outputPanel>                                                           
+                                        </div>
+                                    </td>
+                                    <td data-label="{!$label.PDPA_Consent_Type}" > 
+                                        <div class="slds-cell-wrap" title="{!consentHist.type}">
+                                            <apex:outputText value="{!consentHist.type}" />  
+                                        </div>
+                                    </td>
+                                    <td data-label="{!$label.PDPA_Accept}" > 
+                                        <div class="slds-cell-wrap" title="{!consentHist.flag}">
+                                            <apex:outputText value="{!consentHist.flag}" />
+                                        </div>
+                                    </td>   
+                                    <td data-label="{!$label.PDPA_Version}" > 
+                                        <div class="slds-cell-wrap" title="{!consentHist.version}">
+                                            <apex:outputText value="{!consentHist.version}" />
+                                        </div>
+                                    </td> 
+                                    <td data-label="{!$label.PDPA_LastUpdatedDate}" > 
+                                        <div class="slds-cell-wrap" title="{!consentHist.consentDateTime}">
+                                            <apex:outputText value="{0,date, dd/MM/yyyy HH:mm}"> 
+                                                <apex:param value="{!consentHist.consentDateTime}" /> 
+                                            </apex:outputText>
+                                        </div>
+                                    </td>
+                                    <td data-label="{!$label.PDPA_Consent_Sign_Date}" > 
+                                        <div class="slds-cell-wrap" title="{!consentHist.consentSignDate}">
+                                            <apex:outputText value="{0,date, dd/MM/yyyy}"> 
+                                                <apex:param value="{!consentHist.consentSignDate}" /> 
+                                            </apex:outputText>
+                                        </div>
+                                    </td>
+                                    <td data-label="{!$label.PDPA_Channel}" > 
+                                        <div class="slds-cell-wrap" title="{!consentHist.channel}">
+                                            <apex:outputText value="{!consentHist.channel}" />  
+                                        </div>
+                                    </td>
+                                    <td data-label="{!$label.PDPA_EmployeeID}" > 
+                                        <div class="slds-cell-wrap" title="">
+                                            <apex:outputText value="{!consentHist.consentBy}" />  
+                                        </div>
+                                    </td>     
+                                    
+                                </tr>
+                            </apex:repeat>
+                        </tbody>
+                        
+                    </table>
+                </div>
+                <br/>
+            </apex:outputPanel>
+        </div>
+        
+        <apex:outputPanel id="pagination" rendered="{!state == '0'}" >
+            
+            <div class="row" style="float: right; right: 16px;">
+                <div class="slds-button-group" role="group" style="margin-right: 20px; right: 130px">
+                    <apex:commandButton styleClass="slds-button slds-button_neutral" value="Previous" onclick="previous();return false;"  disabled="{!page == 0}"/>
+                    <apex:commandButton styleClass="slds-button slds-button_neutral" value="Next" onclick="next();return false;"  disabled="{!page == pageMax}"/>
+                </div>
+                <apex:outputPanel layout="block" styleClass="myHeader" style="float:right;margin: 4px">
+                    <apex:outputText value="{!pageString}" />
+                </apex:outputPanel>
+                
+            </div>
+        </apex:outputPanel>
+
+        
+    </apex:form>    
+
+    <apex:outputPanel id="scriptSection">
+        <script type="text/javascript">
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+    
+            async function retryPDPAHisWebService() {
+                var isPDPAInvalidToken = '{!isPDPAHisInvalidToken}' == 'true' ? true : false;
+                var retryRemain = '{!pdpaHisRetryRemain}';
+                var totalRetry = '{!pdpaRetry}';
+                var retryDelay = '{!pdpaHisRetryDelay}';
+                console.log('call retry pdpa his', isPDPAInvalidToken,retryRemain)
+                if(isPDPAInvalidToken && retryRemain > 0) {
+                    setPDPAHisRetryState();
+                    await sleep(retryDelay)
+                    // console.log('view pdpa')
+                    calloutConsentHistRetry()
+                }
+            }
+            $(document).ready(function(){
+                retryPDPAHisWebService();
+            });
+        </script>
+    </apex:outputPanel>
+
+</apex:page>

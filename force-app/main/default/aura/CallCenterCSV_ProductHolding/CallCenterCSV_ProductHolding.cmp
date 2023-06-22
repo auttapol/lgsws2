@@ -1,0 +1,295 @@
+<aura:component controller="RTL_ProductHoldingsLightningUtil"
+    implements="flexipage:availableForAllPageTypes,force:hasRecordId,lightning:isUrlAddressable" access="global">
+
+    <ltng:require styles="{!$Resource.C3_Chart + '/c3_chart/c3.css'}" />
+    <ltng:require scripts="{!$Resource.C3_Chart + '/c3_chart/d3.js'}" />
+    <ltng:require scripts="{!$Resource.C3_Chart + '/c3_chart/c3.js'}" />
+
+    <lightning:navigation aura:id="navService" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <ltng:require scripts="{!$Resource.bluebird372}" afterScriptsLoaded="{!c.onInit}" />
+
+    <aura:registerEvent name="CallCenterCSV_ProductHoldingEvent" type="c:CallCenterCSV_ProductHoldingEvent" />
+    <aura:handler name="RetailProductHoldingEvent" event="c:CommercialAutoLoan_ProductHoldingEvent"
+        action="{!c.handleChildEvent}" />
+
+    <aura:attribute name="theme" type="String" />
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="tmbCustId" type="String" />
+    <aura:attribute name="AllPort" type="String" default="ALL Port" />
+
+    <aura:attribute name="account" type="Object" />
+
+    <aura:attribute name="isAutoRetryOSC01" type="Boolean" default="false" />
+    <aura:attribute name="isAutoRetryCreditCard" type="Boolean" default="false" />
+
+    <!-- <aura:handler name="change" value="{!v.account}" action="{!c.handlerAccount}" /> -->
+
+    <aura:attribute name="accessibleCusHold" type="Map" default="{
+        'isAccessibleCusHoldLow' : false,
+        'isAccessibleCusHoldMid' : false,
+        'isAccessibleCusHoldHig' : false,
+    }" />
+    <!-- <aura:handler name="change" value="{!v.accessibleCusHold}" action="{!c.calloutService}" /> -->
+
+    <aura:attribute name="productSummarized" type="Map" default="{}" />
+    <aura:attribute name="depositProduct" type="Map" default="{}" />
+    <aura:attribute name="creditCardRDCProduct" type="Map" default="{}" />
+    <aura:attribute name="loanProduct" type="Map" default="{}" />
+    <aura:attribute name="bancassuranceProduct" type="Map" default="{}" />
+    <aura:attribute name="investmentProduct" type="Map" default="{}" />
+    <!-- Add new investment product list for grouping. -->
+    <aura:attribute name="investmentProductAP" type="Map" default="{}" />
+    <aura:attribute name="investmentProductPT" type="Map" default="{}" />
+    <aura:attribute name="investmentProductLTF" type="Map" default="{}" />
+    <aura:attribute name="investmentactiveSections" type="List" default="['AP','PT','LTF']" />
+    <aura:attribute name="investmentOptionsAP" type="List" />
+    <aura:attribute name="investmentSelectedValueAP" type="String" />
+    <aura:attribute name="investmentAPGraphList" type="List" />
+    <aura:attribute name="investmentAPGroup" type="List" />
+    <aura:attribute name="investmentOptionsPT" type="List" />
+    <aura:attribute name="investmentSelectedValuePT" type="String" />
+    <aura:attribute name="investmentPTGraphList" type="List" />
+    <aura:attribute name="investmentPTGraphRecommend" type="List" />
+    <aura:attribute name="investmentLTFGraph" type="List" />
+    <aura:attribute name="waterMarkImage" type="String" />
+    <aura:attribute name="mainBankProductCode" type="List" /> <!-- mainbank prod code mdt -->
+    <aura:attribute name="unmasked" type="Map" default="{}" />
+
+    <aura:attribute name="retrySetTimeOut" type="Integer" />
+    <aura:attribute name="numOfRetryTime" type="Integer" />
+
+    <aura:html tag="style">
+        :root {
+        --backgroundImage: {!v.waterMarkImage};
+        }
+    </aura:html>
+    <force:recordData aura:id="recordLoader" recordId="{!v.recordId ? v.recordId : v.pageReference.state.c__recordId}"
+        fields="Name, TMB_Customer_ID_PE__c, RTL_Is_Employee__c, RTL_Suitability__c" targetFields="{!v.account}" />
+
+    <aura:attribute name="isOnce" type="Boolean" default="true" />
+    <aura:attribute name="isOnline" type="Boolean" default="true" />
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+    <aura:attribute name="isSuccess" type="Boolean" default="false" />
+    <!-- <aura:handler name="change" value="{!v.isSuccess}" action="{!c.onSuccess}" /> -->
+    <aura:attribute name="error" type="Map"
+    default="{'state':false,'message':'','messages':{'AllRetry':'','OSC01':'','CardBal':'','Bancassurance':'','someInfoError':''},'hrefList':''}" />
+    <aura:attribute name="errorMessageControl" type="Map" />
+    <aura:attribute name="errorMessage" type="String" />
+
+    <aura:attribute name="openNewProductHolding" type="Boolean" default="false" />
+
+    <!-- <ui:scrollerWrapper aura:id="scrollerWrapper" class="container slds-no-print"> -->
+
+        <aura:if isTrue="{! v.openNewProductHolding }">
+            <c:ProductHoldingSummaryView recordId="{!v.recordId}" theme="{!v.theme}"/>
+        </aura:if>
+        <!-- <aura:if isTrue="{! v.isLoading }"> -->
+            <!-- <lightning:spinner alternativeText="Loading" size="small" variant="brand" /> -->
+        <!-- </aura:if> -->
+        <!-- <lightning:layout class="slds-page-header slds-page-header_object-home"> -->
+            <!-- <lightning:layoutItem> -->
+                <!-- <lightning:icon size="large" iconName="standard:product" /> -->
+            <!-- </lightning:layoutItem> -->
+            <!-- <lightning:layoutItem padding="horizontal-small"> -->
+                <!-- <div class="page-section page-header"> -->
+                    <!-- <h1 class="slds-text-heading_label"> -->
+                        <!-- {!$Label.c.Details_of_Product_Holdings} -->
+                    <!-- </h1> -->
+<!--  -->
+                    <!-- <h2 class="slds-text-heading_medium"> -->
+                        <!-- {! v.account.Name } -->
+                    <!-- </h2> -->
+                <!-- </div> -->
+            <!-- </lightning:layoutItem> -->
+        <!-- </lightning:layout> -->
+<!--  -->
+        <!-- <aura:if isTrue="{! v.error.state }"> -->
+            <!-- <lightning:layout> -->
+                <!-- <lightning:layoutItem size="12" class="slds-is-relative slds-p-top_small"> -->
+                    <!-- <lightning:card class="slds-theme_shade slds-theme_alert-texture"> -->
+                        <!-- <aura:set attribute="title"> -->
+                            <!-- <div class="slds-text-heading_medium slds-text-color_destructive"> -->
+                                <!-- <aura:unescapedHtml value="{!v.error.title}" /> -->
+                            <!-- </div> -->
+                        <!-- </aura:set> -->
+                        <!-- <div class="slds-p-around_small">{! v.error.messageTimeout }</div> -->
+                        <!-- <lightning:layoutItem aura:id="hrefComponent" class="slds-p-around_small"> -->
+                            <!-- <div style="white-space: pre-wrap;"> -->
+                                <!-- <aura:if -->
+                                    <!-- isTrue="{! or(v.errorMessageControl.noTmbcust, v.errorMessageControl.noAuthorized)}"> -->
+                                    <!-- <div> -->
+                                        <!-- {!v.error.message} -->
+                                    <!-- </div> -->
+                                <!-- </aura:if> -->
+                                <!-- <aura:if isTrue="{!v.errorMessageControl.isShowMessage.Retry}"> -->
+                                    <!-- <div> -->
+                                        <!-- {!v.errorMessageControl.messages.Retry} -->
+                                    <!-- </div> -->
+                                <!-- </aura:if> -->
+                                <!-- <aura:if isTrue="{!v.errorMessageControl.isShowMessage.Snow}"> -->
+                                    <!-- <div> -->
+                                        <!-- <aura:if isTrue="{!v.errorMessageControl.isShowMessage.Retry}"> -->
+                                            <!-- {!v.errorMessageControl.messages.tryContact} -->
+                                            <!-- <aura:set attribute="else"> -->
+                                                <!-- {!v.errorMessageControl.messages.Snow} -->
+                                            <!-- </aura:set> -->
+                                        <!-- </aura:if> -->
+                                    <!-- </div> -->
+                                <!-- </aura:if> -->
+                                <!-- <aura:if isTrue="{!v.errorMessageControl.isShowMessage.Info}"> -->
+                                    <!-- <div> -->
+                                        <!-- {!v.errorMessageControl.messages.Info} -->
+                                    <!-- </div> -->
+                                <!-- </aura:if> -->
+                                <!-- <aura:if isTrue="{!v.error.hrefList}"> -->
+                                    <!-- <div> -->
+                                        <!-- {!v.error.hrefList} -->
+                                    <!-- </div> -->
+                                <!-- </aura:if> -->
+                            <!-- </div> -->
+                        <!-- </lightning:layoutItem> -->
+                    <!-- </lightning:card> -->
+                <!-- </lightning:layoutItem> -->
+            <!-- </lightning:layout> -->
+        <!-- </aura:if> -->
+<!--  -->
+        <!-- <lightning:layout multipleRows="true"> -->
+            <!-- <lightning:layoutItem size="12" class="slds-p-top_small"> -->
+                <!-- <lightning:card> -->
+                    <!-- <aura:set attribute="title"> -->
+                        <!-- {! $Label.c.Customer_Product_Holding_Summary } -->
+                        <!-- <span style="font-size: 15px;color:red;"> -->
+                            <!-- ข้อมูลลูกค้าเป็นความลับ ไม่อนุญาตให้เผยแพร่แก่บุคคลภายนอกและห้ามบันทึกภาพหรือจัดพิมพ์ -->
+                        <!-- </span> -->
+                        <!-- <aura:if isTrue="{! and(v.productSummarized.isLoading, v.isOnline) }"> -->
+                            <!-- <div class="slds-is-relative spinnerInline"> -->
+                                <!-- <lightning:spinner alternativeText="Loading" size="small" variant="brand" /> -->
+                            <!-- </div> -->
+                        <!-- </aura:if> -->
+                    <!-- </aura:set> -->
+                    <!-- <lightning:datatable class="bg-table" keyField="id" columns="{! v.productSummarized.columns }" -->
+                        <!-- data="{! v.productSummarized.datas }" hideCheckboxColumn="true" maxRowSelection="1" -->
+                        <!-- resizeColumnDisabled="true" onrowaction="{! c.onSummaryClickHref }" /> -->
+                <!-- </lightning:card> -->
+            <!-- </lightning:layoutItem> -->
+<!--  -->
+            <!-- <lightning:layoutItem size="12" class="slds-p-top_small"> -->
+                <!-- <div aura:id="Deposit_Product_Details"></div> -->
+                <!-- <lightning:card> -->
+                    <!-- <aura:set attribute="title"> -->
+                        <!-- {! $Label.c.Deposit_Product_Details } -->
+                        <!-- <aura:if isTrue="{! and(v.depositProduct.isLoading, v.isOnline) }"> -->
+                            <!-- <div class="slds-is-relative spinnerInline"> -->
+                                <!-- <lightning:spinner alternativeText="Loading" size="small" variant="brand" /> -->
+                            <!-- </div> -->
+                        <!-- </aura:if> -->
+                    <!-- </aura:set> -->
+                    <!-- <lightning:datatable class="bg-table" keyField="id" columns="{! v.depositProduct.columns }" -->
+                        <!-- data="{! v.depositProduct.datas }" hideCheckboxColumn="true" maxRowSelection="1" -->
+                        <!-- resizeColumnDisabled="true" onrowaction="{! c.onViewClickHref }" /> -->
+                <!-- </lightning:card> -->
+            <!-- </lightning:layoutItem> -->
+<!--  -->
+            <!-- <lightning:layoutItem size="12" class="slds-p-top_small"> -->
+                <!-- <div aura:id="Credit_Card_RDC_Product_Details"></div> -->
+                <!-- <lightning:card> -->
+                    <!-- <aura:set attribute="title"> -->
+                        <!-- {! $Label.c.Credit_Card_RDC_Product_Details } -->
+                        <!-- <aura:if isTrue="{! and(v.creditCardRDCProduct.isLoading, v.isOnline) }"> -->
+                            <!-- <div class="slds-is-relative spinnerInline"> -->
+                                <!-- <lightning:spinner alternativeText="Loading" size="small" variant="brand" /> -->
+                            <!-- </div> -->
+                        <!-- </aura:if> -->
+                    <!-- </aura:set> -->
+                    <!-- <lightning:datatable class="bg-table" keyField="id" columns="{! v.creditCardRDCProduct.columns }" -->
+                        <!-- data="{! v.creditCardRDCProduct.datas }" hideCheckboxColumn="true" maxRowSelection="1" -->
+                        <!-- resizeColumnDisabled="true" onrowaction="{! c.onViewClickHref }" /> -->
+                <!-- </lightning:card> -->
+            <!-- </lightning:layoutItem> -->
+<!--  -->
+            <!-- <lightning:layoutItem size="12" class="slds-p-top_small"> -->
+                <!-- <div aura:id="Loan_Product_Details"></div> -->
+                <!-- <lightning:card> -->
+                    <!-- <aura:set attribute="title"> -->
+                        <!-- {! $Label.c.Loan_Product_Details } -->
+                        <!-- <aura:if isTrue="{! and(v.loanProduct.isLoading, v.isOnline) }"> -->
+                            <!-- <div class="slds-is-relative spinnerInline"> -->
+                                <!-- <lightning:spinner alternativeText="Loading" size="small" variant="brand" /> -->
+                            <!-- </div> -->
+                        <!-- </aura:if> -->
+                    <!-- </aura:set> -->
+                    <!-- <lightning:datatable class="bg-table" keyField="id" columns="{! v.loanProduct.columns }" -->
+                        <!-- data="{! v.loanProduct.datas }" hideCheckboxColumn="true" maxRowSelection="1" -->
+                        <!-- resizeColumnDisabled="true" onrowaction="{! c.onViewClickHref }" /> -->
+                <!-- </lightning:card> -->
+            <!-- </lightning:layoutItem> -->
+<!--  -->
+            <!-- <lightning:layoutItem size="12" class="slds-p-top_small"> -->
+                <!-- <div aura:id="AutoLoan_Product_Details"></div> -->
+                <!-- <c:RetailProductHolding_Autoloan aura:id="RetailProductHolding_Autoloan" -->
+                    <!-- auraId="RetailProductHolding_Autoloan" tag="AutoLoan_Product_Details" theme="{!v.theme}" -->
+                    <!-- recordId="{!v.recordId}" tmbCustId="{!v.tmbCustId}" accessibleCusHold="{!v.accessibleCusHold}" account="{!v.account}"/> -->
+            <!-- </lightning:layoutItem> -->
+<!--  -->
+            <!-- <lightning:layoutItem size="12" class="slds-p-top_small"> -->
+                <!-- <div aura:id="Bancassurance_Product_Details"></div> -->
+                <!-- <lightning:card> -->
+                    <!-- <aura:set attribute="title"> -->
+                        <!-- {! $Label.c.Bancassurance_Product_Details } -->
+                        <!-- <aura:if isTrue="{! and(v.bancassuranceProduct.isLoading, v.isOnline) }"> -->
+                            <!-- <div class="slds-is-relative spinnerInline"> -->
+                                <!-- <lightning:spinner alternativeText="Loading" size="small" variant="brand" /> -->
+                            <!-- </div> -->
+                        <!-- </aura:if> -->
+                        <!-- <c:rtlPopupLink aura:id="rtlPopupLink" recordId="{!v.recordId}" /> -->
+                    <!-- </aura:set> -->
+                    <!-- <lightning:datatable class="bg-table" keyField="id" columns="{! v.bancassuranceProduct.columns }" -->
+                        <!-- data="{! v.bancassuranceProduct.datas }" hideCheckboxColumn="true" maxRowSelection="1" -->
+                        <!-- resizeColumnDisabled="true" onrowaction="{! c.onViewClickHref }" /> -->
+                <!-- </lightning:card> -->
+            <!-- </lightning:layoutItem> -->
+<!--  -->
+            <!-- <lightning:layoutItem size="12" class="slds-p-vertical_small"> -->
+                <!-- <div aura:id="Investment_Product_Details"></div> -->
+                <!-- <lightning:card> -->
+                    <!-- <aura:set attribute="title"> -->
+                        <!-- {! $Label.c.Investment_Product_Details } -->
+                        <!-- <aura:if isTrue="{! and(v.investmentProduct.isLoading, v.isOnline) }"> -->
+                            <!-- <div class="slds-is-relative spinnerInline"> -->
+                                <!-- <lightning:spinner alternativeText="Loading" size="small" variant="brand" /> -->
+                            <!-- </div> -->
+                        <!-- </aura:if> -->
+                    <!-- </aura:set> -->
+                    <!-- <lightning:accordion aura:id="accordion" allowMultipleSectionsOpen="true" -->
+                        <!-- activeSectionName="{! v.investmentactiveSections }"> -->
+                        <!-- <lightning:accordionSection name="AP" label="TMB Smart Port"> -->
+                            <!-- <lightning:datatable class="bg-table eighty-percent" keyField="id" -->
+                                <!-- columns="{! v.investmentProductAP.columns }" data="{! v.investmentProductAP.datas }" -->
+                                <!-- hideCheckboxColumn="true" maxRowSelection="1" resizeColumnDisabled="true" -->
+                                <!-- onrowaction="{! c.onViewClickHref }" /> -->
+                        <!-- </lightning:accordionSection> -->
+                        <!-- <lightning:accordionSection name="PT" label="My Mutual Funds"> -->
+                            <!-- <lightning:datatable class="bg-table eighty-percent" keyField="id" -->
+                                <!-- columns="{! v.investmentProductPT.columns }" data="{! v.investmentProductPT.datas }" -->
+                                <!-- hideCheckboxColumn="true" maxRowSelection="1" resizeColumnDisabled="true" -->
+                                <!-- onrowaction="{! c.onViewClickHref }" /> -->
+                        <!-- </lightning:accordionSection> -->
+                        <!-- <lightning:accordionSection name="LTF" label="LTF/RMF/SSF"> -->
+                            <!-- <lightning:datatable class="bg-table eighty-percent" keyField="id" -->
+                                <!-- columns="{! v.investmentProductLTF.columns }" data="{! v.investmentProductLTF.datas }" -->
+                                <!-- hideCheckboxColumn="true" maxRowSelection="1" resizeColumnDisabled="true" -->
+                                <!-- onrowaction="{! c.onViewClickHref }" /> -->
+                        <!-- </lightning:accordionSection> -->
+                    <!-- </lightning:accordion> -->
+                <!-- </lightning:card> -->
+            <!-- </lightning:layoutItem> -->
+        <!-- </lightning:layout> -->
+        <!-- <lightning:layout>
+            <lightning:layoutItem size="12" class="slds-p-vertical_small">
+                <c:SubDebtTransactionDT aura:id="SubDebtTransactionDT"
+                        recordId="{!v.recordId ? v.recordId : v.pageReference.state.c__recordId}" />
+            </lightning:layoutItem>
+        </lightning:layout>
+    </ui:scrollerWrapper> -->
+</aura:component>

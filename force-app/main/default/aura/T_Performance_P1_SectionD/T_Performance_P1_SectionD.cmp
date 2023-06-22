@@ -1,0 +1,112 @@
+<aura:component>
+    <aura:attribute name="selectedEmpId" type="String"/>
+    <aura:attribute name="sumProductObj" type="Object[]"/>
+    <aura:attribute name="selectedMonth" type="Integer"/>
+    <aura:attribute name="selectedYear" type="String"/>
+    <!-- <aura:handler name="change" value="{!v.sumProductObj}" action="{!c.valueChange}"/> -->
+    <div class="slds-grid slds-wrap chart-container">
+        <table class="key-perf-tb">
+            <thead>
+                <tr>
+                    <th>Key Performance Indicator</th>
+                    <th>Performance</th>
+                    <th>Unit</th>
+                    <th>Actual Point</th>
+                    <th>Deduct Point</th>
+                    <th>Net Point</th>
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.sumProductObj}" var="subObj1" indexVar="idx">
+                    <tr>
+                        <td>
+                            <aura:if isTrue="{! not(subObj1.expand)}">
+                                <span id="{!'expand_lv1_'+idx}" onclick="{!c.handleExpand}" class="expand-btn">+</span>
+                            </aura:if>
+                            <aura:if isTrue="{!subObj1.expand}">
+                                <span id="{!'collapse_lv1_'+idx}" onclick="{!c.handleExpand}" class="expand-btn">-</span>
+                            </aura:if>
+                            <a id="{!'lv1_'+idx}" onclick="{!c.navigateToP2}">{!subObj1.Name}</a>
+                        </td>
+                        <td class="disable-cell">&nbsp;</td>
+                        <td class="disable-cell">&nbsp;</td>
+                        <td class="center-data"><lightning:formattedNumber value="{!subObj1.SumActualPoint}" minimumFractionDigits="2" maximumFractionDigits="2"/></td>
+                        <td class="center-data"><lightning:formattedNumber value="{!subObj1.SumDeductPoint}" minimumFractionDigits="2" maximumFractionDigits="2"/></td>
+                        <td class="center-data"><lightning:formattedNumber value="{!subObj1.NetPoint}" minimumFractionDigits="2" maximumFractionDigits="2"/></td>
+                    </tr>
+                    <aura:if isTrue="{!subObj1.expand}">
+                        <aura:iteration items="{!subObj1.Data}" var="subObj2" indexVar="idx2">
+                            <aura:if isTrue="{!subObj2.Name != null}">
+                                <tr>
+                                    <td class="sub-lv1">
+                                        <aura:if isTrue="{! not(subObj2.expand)}">
+                                            <span id="{!'expand_lv2_'+idx+'_'+idx2}" onclick="{!c.handleExpand}" class="expand-btn">+</span>
+                                        </aura:if>
+                                        <aura:if isTrue="{!subObj2.expand}">
+                                            <span id="{!'collapse_lv2_'+idx+'_'+idx2}" onclick="{!c.handleExpand}" class="expand-btn">-</span>
+                                        </aura:if>
+                                        <a id="{!'lv2_'+idx+'_'+idx2}" onclick="{!c.navigateToP2}">{!subObj2.Name}</a>
+                                    </td>
+                                    <td class="disable-cell">&nbsp;</td>
+                                    <td class="disable-cell">&nbsp;</td>
+                                    <td class="center-data"><lightning:formattedNumber value="{!subObj2.SumActualPoint}" minimumFractionDigits="2" maximumFractionDigits="2"/></td>
+                                    <td class="center-data"><lightning:formattedNumber value="{!subObj2.SumDeductPoint}" minimumFractionDigits="2" maximumFractionDigits="2"/></td>
+                                    <td class="center-data"><lightning:formattedNumber value="{!subObj2.NetPoint}" minimumFractionDigits="2" maximumFractionDigits="2"/></td>
+                                </tr>
+                            </aura:if>
+                            <aura:if isTrue="{!subObj2.expand || subObj2.Name == null}">
+                                <aura:iteration items="{!subObj2.Data}" var="product" indexVar="idx3">
+                                    <tr>
+                                        <td class="sub-lv2"><a id="{!'name_'+idx+'_'+idx2+'_'+idx3}" onclick="{!c.navigateToP2}">{!product.Indicator_Name__c}</a></td>
+                                        <td class="center-data"><lightning:formattedNumber value="{!product.Actual_Performance__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></td>
+                                        <td class="center-data">{!product.Sale_Unit__c}</td>
+                                        <td class="center-data"><lightning:formattedNumber value="{!product.Actual_Point__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></td>
+                                        <td class="center-data"><lightning:formattedNumber value="{!product.Deduct_Point__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></td>
+                                        <td class="center-data"><lightning:formattedNumber value="{!product.Actual_Point__c-product.Deduct_Point__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></td>
+                                    </tr>
+                                </aura:iteration>
+                            </aura:if>
+                            
+                        </aura:iteration>
+                    </aura:if>
+                </aura:iteration>
+                
+                <!-- <tr>
+                    <td class="sub-lv1">{!v.sumProductObj[0].Indicator_Level2__c}</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr> -->
+                <!-- <aura:iteration items="{!v.sumProductObj}" var="product">
+                    <tr>
+                        <td class="sub-lv2">{!product.Indicator_Name__c}</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                        <td>&nbsp;</td>
+                    </tr>
+                </aura:iteration> -->
+                
+                <!-- <tr>
+                    <td class="sub-lv2">{!v.sumProductObj.Indicator_Level2__c}</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr> -->
+                <!-- <tr>
+                    <td class="sub-lv2">{!v.sumProductObj.Indicator_Level2__c}</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                    <td>&nbsp;</td>
+                </tr> -->
+            </tbody>
+        </table>
+    </div>
+</aura:component>

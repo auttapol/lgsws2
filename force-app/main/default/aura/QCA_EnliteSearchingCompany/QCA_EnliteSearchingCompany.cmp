@@ -1,0 +1,107 @@
+<aura:component controller="SmartBDM_EnliteSearchCompanyCtrl"
+    implements="force:appHostable,flexipage:availableForAllPageTypes" access="global">
+    <aura:registerEvent name="varHandlerSearchingCompanyEvent" type="c:HandlerSearchingCompanyEvent" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+
+    <aura:attribute name="vfHost" type="String" />
+    <aura:method name="searchingCompany" action="{!c.handlerSearchingCompany}">
+        <aura:attribute name="key" type="String" default="" />
+    </aura:method>
+    <aura:method name="submitSelected" action="{!c.handlerSubmitSelected}" />
+
+    <aura:attribute name="companies" type="Map" default="{}" />
+    <aura:attribute name="companySelected" type="Map" />
+    <aura:attribute name="companyDetailSelected" type="Map" />
+
+    <aura:attribute name="sortedBy" type="String" />
+    <aura:attribute name="sortedDirection" type="String" />
+    <aura:attribute name="defaultSortDirection" type="String" />
+
+    <!--Pagination-->
+    <aura:attribute name="limitOffsetRecord" type="integer" default="200" />
+    <aura:attribute name="pageSize" type="Integer" default="15"
+        description="number of records to be display on per page" />
+    <aura:attribute name="currentPage" type="integer" default="1" />
+    <aura:attribute name="totalRecordsCount" type="Integer" />
+    <aura:attribute name="totalPagesCount" type="integer" default="1" />
+    <aura:attribute name="NoPage" type="list" />
+
+    <!-- Hanlder Error Message -->
+    <aura:attribute name="errorMessageList" type="List" />
+    <aura:attribute name="showErrorMessage" type="Boolean" default="false" />
+
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+    <aura:attribute name="showDataCompanies" type="Boolean" default="false" />
+    <!-- <aura:attribute name="companySelected" type="Map" default="{}" /> -->
+
+    <!-- <ui:scrollerWrapper class="scrollerSize"></ui:scrollerWrapper> -->
+    <div>
+        <!-- <iframe aura:id="vfFrame" class="" src="/apex/SmartBDM_EnliteSearchingCompany" frameborder="0" width="1" height="1" /> -->
+        <!-- <aura:if isTrue="{! v.showSpinnerLoading }">
+            <div class="slds-align_absolute-center">
+                <lightning:spinner class="slds-theme_transparent" alternativeText="Loading" size="medium" />
+            </div>
+        </aura:if> -->
+        <aura:renderIf isTrue="{! v.showErrorMessage }">
+            <!-- class="slds-p-vertical_medium slds-p-horizontal_large" -->
+            <lightning:layout>
+                <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12">
+                    <!-- <ui:message title="Error" severity="error" closable="false"></ui:message> -->
+                    <div class="slds-notify_container slds-is-relative">
+                        <div role="alert" class="slds-notify slds-notify_toast slds-theme_error fixed-minWidth">
+                            <span
+                                class="slds-icon_container slds-icon-utility-error slds-m-right_small slds-no-flex slds-align-top">
+                                <lightning:icon class="slds-icon fillError" iconName="utility:error" alternativeText="Error!" variant="error" />
+                            </span>
+                            <div class="slds-notify__content">
+                                <aura:iteration items="{! v.errorMessageList }" var="e">
+                                    <h2 class="slds-text-heading_small">
+                                        {! e.errorHeader }
+                                    </h2>
+                                    <div class="slds-text-body_regular">
+                                        {! e.errorMessage }
+                                    </div>
+                                </aura:iteration>
+                            </div>
+                        </div>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:renderIf>
+        <!-- {! v.showDataCompanies ? 'true':'false' } -->
+        <aura:renderIf isTrue="{! v.showDataCompanies }">
+            <lightning:datatable keyField="id" data="{! v.companies.display }" columns="{! v.companies.columns }"
+                hideCheckboxColumn="false" maxRowSelection="1" enableInfiniteLoading="true" resizeColumnDisabled="true"
+                onheaderaction="{! c.handleHeaderAction }" onrowselection="{! c.handleRowAction }"
+                sortedBy="{! v.sortedBy }" sortedDirection="{! v.sortedDirection }"
+                defaultSortDirection="{! v.defaultSortDirection }" onsort="{! c.handlerColumnSorting }" />
+
+            <!--  Pagination Buttons Start -->
+            <div class="slds-align_absolute-center slds-m-top_medium">
+                <!-- <lightning:button label="First" disabled="{!v.currentPage == 1}" onclick="{!c.navigation}"
+                    variant="brand" iconName="utility:back" name="first" /> -->
+                <lightning:button variant="base" label="Previous" disabled="{!v.currentPage == 1}"
+                    onclick="{!c.navigation}" iconName="utility:back" name="{!v.currentPage - 1}" />
+                <!-- <aura:iteration items="{!v.NoPage}" var="noPage" indexVar="countIndex">
+                    <lightning:button class="slds-theme_neutral cusBtn_slds-button" variant="brand"
+                        disabled="{!noPage == v.currentPage}" label="{!noPage}" onclick="{!c.navigation}"
+                        name="{!noPage}" />
+                </aura:iteration> -->
+                <!-- <lightning:button class="slds-theme_neutral cusBtn_slds-button" variant="brand" disabled="{!true}"
+                    onclick="{!c.navigation}" name="{!v.currentPage}" label="{!v.currentPage}" /> -->
+                <span class="slds-badge slds-badge_lightest" style="margin-right: 10px;margin-left: 10px;">
+                    Page {!v.currentPage} out of {!v.totalPagesCount}
+                </span>
+                <lightning:button variant="base" label="Next" disabled="{! v.currentPage == v.totalPagesCount }"
+                    onclick="{!c.navigation}" iconName="utility:forward" iconPosition="right"
+                    name="{!v.currentPage + 1}" />
+                <!-- <lightning:button label="Last" disabled="{! v.currentPage == v.totalPagesCount }"
+                    onclick="{!c.navigation}" variant="brand" iconName="utility:forward" iconPosition="right"
+                    name="last" /> -->
+            </div>
+            <!--  Pagination Buttons End -->
+        </aura:renderIf>
+    </div>
+
+</aura:component>

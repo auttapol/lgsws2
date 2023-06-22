@@ -1,0 +1,957 @@
+<!--DA <apex:page standardController="CompanyProfile__c" extensions="CompanyProfilesCreationEx"  docType="html-5.0" showChat="false" showHeader="true" sidebar="false" applyBodyTag="false" applyHtmlTag="true"  standardStylesheets="true"> -->
+<apex:page standardController="AcctPlanCompanyProfile__c" extensions="CompanyProfilesCreationEx" docType="html"
+    showChat="false" sidebar="false" applyBodyTag="false" showHeader="{! !isConsoleMode}">
+
+    <head>
+        <title>Company Profile</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+            .Custom16Tab .secondaryPalette,
+            .individualPalette .Custom16Block .secondaryPalette {
+                border: none;
+            }
+
+            .sfdc_richtext {
+                text-align: justify;
+            }
+        </style>
+    </head>
+
+    <body>
+        <div id="main-wrapper" style='display:none;'>
+
+            <c:AccountPlanHeader activetab="2" activesubtab="2" CompanyID="{!companyprofile.id}"
+                GroupID="{!companyprofile.AcctPlanGroup__c}" WalletID="{!WalletID}"
+                Percentage="{!Acctplancompletion.Account_Plan_Completion_Percentage__c }" isMiniView="{!isMiniView}"
+                IsConsole="{!isConsoleMode}" isHasProdStrategy="{!ishasProdStrategy}"
+                isHasActionPlan="{!isHasActionPlan}" />
+            <div class="bootstrap-sf1">
+                <div id="responseErrors">
+                </div>
+                <apex:form styleClass="form-horizontal">
+                    <apex:pageBlock id="pgBlock">
+                        <apex:outputPanel id="statusMessage">
+                            <apex:pageMessages ></apex:pageMessages>
+                        </apex:outputPanel>
+                        <fieldset>
+                            <legend>Company Profile
+                                <apex:variable var="percent" value="{!Acctplancompletion.Step_2_Percentage__c}" />
+                                <div class="alert {!
+                        if(percent ==null || percent <50,'alert-danger',
+                        if(percent<76,'alert-warning',
+                        if(percent<100,'alert-info','alert-success')))}"
+                                    style="float:right;font-size: 16px;margin-top: -5px;padding:5px;">
+                                    COMPLETION:
+                                    {!if( percent!=null,percent,0) }%
+                                </div>
+                            </legend>
+
+                        </fieldset>
+                        <div class="form-group">
+                            <div style="text-align: center;">
+                                <apex:pageBlockButtons location="top" style="float:left;margin-left:150px;" rendered="{! 
+                         !isDisabled
+                         &&isHasPermission
+                         && if(companyProfile.OwnerID == $User.id 
+                               || isSystemAdmin 
+                               || companyProfile.Account__r.OwnerID == $User.id ,true,
+                               if(isAccountTeamReadWrite,true,false) 
+                         )}">
+                                    <apex:commandButton value="Edit" action="{!redirect}" styleclass="btn btn-success"
+                                        rendered="{! !companyprofile.isPendingForApproval__c}" />
+
+                                    <span class="btn btn-default glyphicon glyphicon-lock" rel="tooltip"
+                                        title="This record has been locked while pending Approval Process"
+                                        style="display:{!if(companyprofile.isPendingForApproval__c,'grid','none')};">
+                                        Edit</span>
+
+                                    <apex:commandButton value="Clone" styleclass="btn btn-primary"
+                                        rendered="{! !companyprofile.isPendingForApproval__c}"
+                                        action="{!GotoAccountPlanClonePage}" />
+
+                                </apex:pageBlockButtons>
+                            </div>
+                        </div>
+
+
+
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner">
+                            <div class="panel-heading" style="float:left; clear:both; width:100%;">
+                                <div class="navbar-header " style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="true" href="#collapse1"
+                                        class="navbar-brand navbar-foundation-logo">
+                                        General Information
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+                        <div class="card collapse in panel-collapse" id="collapse1">
+                            <div class="card-detail">
+
+                                <!--  Section 1 -->
+                                <fieldset>
+
+                                    <div class="row">
+
+                                        <apex:PageBlock mode="view" id="companyprofileBlock">
+
+                                            <apex:PageBlockSection columns="1" id="companyprofileSection">
+                                                <apex:outputField value="{!companyprofile.Year__c}" />
+                                                <apex:outputField value="{!companyprofile.OwnerID}" />
+                                                <apex:outputField value="{!companyprofile.Status__c}" />
+                                                <apex:outputField value="{!companyprofile.AccountName__c}" />
+                                                <apex:outputField value="{!companyprofile.Company_Industry_Info__c}" />
+                                                <apex:outputField value="{!companyprofile.Business_Code__c}" />
+
+                                                <apex:outputField value="{!companyprofile.SubIndustry__c}" />
+                                                <apex:outputField value="{!companyprofile.EstablishedSince__c}" />
+                                                <apex:outputField value="{!companyprofile.CustomerSince__c}" />
+                                                <apex:outputField value="{!companyprofile.NoOfEmployee__c}" />
+
+                                                <apex:outputField value="{!companyprofile.Parent_Company_Info__c}" />
+                                                <!--<apex:outputField value="{!companyprofile.Parent_Company_Name__c}" />-->
+                                                <apex:outputField value="{!companyprofile.Parent_Industry_Info__c}" />
+                                                <apex:outputField value="{!companyprofile.UltimateCompany__c}" />
+                                                <apex:outputField value="{!companyprofile.Other_Information__c}" />
+                                            </apex:PageBlockSection>
+
+                                            <apex:PageBlockSection columns="1" id="shareholdingstructureSection">
+                                                <apex:outputField value="{!companyprofile.ShareholdingStructure__c}" />
+                                            </apex:PageBlockSection>
+
+                                        </apex:PageBlock>
+
+                                    </div>
+
+                                </fieldset>
+                            </div>
+                        </div>
+                        <!-- /Section 1 -->
+
+                        <!-- Section 2 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner">
+                            <div class="panel-heading" style="float:left; clear:both; width:100%;">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false" href="#collapse2"
+                                        class="navbar-brand navbar-foundation-logo collapsed">
+                                        Customer Business Flow / Inter-company flow/ Group Transactional Flow
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="card collapse " id="collapse2">
+                            <div class="card-detail">
+
+                                <fieldset>
+
+                                    <div class="row">
+                                        <apex:PageBlock mode="view" id="flowBlock">
+                                            <apex:PageBlockSection columns="1" id="businessflowSection">
+                                                <apex:outputField value="{!companyprofile.BusinessFlow__c}" />
+                                            </apex:PageBlockSection>
+                                        </apex:PageBlock>
+                                    </div>
+
+                                </fieldset>
+
+                            </div>
+                        </div>
+                        <!-- /Section 2 -->
+
+                        <!-- Section 3 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner">
+                            <div class="panel-heading" style="float:left; clear:both; width:100%;">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false" href="#collapse3"
+                                        class="navbar-brand navbar-foundation-logo collapsed">
+                                        Customer's Revenue Contribution / EBITDA Contribution
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="card collapse " id="collapse3">
+                            <div class="card-detail">
+                                <fieldset>
+                                    <!-- <div class="row">
+                                        <div class="col-sm-12 col-md-6  col-lg-6">
+                                            <div class="form-group">
+                                                <label for="CompanyRevenueContributionType__c" class="col-lg-6 col-md-6  control-label">{!$ObjectType.CompanyProfile__c.fields.CompanyRevenueContributionType__c.label} :</label>
+                                                <div class="col-lg-6 col-md-6 outputText">
+                                                <apex:inputField value="{!CompanyProfile.CompanyRevenueContributionType__c}" styleClass="form-control" id="CompanyRevenueContributionType__c" /> -->
+                                    <!-- <apex:outputField value="{!CompanyProfile.CompanyRevenueContributionType__c}" styleClass="form-control" id="CompanyRevenueContributionType__c" /> -->
+                                    <!-- </div>
+                                            </div>
+                                        </div> -->
+                                    <!--<div class="col-sm-12 col-md-6  col-lg-6" style="display:none;">                                            
+                                              
+                                              <a href="#" class="btn  btn-success">Add New</a>
+                                            
+                                        </div>-->
+                                    <!-- /div>  -->
+                                    <!-- related List Of  -->
+                                    <table class="table table-striped table-hover">
+                                        <thead>
+                                            <tr>
+                                                <th customAttribute="product">Customer's Revenue Contribution Type
+
+                                                    <span class="glyphicon glyphicon-question-sign"
+                                                        data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom"
+                                                        title="{!$ObjectType.AcctPlanContribution__c .Fields.RevenueContributionType__c.inlineHelpText}" />
+
+
+                                                </th>
+                                                <th>Item Name
+                                                    <span class="glyphicon glyphicon-question-sign"
+                                                        data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom"
+                                                        title="Item of Business Unit" />
+
+                                                </th>
+                                                <th>Revenue Contribution (%)
+                                                    <span class="glyphicon glyphicon-question-sign"
+                                                        data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom"
+                                                        title="{!$ObjectType.AcctPlanContribution__c .Fields.RevenueContributionPercent__c.inlineHelpText}" />
+
+
+                                                </th>
+                                                <th>EBITDA Contribution (%)
+                                                    <span class="glyphicon glyphicon-question-sign"
+                                                        id="bootstrap-tooltip" data-toggle="tooltip"
+                                                        data-delay='{"show":"0", "hide":"100"}' data-animation="false"
+                                                        data-placement="bottom"
+                                                        title="{!$ObjectType.AcctPlanContribution__c.Fields.EBITDAContributionPercent__c.inlineHelpText}" />
+
+
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <apex:repeat value="{!contributionSet}" var="key">
+                                                <apex:variable value="{!1}" var="rowNum" />
+                                                <apex:variable value="{!0}" var="RevenueTotal" />
+                                                <apex:variable value="{!0}" var="EBITDATotal" />
+                                                <apex:repeat value="{!ContributionMap[key]}" var="ctb">
+                                                    <tr>
+                                                        <td><label
+                                                                style="font-weight: normal;display:{!if(rowNum ==1,'grid','none')}">{!key}</label>
+                                                        </td>
+                                                        <td>{!ctb.Name}</td>
+                                                        <td>{!ctb.RevenueContributionPercent__c}%</td>
+                                                        <td>{!if(ctb.EBITDAContributionPercent__c !=null &&
+                                                            ctb.EBITDAContributionPercent__c
+                                                            !=0,ctb.EBITDAContributionPercent__c,0)}%</td>
+                                                    </tr>
+                                                    <apex:variable var="RevenueTotal"
+                                                        value="{!RevenueTotal + ctb.RevenueContributionPercent__c}" />
+                                                    <apex:variable var="EBITDATotal"
+                                                        value="{!EBITDATotal + if(ctb.EBITDAContributionPercent__c!=null,ctb.EBITDAContributionPercent__c,0)}" />
+                                                    <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                                </apex:repeat>
+                                                <tr class="info endRow"
+                                                    style="border-bottom:none;display:{!if(RevenueTotal== null,'none',IF( RevenueTotal>0,'row','none'))}">
+                                                    <td class="text-center" style="vertical-align: middle;"></td>
+                                                    <td class="text-center" style="vertical-align: middle;">Total</td>
+                                                    <td class="text-center" style="vertical-align: middle;">
+                                                        {!RevenueTotal}%</td>
+                                                    <td class="text-center" style="vertical-align: middle;">
+                                                        {!EBITDATotal}%</td>
+                                                </tr>
+                                            </apex:repeat>
+
+                                        </tbody>
+                                    </table>
+
+                                    <!-- start: Revenue Contribution by Buyer Type/ Segment /Distribution channel -->
+                                    <div class="row">
+                                        &nbsp;
+                                    </div>
+
+                                    <div class="" style="margin-top:30px;">
+                                        <h3 class="text-primary">Revenue Contribution by Buyer Type/ Segment
+                                            /Distribution channel</h3>
+                                        <table class="table table-striped table-hover ">
+                                            <thead>
+                                                <tr>
+                                                    <th rowspan="2">Buyer Type
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="Buyer {!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.DataType__c.inlineHelpText}" />
+
+
+                                                    </th>
+                                                    <th rowspan="2">CCY
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.CCY__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th rowspan="2">Country
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.Country__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th rowspan="2">%
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.Percent__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th rowspan="2">Estimate No. of Buyers
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.EstimateNo__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th rowspan="2">Method of Collection
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.Method__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th colspan="2">Credit Term</th>
+                                                </tr>
+                                                <tr>
+                                                    <th>From (Days)
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.FromDays__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th>To (Days)
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.ToDays__c.inlineHelpText}" />
+
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+
+
+                                                <apex:variable var="rowNum" value="{!1}" />
+                                                <apex:variable var="SumPercent" value="{!0}" />
+                                                <apex:variable var="SumEstimateNo" value="{!0}" />
+                                                <apex:repeat value="{!SupplierOrBuyerMap[DistributionSegment]}"
+                                                    var="byl">
+                                                    <tr>
+                                                        <td>{!byl.DataType__c}</td>
+                                                        <td>{!byl.CCY_Short_Name__c}</td>
+                                                        <td>{!byl.Country_Name__c}</td>
+                                                        <td>
+                                                            <apex:outputField value="{!byl.Percent__c}" />
+                                                        </td>
+                                                        <td>{!byl.EstimateNo__c}</td>
+                                                        <td>{!byl.Method__c}</td>
+                                                        <td class="text-right">{!byl.FromDays__c}</td>
+                                                        <td class="text-right">{!byl.ToDays__c}</td>
+                                                        <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                                        <apex:variable var="SumPercent"
+                                                            value="{!SumPercent+byl.Percent__c}" />
+                                                        <apex:variable var="SumEstimateNo"
+                                                            value="{!SumEstimateNo+byl.EstimateNo__c}" />
+                                                    </tr>
+                                                </apex:repeat>
+                                                <tr class="info endRow">
+                                                    <td colspan="3">Total</td>
+                                                    <td>
+                                                        <apex:outputText value="{!SumPercent}%">
+                                                        </apex:outputText>
+
+                                                    </td>
+                                                    <td>
+                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                            <apex:param value="{!SumEstimateNo}" />
+                                                        </apex:outputText>
+                                                    </td>
+                                                    <td colspan="3"></td>
+                                                </tr>
+
+                                                <!--<tr class="info" style="display:{!if(,'none','grid')}">                                                 
+                                                  <td colspan="3">Total</td>
+                                                  <td></td>
+                                                  <td class="text-right"></td>
+                                                </tr>  -->
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="row">
+                                        &nbsp;
+                                    </div>
+                                    <!-- end: Revenue Contribution by Buyer Type/ Segment /Distribution channel -->
+
+                                    <!-- start: Top 5 Buyers -->
+                                    <div class="" style="margin-top:30px;">
+                                        <h3 class="text-primary">Top 5 Buyers</h3>
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Company Name
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.Account_Plan_Company_Top_5__c.Fields.Customer_Name__c.inlineHelpText}" />
+                                                    </th>
+                                                    <th>%
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.Account_Plan_Company_Top_5__c.Fields.Percent__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th>Credit Term(Days)
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.Account_Plan_Company_Top_5__c.Fields.Credit_Term_Days__c.inlineHelpText}" />
+
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <apex:repeat value="{!Top5Map[Top5BuyersSegment]}" var="byl">
+                                                    <tr>
+                                                        <td>{!byl.Customer_Name__c }</td>
+                                                        <td>
+                                                            <apex:outputField value="{!byl.Percent__c }" />
+                                                        </td>
+                                                        <td>{!byl.Credit_Term_Days__c }</td>
+                                                    </tr>
+                                                </apex:repeat>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <apex:PageBlock mode="view" id="top5buyernoteBlock">
+                                        <apex:PageBlockSection columns="1" id="top5buyernoteSection">
+                                            <apex:outputField value="{!companyprofile.Top5BuyerNote__c}" />
+                                        </apex:PageBlockSection>
+                                    </apex:PageBlock>
+
+                                    <!-- <div class="col-sm-12 col-md-12 col-lg-12">
+                                        <div class="form-group " >
+                                            <label for="Buyer_Note__c" class="col-lg-12 col-md-12  control-label" style="text-align:left;">{!$ObjectType.CompanyProfile__c.fields.Buyer_Note__c.label} :</label>
+
+                                        </div>
+                                    </div> 
+                                    <div class="col-sm-12 col-md-12 col-lg-12">
+                                        <div class="form-group">
+                                            <div class="col-lg-12 col-md-12 outputText">
+                                                <apex:outputField value="{!CompanyProfile.Buyer_Note__c}"  styleClass="form-control input-medium" id="Buyer_Note__c" />      
+                                            </div>
+                                        </div>
+                                    </div> -->
+                                    <!-- end: Top 5 Buyers -->
+
+                                    <!-- start: Major raw material -->
+                                    <div class="row">
+                                        &nbsp;
+                                    </div>
+
+                                    <div class="">
+                                        <h3 class="text-primary">Major raw material</h3>
+                                        <table class="table table-striped table-hover ">
+                                            <thead>
+                                                <tr>
+                                                    <th rowspan="2">Supplier Type
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="Supplier {!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.DataType__c.inlineHelpText}" />
+
+
+                                                    </th>
+                                                    <th rowspan="2">CCY
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.CCY__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th rowspan="2">Country
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.Country__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th rowspan="2">%
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.Percent__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th rowspan="2">Estimate No. of Suppliers
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.EstimateNo__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th rowspan="2">Method of Payment
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.Method__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th colspan="2">Credit Term</th>
+                                                </tr>
+                                                <tr>
+                                                    <th>From (Days)
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.FromDays__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th>To (Days)
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.AcctPlanSupplierOrBuyer__c.Fields.ToDays__c.inlineHelpText}" />
+
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <apex:variable var="rowNum" value="{!1}" />
+                                                <apex:variable var="SumPercent" value="{!0}" />
+                                                <apex:variable var="SumEstimateNo" value="{!0}" />
+                                                <apex:repeat value="{!SupplierOrBuyerMap[MajorMaterialSegment]}"
+                                                    var="spl">
+                                                    <tr>
+                                                        <td>{!spl.DataType__c}</td>
+                                                        <td>{!spl.CCY_Short_Name__c}</td>
+                                                        <td>{!spl.Country_Name__c}</td>
+                                                        <td>
+                                                            <apex:outputField value="{!spl.Percent__c}" />
+                                                        </td>
+                                                        <td>{!spl.EstimateNo__c}</td>
+                                                        <td>{!spl.Method__c}</td>
+                                                        <td class="text-right">{!spl.FromDays__c}</td>
+                                                        <td class="text-right">{!spl.ToDays__c}</td>
+                                                        <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                                        <apex:variable var="SumPercent"
+                                                            value="{!SumPercent+spl.Percent__c}" />
+                                                        <apex:variable var="SumEstimateNo"
+                                                            value="{!SumEstimateNo+spl.EstimateNo__c}" />
+                                                    </tr>
+                                                </apex:repeat>
+                                                <tr class="info endRow">
+                                                    <td colspan="3">Total</td>
+                                                    <td>
+                                                        <apex:outputText value="{!SumPercent}%">
+                                                        </apex:outputText>
+                                                    </td>
+                                                    <td>
+                                                        <apex:outputText value="{0, number, ###,##0}">
+                                                            <apex:param value="{!SumEstimateNo}" />
+                                                        </apex:outputText>
+                                                    </td>
+                                                    <td colspan="3"></td>
+                                                </tr>
+                                                <!-- <tr class="info">                                                 
+                                                  <td colspan="3">Total</td>
+                                                  <td>7%</td>
+                                                  <td class="text-right">3</td>
+                                                </tr> -->
+
+
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <div class="row">
+                                        &nbsp;
+                                    </div>
+                                    <!-- end: Major raw material -->
+
+                                    <!-- start: Top 5 Suppliers -->
+                                    <div class="">
+                                        <h3 class="text-primary">Top 5 Suppliers</h3>
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                    <th>Company Name
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.Account_Plan_Company_Top_5__c.Fields.Customer_Name__c.inlineHelpText}" />
+                                                    </th>
+                                                    <th>%
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.Account_Plan_Company_Top_5__c.Fields.Percent__c.inlineHelpText}" />
+
+                                                    </th>
+                                                    <th>Credit Term(Days)
+                                                        <span class="glyphicon glyphicon-question-sign"
+                                                            id="bootstrap-tooltip" data-toggle="tooltip"
+                                                            data-delay='{"show":"0", "hide":"100"}'
+                                                            data-animation="false" data-placement="bottom"
+                                                            title="{!$ObjectType.Account_Plan_Company_Top_5__c.Fields.Credit_Term_Days__c.inlineHelpText}" />
+
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <apex:repeat value="{!Top5Map[Top5SuppliersSegment]}" var="byl">
+                                                    <tr>
+                                                        <td>
+                                                            <apex:outputField value="{!byl.Customer_Name__c }" />
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputField value="{!byl.Percent__c }" />
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputField value="{!byl.Credit_Term_Days__c }" />
+                                                        </td>
+                                                    </tr>
+                                                </apex:repeat>
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                    <apex:PageBlock mode="view" id="top5suppliernoteBlock">
+                                        <apex:PageBlockSection columns="1" id="top5suppliernoteSection">
+                                            <apex:outputField value="{!companyprofile.Top5SupplierNote__c}" />
+                                        </apex:PageBlockSection>
+                                    </apex:PageBlock>
+
+
+                                    <!-- end: Top 5 Suppliers -->
+
+                                </fieldset>
+                            </div>
+                        </div>
+                        <!-- /Section 3 -->
+                        <!-- /Section 4 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner"
+                            style="display:{!IF(isMiniView,'none','')};">
+                            <div class="panel-heading"
+                                style="float:left; clear:both; width:100%; display:{!IF(isMiniView,'none','')};">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false" href="#collapse4"
+                                        class="navbar-brand navbar-foundation-logo collapsed">
+                                        Customer Strategy
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="card collapse " id="collapse4" style="display:{!IF(isMiniView,'none','')};">
+                            <div class="card-detail">
+
+                                <fieldset>
+
+                                    <div class="row">
+
+                                        <apex:PageBlock mode="view" id="customerstrategyBlock">
+
+                                            <apex:PageBlockSection columns="1" id="customerstrategySection">
+                                                <apex:outputField value="{!companyprofile.CompanyStrategy__c}" />
+                                                <!--DA <apex:PageBlockSectionItem ></apex:PageBlockSectionItem> -->
+                                            </apex:PageBlockSection>
+
+                                        </apex:PageBlock>
+
+                                    </div>
+
+                                </fieldset>
+
+                            </div>
+                        </div>
+                        <!-- /Section 4 -->
+
+                        <!-- /Section 5 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner"
+                            style="display:{!IF(isMiniView,'none','')};">
+                            <div class="panel-heading"
+                                style="float:left; clear:both; width:100%; display:{!IF(isMiniView,'none','')};">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false" href="#collapse5"
+                                        class="navbar-brand navbar-foundation-logo collapsed">
+                                        Customer 5 Forces Model
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="card collapse " id="collapse5" style="display:{!IF(isMiniView,'none','')};">
+                            <div class="card-detail">
+
+                                <fieldset>
+
+                                    <div class="row">
+
+                                        <apex:PageBlock mode="view" id="forcesBlock">
+
+                                            <apex:PageBlockSection columns="1" id="forcesSection">
+                                                <apex:outputField value="{!companyprofile.BargainingPowerOfSupplier__c}" />
+                                                <apex:outputField value="{!companyprofile.BargainingPowerOfSupplierDescription__c}" />
+
+                                                <apex:outputField value="{!companyprofile.BargainingPowerOfBuyer__c}" />
+                                                <apex:outputField value="{!companyprofile.BargainingPowerOfBuyerDescription__c}" />
+
+                                                <apex:outputField value="{!companyprofile.BarrierOfNewEntrant__c}" />
+                                                <apex:outputField value="{!companyprofile.BarrierOfNewEntrantDescription__c}" />
+
+                                                <apex:outputField value="{!companyprofile.ThreatOfSubstituteProduct__c}" />
+                                                <apex:outputField value="{!companyprofile.ThreatOfSubstituteProductDescription__c}" />
+
+                                                <apex:outputField value="{!companyprofile.IndustryCompetition__c}" />
+                                                <apex:outputField value="{!companyprofile.IndustryCompetitionDescription__c}" />
+                                                <apex:PageBlockSectionItem ></apex:PageBlockSectionItem>
+                                            </apex:PageBlockSection>
+
+                                        </apex:PageBlock>
+
+                                    </div>
+
+                                </fieldset>
+
+                            </div>
+                        </div>
+                        <!-- /Section 5 -->
+
+                        <!-- /Section 6 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner"
+                            style="display:{!IF(isMiniView,'none','')};">
+                            <div class="panel-heading"
+                                style="float:left; clear:both; width:100%; display:{!IF(isMiniView,'none','')};">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false" href="#collapse6"
+                                        class="navbar-brand navbar-foundation-logo collapsed">
+                                        Key Success Factors / Competitive Advantages
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="card collapse " id="collapse6" style="display:{!IF(isMiniView,'none','')};">
+                            <div class="card-detail">
+
+                                <fieldset>
+
+                                    <div class="row">
+
+                                        <apex:PageBlock mode="view" id="factorsBlock">
+
+                                            <apex:PageBlockSection columns="1" id="factorsSection">
+                                                <apex:outputField value="{!companyprofile.FactorType1__c}" />
+                                                <apex:outputField value="{!companyprofile.FactorType1Description__c}" />
+
+                                                <apex:outputField value="{!companyprofile.FactorType2__c}" />
+                                                <apex:outputField value="{!companyprofile.FactorType2Description__c}" />
+
+                                                <apex:outputField value="{!companyprofile.FactorType3__c}" />
+                                                <apex:outputField value="{!companyprofile.FactorType3Description__c}" />
+
+                                                <apex:outputField value="{!companyprofile.FactorType4__c}" />
+                                                <apex:outputField value="{!companyprofile.FactorType4Description__c}" />
+
+                                                <apex:outputField value="{!companyprofile.FactorType5__c}" />
+                                                <apex:outputField value="{!companyprofile.FactorType5Description__c}" />
+                                                <apex:PageBlockSectionItem ></apex:PageBlockSectionItem>
+                                            </apex:PageBlockSection>
+
+                                        </apex:PageBlock>
+
+                                    </div>
+
+                                </fieldset>
+
+                            </div>
+                        </div>
+                        <!-- /Section 6 -->
+                        <!-- /Section 7 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner"
+                            style="display:{!IF(isMiniView,'none','')};">
+                            <div class="panel-heading"
+                                style="float:left; clear:both; width:100%; display:{!IF(isMiniView,'none','')};">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false" href="#collapse7"
+                                        class="navbar-brand navbar-foundation-logo collapsed">
+                                        Financial Highlight - Individual
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="card collapse " id="collapse7" style="display:{!IF(isMiniView,'none','')};">
+                            <div class="card-detail">
+
+                                <fieldset>
+
+                                    <div class="row">
+
+                                        <apex:PageBlock mode="view" id="financialHighlightBlock">
+                                            <apex:PageBlockSection columns="1" id="financialhighlightSection">
+                                                <apex:outputField value="{!companyprofile.FinancialHighlight__c}" />
+
+                                            </apex:PageBlockSection>
+                                        </apex:PageBlock>
+
+                                    </div>
+
+                                </fieldset>
+
+                            </div>
+                        </div>
+                        <!-- /Section 7 -->
+
+
+                        <!-- /Section 8 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner"
+                            style="display:{!IF(isMiniView,'none','')};">
+                            <div class="panel-heading"
+                                style="float:left; clear:both; width:100%; display:{!IF(isMiniView,'none','')};">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false" href="#collapse8"
+                                        class="navbar-brand navbar-foundation-logo collapsed">
+                                        TMB Business
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+
+                        <div class="card collapse " id="collapse8" style="display:{!IF(isMiniView,'none','')};">
+                            <div class="card-detail">
+
+                                <fieldset>
+
+                                    <div class="row">
+
+                                        <apex:PageBlock mode="view" id="TMBBusinessHighlightBlock">
+                                            <apex:PageBlockSection columns="1" id="TMBBusinesshighlightSection">
+                                                <apex:outputField value="{!companyprofile.TMB_Business__c}" />
+                                            </apex:PageBlockSection>
+                                        </apex:PageBlock>
+
+                                    </div>
+
+                                </fieldset>
+
+                            </div>
+                        </div>
+                        <!-- /Section 8 -->
+
+
+                    </apex:pageBlock>
+                </apex:form>
+            </div>
+
+        </div>
+
+        <div id="mobile-wrapper" style='display:none;'>
+            <h2>{!notAvaiableOnSF1}</h2>
+
+        </div>
+
+        <apex:includeScript value="{!$Resource.AccountPlan_JqueryScript}" />
+
+        <apex:includeScript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+        <apex:includeScript value="{!$Resource.AccountPlan_Mustache}" />
+
+
+        <script>
+            // Prevent Config
+            var $j = jQuery.noConflict();
+            var companyprofile = '{!CompanyId}';
+
+
+        </script>
+
+        <apex:includeScript value="/support/console/22.0/integration.js" />
+
+        <script type="text/javascript">
+            var $j = jQuery.noConflict();
+            //Sets the title of the current tab to "Case Transactions Detail"
+            /*window.onload = function setTitleConsole(){
+                        setTitle();
+                    }*/
+
+
+            function checkIsSalesforceOne() {
+                //     if ((typeof sforce.one != 'undefined') && (sforce.one != null) ) {
+                //         $j("#mobile-wrapper").css('display','block');   
+                //     }
+                //   else{
+                $j("#main-wrapper").css('display', 'block');
+                //   }
+            }
+
+
+            //Sets the title of the current tab to "Case Transactions Detail"
+            function setTitle() {
+                sforce.console.setTabTitle('Customer Profile');
+            }
+            $j(document).ready(function () {
+                checkIsSalesforceOne();
+                $j('[data-toggle="tooltip"]').tooltip();
+                setTitle();
+            });
+
+
+
+        </script>
+    </body>
+
+</apex:page>

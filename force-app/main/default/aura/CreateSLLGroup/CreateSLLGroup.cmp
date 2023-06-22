@@ -1,0 +1,161 @@
+<aura:component implements="lightning:actionOverride,force:hasRecordId" access="global"
+    controller="CreateSLLGroupController">
+    <aura:attribute name="newSG" type="SLL_Group__c" default="{ 'sobjectType': 'SLL_Group__c',
+                   'Name': '',
+                   'Primary_Customer__c': '',
+                   'PAM__c': '',
+                   'Remark__c': ''}" />
+    <aura:attribute name="approver1" type="Object" />
+    <!-- <aura:attribute name="approver2" type="Object" /> -->
+    <aura:attribute name="primCusErrMsg" type="String" />
+    <aura:attribute name="pamErrMsg" type="String" />
+    <aura:attribute name="isSelectingCustomer" type="Boolean" default="false" />
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+    <aura:attribute name="reasonList" type="List" />
+    <aura:attribute name="fields" type="String[]" default="['Name','Primary_Customer__c','PAM__c','Remark__c']" />
+
+    <!-- FOR CUSTOMER SELECTION -->
+    <aura:attribute name="memberList" type="Object[]" default="[
+        {'Id': '', 'Customer_Name__c': null, 'Reason__c': ''},
+    {'Id': '','Customer_Name__c': null, 'Reason__c': ''},
+    {'Id': '','Customer_Name__c': null, 'Reason__c': ''},
+    {'Id': '','Customer_Name__c': null, 'Reason__c': ''},
+    {'Id': '','Customer_Name__c': null, 'Reason__c': ''}]" />
+    <aura:attribute name="headerErrorMsg" type="String" />
+
+    <aura:method name="customerSelect" action="{!c.customerSelect}" access="public">
+        <aura:attribute name="customerId" type="String" default="" />
+        <aura:attribute name="reason" type="String" default="" />
+        <aura:attribute name="idx" type="String" default="" />
+    </aura:method>
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <lightning:layout>
+
+        <div
+            class="slds-brand-band slds-brand-band_cover slds-brand-band_narrow_view_two slds-template_default slds-tabs_card">
+            <aura:if isTrue="{! v.isLoading }">
+                <div>
+                    <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+                </div>
+            </aura:if>
+            <section>
+                <div>
+                    <div class="slds-modal__header">
+                        <h2 id="modal-heading-01" class="slds-modal__title slds-hyphenate slds-text-heading--medium">
+                            New
+                            SLL Group</h2>
+                    </div>
+
+                    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        <aura:if isTrue="{!v.headerErrorMsg}">
+                            <div class="slds-notify slds-notify_alert slds-alert_error notify-margin"
+                                style="margin-bottom: 0.5rem;" role="alert">
+                                <span class="slds-assistive-text">error</span>
+                                <span class="slds-icon_container slds-icon-utility-error slds-m-right_x-small"
+                                    title="Description of icon when needed">
+                                    <lightning:icon iconName="utility:error" alternativeText="Error" title="Error"
+                                        class="icn-style" />
+                                </span>
+                                <h2>{!v.headerErrorMsg}
+                                </h2>
+                                <div class="slds-notify__close">
+                                    <button
+                                        class="slds-button slds-button_icon slds-button_icon-small slds-button_icon-inverse"
+                                        title="Close" onclick="{!c.closeError}">
+                                        <lightning:icon iconName="action:close" size="x-small" alternativeText="Error"
+                                            title="Error" />
+                                        <span class="slds-assistive-text">Close</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </aura:if>
+                        <div class="slds-section slds-is-open">
+
+                            <h3 class="slds-section__title slds-theme_shade">
+                                <aura:if isTrue="{! not(v.isSelectingCustomer) }"><span
+                                        class="slds-truncate slds-p-horizontal_small" title="Section Title">
+                                        SLL
+                                        Group Information</span></aura:if>
+                                <aura:if isTrue="{! v.isSelectingCustomer }"><span
+                                        class="slds-truncate slds-p-horizontal_small" title="Section Title">
+                                        SLL
+                                        Group and Customer Relation</span></aura:if>
+
+                            </h3>
+
+                            <div aria-hidden="false" class="slds-section__content">
+                                <form class="slds-form_stacked">
+                                    <aura:if isTrue="{! not(v.isSelectingCustomer)}">
+                                        <lightning:recordEditForm objectApiName="SLL_Group__c">
+                                            <lightning:messages />
+                                            <lightning:layout>
+                                                <lightning:layoutItem size="12">
+                                                    <lightning:inputField fieldName="Name" aura:id="sgName"
+                                                        value="{!v.newSG.Name}" required="true"
+                                                        variant="label-stacked" />
+                                                </lightning:layoutItem>
+                                            </lightning:layout>
+                                            <lightning:layout>
+                                                <lightning:layoutItem size="12">
+                                                    <lightning:inputField fieldName="Primary_Customer__c"
+                                                        aura:id="sgPrimCus" value="{!v.newSG.Primary_Customer__c}"
+                                                        required="true" variant="label-stacked" />
+                                                </lightning:layoutItem>
+                                            </lightning:layout>
+                                            <lightning:layout>
+                                                <lightning:layoutItem size="12">
+                                                    <lightning:inputField fieldName="PAM__c" aura:id="sgPAM"
+                                                        value="{!v.newSG.PAM__c}" required="true"
+                                                        variant="label-stacked" />
+                                                </lightning:layoutItem>
+                                            </lightning:layout>
+                                            <lightning:layout>
+                                                <lightning:layoutItem size="12">
+                                                    <lightning:inputField fieldName="Remark__c" aura:id="sgRemark"
+                                                        value="{!v.newSG.Remark__c}" required="true"
+                                                        variant="label-stacked" />
+                                                </lightning:layoutItem>
+                                            </lightning:layout>
+                                        </lightning:recordEditForm>
+                                    </aura:if>
+
+                                    <aura:if isTrue="{! v.isSelectingCustomer}">
+                                        <aura:iteration items="{!v.memberList}" var="customer" indexVar="idx">
+                                            <c:CreateSLLGroup_SelectCustomer customerId="{! customer.Customer_Name__c }" reason="{! customer.Reason__c }" reasonList="{! v.reasonList }" parent="{!this}"
+                                                memberIdx="{!idx}" />
+                                        </aura:iteration>
+                                    </aura:if>
+                                </form>
+                                <aura:if isTrue="{! v.isSelectingCustomer}">
+                                    <lightning:layout>
+                                        <lightning:layoutItem size="12" class="slds-text-align_right add-btn">
+                                            <button class="slds-button slds-button_outline-brand"
+                                                onclick="{!c.clickAddMoreCustomer}">+</button>
+                                        </lightning:layoutItem>
+                                    </lightning:layout>
+                                </aura:if>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="slds-modal__footer slds-text-align_center">
+                        <aura:if isTrue="{! not(v.isSelectingCustomer)}">
+                            <button class="slds-button slds-button_neutral" onclick="{!c.closeTab}">{!$Label.c.Cancel}</button>
+                            <button class="slds-button slds-button_brand" onclick="{!c.clickNext}">{!$Label.c.RTL_Next}</button>
+                        </aura:if>
+                        <aura:if isTrue="{! v.isSelectingCustomer }">
+                            <button class="slds-button slds-button_neutral" onclick="{!c.clickCancel}">{!$Label.c.RTL_Previous}</button>
+                            <button class="slds-button slds-button_neutral" onclick="{!c.closeTab}">{!$Label.c.Cancel}</button>
+                            <button class="slds-button slds-button_neutral" onclick="{!c.clickSaveAndNew}">Save &amp;
+                                New</button>
+                            <button class="slds-button slds-button_brand" onclick="{!c.clickSave}">{!$Label.c.Save}</button>
+                        </aura:if>
+                    </div>
+                </div>
+            </section>
+        </div>
+
+    </lightning:layout>
+</aura:component>

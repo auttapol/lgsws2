@@ -1,0 +1,257 @@
+<apex:page standardcontroller="Lead" standardstylesheets="true" lightningStylesheets="true" extensions="RetailLeadExtension" tabstyle="Lead">
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:includeScript value="/support/console/49.0/integration.js" />
+    <apex:sectionheader title="{!IF(isCreateMode,$Label.Lead_Create,$Label.Lead_Edit)}" subtitle="{!IF(isCreateMode,$Label.New_Lead,Lead.Name)}" />
+    
+    <apex:form >
+        <apex:outputPanel id="newLeadId">
+            <script>
+                // Support IE Browser
+                if (!String.prototype.includes) {
+                    String.prototype.includes = function (str) {
+                        return this.indexOf(str) !== -1;
+                    }
+                }
+                if (!Array.prototype.includes) {
+                    Object.defineProperty(Array.prototype, "includes", {
+                        enumerable: false,
+                        value: function (obj) {
+                            var newArr = this.filter(function (el) {
+                                return el == obj;
+                            });
+                            return newArr.length > 0;
+                        }
+                    });
+                }
+
+                var pageId;
+                var primaryTabId;
+                var tabId;
+
+                function getPageInfo(id) {
+                    pageId = '/' + id;
+                    if (sforce.console.isInConsole()) {
+                        sforce.console.getEnclosingTabId(currentTab);
+
+                    } else {
+                        redirectPage();
+                    }
+
+
+                }
+
+                var currentTab = function currentTab(result) {
+                    //Now that we have the tab ID, we can close it
+                    tabId = result.id;
+                    console.log('current ' + tabId);
+                    sforce.console.getEnclosingPrimaryTabId(showTabId);
+                };
+
+                var showTabId = function showTabId(result) {
+                    primaryTabId = result.id;
+                    console.log('primary' + primaryTabId);
+                    redirectPage();
+                };
+
+
+                function redirectPage() {
+                    //Salesforce1
+                    if (typeof sforce !== "undefined" && sforce !== null && (sforce.one)) {
+                        sforce.one.navigateToURL(pageId, true);
+                    }
+                    //Console
+                    else if (sforce.console.isInConsole()) {
+                        if ('{!lead.RTL_Referral__c}' == '') {
+                            sforce.console.openPrimaryTab(primaryTabId, pageId, true);
+                        } else {
+                            refreshPrimaryTabById();
+                            sforce.console.openSubtab(primaryTabId, pageId, true, '{!lead.Name}');
+                            sforce.console.closeTab(tabId);
+                        }
+                    }
+                    //Desktop
+                    else {
+                        window.location = pageId;
+                    }
+                }
+
+
+                var actionResult = '{!lead.id}';
+                var dml = '{!action}';
+                // console.log(actionResult, dml, '{!hasError}');
+                if (actionResult != null && actionResult != '' && dml == 'insert' && '{!hasError}' == 'false') {
+                    console.log('refresh page');
+                    getPageInfo(actionResult);
+                }
+
+                function refreshPrimaryTabById() {
+                    //Get the value for 'scc-pt-0' from the openPrimaryTab method
+                    //This value is for example purposes only
+                    sforce.console.refreshPrimaryTabById(primaryTabId, true, null);
+                }    
+            </script>
+        </apex:outputPanel>
+        <apex:actionstatus id="loading">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" />
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+
+        <apex:actionFunction name="cancelLead" action="{!cancel}" status="loading" />
+        <apex:actionFunction name="saveLead" action="{!saveLead}" status="loading" />
+        <apex:pageblock title="{!$Label.Lead_Detail}" mode="edit" id="page">
+            <apex:outputpanel id="statusMessage">
+                <apex:pagemessages escape="false"></apex:pagemessages>
+            </apex:outputpanel>
+            <apex:pageblockbuttons >
+                <apex:commandbutton status="loading" action="{!saveLead}" value="{!$Label.Save}" rerender="newLeadId, page" />
+                <apex:commandbutton status="loading" action="{!save}" value="{!$Label.Save_New}" rendered="{!isCreateMode}" rerender="page">
+                    <apex:param name="saveAndNew" value="saveAndNew" assignTo="{!saveAndNew}" />
+                </apex:commandbutton>
+                <!-- <apex:commandbutton action="{!cancel}" value="{!$Label.Cancel}" /> -->
+                <apex:commandbutton onclick="toLeadPage();return false;" value="{!$Label.Cancel}" />
+                <script>
+                    function toLeadPage() {
+                        if ('{!$User.UITheme}' == 'Theme3' && typeof sforce !== "undefined" && sforce !== null && (sforce.one)) {
+                            // Salesforce1 navigation
+                            var leadID = '{!lead.id}';
+                            var retURL = '/00Q/o';
+                            if (leadID != null && leadID != '') {
+                                retURL = '/' + leadID;
+                            }
+                            sforce.one.navigateToURL(retURL);
+
+                        } else if ('{!$User.UITheme}' == 'Theme4t') {
+                            sforce.one.back();
+                        } else if (sforce.console.isInConsole()) {
+                            sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                                "componentDef": "c:workspaceAPIforVF",
+                                "attributes": {
+                                    "action": 'closeAndFocusNavigationItem',
+                                    "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                                        return v.toString(16);
+                                    }),
+                                }
+                            })), true);
+
+                        } else {
+                            cancelLead();
+                        }
+                    }
+
+                    var closeTab = function closeTab(result) {
+                        var tabId = result.id;
+                        sforce.console.closeTab(tabId);
+                    }
+
+                    function toSavePage() {
+                        saveLead();
+                    }
+
+
+                </script>
+            </apex:pageblockbuttons>
+            <apex:pageblocksection title="{!$Label.Lead_Information}" columns="{!displayS1}">
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel escape="false" value="{!$ObjectType.Lead.Fields.FirstName.label}"></apex:outputlabel>
+                    <apex:outputpanel style="{!IF($User.UITheme == 'Theme3', '', 'display: inline-flex; width: 19.5rem;')}">
+                        <apex:inputfield style="{!IF($User.UITheme == 'Theme3', '', 'min-width: 30%; margin-bottom: 0;')}" value="{!Lead.Salutation}"></apex:inputfield>
+                        <apex:inputfield style="{!IF($User.UITheme == 'Theme3', '', 'min-width: 70%;')}" value="{!Lead.FirstName}"></apex:inputfield>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <!-- Original
+                <apex:inputField value="{!Lead.RTL_Mobile_Number__c }"/>
+                <apex:inputField value="{!Lead.LastName}"/>
+                <apex:inputField value="{!Lead.RTL_Email_Address__c}"/>
+                <apex:inputField value="{!Lead.RTL_ID_Type__c}"/>
+                <apex:inputField value="{!Lead.Rating}"/>
+                <apex:inputField value="{!Lead.RTL_Citizen_Id__c }"/>
+                 -->
+
+                <apex:inputField value="{!Lead.LastName}" />
+                <apex:inputField value="{!Lead.RTL_Mobile_Number__c }" />
+                <apex:inputField value="{!Lead.RTL_Email_Address__c}" />
+                <apex:inputField value="{!Lead.RTL_ID_Type__c}" />
+                <apex:inputField value="{!Lead.RTL_Citizen_Id__c }" />
+                <apex:inputField value="{!Lead.Status }" />
+                <apex:outputField value="{!Lead.OwnerId}" />
+                <apex:inputField value="{!Lead.RTL_Reason__c}" />
+                <apex:inputHidden />
+                <apex:inputField value="{!Lead.Rating}" />
+            </apex:pageblocksection>
+
+            <apex:pageblocksection title="{!$Label.Interested_Products_Title}" columns="{!displayS1}">
+                <apex:inputField value="{!Lead.RTL_Primary_Interested_Product__c}" />
+            </apex:pageblocksection>
+
+            <apex:pageblocksection title="{!$Label.VehicleLeasingProducts_Title}" columns="{!displayS1}">
+                <apex:inputField value="{!Lead.RTL_AL_BlueBook__c}" styleClass="inputFields" />
+                <apex:inputField value="{!Lead.RTL_AL_wanted_amount__c}" styleClass="inputFields" />
+                <apex:inputField value="{!Lead.RTL_AL_car_plate_no__c}" styleClass="inputFields" />
+                <apex:inputField value="{!Lead.RTL_AL_max_set_up_amount__c}" styleClass="inputFields" />
+                <apex:inputField value="{!Lead.RTL_AL_province_car_plate_no__c}" styleClass="inputFields" />
+                <apex:inputField value="{!Lead.RTL_AL_normal_price__c}" styleClass="inputFields" />
+                <apex:inputHidden />
+                <apex:inputField value="{!Lead.RTL_AL_installment_amount__c}" styleClass="inputFields" />
+                <apex:inputHidden />
+                <apex:inputField value="{!Lead.RTL_AL_installment_periods__c}" styleClass="inputFields" />
+                <apex:inputHidden />
+                <apex:inputField value="{!Lead.RTL_AL_Car_Status__c}" styleClass="inputFields" />
+                <apex:inputHidden />
+                <apex:inputField value="{!Lead.RTL_AL_Leasing_Condition__c}" styleClass="inputFields" />
+            </apex:pageblocksection>
+
+            <apex:pageblocksection title="{!$Label.ContactAddress_Title}" columns="{!displayS1}">
+                <apex:inputField value="{!Lead.RTL_AL_contact_channel__c}" styleClass="inputFields" />
+                <apex:inputField value="{!Lead.RTL_AL_available_time__c}" styleClass="inputFields" />
+                <!-- CR AL Re-org Long Term -->
+                
+                <apex:inputField value="{!Lead.RTL_Contact_Address__c}" styleClass="inputFields" />
+                
+                <!-- CR AL Re-org Long Term p -->
+                <apex:inputHidden />
+                <apex:inputField value="{!Lead.RTL_AL_ContactZipcode__c}" styleClass="inputFields" />
+                <apex:inputField value="{!Lead.RTL_AL_ContactProvince__c}" styleClass="inputFields"/>
+                <apex:inputField value="{!Lead.RTL_AL_ContactDistrict__c}" styleClass="inputFields" />
+                <apex:inputField value="{!Lead.RTL_AL_ContactSubDistrict__c}" styleClass="inputFields" />
+                
+            </apex:pageblocksection>
+
+            <apex:pageblocksection title="{!$Label.Source_Contact_Result}" columns="{!displayS1}">
+                <apex:repeat value="{!$ObjectType.Lead.FieldSets.Retail_Source_Contact_Result}" var="field">
+                    <apex:inputfield value="{!Lead[field]}" />
+                </apex:repeat>
+            </apex:pageblocksection>
+            <apex:pageblocksection title="{!$Label.Additional_Information}" columns="{!displayS1}">
+                <apex:repeat value="{!$ObjectType.Lead.FieldSets.Retail_Additional_Information}" var="field">
+                    <apex:inputfield value="{!Lead[field]}" />
+                </apex:repeat>
+            </apex:pageblocksection>
+            <apex:pageblocksection title="{!$Label.Campaign_Related}" columns="{!displayS1}" rendered="{!isCreateMode}">
+                <apex:repeat value="{!$ObjectType.Lead.FieldSets.Retail_Campaign_Related}" var="field">
+                    <apex:outputfield value="{!Lead[field]}" />
+                </apex:repeat>
+                <!--apex:outputField value="{!Lead.RTL_TMB_Campaign_Source__c}"/>
+                <apex:outputField value="{!Lead.RTL_TMB_Campaign_Reference__c}"/>
+                <apex:outputField value="{!Lead.RTL_Customer_Segment__c}"/>
+                <apex:outputField value="{!Lead.RTL_Permission__c}"/-->
+            </apex:pageblocksection>
+            <!--
+            <apex:pageblocksection title="{!$Label.Commercial_Referral}" columns="{!displayS1}">
+                <apex:repeat value="{!$ObjectType.Lead.FieldSets.Retail_Commercial_Referral}" var="field">
+                    <apex:inputfield value="{!Lead[field]}" />
+                </apex:repeat>   
+            </apex:pageblocksection>
+            -->
+            <apex:pageblocksection title="{!$Label.System_Information}" columns="{!displayS1}" rendered="{!isCreateMode}">
+                <apex:outputfield value="{!Lead.RTL_Description__c}" />
+            </apex:pageblocksection>
+        </apex:pageblock>
+    </apex:form>
+</apex:page>

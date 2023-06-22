@@ -1,0 +1,455 @@
+<aura:component>
+    <aura:attribute name="userType" type="String" default="Branch" />
+    <aura:attribute name="dataAsOfMonth" type="String" default="Dec"/>
+    <aura:attribute name="dataAsOfYear" type="String" default="2021"/>
+    <aura:attribute name="dataAsOfMonthSecC" type="String" />
+    <aura:attribute name="dataAsOfYearSecC" type="String" />
+    <aura:attribute name="defaultMonthSif" type="String" />
+    <aura:attribute name="defaultYearSif" type="String" />
+    <aura:attribute name="defaultMonthIdp" type="String" />
+    <aura:attribute name="defaultYearIdp" type="String" />
+    <aura:attribute name="individualPerformance" type="Object" />
+    <aura:attribute name="performanceObj" type="Object" />
+    <aura:attribute name="empId" type="String" />
+    <aura:attribute name="branchId" type="String" />
+    <aura:attribute name="channel" type="String" />
+    <aura:attribute name="region" type="String" />
+    <aura:attribute name="zone" type="String" />
+    <!-- Water Mark -->
+    <aura:attribute name="waterMarkImage" type="String" />
+    <aura:attribute name="arrowDirection" type="string" default="arrowup"/>
+    <aura:attribute name="sortAsc" type="boolean" default="true" /> 
+    <aura:attribute name="sortField" type="String" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />  
+   <!--  <aura:handler name="change" value="{!v.individualPerformance}" action="{!c.onInit}"/> -->
+   
+    <aura:if isTrue="{!v.userType == 'Branch'}">
+        <div class="slds-grid slds-wrap" style="padding:10px;">
+            <table class="slds-table slds-table_cell-buffer "  border="2" style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%'}">
+                <tr class="custom-table-header">
+                    <td colspan="16" rowspan="1" >
+                        <div class="slds-grid slds-wrap" style="margin-bottom: -20px;">
+                                <div class="slds-col slds-size_1-of-2" style="margin-bottom: 20px;">
+                                    <aura:if isTrue="{!and(v.dataAsOfMonthSecC,v.dataAsOfYearSecC)!=null}">
+                                        <div class="slds-truncate" title="Individual Performance" style="margin-top: 5px;">
+                                            <span>Individual Performance as of {!v.dataAsOfMonthSecC}</span><span style="margin-left: 5px;">{!v.dataAsOfYearSecC}</span>
+                                        </div>
+                                    </aura:if>
+                                </div>
+                            <div class="slds-col slds-size_1-of-2" style="margin-bottom: 20px;">
+                                <lightning:button class="custom-btn" variant="brand" label="Next Page" onclick="{!c.nextPage}" /> 
+                            </div>
+                        </div>                                      
+                    </td>            
+                </tr>      
+                <tr class="custom-table-header">
+                    <td  data-label="NO" rowspan="2" style="padding-left: 10px">
+                        <div class="slds-truncate" title="NO" style="text-align: center;">NO</div>
+                    </td>
+                    <td  class ='table-head' data-label="Position"  onclick="{!c.sortBy}" data-value = "Sale_Type" style="text-align: center;" rowspan="2">
+                        <div class="slds-truncate "  data-value = "Sale_Type" title="Position"  >Position 
+                            <span data-value="Sale_Type" class="{!v.sortField == 'Sale_Type' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Sale_Type'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td  class ='table-head' data-label="Name" onclick="{!c.sortBy}" data-value = "Name" style="text-align: center;" rowspan="2">
+                        <div class="slds-truncate" title="Name" data-value = "Name" >Name
+                            <span data-value="Name" class="{!v.sortField == 'Name' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Name'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td  class ='table-head' data-label="NO. of Customer (RM)" onclick="{!c.sortBy}" data-value = "No_Of_Customer" style="text-align: center;" rowspan="2">
+                        <div class = "slds-truncate" title="NO. of Customer (RM)" data-value = "No_Of_Customer" >NO. of<br></br>Customer<br></br>(RM)
+                            <span data-value="No_Of_Customer" class="{!v.sortField == 'No_Of_Customer' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'No_Of_Customer'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td colspan="5"> 
+                        <div class="slds-truncate " title="Specialist" style="text-align: center;">Specialist</div>
+                    </td>
+                    <td colspan="4">
+                        <div class="slds-truncate" title="Current Month" style="text-align: center;">Current Month</div>
+                    </td>
+                    <td colspan="3">
+                        <div class="slds-truncate" title="YTD" style="text-align: center;">YTD</div>
+                    </td>
+                </tr>    
+                <tr class="custom-table-header">
+                    <!-- Section  Specialist-->
+                    <td data-label="Interest">
+                        <div class="slds-truncate" title="Interest" style="text-align: center;">Investment</div>
+                    </td>
+                    <td data-label="Protection">
+                        <div class="slds-truncate" title="Protection" style="text-align: center;">Protection</div>
+                    </td>
+                    <td data-label="SBO">
+                        <div class="slds-truncate" title="SBO" style="text-align: center;">SBO</div>
+                    </td>
+                    <td data-label="HL">
+                        <div class="slds-truncate" title="HL" style="text-align: center;">HL</div>
+                    </td>
+                    <td data-label="CYC">
+                        <div class="slds-truncate" title="CYC" style="text-align: center;">CYC</div>
+                    </td>
+
+                    <!-- Section  Current Month-->
+                    <td  class ='table-head' data-label="Actual Point" onclick="{!c.sortByCM}" data-value = "Actual_Point__c" style="text-align: center;">
+                        <div class="slds-truncate" title="Actual Point"  data-value = "Actual_Point__c" >Actual Point
+                            <span data-value="Actual_Point__c" class="{!v.sortField == 'Actual_Point__c' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Actual_Point__c'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td class ='table-head'  data-label="Target Point" onclick="{!c.sortByCM}" data-value = "Target_Point__c" style="text-align: center;">
+                        <div class="slds-truncate" title="Target Point"  data-value = "Target_Point__c" >Target Point
+                            <span data-value="Target_Point__c" class="{!v.sortField == 'Target_Point__c' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Target_Point__c'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td class ='table-head' data-label="%Success" onclick="{!c.sortByCM}" data-value = "Percent_Success__c" style="text-align: center;">
+                        <div class="slds-truncate" title="%Success"  data-value = "Percent_Success__c" >%Success
+                            <span data-value="Percent_Success__c" class="{!v.sortField == 'Percent_Success__c' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Percent_Success__c'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td  class ='table-head' data-label="Variance" onclick="{!c.sortByCM}" data-value = "Variance__c" style="text-align: center;">
+                        <div class="slds-truncate" title="Variance"  data-value = "Variance__c" >Variance
+                            <span data-value="Variance__c" class="{!v.sortField == 'Variance__c' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Variance__c'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+
+                    <!-- Section  YTD-->
+                    <td  class ='table-head' data-label="%Success" onclick="{!c.sortByYTD}" data-value = "Percent_Success_YTD__c" style="text-align: center;">
+                        <div class="slds-truncate" title="%Success"  data-value = "Percent_Success_YTD__c" >%Success
+                            <span data-value="Percent_Success_YTD__c" class="{!v.sortField == 'Percent_Success_YTD__c' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Percent_Success_YTD__c'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td  class ='table-head' data-label="Rank Bankwide" onclick="{!c.sortByYTD}" data-value = "Rank_Bankwide__c" style= "text-align: center;" >
+                        <div class="slds-truncate" title="Rank Bankwide"  data-value = "Rank_Bankwide__c"  >Rank<br></br>Bankwide
+                            <span data-value="Rank_Bankwide__c" class="{!v.sortField == 'Rank_Bankwide__c' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Rank_Bankwide__c'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+                
+
+                <aura:iteration items="{!v.individualPerformance}" var="individualObj" indexVar="index">
+                    <tr>
+                        <td style="text-align: center;">{!index+1}</td>
+                        <aura:if isTrue = "{!empty(individualObj.Sale_Type)}">
+                            <td style="text-align: left;">{!individualObj.Sale_Type} {!individualObj.Position}</td>
+                                <aura:set attribute="else">
+                                    <td style="text-align: left;">({!individualObj.Sale_Type}) {!individualObj.Position}</td>
+                                </aura:set>
+                        </aura:if>
+                        <td style="text-align: left;"> {!individualObj.Name}</td>
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.No_Of_Customer}" maximumFractionDigits="0"/></td>
+                        <td style="text-align: center;">{!individualObj.specialist.Investment}</td>
+                        <td style="text-align: center;">{!individualObj.specialist.Protection}</td>
+                        <td style="text-align: center;">{!individualObj.specialist.SBO}</td>
+                        <td style="text-align: center;">{!individualObj.specialist.HL}</td>
+                        <td style="text-align: center;">{!individualObj.specialist.CYC}</td>
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.currentMonth.Actual_Point__c}"  minimumFractionDigits = "2" maximumFractionDigits = "2"/></td>
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.currentMonth.Target_Point__c}"  minimumFractionDigits = "2" maximumFractionDigits = "2"/></td>
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.currentMonth.Percent_Success__c}" style="percent-fixed" minimumFractionDigits = "2" maximumFractionDigits = "2"/></td> 
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.currentMonth.Variance__c}"      minimumFractionDigits = "2" maximumFractionDigits = "2"/></td>
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.YTD.Percent_Success_YTD__c}" style="percent-fixed" minimumFractionDigits = "2" maximumFractionDigits = "2"/></td>
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.YTD.Rank_Bankwide__c}" maximumFractionDigits = "0"/></td>
+                    </tr>
+                </aura:iteration>
+            </table>
+        </div>
+    </aura:if>
+    <aura:if isTrue="{!v.userType == 'RASC'}">
+        <div class="slds-grid slds-wrap" style="padding:10px;">
+            <table class="slds-table slds-table_cell-buffer " border="2" style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                <tr class="custom-table-header">
+                    <td colspan="16" rowspan="1" >
+                        <div class="slds-grid slds-wrap" style="margin-bottom: -20px;">
+                            <div class="slds-col slds-size_1-of-2" style="margin-bottom: 20px;">
+                                <aura:if isTrue="{!and(v.dataAsOfMonthSecC,v.dataAsOfYearSecC)!=null}">
+                                    <div class="slds-truncate" title="Individual Performance" style="margin-top: 5px;">
+                                        <span>Individual Performance as of {!v.dataAsOfMonthSecC}</span><span style="margin-left: 5px;">{!v.dataAsOfYearSecC}</span>
+                                    </div>
+                                </aura:if>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2" style="margin-bottom: 20px;">
+                                <lightning:button class="custom-btn" variant="brand" label="Next Page" onclick="{!c.nextPage}" /> 
+                            </div>
+                        </div>      
+                    </td>            
+                </tr>      
+                <tr class="custom-table-header">
+                    <td data-label="NO" rowspan="2" style="padding-left: 10px;">
+                        <div class="slds-truncate" title="NO" style="text-align: center;">NO</div>
+                    </td>
+                    <td  class ='table-head' data-label="Position"  onclick="{!c.sortBy}" data-value = "Sale_Type" style="text-align: center;" rowspan="2">
+                        <div class="slds-truncate "  data-value = "Sale_Type" title="Position"  >Position 
+                            <span data-value="Sale_Type" class="{!v.sortField == 'Sale_Type' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Sale_Type'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td class = "table-head" data-label="Name" onclick="{!c.sortBy}" data-value = "Name" style="text-align: center;" rowspan="2">
+                        <div class="slds-truncate" title="Name"  data-value = "Name" >Name
+                            <span data-value="Name" class="{!v.sortField == 'Name' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Name'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td data-lebel="Current Month" colspan="4">
+                        <div class="slds-truncate" title="Current Month" style="text-align: center;">Current Month</div>
+                    </td>
+                    <td data-label="YTD" colspan="2" >
+                        <div class="slds-truncate" title="YTD" style="text-align: center;">YTD</div>
+                    </td>
+                </tr>    
+                <tr class="custom-table-header">
+                    <!-- Section  Current Month-->
+                    <td  class ='table-head' data-label="Actual Point" onclick="{!c.sortByCM}" data-value = "Actual_Point__c" style="text-align: center;">
+                        <div class="slds-truncate" title="Actual Point"  data-value = "Actual_Point__c" >Actual Point
+                            <span data-value="Actual_Point__c" class="{!v.sortField == 'Actual_Point__c' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Actual_Point__c'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td class ='table-head'  data-label="Target Point" onclick="{!c.sortByCM}" data-value = "Target_Point__c" style="text-align: center;">
+                        <div class="slds-truncate" title="Target Point"  data-value = "Target_Point__c" >Target Point
+                            <span data-value="Target_Point__c" class="{!v.sortField == 'Target_Point__c' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Target_Point__c'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td class ='table-head' data-label="%Success" onclick="{!c.sortByCM}" data-value = "Percent_Success__c" style="text-align: center;">
+                        <div class="slds-truncate" title="%Success"  data-value = "Percent_Success__c" >%Success
+                            <span data-value="Percent_Success__c" class="{!v.sortField == 'Percent_Success__c' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Percent_Success__c'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td  class ='table-head' data-label="Variance" onclick="{!c.sortByCM}" data-value = "Variance__c" style="text-align: center;">
+                        <div class="slds-truncate" title="Variance"  data-value = "Variance__c" >Variance
+                            <span data-value="Variance__c" class="{!v.sortField == 'Variance__c' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Variance__c'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <!-- Section  YTD-->
+                    <td  class ='table-head' data-label="%Success" onclick="{!c.sortByYTD}" data-value = "Percent_Success_YTD__c" style="text-align: center;">
+                        <div class="slds-truncate" title="%Success"  data-value = "Percent_Success_YTD__c" >%Success
+                            <span data-value="Percent_Success_YTD__c" class="{!v.sortField == 'Percent_Success_YTD__c' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Percent_Success_YTD__c'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                    <td  class ='table-head' data-label="Rank Bankwide" onclick="{!c.sortByYTD}" data-value = "Rank_Bankwide__c" style= "text-align: center;" >
+                        <div class="slds-truncate" title="Rank Bankwide"  data-value = "Rank_Bankwide__c"  >Rank<br></br>Bankwide
+                            <span data-value="Rank_Bankwide__c" class="{!v.sortField == 'Rank_Bankwide__c' ? '' : 'unsort'}">
+                                <aura:if isTrue="{!v.sortField != 'Rank_Bankwide__c'}">
+                                    &#8597;
+                                    <aura:set attribute="else">  
+                                            <aura:if isTrue="{!v.sortAsc}">
+                                                &#8593;
+                                                <aura:set attribute="else">
+                                                    &#8595;
+                                                </aura:set>
+                                            </aura:if>
+                                    </aura:set>
+                                </aura:if>
+                            </span>
+                        </div>
+                    </td>
+                </tr>
+
+                <aura:iteration items="{!v.individualPerformance}" var="individualObj" indexVar="index">
+                    <tr>
+                        <td style="text-align: center;">{!index+1}</td>
+                        <aura:if isTrue = "{!empty(individualObj.Sale_Type)}">
+                            <td style="text-align: left;">{!individualObj.Sale_Type} {!individualObj.Position}</td>
+                                <aura:set attribute="else">
+                                    <td style="text-align: left;">({!individualObj.Sale_Type}) {!individualObj.Position}</td>
+                                </aura:set>
+                        </aura:if>
+                        <td style="text-align: left;">{!individualObj.Name}</td>
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.currentMonth.Actual_Point__c}" minimumFractionDigits = "2" maximumFractionDigits = "2"/></td>
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.currentMonth.Target_Point__c}" minimumFractionDigits = "2" maximumFractionDigits = "2"/></td>
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.currentMonth.Percent_Success__c}" style="percent-fixed" minimumFractionDigits = "2" maximumFractionDigits = "2"/></td>
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.currentMonth.Variance__c}" minimumFractionDigits = "2" maximumFractionDigits = "2"/></td>
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.YTD.Percent_Success_YTD__c}" style="percent-fixed" minimumFractionDigits = "2" maximumFractionDigits = "2"/></td>
+                        <td style="text-align: right;"><lightning:formattedNumber value="{!individualObj.YTD.Rank_Bankwide__c}" maximumFractionDigits = "0"/></td>
+                    </tr>
+                </aura:iteration>
+            </table>
+        </div>
+    </aura:if>
+</aura:component>

@@ -1,0 +1,214 @@
+<aura:component implements="flexipage:availableForAllPageTypes,force:hasRecordId" access="global" controller="AdvisoryPlanningItemServices" >
+
+    <aura:attribute name="recordId" type="Id" />    
+    <aura:attribute name="planningRecord" type="Object"/>
+    <aura:attribute name="recordLoadError" type="String"/>
+    <aura:attribute name="isLoading" type="Boolean" default="true" />
+    
+    <aura:attribute name="company" type="String" default="" />
+    
+    <aura:attribute name="tmbCustId" type="String" />
+    <aura:attribute name="customerId" type="String" />
+
+    <aura:attribute name="mainBankProductCode" type="List" /> <!-- mainbank prod code mdt -->
+    <aura:attribute name="isSuccess" type="Boolean" default="false" />
+    <aura:attribute name="isAllDone" type="Boolean" default="false" />
+    <aura:attribute name="showRetry" type="Boolean" default="false" />
+    <aura:attribute name="retrySetTimeOut" type="Integer" />
+    <aura:attribute name="numOfRetryTime" type="Integer" />
+    <aura:attribute name="error" type="Map"
+        default="{'state':false,'message':'','messages':{'AllRetry':'','OSC01':'','CardBal':'','Bancassurance':'', 'AutoLoan' :'','someInfoError':''},'hrefList':'', 'title' :'Error Occur'}" />
+    <aura:attribute name="errorMessageControl" type="Map" />
+    <aura:attribute name="errorMessage" type="String" />
+    
+    <!-- <ltng:require scripts="{!$Resource.bluebird372}" afterScriptsLoaded="{!c.doInit}" /> -->
+
+    <aura:attribute name="depositProduct" type="Map" default="{ 'isError' : false,'isDone' : false, 'isLoading' : true, 'datas' : []}" />
+    <aura:attribute name="creditCardRDCProduct" type="Map" default="{ 'isError' : false,'isDone' : true, 'isLoading' : false, 'datas' : []}" />
+    <aura:attribute name="loanProduct" type="Map" default="{ 'isError' : false,'isDone' : false, 'isLoading' : true, 'datas' : []}" />
+    <aura:attribute name="autoLoanProduct" type="Map" default="{ 'isError' : false,'isDone' : false, 'isLoading' : true, 'datas' : []}" />
+    <aura:attribute name="bancassuranceProduct" type="Map" default="{ 'isError' : false,'isDone' : false, 'isLoading' : true, 'datas' : []}" />
+    <aura:attribute name="investmentProduct" type="Map" default="{ 'isError' : false,'isDone' : false, 'isLoading' : true, 'datas' : []}" />
+
+    <aura:attribute name="isAutoRetryOSC01" type="Boolean" default= "false"/>
+    <aura:attribute name="isAutoRetryCreditCard" type="Boolean" default= "false"/>
+
+    <aura:attribute name="alds_wf" type="Map" default="{}" />
+
+    <force:recordData aura:id="recordLoader"
+        recordId="{!v.recordId}"
+        fields="Name,Customer__c,ttb_Customer_ID__c,Is_Sync_Product_Holding__c,Last_Sync_Date_Time__c"
+        targetFields="{!v.planningRecord}"
+        targetError="{!v.recordLoadError}"
+    />
+    
+    <aura:handler name="change" value="{!v.planningRecord}" action="{!c.doInit}" />
+    <aura:handler name="change" value="{!v.isSuccess}" action="{!c.handleSuccess}" />
+
+
+    <aura:html tag="style">
+        .rotate .slds-progress-ring{
+            animation: rotate 1.8s linear infinite; 
+        }
+        
+        @keyframes rotate{
+        to{ transform: rotate(360deg); }
+        }
+    </aura:html>
+
+    <lightning:card title=" " class=" slds-card_boundary slds-p-around_small">
+        <aura:if isTrue="{! v.error.state }">
+            <lightning:layout>
+                <lightning:layoutItem size="12" class="slds-is-relative slds-p-top_small">
+                    <lightning:card class="slds-theme_shade slds-theme_alert-texture">
+                        <aura:set attribute="title">
+                            <div class="slds-text-heading_small slds-text-color_destructive">
+                                <aura:unescapedHtml value="{!v.error.title}" />
+                            </div>
+                        </aura:set>
+                        <!-- <div class="slds-p-around_small">{! v.error.messageTimeout }</div> -->
+                        <lightning:layoutItem aura:id="hrefComponent" class="slds-p-horizontal_small slds-p-vertical_xx-small">
+                            <div style="white-space: pre-wrap;">
+                                <aura:if isTrue="{! or(v.errorMessageControl.noTmbcust, v.errorMessageControl.noAuthorized)}">
+                                    <div>
+                                        {!v.error.message}
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!v.errorMessageControl.isShowMessage.Retry}">
+                                    <div>
+                                        {!v.errorMessageControl.messages.Retry}
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!v.errorMessageControl.isShowMessage.Snow}">
+                                    <div>
+                                        <aura:if isTrue="{!v.errorMessageControl.isShowMessage.Retry}">
+                                            {!v.errorMessageControl.messages.tryContact}
+                                            <aura:set attribute="else">
+                                                {!v.errorMessageControl.messages.Snow}
+                                            </aura:set>
+                                        </aura:if>
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!v.errorMessageControl.isShowMessage.Info}">
+                                    <div>
+                                        {!v.errorMessageControl.messages.Info}
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!v.error.hrefList}">
+                                    <div>
+                                        {!v.error.hrefList}
+                                    </div>
+                                </aura:if>
+                            </div>
+                        </lightning:layoutItem>
+                    </lightning:card>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </aura:if>
+        <aura:if isTrue="{!v.isLoading}">
+            <div  aura:id="loadingSpinner" class="spinner-div">
+                <p class="slds-text-heading_small">{!$Label.c.RMC_Product_Holding_Loading}</p>
+                <p>{!$Label.c.RMC_Product_Holding_Waiting}</p>
+                <br/>
+                <div class="spinnerHolder">
+                    <!-- <lightning:spinner  class="spinners" variant="brand" size="large" alternativeText="Loading" /> -->
+                    <ul>
+                        <li class="slds-text-align_center slds-p-horizontal_small">
+                            <aura:if isTrue="{!v.depositProduct.isLoading == false}">
+                                <aura:if isTrue="{!v.depositProduct.isError}">
+                                    <lightning:progressRing value="100" variant="warning" size="large" />
+                                    <aura:set attribute="else">
+                                        <lightning:progressRing value="100" variant="base-autocomplete" size="large" />
+                                    </aura:set>
+                                </aura:if>
+                                <aura:set attribute="else">
+                                    <lightning:progressRing value="35"  size="large" class="rotate"/>
+                                </aura:set>
+                            </aura:if>
+                            
+                            <p class="font-bold">Deposit</p>
+                        </li>
+                        <li class="slds-text-align_center slds-p-horizontal_small">
+                            <aura:if isTrue="{!v.investmentProduct.isLoading == false}">
+                                <aura:if isTrue="{!v.investmentProduct.isError}">
+                                    <lightning:progressRing value="100" variant="warning" size="large" />
+                                    <aura:set attribute="else">
+                                        <lightning:progressRing value="100" variant="base-autocomplete" size="large" />
+                                    </aura:set>
+                                </aura:if>
+                                <aura:set attribute="else">
+                                    <lightning:progressRing value="35"  size="large" class="rotate"/>
+                                </aura:set>
+                            </aura:if>
+                            <p class="font-bold">Investment</p>
+                        </li>
+                        <li class="slds-text-align_center slds-p-horizontal_small">
+                            <aura:if isTrue="{!v.loanProduct.isLoading == false}">
+                                <aura:if isTrue="{!v.loanProduct.isError}">
+                                    <lightning:progressRing value="100" variant="warning" size="large" />
+                                    <aura:set attribute="else">
+                                        <lightning:progressRing value="100" variant="base-autocomplete" size="large" />
+                                    </aura:set>
+                                </aura:if>
+                                <aura:set attribute="else">
+                                    <lightning:progressRing value="35"  size="large" class="rotate"/>
+                                </aura:set>
+                            </aura:if>
+                            <p class="font-bold">Loan</p>
+                        </li>
+                        <li class="slds-text-align_center slds-p-horizontal_small">
+                            <aura:if isTrue="{!v.autoLoanProduct.isLoading == false}">
+                                <aura:if isTrue="{!v.autoLoanProduct.isError}">
+                                    <lightning:progressRing value="100" variant="warning" size="large" />
+                                    <aura:set attribute="else">
+                                        <lightning:progressRing value="100" variant="base-autocomplete" size="large" />
+                                    </aura:set>
+                                </aura:if>
+                                <aura:set attribute="else">
+                                    <lightning:progressRing value="35"  size="large" class="rotate"/>
+                                </aura:set>
+                            </aura:if>
+                            <p class="font-bold">Auto Loan</p>
+                        </li>
+                        
+                        <li class="slds-text-align_center slds-p-horizontal_small">
+                            <aura:if isTrue="{!v.bancassuranceProduct.isLoading == false}">
+                                <aura:if isTrue="{!v.bancassuranceProduct.isError}">
+                                    <lightning:progressRing value="100" variant="warning" size="large" />
+                                    <aura:set attribute="else">
+                                        <lightning:progressRing value="100" variant="base-autocomplete" size="large" />
+                                    </aura:set>
+                                </aura:if>
+                                <aura:set attribute="else">
+                                    <lightning:progressRing value="35"  size="large" class="rotate"/>
+                                </aura:set>
+                            </aura:if>
+                            <p class="font-bold">Bancassurance</p>
+                        </li>
+                        <!-- <li class="slds-text-align_center slds-p-horizontal_small">
+                            <aura:if isTrue="{!v.creditCardRDCProduct.isLoading == false}">
+                                <aura:if isTrue="{!v.creditCardRDCProduct.isError}">
+                                    <lightning:progressRing value="100" variant="warning" size="large" />
+                                    <aura:set attribute="else">
+                                        <lightning:progressRing value="100" variant="base-autocomplete" size="large" />
+                                    </aura:set>
+                                </aura:if>
+                                <aura:set attribute="else">
+                                    <lightning:progressRing value="35"  size="large" class="rotate"/>
+                                </aura:set>
+                            </aura:if>
+                            <p class="font-bold">Credit Card</p>
+                        </li> -->
+                        
+                        
+                    </ul>
+                    
+                </div>
+                <aura:if isTrue="{!v.showRetry}">
+                    <br/><lightning:button variant="brand" label="Retry Failed" title="Retry Failed" onclick="{! c.handleRetryProcess }" />
+                </aura:if>
+                
+            </div>
+        </aura:if>
+    </lightning:card>
+</aura:component>

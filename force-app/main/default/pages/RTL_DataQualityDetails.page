@@ -1,0 +1,179 @@
+<apex:page standardController="Account" extensions="RTL_DataQualityDetailsExtension" showHeader="false" sidebar="false" action="{!updateAccountValidation}" rendered="{!rendered}" title="{!$Label.Data_Quality_Details}" lightningStyleSheets="true">
+    <!-- Includes Js -->
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+    <!-- Salesconsole JS API -->
+    <apex:includescript value="/support/console/36.0/integration.js" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    
+    <apex:sectionheader title="{!$Label.Data_Quality_Details}" subtitle="{!Account.Name}" />
+    <!--<apex:pageBlock mode="maindetail">-->
+    <apex:pageBlock id="section1" title="{!$Label.Data_Quality_Details}" mode="view">
+        <apex:pageBlockSection columns="2" collapsible="true">
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$Label.RTL_Last_Customer_Data_Update}"></apex:outputLabel>
+                <apex:outputField value="{!account.RTL_RM_Last_Update__c}" />    
+                 
+            </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                                 
+            </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+        <br />
+        <table class="list " border="0" cellpadding="0" cellspacing="0">
+                <tr class="headerRow">
+                    <th class="field" style="width:20%"> {!$Label.RTL_Field} </th>
+                    <th class="headerRow" style="width:40%">{!$Label.RTL_Quality} </th>
+                    <th class="headerRow" style="width:40%">{!$Label.RTL_Marketing} </th>
+                </tr>
+                <tr class="idno" >
+                    <td><apex:outputText value="{!label.idno}" /></td>  
+                    <td><apex:outputText value="{!dataValidation.RTL_Citizen_ID_Quality__c}"/></td>
+                    <td><apex:outputText value="{!dataValidation.RTL_Citizen_ID_Mkt__c}"/></td>
+                </tr>
+                
+                <tr class="dob" >
+                    <td><apex:outputText value="{!label.DOBField}" /></td>  
+                    <td><apex:outputText value="{!dataValidation.RTL_DOB_Quality__c}"/></td>
+                    <td><apex:outputText value="{!dataValidation.RTL_DOB_Mkt__c}"/></td>
+               </tr>
+               
+               <tr class="occu" >
+                   <td><apex:outputText value="{!label.occupation}" /></td>  
+                    <td><apex:outputText value="{!dataValidation.RTL_Occupation_Quality__c}"/></td>
+                    <td><apex:outputText value="{!dataValidation.RTL_Occupation_Mkt__c}"/></td>
+               </tr>
+               
+               <tr class="mobi" >
+                   <td><apex:outputText value="{!label.mobi}" /></td>  
+                    <td><apex:outputText value="{!dataValidation.RTL_Mobile_Quality__c}"/></td>
+                    <td><apex:outputText value="{!dataValidation.RTL_Mobile_Mkt__c}"/></td>
+               </tr>
+               
+               <tr class="email" >
+                        <td><apex:outputText value="{!label.email}" /></td>  
+                        <td><apex:outputText value="{!dataValidation.RTL_Email_Quality__c}"/></td>
+                        <td><apex:outputText value="{!dataValidation.RTL_Email_Mkt__c}"/></td>
+               </tr>
+                  
+                
+            <tr class="primaryaddr">
+                <td><apex:outputText value="{!label.primaryAddr} / {!label.zipPrimary}" /></td>  
+                    <td><apex:outputText value="{!dataValidation.RTL_Primary_Address_Quality_Combined__c}"/></td>
+                    <td><apex:outputText value="{!dataValidation.RTL_Primary_Address_Marketing_Combined__c}"/></td>
+             </tr>
+            
+            <tr class="regisAddr" >
+                <td><apex:outputText value="{!label.regisAddr} / {!label.zipRegis}" /></td>  
+                    <td><apex:outputText value="{!dataValidation.RTL_Registered_Address_Quality_Combined__c}"/></td>
+                    <td><apex:outputText value="{!dataValidation.RTL_Registered_Address_Marketing_Combine__c}"/></td>
+             </tr>
+            
+            <tr class="officeaddr" >
+                <td><apex:outputText value="{!label.officeAddr} / {!label.zipOffice}" /></td>  
+                    <td><apex:outputText value="{!dataValidation.RTL_Office_Address_Quality_Combined__c}"/></td>
+                    <td><apex:outputText value="{!dataValidation.RTL_Office_Address_Marketing_Combined__c}"/></td>
+             </tr>    
+       </table>
+    </apex:pageBlock> 
+    <script>
+    // Global variable
+    var _isInConsole = false;
+    var _isInSF1 = false;
+    var _primaryTabId ='';
+    var _tabid;
+    var _subTabId;
+    var _customername = 'account';
+
+    function startLoading(text){
+        $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+        $('.loadingBox').show();
+    }
+    function endLoading(){
+        $('.loadingBox').hide();
+        hideNormalLink();
+    }
+    
+    function nav(url,pageName){
+        //refreshTabsAfterSave();
+        
+        OpenTabPage(url,pageName);
+        
+    }
+    /*-------------------------------------------------------------------------
+            Salesforce :  Sale Console Js
+        ---------------------------------------------------------------------------*/
+    function IsInConsole() {
+        if (sforce.console.isInConsole()) {
+            _isInConsole = true;
+            _isInSF1 = false;
+            // Then get primary tab id
+            sforce.console.getFocusedPrimaryTabId (MainTabId);
+            sforce.console.getFocusedSubtabId(callCloseTab);
+            //sforce.console.setTabTitle(_customername);
+            sforce.console.getEnclosingTabId(callCloseTab);
+
+        }
+        // Ref. https://developer.salesforce.com/docs/atlas.en-us.salesforce1.meta/salesforce1/vf_dev_best_practices_pages_multipurpose.htm
+        else if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+            _isInConsole = false;
+            _isInSF1 = true;
+
+        }
+        else {
+            _isInConsole = false;
+            _isInSF1 = false;
+        }
+
+        console.log('_isInConsole = ' +  _isInConsole);
+        console.log('_isInSF1 = ' +  _isInSF1);
+
+
+    }
+    function OpenTabPage(url,pagename){
+        // Open new sub tab
+        sforce.console.openPrimaryTab(_primaryTabId , url, true, pagename,openSuccess);
+        /*if(_subTabId != '' && _subTabId != null && _subTabId != 'null')
+        {
+            sforce.console.openSubtab(_primaryTabId , url, true, pagename,_subTabId,openSuccess);
+        }
+        else
+        {
+        sforce.console.openSubtab(_primaryTabId , url, true, pagename,null,openSuccess);
+        }*/
+    }
+    var MainTabId = function getMainTabId(result  /* primary tab info */) {
+        //Now that we have the primary tab ID, we can open a new subtab in it
+        _primaryTabId = result.id;
+        console.log(_primaryTabId);
+    };
+    
+    
+    var openSuccess = function openSuccess(result) {
+        //Report whether we succeeded in opening the subtab
+        if (result.success == true) {
+
+        } else {
+
+        }
+    };
+    
+     //The callback function that closeTab will call once it has the ID for its tab
+        var callCloseTab= function callCloseTab(result) {
+            console.log('subtabid  ' + result.id);
+     
+            _subTabId = result.id;
+        };
+    
+
+    /*-------------------------------------------------------------------------
+            Salesforce :  Main Function
+        ---------------------------------------------------------------------------*/
+    $(document).ready(function () {
+        //Check Application
+        IsInConsole();
+        
+    });
+    </script>
+    
+</apex:page>

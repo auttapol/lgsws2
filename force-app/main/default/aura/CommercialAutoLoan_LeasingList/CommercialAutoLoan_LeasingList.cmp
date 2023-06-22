@@ -1,0 +1,84 @@
+<aura:component controller="CommercialAutoLoanController" implements="flexipage:availableForAllPageTypes,force:hasRecordId,lightning:isUrlAddressable">
+    <c:methodUtils aura:id="methodUtils" />
+    <lightning:navigation aura:id="navService" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler name="change" value="{!v.accessibleCusHold}" action="{!c.handleAccessibleCusHold}" />
+    <aura:registerEvent name="eCommercialAutoLoan_ProductHoldingEvent" type="c:CommercialAutoLoan_ProductHoldingEvent" />
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="tmbCustId" type="String" />
+    <aura:attribute name="theme" type="String" />
+    <aura:attribute name="product" type="Map" default="{}" />
+    <aura:attribute name="accessibleCusHold" type="Map" default="{}" />
+    <aura:attribute name="result" type="Map" default="{}" description="for temporary value" />
+
+    <aura:attribute name="isLeasingFlag" type="Boolean" default="false" description="Status for leasing flag" />
+    <aura:attribute name="hasLeasing" type="Boolean" default="false" description="Checking for leasing has account" />
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+    <aura:attribute name="isError" type="Boolean" default="false" />
+    <aura:attribute name="isTimeout" type="Boolean" default="false" />
+    <aura:attribute name="isNotFound" type="Boolean" default="false" />
+
+    <aura:attribute name="limit" type="Integer" default="100" />
+    <aura:attribute name="offset" type="Integer" default="0" />
+    <aura:attribute name="count" type="Integer" default="0" />
+    <aura:attribute name="total_record" type="Integer" default="0" />
+
+    <aura:attribute name="pageInfo" type="String" default="" />
+    <aura:attribute name="showPage" type="Boolean" default="false" />
+
+    <aura:method name="getError" action="{!c.getError}" />
+    <aura:method name="calloutService" action="{!c.calloutService}" />
+
+    <lightning:card>
+        <aura:set attribute="title">
+            {! $Label.c.Auto_Loan_Leasing}
+            <aura:if isTrue="{! v.isLoading }">
+                <div class="slds-is-relative spinnerInline">
+                    <lightning:spinner alternativeText="Loading" size="small" variant="brand" />
+                </div>
+            </aura:if>
+        </aura:set>
+
+
+        <aura:if isTrue="{! v.showPage }">
+            <lightning:buttonGroup class="slds-p-left_small slds-p-top_x-small">
+                <lightning:button class="slds-p-right_x-small" aura:id="previous" label="Previous" onclick="{!c.previous}" variant="base" />
+                <lightning:button class="slds-p-right_x-small" aura:id="next" label="Next" onclick="{!c.next}" variant="base" />
+                <lightning:button class="button-info slds-p-right_x-small" label="{!v.pageInfo}" variant="base" disabled="true" />
+            </lightning:buttonGroup>
+            <aura:set attribute="else">
+                <aura:if isTrue="{! and(v.pageInfo, !or(v.isError, v.isTimeout)) }">
+                    <lightning:buttonGroup class="slds-p-left_small slds-p-top_x-small">
+                        <lightning:button class="button-info slds-p-right_x-small" label="No record displayed" variant="base" disabled="true" />
+                    </lightning:buttonGroup>
+                </aura:if>
+            </aura:set>
+        </aura:if>
+
+        <div class="slds-is-relative">
+            <aura:if isTrue="{! v.product.datas.length > 0 ? v.isLoading : false }">
+                <lightning:spinner alternativeText="Loading" size="large" variant="brand" />
+            </aura:if>
+            <lightning:datatable keyField="id" columns="{! v.product.columns }" data="{! v.product.datas }" hideCheckboxColumn="true" maxRowSelection="1"
+                resizeColumnDisabled="true" onrowaction="{! c.onSummaryClickHref }" />
+        </div>
+
+        <aura:if isTrue="{! v.showPage }">
+            <lightning:buttonGroup class="slds-p-left_small slds-p-top_x-small">
+                <lightning:button class="slds-p-right_x-small" aura:id="previous" label="Previous" onclick="{!c.previous}" variant="base" />
+                <lightning:button class="slds-p-right_x-small" aura:id="next" label="Next" onclick="{!c.next}" variant="base" />
+                <lightning:button class="button-info slds-p-right_x-small" label="{!v.pageInfo}" variant="base" disabled="true" />
+            </lightning:buttonGroup>
+            <aura:set attribute="else">
+                <aura:if isTrue="{! and(v.pageInfo, !or(v.isError, v.isTimeout)) }">
+                    <lightning:buttonGroup class="slds-p-left_small slds-p-top_x-small">
+                        <lightning:button class="button-info slds-p-right_x-small" label="No record displayed" variant="base" disabled="true" />
+                    </lightning:buttonGroup>
+                </aura:if>
+            </aura:set>
+        </aura:if>
+
+    </lightning:card>
+
+</aura:component>

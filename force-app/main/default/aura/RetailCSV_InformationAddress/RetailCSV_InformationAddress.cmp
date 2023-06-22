@@ -1,0 +1,555 @@
+<aura:component controller="RetailCSVLightningUtil" implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler event="c:RetailCSV_Event" action="{!c.handleRefreshfield}"/>
+    
+    <aura:attribute name="userId" type="Id" default="{! $SObjectType.CurrentUser.Id }" />
+    <aura:attribute name="profileName" type="String" default="" />
+    <aura:handler name="change" value="{!v.profileName}" action="{!c.handleProfileName}" />
+    
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="fields" type="List" />
+    <aura:attribute name="fields_translate" type="List" />
+    <aura:attribute name="dataFields" type="Map" />
+    <aura:attribute name="dataPartion" type="Map" default="{}" />
+    <aura:attribute name="customColorField" type="Map" />
+    
+    <aura:attribute name="deviceSize" type="Map" default="{
+                                                          small: '12',
+                                                          medium: '6',    
+                                                          large: '6',
+                                                          size: '12',
+                                                          }" />
+    <aura:attribute name="width" type="String" description=" width of parent region" />
+    <lightning:flexipageRegionInfo width="{!v.width}" />
+    
+    <aura:attribute name="account" type="Object" />
+    
+    
+    <aura:attribute name="isError" type="Boolean" default="false" />
+    <aura:attribute name="isRerender" type="Boolean" default="false" />
+    <aura:if isTrue="{! v.isRerender }">
+        <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        <div class="fixHeight"></div>
+    </aura:if>
+
+    <!-- Water Mark -->
+    <!-- <aura:attribute name="waterMarkImage" type="String" /> -->
+    <aura:if isTrue="{! v.width == 'small' }">
+        <aura:html tag="style">
+            .flexipageEditorContainer {
+            padding-top: 0;
+            }
+        </aura:html>
+    </aura:if>
+    <!-- Water Mark -->
+    <div class="slds-no-print" style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+        <aura:if isTrue="{!v.dataFields}">
+            <lightning:layout class="{! v.width == 'small' ? 'slds-card slds-p-horizontal_x-small bgMark waterMark' : 'bgMark waterMark' }" verticalAlign="stretch" pullToBoundary="small" multipleRows="true">
+                
+                <aura:if isTrue="{!$Browser.formFactor != 'DESKTOP'}">
+                    <lightning:layoutItem size="{!v.deviceSize.size}" smallDeviceSize="{!v.deviceSize.small}" mediumDeviceSize="{!v.deviceSize.medium}"
+                                        largeDeviceSize="{!v.deviceSize.large}" padding="horizontal-small" class="slds-form">
+                        <lightning:layout verticalAlign="stretch" multipleRows="true" class="slds-form__row">
+                            
+                            <!-- Primary_Address_Line_1_PE__c
+                            Primary_Address_Line_2_PE__c
+                            Primary_Address_Line_3_PE__c
+                            Province_Primary_PE__c
+                            Zip_Code_Primary_PE__c -->
+                            <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto"
+                                                size="{!v.deviceSize.size}">
+                                <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                    <label class="slds-form-element__label">{!v.dataFields.Primary_Address_Line_1_PE__c.label}</label>
+                                    <aura:if isTrue="{! v.dataFields.Primary_Address_Line_1_PE__c.inlineHelpText }">
+                                        <lightning:helptext content="{! v.dataFields.Primary_Address_Line_1_PE__c.inlineHelpText }" />
+                                    </aura:if>
+                                    <div class="slds-form-element__control custom_form">
+                                        <aura:if isTrue="{!v.dataFields.Primary_Address_Line_1_PE__c.isAccessible}">
+                                            <div class="slds-form-element__static">
+                                                <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.Primary_Address_Line_1_PE__c.name}"
+                                                                            type="{!v.dataFields.Primary_Address_Line_1_PE__c.type}" value="{!v.dataFields.Primary_Address_Line_1_PE__c.value + ' ' +
+                                                                                                                                            v.dataFields.Primary_Address_Line_2_PE__c.value + ' ' +
+                                                                                                                                            v.dataFields.Primary_Address_Line_3_PE__c.value + ' ' +
+                                                                                                                                            v.dataFields.Province_Primary_PE__c.value + ' ' +
+                                                                                                                                            v.dataFields.Zip_Code_Primary_PE__c.value}" />
+                                            </div>
+                                            <aura:set attribute="else">
+                                                <div class="slds-form-element__static">
+                                                    <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                </div>
+                                            </aura:set>
+                                        </aura:if>
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                            
+                            <!-- RTL_Office_Address__c
+                            Office_Address_Line_1_PE__c
+                            Office_Address_Line_2_PE__c
+                            Office_Address_Line_3_PE__c
+                            Province_Office_PE__c
+                            Zip_Code_Office_PE__c -->
+                            <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto"
+                                                size="{!v.deviceSize.size}">
+                                <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                    <label class="slds-form-element__label">{!v.dataFields.RTL_Office_Address__c.label}</label>
+                                    <aura:if isTrue="{! v.dataFields.RTL_Office_Address__c.inlineHelpText }">
+                                        <lightning:helptext content="{! v.dataFields.RTL_Office_Address__c.inlineHelpText }" />
+                                    </aura:if>
+                                    <div class="slds-form-element__control custom_form">
+                                        <aura:if isTrue="{!v.dataFields.Office_Address_Line_1_PE__c.isAccessible}">
+                                            <div class="slds-form-element__static">
+                                                <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.Office_Address_Line_1_PE__c.name}"
+                                                                            type="{!v.dataFields.Office_Address_Line_1_PE__c.type}" value="{!v.dataFields.Office_Address_Line_1_PE__c.value + ' ' +
+                                                                                                                                        v.dataFields.Office_Address_Line_2_PE__c.value + ' ' +
+                                                                                                                                        v.dataFields.Office_Address_Line_3_PE__c.value + ' ' +
+                                                                                                                                        v.dataFields.Province_Office_PE__c.value + ' ' +
+                                                                                                                                        v.dataFields.Zip_Code_Office_PE__c.value}" />
+                                            </div>
+                                            <aura:set attribute="else">
+                                                <div class="slds-form-element__static">
+                                                    <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                </div>
+                                            </aura:set>
+                                        </aura:if>
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                            
+                            <!-- RTL_Registered_Address__c
+                            Registered_Address_Line_1_PE__c
+                            Registered_Address_Line_2_PE__c
+                            Registered_Address_Line_3_PE__c
+                            Province_Registered_PE__c
+                            Zip_Code_Registered_PE__c -->
+                            <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto"
+                                                size="{!v.deviceSize.size}">
+                                <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                    <label class="slds-form-element__label">{!v.dataFields.RTL_Registered_Address__c.label}</label>
+                                    <aura:if isTrue="{! v.dataFields.RTL_Registered_Address__c.inlineHelpText }">
+                                        <lightning:helptext content="{! v.dataFields.RTL_Registered_Address__c.inlineHelpText }" />
+                                    </aura:if>
+                                    <div class="slds-form-element__control custom_form">
+                                        <aura:if isTrue="{!v.dataFields.Registered_Address_Line_1_PE__c.isAccessible}">
+                                            <div class="slds-form-element__static">
+                                                <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.Registered_Address_Line_1_PE__c.name}"
+                                                                            type="{!v.dataFields.Registered_Address_Line_1_PE__c.type}" value="{!v.dataFields.Registered_Address_Line_1_PE__c.value + ' ' +
+                                                                                                                                            v.dataFields.Registered_Address_Line_2_PE__c.value + ' ' +
+                                                                                                                                            v.dataFields.Registered_Address_Line_3_PE__c.value + ' ' +
+                                                                                                                                            v.dataFields.Province_Registered_PE__c.value + ' ' +
+                                                                                                                                            v.dataFields.Zip_Code_Registered_PE__c.value}" />
+                                            </div>
+                                            <aura:set attribute="else">
+                                                <div class="slds-form-element__static">
+                                                    <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                </div>
+                                            </aura:set>
+                                        </aura:if>
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                            
+                        </lightning:layout>
+                    </lightning:layoutItem>
+                    
+                    
+                    <lightning:layoutItem size="{!v.deviceSize.size}" smallDeviceSize="{!v.deviceSize.small}" mediumDeviceSize="{!v.deviceSize.medium}"
+                                        largeDeviceSize="{!v.deviceSize.large}" padding="horizontal-small" class="slds-form">
+                        <lightning:layout verticalAlign="stretch" multipleRows="true" class="slds-form__row">
+                            <!-- RTL_Preferred_Contact_Channel__c -->
+                            <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto" size="{!v.deviceSize.size}">
+                                <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                    <label class="slds-form-element__label">{!v.dataFields.RTL_Preferred_Contact_Channel__c.label}</label>
+                                    <aura:if isTrue="{! v.dataFields.RTL_Preferred_Contact_Channel__c.inlineHelpText }">
+                                        <lightning:helptext content="{! v.dataFields.RTL_Preferred_Contact_Channel__c.inlineHelpText }" />
+                                    </aura:if>
+                                    <div class="slds-form-element__control custom_form">
+                                        <aura:if isTrue="{!v.dataFields.RTL_Preferred_Contact_Channel__c.isAccessible}">
+                                            <div class="slds-form-element__static">
+                                                <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.RTL_Preferred_Contact_Channel__c.name}"
+                                                                            type="{!v.dataFields.RTL_Preferred_Contact_Channel__c.type}"
+                                                                            value="{!v.dataFields.RTL_Preferred_Contact_Channel__c.value}" />
+                                            </div>
+                                            <aura:set attribute="else">
+                                                <div class="slds-form-element__static">
+                                                    <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                </div>
+                                            </aura:set>
+                                        </aura:if>
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                            
+                            <!-- Mobile_Number_PE__c -->
+                            <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto" size="{!v.deviceSize.size}">
+                                <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                    <label class="slds-form-element__label">{!v.dataFields.Mobile_Number_PE__c.label}</label>
+                                    <aura:if isTrue="{! v.dataFields.Mobile_Number_PE__c.inlineHelpText }">
+                                        <lightning:helptext content="{! v.dataFields.Mobile_Number_PE__c.inlineHelpText }" />
+                                    </aura:if>
+                                    <div class="slds-form-element__control custom_form">
+                                        <aura:if isTrue="{!v.dataFields.Mobile_Number_PE__c.isAccessible}">
+                                            <div class="slds-form-element__static">
+                                                <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.Mobile_Number_PE__c.name}"
+                                                                            type="{!v.dataFields.Mobile_Number_PE__c.type}" value="{!v.dataFields.Mobile_Number_PE__c.value}" />
+                                            </div>
+                                            <aura:set attribute="else">
+                                                <div class="slds-form-element__static">
+                                                    <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                </div>
+                                            </aura:set>
+                                        </aura:if>
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                            
+                            <!-- C_Home_phone_PE__c -->
+                            <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto" size="{!v.deviceSize.size}">
+                                <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                    <label class="slds-form-element__label">{!v.dataFields.C_Home_phone_PE__c.label}</label>
+                                    <aura:if isTrue="{! v.dataFields.C_Home_phone_PE__c.inlineHelpText }">
+                                        <lightning:helptext content="{! v.dataFields.C_Home_phone_PE__c.inlineHelpText }" />
+                                    </aura:if>
+                                    <div class="slds-form-element__control custom_form">
+                                        <aura:if isTrue="{!v.dataFields.C_Home_phone_PE__c.isAccessible}">
+                                            <div class="slds-form-element__static">
+                                                <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.C_Home_phone_PE__c.name}" type="{!v.dataFields.C_Home_phone_PE__c.type}"
+                                                                            value="{!v.dataFields.C_Home_phone_PE__c.value}" />
+                                            </div>
+                                            <aura:set attribute="else">
+                                                <div class="slds-form-element__static">
+                                                    <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                </div>
+                                            </aura:set>
+                                        </aura:if>
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                            
+                            <!-- RTL_Office_Phone_Number__c -->
+                            <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto" size="{!v.deviceSize.size}">
+                                <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                    <label class="slds-form-element__label">{!v.dataFields.RTL_Office_Phone_Number__c.label}</label>
+                                    <aura:if isTrue="{! v.dataFields.RTL_Office_Phone_Number__c.inlineHelpText }">
+                                        <lightning:helptext content="{! v.dataFields.RTL_Office_Phone_Number__c.inlineHelpText }" />
+                                    </aura:if>
+                                    <div class="slds-form-element__control custom_form">
+                                        <aura:if isTrue="{!v.dataFields.RTL_Office_Phone_Number__c.isAccessible}">
+                                            <div class="slds-form-element__static">
+                                                <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.RTL_Office_Phone_Number__c.name}"
+                                                                            type="{!v.dataFields.RTL_Office_Phone_Number__c.type}" value="{!v.dataFields.RTL_Office_Phone_Number__c.value}" />
+                                            </div>
+                                            <aura:set attribute="else">
+                                                <div class="slds-form-element__static">
+                                                    <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                </div>
+                                            </aura:set>
+                                        </aura:if>
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                            
+                            <!-- RTL_Alternative_Number__c -->
+                            <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto" size="{!v.deviceSize.size}">
+                                <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                    <label class="slds-form-element__label">{!v.dataFields.RTL_Alternative_Number__c.label}</label>
+                                    <aura:if isTrue="{! v.dataFields.RTL_Alternative_Number__c.inlineHelpText }">
+                                        <lightning:helptext content="{! v.dataFields.RTL_Alternative_Number__c.inlineHelpText }" />
+                                    </aura:if>
+                                    <div class="slds-form-element__control custom_form">
+                                        <aura:if isTrue="{!v.dataFields.RTL_Alternative_Number__c.isAccessible}">
+                                            <div class="slds-form-element__static">
+                                                <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.RTL_Alternative_Number__c.name}"
+                                                                            type="{!v.dataFields.RTL_Alternative_Number__c.type}" value="{!v.dataFields.RTL_Alternative_Number__c.value}" />
+                                            </div>
+                                            <aura:set attribute="else">
+                                                <div class="slds-form-element__static">
+                                                    <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                </div>
+                                            </aura:set>
+                                        </aura:if>
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                            
+                            <!-- Fax -->
+                            <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto" size="{!v.deviceSize.size}">
+                                <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                    <label class="slds-form-element__label">{!v.dataFields.Fax.label}</label>
+                                    <aura:if isTrue="{! v.dataFields.Fax.inlineHelpText }">
+                                        <lightning:helptext content="{! Fax.dataFields.RTL_Registered_Address__c.inlineHelpText }" />
+                                    </aura:if>
+                                    <div class="slds-form-element__control custom_form">
+                                        <aura:if isTrue="{!v.dataFields.Fax.isAccessible}">
+                                            <div class="slds-form-element__static">
+                                                <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.Fax.name}" type="{!v.dataFields.Fax.type}"
+                                                                            value="{!v.dataFields.Fax.value}" />
+                                            </div>
+                                            <aura:set attribute="else">
+                                                <div class="slds-form-element__static">
+                                                    <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                </div>
+                                            </aura:set>
+                                        </aura:if>
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:layoutItem>
+                    <aura:set attribute="else">
+                        <lightning:layoutItem size="{!v.deviceSize.size}" smallDeviceSize="{!v.deviceSize.small}" mediumDeviceSize="{!v.deviceSize.medium}"
+                                            largeDeviceSize="{!v.deviceSize.large}" padding="horizontal-small" class="slds-form">
+                            <lightning:layout verticalAlign="stretch" multipleRows="true" class="slds-form__row">
+                                
+                                <!-- Primary_Address_Line_1_PE__c
+                            Primary_Address_Line_2_PE__c
+                            Primary_Address_Line_3_PE__c
+                            Province_Primary_PE__c
+                            Zip_Code_Primary_PE__c -->
+                                <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto"
+                                                    size="{!v.deviceSize.size}">
+                                    <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                        <label class="slds-form-element__label">{!v.dataFields.Primary_Address_Line_1_PE__c.label}</label>
+                                        <aura:if isTrue="{! v.dataFields.Primary_Address_Line_1_PE__c.inlineHelpText }">
+                                            <lightning:helptext content="{! v.dataFields.Primary_Address_Line_1_PE__c.inlineHelpText }" />
+                                        </aura:if>
+                                        <div class="slds-form-element__control">
+                                            <aura:if isTrue="{!v.dataFields.Primary_Address_Line_1_PE__c.isAccessible}">
+                                                <div class="slds-form-element__static">
+                                                    <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.Primary_Address_Line_1_PE__c.name}"
+                                                                                type="{!v.dataFields.Primary_Address_Line_1_PE__c.type}" value="{!v.dataFields.Primary_Address_Line_1_PE__c.value + ' ' +
+                                                                                                                                                v.dataFields.Primary_Address_Line_2_PE__c.value + ' ' +
+                                                                                                                                                v.dataFields.Primary_Address_Line_3_PE__c.value + ' ' +
+                                                                                                                                                v.dataFields.Province_Primary_PE__c.value + ' ' +
+                                                                                                                                                v.dataFields.Zip_Code_Primary_PE__c.value}" />
+                                                </div>
+                                                <aura:set attribute="else">
+                                                    <div class="slds-form-element__static">
+                                                        <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                    </div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                                
+                                <!-- RTL_Office_Address__c
+                            Office_Address_Line_1_PE__c
+                            Office_Address_Line_2_PE__c
+                            Office_Address_Line_3_PE__c
+                            Province_Office_PE__c
+                            Zip_Code_Office_PE__c -->
+                                <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto"
+                                                    size="{!v.deviceSize.size}">
+                                    <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                        <label class="slds-form-element__label">{!v.dataFields.RTL_Office_Address__c.label}</label>
+                                        <aura:if isTrue="{! v.dataFields.RTL_Office_Address__c.inlineHelpText }">
+                                            <lightning:helptext content="{! v.dataFields.RTL_Office_Address__c.inlineHelpText }" />
+                                        </aura:if>
+                                        <div class="slds-form-element__control">
+                                            <aura:if isTrue="{!v.dataFields.Office_Address_Line_1_PE__c.isAccessible}">
+                                                <div class="slds-form-element__static">
+                                                    <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.Office_Address_Line_1_PE__c.name}"
+                                                                                type="{!v.dataFields.Office_Address_Line_1_PE__c.type}" value="{!v.dataFields.Office_Address_Line_1_PE__c.value + ' ' +
+                                                                                                                                            v.dataFields.Office_Address_Line_2_PE__c.value + ' ' +
+                                                                                                                                            v.dataFields.Office_Address_Line_3_PE__c.value + ' ' +
+                                                                                                                                            v.dataFields.Province_Office_PE__c.value + ' ' +
+                                                                                                                                            v.dataFields.Zip_Code_Office_PE__c.value}" />
+                                                </div>
+                                                <aura:set attribute="else">
+                                                    <div class="slds-form-element__static">
+                                                        <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                    </div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                                
+                                <!-- RTL_Registered_Address__c
+                            Registered_Address_Line_1_PE__c
+                            Registered_Address_Line_2_PE__c
+                            Registered_Address_Line_3_PE__c
+                            Province_Registered_PE__c
+                            Zip_Code_Registered_PE__c -->
+                                <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto"
+                                                    size="{!v.deviceSize.size}">
+                                    <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                        <label class="slds-form-element__label">{!v.dataFields.RTL_Registered_Address__c.label}</label>
+                                        <aura:if isTrue="{! v.dataFields.RTL_Registered_Address__c.inlineHelpText }">
+                                            <lightning:helptext content="{! v.dataFields.RTL_Registered_Address__c.inlineHelpText }" />
+                                        </aura:if>
+                                        <div class="slds-form-element__control">
+                                            <aura:if isTrue="{!v.dataFields.Registered_Address_Line_1_PE__c.isAccessible}">
+                                                <div class="slds-form-element__static">
+                                                    <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.Registered_Address_Line_1_PE__c.name}"
+                                                                                type="{!v.dataFields.Registered_Address_Line_1_PE__c.type}" value="{!v.dataFields.Registered_Address_Line_1_PE__c.value + ' ' +
+                                                                                                                                                v.dataFields.Registered_Address_Line_2_PE__c.value + ' ' +
+                                                                                                                                                v.dataFields.Registered_Address_Line_3_PE__c.value + ' ' +
+                                                                                                                                                v.dataFields.Province_Registered_PE__c.value + ' ' +
+                                                                                                                                                v.dataFields.Zip_Code_Registered_PE__c.value}" />
+                                                </div>
+                                                <aura:set attribute="else">
+                                                    <div class="slds-form-element__static">
+                                                        <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                    </div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                                
+                            </lightning:layout>
+                        </lightning:layoutItem>
+                        
+                        
+                        <lightning:layoutItem size="{!v.deviceSize.size}" smallDeviceSize="{!v.deviceSize.small}" mediumDeviceSize="{!v.deviceSize.medium}"
+                                            largeDeviceSize="{!v.deviceSize.large}" padding="horizontal-small" class="slds-form">
+                            <lightning:layout verticalAlign="stretch" multipleRows="true" class="slds-form__row">
+                                <!-- RTL_Preferred_Contact_Channel__c -->
+                                <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto" size="{!v.deviceSize.size}">
+                                    <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                        <label class="slds-form-element__label">{!v.dataFields.RTL_Preferred_Contact_Channel__c.label}</label>
+                                        <aura:if isTrue="{! v.dataFields.RTL_Preferred_Contact_Channel__c.inlineHelpText }">
+                                            <lightning:helptext content="{! v.dataFields.RTL_Preferred_Contact_Channel__c.inlineHelpText }" />
+                                        </aura:if>
+                                        <div class="slds-form-element__control">
+                                            <aura:if isTrue="{!v.dataFields.RTL_Preferred_Contact_Channel__c.isAccessible}">
+                                                <div class="slds-form-element__static">
+                                                    <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.RTL_Preferred_Contact_Channel__c.name}"
+                                                                                type="{!v.dataFields.RTL_Preferred_Contact_Channel__c.type}"
+                                                                                value="{!v.dataFields.RTL_Preferred_Contact_Channel__c.value}" />
+                                                </div>
+                                                <aura:set attribute="else">
+                                                    <div class="slds-form-element__static">
+                                                        <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                    </div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                                
+                                <!-- Mobile_Number_PE__c -->
+                                <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto" size="{!v.deviceSize.size}">
+                                    <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                        <label class="slds-form-element__label">{!v.dataFields.Mobile_Number_PE__c.label}</label>
+                                        <aura:if isTrue="{! v.dataFields.Mobile_Number_PE__c.inlineHelpText }">
+                                            <lightning:helptext content="{! v.dataFields.Mobile_Number_PE__c.inlineHelpText }" />
+                                        </aura:if>
+                                        <div class="slds-form-element__control">
+                                            <aura:if isTrue="{!v.dataFields.Mobile_Number_PE__c.isAccessible}">
+                                                <div class="slds-form-element__static">
+                                                    <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.Mobile_Number_PE__c.name}"
+                                                                                type="{!v.dataFields.Mobile_Number_PE__c.type}" value="{!v.dataFields.Mobile_Number_PE__c.value}" />
+                                                </div>
+                                                <aura:set attribute="else">
+                                                    <div class="slds-form-element__static">
+                                                        <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                    </div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                                
+                                <!-- C_Home_phone_PE__c -->
+                                <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto" size="{!v.deviceSize.size}">
+                                    <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                        <label class="slds-form-element__label">{!v.dataFields.C_Home_phone_PE__c.label}</label>
+                                        <aura:if isTrue="{! v.dataFields.C_Home_phone_PE__c.inlineHelpText }">
+                                            <lightning:helptext content="{! v.dataFields.C_Home_phone_PE__c.inlineHelpText }" />
+                                        </aura:if>
+                                        <div class="slds-form-element__control">
+                                            <aura:if isTrue="{!v.dataFields.C_Home_phone_PE__c.isAccessible}">
+                                                <div class="slds-form-element__static">
+                                                    <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.C_Home_phone_PE__c.name}" type="{!v.dataFields.C_Home_phone_PE__c.type}"
+                                                                                value="{!v.dataFields.C_Home_phone_PE__c.value}" />
+                                                </div>
+                                                <aura:set attribute="else">
+                                                    <div class="slds-form-element__static">
+                                                        <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                    </div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                                
+                                <!-- RTL_Office_Phone_Number__c -->
+                                <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto" size="{!v.deviceSize.size}">
+                                    <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                        <label class="slds-form-element__label">{!v.dataFields.RTL_Office_Phone_Number__c.label}</label>
+                                        <aura:if isTrue="{! v.dataFields.RTL_Office_Phone_Number__c.inlineHelpText }">
+                                            <lightning:helptext content="{! v.dataFields.RTL_Office_Phone_Number__c.inlineHelpText }" />
+                                        </aura:if>
+                                        <div class="slds-form-element__control">
+                                            <aura:if isTrue="{!v.dataFields.RTL_Office_Phone_Number__c.isAccessible}">
+                                                <div class="slds-form-element__static">
+                                                    <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.RTL_Office_Phone_Number__c.name}"
+                                                                                type="{!v.dataFields.RTL_Office_Phone_Number__c.type}" value="{!v.dataFields.RTL_Office_Phone_Number__c.value}" />
+                                                </div>
+                                                <aura:set attribute="else">
+                                                    <div class="slds-form-element__static">
+                                                        <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                    </div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                                
+                                <!-- RTL_Alternative_Number__c -->
+                                <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto" size="{!v.deviceSize.size}">
+                                    <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                        <label class="slds-form-element__label">{!v.dataFields.RTL_Alternative_Number__c.label}</label>
+                                        <aura:if isTrue="{! v.dataFields.RTL_Alternative_Number__c.inlineHelpText }">
+                                            <lightning:helptext content="{! v.dataFields.RTL_Alternative_Number__c.inlineHelpText }" />
+                                        </aura:if>
+                                        <div class="slds-form-element__control">
+                                            <aura:if isTrue="{!v.dataFields.RTL_Alternative_Number__c.isAccessible}">
+                                                <div class="slds-form-element__static">
+                                                    <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.RTL_Alternative_Number__c.name}"
+                                                                                type="{!v.dataFields.RTL_Alternative_Number__c.type}" value="{!v.dataFields.RTL_Alternative_Number__c.value}" />
+                                                </div>
+                                                <aura:set attribute="else">
+                                                    <div class="slds-form-element__static">
+                                                        <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                    </div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                                
+                                <!-- Fax -->
+                                <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small" flexibility="auto" size="{!v.deviceSize.size}">
+                                    <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                        <label class="slds-form-element__label">{!v.dataFields.Fax.label}</label>
+                                        <aura:if isTrue="{! v.dataFields.Fax.inlineHelpText }">
+                                            <lightning:helptext content="{! Fax.dataFields.RTL_Registered_Address__c.inlineHelpText }" />
+                                        </aura:if>
+                                        <div class="slds-form-element__control">
+                                            <aura:if isTrue="{!v.dataFields.Fax.isAccessible}">
+                                                <div class="slds-form-element__static">
+                                                    <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.Fax.name}" type="{!v.dataFields.Fax.type}"
+                                                                                value="{!v.dataFields.Fax.value}" />
+                                                </div>
+                                                <aura:set attribute="else">
+                                                    <div class="slds-form-element__static">
+                                                        <lightning:formattedText value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                                    </div>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </lightning:layoutItem>
+                    </aura:set>
+                </aura:if>
+            </lightning:layout>
+        </aura:if>
+    </div>
+
+</aura:component>

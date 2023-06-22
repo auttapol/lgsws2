@@ -1,0 +1,81 @@
+<apex:page standardController="Campaign" extensions="CampaignExtension" showheader="false" sidebar="false" action="{!summaryExpectedRevenue}">
+
+<apex:includeScript value="/support/console/48.0/integration.js"/>
+<script>
+    
+    var openTab = function openTab(result) {
+        var primaryTabId = result.id;
+        //alert(primaryTabId);
+        //var campid = '{!campaignID}';
+        //alert(campid);
+        //sforce.console.closeTab(primaryTabId);
+        //sforce.console.openConsoleUrl('test',campid,true);
+        //sforce.console.openSubtab(primaryTabId,'/{!campaignID}', true);//,'New Case');//, null);//, openSuccess, 'NewCaseSubtab');
+        sforce.console.openPrimaryTab(primaryTabId, '/{!campaignID}', true);//, 'test', openSuccess, 'NewCaseSubtab');
+    };  
+    
+    var openSuccess = function openSuccess(result) {
+        if (result.success == true) {
+            alert('subtab successfully opened');
+            closeTab();
+        } else {
+            alert('subtab cannot be opened');
+            closeTab()
+        }
+    };
+    
+    function refreshTab(recordId) {
+        sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+            "componentDef": "c:workspaceAPIforVF",
+            "attributes": {
+                "action": 'closeAndRefresh',
+                "recordId": recordId,
+                "force": true,
+                "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                }),
+            }
+        })), true);
+    }
+
+    function closeTab() {
+                //First find the ID of the current tab to close it
+                sforce.console.getEnclosingTabId(closeSubtab);
+                //return false;
+    }            
+    var closeSubtab = function closeSubtab(result) {
+        //Now that we have the tab ID, we can close it
+        var tabId = result.id;
+        // console.log(result);
+        sforce.console.closeTab(tabId);
+            };   
+
+                 
+    alert('{!result}');
+    if ((typeof sforce.one != 'undefined') && (sforce.one != null) ) {
+        if('{!$User.UITheme}' != 'Theme4t'){
+            refreshTab('{!campaignID}');
+        }
+        else{
+            sforce.one.back(true);
+            //refreshTab('{!campaignID}');
+            //sforce.one.navigateToURL('/{!campaignID}', true);
+            //sforce.one.navigateToSObject('{!campaignID}')
+        }
+        //console.log('{!campaignID}');
+        //sforce.one.navigateToSObject('{!campaignID}'); 
+    }else{
+        if (sforce.console.isInConsole()){
+            sforce.console.getEnclosingPrimaryTabId(openTab);
+            closeTab();
+        }else{
+            window.location.href='../{!campaignID}';
+            closeTab();
+        }
+    }
+    
+
+</script>
+
+</apex:page>

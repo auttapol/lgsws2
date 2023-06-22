@@ -1,0 +1,148 @@
+<aura:component implements="force:hasRecordId" access="global" controller="AccountDetailPageNewEditV2">
+    <aura:attribute name="recordId" type="Id" default="" />
+    <aura:attribute name="recordTypeId" type="Id" />
+    <aura:attribute name="acctRec" type="Account" />
+    <aura:attribute name="theme" type="String" default="Theme4u" />
+    <aura:attribute name="isEdit" type="boolean" default="false" />
+    <!-- <aura:attribute name="sectionName" assignTo="{!sectionName}" value="ComCust:Other Information" /> -->
+    <aura:attribute name="sectionName" type="String" default="ComCust:Other Information" />
+    <aura:attribute name="sectionName2" type="String" default="ComCust:Risk Information" />
+    <aura:attribute name="sectionName3" type="String" default="ComCust:Account Information" />
+    <aura:attribute name="sectionName4" type="String" default="Edit Customer Information" />
+    <aura:attribute name="spinner" type="boolean" default="false" />
+    <aura:attribute name="canVisible" type="Boolean[]" default="false" />
+    <aura:attribute name="userProfile" type="String" />
+    <aura:attribute name="error" type="String" default="" />
+    <aura:attribute name="isError" type="boolean" default="false" />
+
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}" />
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}" />
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <ui:scrollerWrapper>
+        <!--pageHeader-->
+
+        <aura:if isTrue="{!v.spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container">
+                <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                    <span class="slds-assistive-text">Loading...</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </aura:if>
+
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:account" alternativeText="Account" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 class="slds-text-heading_label">
+                        Edit Customer
+                    </h1>
+                    <h2 class="slds-text-heading_medium">
+                        {!v.acctRec.Name}
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+
+        <!-- Error Message -->
+        <div class="{! !v.isError ? 'slds-hide' : 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error' }"
+            role="alert">
+            <span class="slds-assistive-text">error</span>
+            <span class="slds-icon_container slds-icon-utility-error slds-m-right_x-small"
+                title="Description of icon when needed">
+                <!-- <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
+                      <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#error"></use>
+                    </svg> -->
+                <lightning:icon iconName="utility:error" variant="inverse" size="x-small" />
+            </span>
+            <h2>{!v.error}</h2>
+        </div>
+
+        <!--Customer Information-->
+        <lightning:recordEditForm aura:id="recordCreateForm" objectApiName="Account" recordId="{!v.recordId}"
+            onsubmit="{!c.handleSubmit}" onsuccess="{!c.handleSuccess}" recordTypeId="{!v.recordTypeId}"
+            onerror="{!c.handleError}">
+            <lightning:card>
+
+                <aura:set attribute="actions">
+                    <lightning:button label="{!$Label.c.Save}" type="submit" aura:id="disablebuttonid" />
+                    <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.handleCancel}" />
+                </aura:set>
+                <aura:set attribute="footer">
+                    <lightning:button label="{!$Label.c.Save}" type="submit" aura:id="disablebuttonid2" />
+                    <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.handleCancel}" />
+                </aura:set>
+
+                <h3 class="slds-section__title slds-theme_shade" style="margin-top:30px">
+                    <span class="slds-truncate slds-p-horizontal_small" title="Section Title">Edit Customer
+                        Infomation</span>
+                </h3>
+
+
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Service_class__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Visit_Class__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Industry" />
+                    </div>
+
+                    <!-- Custom LookUp Group -->
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Group__c" />
+                    </div>
+
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="ParentId" />
+                    </div>
+
+                    <aura:if isTrue="{!v.canVisible[1]}">
+                        <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                            <lightning:inputField fieldName="High_Risk_Flag__c" />
+                        </div>
+                    </aura:if>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Account_Plan_Flag__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Account_Plan_Form__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Group_Key_Decision_Maker__c" />
+                    </div>
+                    <!-- Custom LookUp Key Decision Company -->
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Key_Decision_Company__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="X4G_Base__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="X4G_Current_month__c" />
+                    </div>
+
+                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                        <lightning:inputField fieldName="Sub_4G__c" />
+                    </div>
+                </div>
+            </lightning:card>
+        </lightning:recordEditForm>
+    </ui:scrollerWrapper>
+</aura:component>

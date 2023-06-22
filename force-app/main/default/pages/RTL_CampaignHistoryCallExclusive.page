@@ -1,0 +1,308 @@
+<apex:page standardController="Account" extensions="RTL_CampaignHistoryExtension" showHeader="false" sidebar="false">
+<style>
+.error_text{
+    color:red;
+}
+</style>
+
+    <script type="text/javascript">
+        $( document ).ready(function() {
+            //init call out after page load completed
+            call_showResult();
+            call_requestData();
+        });
+
+        function call_showLoading()
+        {
+            $('#call_loadingPanel').show();
+            $('#call_ResultPanel').hide();
+            //console.log('start');
+        }
+
+        function call_showResult()
+        {
+            $('#call_loadingPanel').hide();
+            $('#call_ResultPanel').show();
+            //console.log('stop');
+        }
+
+    </script>
+
+    <apex:form >
+        <apex:actionFunction action="{!requestInt06}" name="call_requestData" reRender="callExclusiveData,exclusiveData" status="call_loadRequestStatus" />
+        <apex:actionFunction action="{!setExclusiveData}" name="call_navigateExclusive" reRender="callExclusiveData,exclusiveData" status="call_loadRequestStatus">
+            <apex:param name="pageNo" assignTo="{!call_exclusiveCampaignPage}" value=""/>
+        </apex:actionFunction>
+
+        <apex:actionStatus id="call_loadRequestStatus" onstart="call_showLoading()" onstop="call_showResult()" />
+    
+
+    </apex:form>
+
+
+    <apex:form >
+
+        <apex:outputPanel id="callExclusiveData" >
+            <div class="slds-form-element slds-m-around_small"  id="responsive" >
+
+                <div class="slds-m-top_xxx-small">
+                    <div class="slds-text-heading_x-small">{!$Label.RTL_Campaign_History_Campaing_Exclusive}</div>
+                </div>
+
+                <div id="call_loadingPanel">
+                    <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom">
+                        <apex:outputText value="{!$Label.RTL_Campaign_History_Loading}"  styleClass="noRowsHeader" />
+                    </div>
+                </div>
+
+                <div id="call_ResultPanel">
+
+                    <apex:outputPanel rendered="{!(ISNULL(call_cmWrapperList) || call_cmWrapperList.size == 0)&& call_exclusiveCalloutSuccess }" >
+                        <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom">
+                            <apex:outputText value="{!$Label.RTL_No_Record_Display}"  styleClass="noRowsHeader" />
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{! !call_exclusiveCalloutSuccess }" >
+                        <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom error_text">
+                            {!$Label.RTL_Campaign_History_ErrorMessage1}<br />
+                            {!$Label.RTL_Campaign_History_ErrorMessage2}&nbsp;
+                           <apex:commandLink action="{!requestInt06}" value="{!$Label.RTL_Campaign_History_ErrorMessage3}" reRender="callExclusiveData" status="call_loadRequestStatus" /> 
+                           {!$Label.RTL_Campaign_History_ErrorMessage4}
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel id="call_excTable" rendered="{! (!ISNULL(call_cmWrapperList) && call_cmWrapperList.size > 0)}" >
+                        <div class="slds-m-top_xxx-small">
+                            <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal slds-table_fixed-layout" style="text-align: center;font-size: 12px; width: 100%;">
+                                <thead>
+                                    <tr class="slds-text-title--caps slds-section-title--divider">
+                                        <th class="slds-size_1-of-12" scope="col"> 
+                                            <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_CampaignMemberLinkHeader}">
+                                                {!$Label.RTL_Campaign_History_CampaignMemberLinkHeader}
+                                            </div>
+                                        </th>
+                                        <th class="slds-size_1-of-12" scope="col"> 
+                                            <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_CampaignCodeHeader}">
+                                                {!$Label.RTL_Campaign_History_CampaignCodeHeader}
+                                            </div>
+                                        </th>
+                                        <th class="slds-size_3-of-12" scope="col"> 
+                                            <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_CampaignNameHeader}">
+                                                {!$Label.RTL_Campaign_History_CampaignNameHeader}
+                                            </div>
+                                        </th>
+                                        <th class="slds-size_1-of-12" scope="col"> 
+                                            <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_CampaignStartDateHeader}">
+                                                {!$Label.RTL_Campaign_History_CampaignStartDateHeader}
+                                            </div>
+                                        </th>
+                                        <th class="slds-size_1-of-12" scope="col"> 
+                                            <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_CampaignEndDateHeader}">
+                                                {!$Label.RTL_Campaign_History_CampaignEndDateHeader}
+                                            </div>
+                                        </th>
+                                        <th class="slds-size_1-of-12" scope="col"> 
+                                            <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_CampaignStatusHeader}">
+                                                {!$Label.RTL_Campaign_History_CampaignStatusHeader}
+                                            </div>
+                                        </th>
+                                        <th class="slds-size_1-of-12" scope="col"> 
+                                            <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_CampaignChannelHeader}">
+                                                {!$Label.RTL_Campaign_History_CampaignChannelHeader}
+                                            </div>
+                                        </th>
+                                        <th class="slds-size_1-of-12" scope="col"> 
+                                            <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_CampaignOfferResultCRMHeader}">
+                                                {!$Label.RTL_Campaign_History_CampaignOfferResultCRMHeader}
+                                            </div>
+                                        </th>
+                                        <th class="slds-size_2-of-12" scope="col"> 
+                                            <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_CampaignOfferResultCTHeader}">
+                                                {!$Label.RTL_Campaign_History_CampaignOfferResultCTHeader}
+                                            </div>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+
+                                    <apex:repeat value="{!call_cmData}" var="cmW" >
+
+                                        <tr class="dataRow">
+
+
+                                            <td data-label="{!$label.RTL_Campaign_History_CampaignCodeHeader}" > 
+                                                <div class="slds-cell-wrap" title="">
+                                                    <apex:outputPanel rendered="{!IF(cmW.camMemResObj.CampaignSalseforceId==null&&cmW.camObj.Name!=null,true,false)}">
+                                                        <apex:outputLink rendered="{!if(checkProfileAssign == false , true ,false)}" value="RTl_viewCampaignmember?mcode={!cmW.camMemResObj.MarketingCode}&tmbid={!accountObj.TMB_Customer_ID_PE__c}" 
+                                                            onClick="openTab('?mcode={!cmW.camMemResObj.MarketingCode}&tmbid={!accountObj.TMB_Customer_ID_PE__c}','/apex/RTl_viewCampaignmember','Campaign Member');return false" >
+                                                             {!$Label.RTL_Campaign_History_ViewDetail}
+                                                        </apex:outputLink>
+                                                        <apex:outputlink value="#" rendered="{!if(checkProfileAssign == true , true ,false)}" onClick="openLightningTab1('{!cmW.camMemResObj.CampaignSalseforceId},{!cmW.camMemResObj.MarketingCode},{!accountObj.TMB_Customer_ID_PE__c}');return false">{!$Label.RTL_Campaign_History_ViewDetail}</apex:outputlink>
+                                                    </apex:outputPanel>
+                                                    <apex:outputPanel rendered="{!IF(cmW.camMemResObj.CampaignSalseforceId!=null,true,false)}">
+                                                        <apex:outputLink rendered="{!if(checkProfileAssign == false , true ,false)}" value="RTl_viewCampaignmember?id={!cmW.camMemResObj.CampaignSalseforceId}" 
+                                                            onClick="openTab('?id={!cmW.camMemResObj.CampaignSalseforceId}','/apex/RTl_viewCampaignmember','Campaign Member');return false" >
+                                                            {!$Label.RTL_Campaign_History_ViewDetail}
+                                                        </apex:outputLink>
+                                                        <apex:outputlink value="#" rendered="{!if(checkProfileAssign == true , true ,false)}" onClick="openLightningTab('{!cmW.camMemResObj.camMemObject.Id}');return false">{!$Label.RTL_Campaign_History_ViewDetail}</apex:outputlink>
+                                                    </apex:outputPanel>
+                                                    
+                                                </div>
+                                            </td>
+
+                                            <td data-label="{!$label.RTL_Campaign_History_CampaignCodeHeader}" > 
+                                                <div class="slds-cell-wrap" title="{!cmW.camMemResObj.CampaignCode}">
+                                                    <apex:outputText value="{!cmW.camMemResObj.CampaignCode}" />  
+                                                </div>
+                                            </td>
+
+                                            <td data-label="{!$label.RTL_Campaign_History_CampaignNameHeader}" > 
+                                                <div class="slds-cell-wrap" title="{!cmW.camObj.Name}">
+                                                    <apex:outputField value="{!cmW.cam.CampaignId}" />
+                                                </div>
+                                            </td>
+
+                                            <td data-label="{!$label.RTL_Campaign_History_CampaignStartDateHeader}" > 
+                                                <div class="slds-cell-wrap" title="{!cmW.camObj.StartDate}">
+                                                    <apex:outputText value="{0,date, dd/MM/yyyy}"> 
+                                                <apex:param value="{!cmW.camObj.StartDate}" /> 
+                                    </apex:outputText>
+                                                </div>
+                                            </td>
+
+                                            <td data-label="{!$label.RTL_Campaign_History_CampaignEndDateHeader}" > 
+                                                <div class="slds-cell-wrap" title="{!cmW.camObj.EndDate}">
+                                                    <apex:outputText value="{0,date, dd/MM/yyyy}"> 
+                                                <apex:param value="{!cmW.camObj.EndDate}" /> 
+                                    </apex:outputText>
+                                                </div>
+                                            </td>
+
+                                            <td data-label="{!$label.RTL_Campaign_History_CampaignStatusHeader}" > 
+                                                <div class="slds-cell-wrap" title="{!cmW.camObj.status}">
+                                                    <apex:outputfield value="{!cmW.camObj.status}" />  
+                                                </div>
+                                            </td>
+
+                                            <td data-label="{!$label.RTL_Campaign_History_CampaignChannelHeader}" > 
+                                                <div class="slds-cell-wrap" title="{!cmW.camMemResObj.CampaignChannel}">
+                                                    <apex:outputText value="{!cmW.camMemResObj.CampaignChannel}" />  
+                                                </div>
+                                            </td>
+
+                                            <td data-label="{!$label.RTL_Campaign_History_CampaignOfferResultCRMHeader}" > 
+                                                <div class="slds-cell-wrap" title="">
+                                                    <apex:outputText value="{!cmW.camMemResObj.camMemObject.RTL_Offer_Result__c}" />  
+                                                </div>
+                                            </td>
+
+                                            <td data-label="{!$label.RTL_Campaign_History_CampaignOfferResultCTHeader}" > 
+                                                <div class="slds-cell-wrap" title="{!cmW.camMemResObj.OfferResult}">
+                                                    <apex:outputText value="{!cmW.camMemResObj.OfferResult}" rendered="{! IF( cmW.camMemResObj.OfferResult !=null && cmW.camMemResObj.OfferResult != '' ,true,false ) }" />  
+                                                    <apex:outputText value="{!cmW.camMemResObj.camMemObject.RTL_Offer_Result_CC__c }" rendered="{! IF( cmW.camMemResObj.OfferResult !=null && cmW.camMemResObj.OfferResult != '' ,false,true ) }" />  
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </apex:repeat>
+
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="slds-m-top_small">
+                            <div class="slds-grid">
+                                <div class="slds-align_absolute-center">
+                                    <div class="slds-grid slds-grid_vertical-align-start">
+                                        <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-box slds-box_xx-small">
+                                            <apex:commandLink action="{!call_previousExclusive}" rendered="{! !call_disablePreviousExclusive}" value="{!$Label.RTL_Campaign_History_Previous}" status="call_loadRequestStatus" reRender="call_excTable" /> 
+                                            <apex:outputText value="{!$Label.RTL_Campaign_History_Previous}" rendered="{! call_disablePreviousExclusive}" />  
+                                        </div>
+                                        <apex:repeat value="{!call_exclusivePagination}" var="page">
+                                            <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-box slds-box_xx-small">
+                                                <apex:commandLink action="{!setExclusiveData}" rendered="{! If(page!=call_exclusiveCampaignPage,true,false) }" 
+                                                                  value="{!If(page==-1,'',page)}" reRender="call_excTable" 
+                                                                  onclick="call_navigateExclusive({!page});return false;"
+                                                                  /> 
+                                                <apex:outputText value="{!page}" rendered="{! If(page!=call_exclusiveCampaignPage,false,true) }" />
+                                                <apex:outputText value="{!If(page==-1,'...',page)}" rendered="{! If(page!=-1,false,true) }" /> 
+                                            </div>
+                                        </apex:repeat>
+                                        <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-box slds-box_xx-small">
+                                            <apex:commandLink action="{!call_nextExclusive}" rendered="{! !call_disableNextExclusive}" value="{!$Label.RTL_Campaign_History_Next}"  status="call_loadRequestStatus" reRender="call_excTable" />
+                                            <apex:outputText value="{!$Label.RTL_Campaign_History_Next}" rendered="{! call_disableNextExclusive}" />   
+                                        </div>
+                                    </div>
+
+
+                                </div>
+                                <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-col_bump-left">
+                                    {!$Label.RTL_Campaign_History_Page} {!call_exclusiveCampaignPage} {!$Label.RTL_Campaign_History_Of} {!call_exclusiveExCampaignTotalPage}
+                                </div>
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+                </div>
+            </div> 
+
+
+
+        </apex:outputPanel>
+
+    </apex:form>
+    <script type="text/javascript"> 
+
+        function openLightningTab(recId)
+        {
+            // sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+            //             "componentDef": "c:CampaignMember_Main",
+            //             "attributes": {
+            //                 "recordId": recId,
+            //                 "mcode" : null,
+            //                 "tmbCustId" : null,
+            //                 "mode": 'View',
+            //             }
+            //         })), true);
+
+            var compDefinition = { 
+            "componentDef": "c:CampaignMember_Main",
+                "attributes": {
+                    "recordId": recId,
+                    "mcode" : null,
+                    "tmbCustId" : null,
+                    "mode": 'View',
+                } 
+            };
+            // Base64 encode the compDefinition JS object
+            var encodedCompDef = btoa(JSON.stringify(compDefinition));
+            var url = "/one/one.app#"+encodedCompDef;
+            sforce.console.openPrimaryTab(null , url, true);
+        }
+
+        function openLightningTab1(recId)
+        {
+            // sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+            //             "componentDef": "c:CampaignMember_Main",
+            //             "attributes": {
+            //                 "recordId": recId.split(',')[0],
+            //                 "mcode" : recId.split(',')[1],
+            //                 "tmbCustId" : recId.split(',')[2],
+            //                 "mode": 'View',
+            //             }
+            //         })), true);
+
+            var compDefinition = { 
+                "componentDef": "c:CampaignMember_Main",
+                    "attributes": {
+                        "recordId": recId.split(',')[0],
+                        "mcode" : recId.split(',')[1],
+                        "tmbCustId" : recId.split(',')[2],
+                        "mode": 'View',
+                    } 
+            };
+            // Base64 encode the compDefinition JS object
+            var encodedCompDef = btoa(JSON.stringify(compDefinition));
+            var url = "/one/one.app#"+encodedCompDef;
+            sforce.console.openPrimaryTab(null , url, true);
+        }
+    </script>
+</apex:page>

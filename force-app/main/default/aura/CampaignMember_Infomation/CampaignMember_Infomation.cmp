@@ -1,0 +1,1108 @@
+<aura:component controller="CampaignMemberInfoController" implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId,lightning:isUrlAddressable" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />  
+    <aura:attribute name="iconName" type="String" default="utility:chevrondown"/>
+    <aura:attribute name="iconName2" type="String" default="utility:chevrondown"/>
+    <aura:attribute name="iconName3" type="String" default="utility:chevrondown"/>
+    <aura:attribute name="isExpanded" type="Boolean" default="true"/>
+    <aura:attribute name="isExpanded2" type="Boolean" default="true"/>
+    <aura:attribute name="isExpanded3" type="Boolean" default="true"/>
+    <aura:attribute name="isValidate" type="Boolean" default="false"/>
+    <aura:attribute name="isReadonly" type="Boolean" default="true"/>
+    <aura:attribute name="isDisabled" type="Boolean" default="false"/>
+    <!-- Do not contact -->
+    <aura:attribute name="showModal" type="Boolean" default="false"/>
+    <aura:attribute name="confirmDNC" type="Boolean" default="false"/>
+
+    <aura:attribute name="CrossSellList" type="List" /> 
+
+    <aura:attribute name="contactStatusList" type="List"/>
+    <aura:attribute name="uncontactReasonList" type="List"/>
+    <aura:attribute name="productGroupList" type="List" />
+    <aura:attribute name="productSubGroupList" type="List" />
+    <aura:attribute name="productNameList" type="List" />
+    <aura:attribute name="offerResultList" type="List" />
+    <aura:attribute name="reasonOfNotInterestedList" type="List" />
+    <aura:attribute name="opptyStageList" type="List" />
+    <aura:attribute name="opptyStatusList" type="List" />
+    <aura:attribute name="campaignMemObj" type="CampaignMember" />
+    <aura:attribute name="labelMap" type="Map" default="{}"/>
+    <aura:attribute name="recordId" type="Id"/>
+    <aura:attribute name="currentUser" type="User"/>
+
+    <aura:attribute name="mcode" type="String" />
+    <aura:attribute name="tmbCustId" type="String" />
+
+    <aura:attribute name="saveDisable" type="Boolean" default="false"/>
+    <aura:attribute name="isExpire" type="Boolean" default="false"/>
+    <aura:attribute name="recordIsClosed" type="Boolean" default="false" />
+    <aura:attribute name="recordCanNotSell" type="Boolean" default="false" />
+
+    <!-- lgsws2 -->
+    <aura:attribute name="leadScoreLevelList" type="List"/>
+    <aura:attribute name="leadScoreLevelListmin" type="List"/>
+    <aura:attribute name="leadscoremin" type="String" />
+    <!-- Conversion Lead Section -->
+    <aura:attribute name="customerName" type="String" />
+    <aura:attribute name="mobileNumber" type="String" />
+    <aura:attribute name="idNoValue" type="String" />  
+    <aura:attribute name="idType" type="String" />  
+    <!-- Conversion Lead Section -->
+
+    <aura:attribute name="checkLeadConversion" type="Boolean" default="true" />
+    <aura:attribute name="isConvert" type="Boolean" />
+    <aura:attribute name="isChangeContact" type="Boolean"/>
+    <aura:attribute name="isCallBack" type="Boolean" default="false"/>
+
+    <aura:attribute name="requireReasonFlag" type="Boolean" default="false"/>
+    <aura:attribute name="loaded" type="Boolean" default="false" />
+
+
+    <aura:attribute name="productList" type="List" />
+    <aura:attribute name="accObj" type="Account" />
+    <aura:attribute name="extAccObj" type="Object" />
+    <aura:attribute name="isMerge" type="Boolean" default="false"/>
+
+    <!-- CallBack Section -->
+    <aura:attribute name="marketingCodeOrWebUniqueId" type="String" />
+    <aura:attribute name="callback_date" type="String" />
+    <aura:attribute name="callback_time" type="String" />
+    <aura:attribute name="task" type="Task" />
+    <aura:attribute name="callback_date_label" type="String" />
+    <aura:attribute name="callback_time_label" type="String" />
+    <aura:attribute name="isExpanded_CallBack" type="Boolean"/>
+    <!-- CallBack Section -->
+
+    <aura:attribute name="isCreateCallback" type="Boolean" default="false"/>
+
+    <aura:registerEvent name="CampaignMember_InfoEvent" type="c:CampaignMember_InfoEvent"/>
+
+    <aura:handler name="selectAccountEvent" event="c:selectDuplicateAccountEvent"
+    action="{!c.handleLeadConversionEvent}"/> 
+
+    <aura:handler name="change" value="{!v.CrossSellList}" action="{!c.handleCrossSell}"/> 
+
+    <aura:handler name="change" value="{!v.isExpire}" action="{!c.handleButtonDisable}"/> 
+    <aura:handler name="change" value="{!v.recordIsClosed}" action="{!c.handleButtonDisable}"/> 
+    <aura:handler name="change" value="{!v.recordCanNotSell}" action="{!c.handleButtonDisable}"/> 
+
+    <aura:handler name="change" value="{!v.isCreateCallback}" action="{!c.handleCreateCallback}"/> 
+
+    <aura:attribute name="Mode" type="String" default="View"/>
+
+    <lightning:workspaceAPI aura:id="workspace"/>
+    <lightning:navigation aura:id="navService" />
+
+    <div class="slds-is-relative">
+        <aura:if isTrue="{! v.loaded }">
+            <lightning:spinner alternativeText="Loading" />   
+        </aura:if>
+
+        <article class="slds-card">
+            <aura:if isTrue="{!v.Mode == 'Edit'}">
+                <div class="slds-card__header slds-grid">
+                    <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                        <div class="slds-media__figure">
+                            <lightning:icon iconName="standard:campaign_members" alternativeText="campaign_members" title="campaign_members" size="medium" />
+                        </div>
+                        <div class="slds-media__body">
+                            <div>
+                                <span>{!$Label.c.RTL_Campaign_Member_History_Title}</span>
+                            </div>
+                            <h2 class="slds-card__header-title">
+                                <a href="javascript:void(0);" class="slds-card__header-link slds-truncate" title="Accounts">                    
+                                    <div>
+                                        <aura:if isTrue="{!v.campaignMemObj.ContactId != null}" >
+                                            <span>{!v.campaignMemObj.Contact.Name}</span>                                   
+                                        </aura:if>
+                                        <aura:if isTrue="{!and(v.campaignMemObj.ContactId == null, v.campaignMemObj.LeadId != null) }" >
+                                            <span>{!v.campaignMemObj.Lead.Name}</span>                                  
+                                        </aura:if>
+                                        <span style="margin-left: 5px;">({!v.campaignMemObj.Campaign.Name})</span>
+                                    </div>
+                                </a>
+                            </h2>
+                        </div>
+                        <div class="slds-no-flex">
+                            <lightning:button label="New Referral" title="Non-primary action" onclick="{!c.newReferral}" class="slds-m-left_x-small"/>
+                            <aura:if isTrue="{!v.campaignMemObj.RTL_Channel_Subsidiary__c==false}" >
+                                <aura:if isTrue="{!v.campaignMemObj.ContactId != null}" >
+                                    <lightning:button label="Product Holding &amp; NBO" title="Non-primary action" onclick="{!c.navigateToProductHoldingandNBO}" class="slds-m-left_x-small"/>
+                                </aura:if>
+                            </aura:if>
+                            <lightning:button label="Save" title="Non-primary action" onclick="{!c.handleSave}" class="slds-m-left_x-small" disabled="{!v.saveDisable}"/>                   
+                            <lightning:button label="Cancel" title="Non-primary action" class="slds-m-left_x-small" onclick="{!c.handleCancelEdit}" />
+                        </div>
+                    </header>
+                </div>
+                
+                <!-- Confirm Do Not Contact -->
+                <aura:if isTrue="{!v.showModal}">
+                    <div style="height:640px">
+                        <section role="dialog" tabindex="-1" class="slds-modal slds-modal_x-small slds-fade-in-open" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1">
+                            <div class="slds-modal__container">
+                                <header class="slds-modal__header">
+                                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Confirmation</h2>
+                                </header>
+                                <div class="slds-modal__content slds-p-around_medium slds-p-left_large" id="modal-content-id-1">
+                                    <p style='margin-left:18%'>{!$Label.c.RTL_CampaignMemberEdit_SaveDNC_Msg}</p>
+                                </div>
+                                <footer class="slds-modal__footer">
+                                    <lightning:button class="slds-button slds-button_brand" name='Confirm' label='Confirm' onclick='{!c.confirmModal}'/>
+                                    <lightning:button class="slds-button slds-button_brand" name='Cancel' label='Cancel' onclick='{!c.closeModal}'/>
+                                </footer>
+                            </div>
+                        </section>
+                        <div class="slds-backdrop slds-backdrop_open"></div>
+                    </div>
+                </aura:if>
+
+                <!-- Customer Infomation Section -->
+                <div class="{! 'slds-section' + (v.isExpanded ? ' slds-is-open' : '')}">
+                    <h3 class="slds-section__title">
+                    <button aria-controls="expando-unique-id" aria-expanded="{!v.isExpanded}" class="slds-button slds-section__title-action" onclick="{!c.changeState}">
+                        <lightning:icon iconName="{!v.iconName}" alternativeText="chevrondown" title="chevrondown" size="x-small" />
+                        <span class="slds-truncate section_header" title="Section Title">{!$Label.c.RTL_CampaignMember_SectionTitle_CustomerInfo}</span>
+                    </button>
+                    </h3>
+                    <div class="slds-section__content" aria-hidden="{!!v.isExpanded}" id="expando-unique-id">
+                        <div class="slds-grid slds-wrap">
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Campaign_Name_TH__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">                     
+                                <div class="outputStyle">
+                                    <a href="javascript:void(0);"  >
+                                        <span id="{!v.campaignMemObj.CampaignId}" class="slds-m-right_x-small" onclick="{!c.navigateToObject}">{!v.campaignMemObj.Campaign.Name}</span>                                            
+                                    </a>       
+                                </div>                        
+                            </div>                   
+                            <aura:if isTrue="{!v.campaignMemObj.RTL_Marketing_Code__c != null}">
+                                <div class="slds-col slds-size_1-of-4">
+                                    <div class="labelStyle">{!v.labelMap.RTL_Marketing_Code__c}</div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-4">
+                                    <div class="outputStyle">{!v.campaignMemObj.RTL_Marketing_Code__c}</div>
+                                </div> 
+                                <aura:set attribute="else" >
+                                    <div class="slds-col slds-size_1-of-4">
+                                        <div class="labelStyle">Web Unique ID</div>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-4">
+                                        <div class="outputStyle">{!v.campaignMemObj.RTL_Web_Unique_ID__c}</div>
+                                    </div> 
+                                </aura:set>
+                            </aura:if>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!$Label.c.RTL_ViewCampaignMember_CustomerName}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <aura:if isTrue="{!and(v.campaignMemObj.ContactId != null,v.campaignMemObj.Customer__c != null)}" >                            
+                                    <div class="outputStyle">
+                                        <a href="javascript:void(0);"  >
+                                            <span id="{!v.campaignMemObj.Customer__c}" class="slds-m-right_x-small" onclick="{!c.navigateToObject}">{!v.campaignMemObj.Customer__r.Name}</span>                                            
+                                        </a>  
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!and(v.campaignMemObj.ContactId == null, v.campaignMemObj.LeadId != null) }" >                  
+                                    <div class="outputStyle">
+                                        <a href="javascript:void(0);"  >
+                                            <span id="{!v.campaignMemObj.LeadId}" class="slds-m-right_x-small" onclick="{!c.navigateToObject}">{!v.campaignMemObj.Lead.Name}</span>                                            
+                                        </a>  
+                                    </div>
+                                </aura:if>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Campaign_Channel_formula__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Campaign_Channel_formula__c}</div>
+                            </div>                     
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!$Label.c.RTL_CampaignMember_ExtCustomer}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <aura:if isTrue="{!v.campaignMemObj.ContactId != null}" >
+                                    <c:CustomLookup objectAPIName="Account" selectedRecord="" nameField="Id,Name WHERE Recordtype.Name != 'Inactive Customer'" IconName="standard:account" disabled="true"
+                                    queryType="SOSL"/>
+                                </aura:if>
+                                <aura:if isTrue="{!and(v.campaignMemObj.ContactId == null, v.campaignMemObj.LeadId != null) }" >
+                                    <aura:if isTrue="{!v.campaignMemObj.Customer__c == null }" >
+                                        <c:CustomLookup aura:id="customLookupCustomer" objectAPIName="Account" selectedRecord="{!v.extAccObj}" nameField="Id,Name WHERE Recordtype.Name != 'Inactive Customer'" IconName="standard:account" disabled="{!or(v.isConvert,and(v.campaignMemObj.RTL_Contact_Status__c != 'Contact',v.campaignMemObj.RTL_Contact_Status__c != 'Call Back'))}"                                 
+                                        queryType="SOSL" />
+                                        <aura:set attribute="else" >
+                                            <div class="outputStyle">{!v.campaignMemObj.Customer__r.Name}</div>                                   
+                                        </aura:set>
+                                    </aura:if>
+                                </aura:if>         
+                            </div>               
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_CampHis_Phone__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_CampHis_Phone__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Age__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Age__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Last_Contact_Status__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Last_Contact_Status__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!$Label.c.RTL_CampaignMember_BirthDay}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <aura:if isTrue="{!v.campaignMemObj.ContactId != null}" >
+                                    <div class="outputStyle">{!v.campaignMemObj.Contact.Date_of_Birth__c}</div>
+                                </aura:if>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Contact_Status__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <aura:if isTrue="{!and(v.isChangeContact,!v.isConvert)}">
+                                    <!-- <aura:if isTrue="{!or(v.campaignMemObj.RTL_Contact_Status__c == 'Call Back',v.campaignMemObj.RTL_Contact_Status__c == 'Uncontact',v.campaignMemObj.RTL_Contact_Status__c == 'Contact')}"> -->
+                                    <lightning:combobox aura:id="contactStatus" autocomplete="true" class="inputStyle" name="progress" value="{!v.campaignMemObj.RTL_Contact_Status__c}" placeholder="-- None --" options="{! v.contactStatusList }" onchange="{! c.handleChangeContactStatus }" />                                                                 
+                                    <aura:set attribute="else">
+                                        <div class="outputStyle">{!v.campaignMemObj.RTL_Contact_Status__c}</div>                                    
+                                    </aura:set>
+                                </aura:if>                               
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Income__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Income__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Reason__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">     
+                                <!-- <aura:if isTrue="{!and(v.isChangeContact,or(v.campaignMemObj.RTL_Contact_Status__c == 'New',v.campaignMemObj.RTL_Contact_Status__c == 'Call Back',v.campaignMemObj.RTL_Contact_Status__c == 'Uncontact',v.campaignMemObj.RTL_Contact_Status__c == 'Contact'))}"> -->
+                                <aura:if isTrue="{!and(v.isChangeContact,!v.isConvert)}">
+                                    <lightning:combobox aura:id="contactStatusReason" autocomplete="true" class="inputStyle" name="progress" value="{!v.campaignMemObj.RTL_Reason__c}" placeholder="-- None --" options="{! v.uncontactReasonList }" onchange="{! c.handleChangeUncontactReason }" readonly="{!v.isReadonly}"/>
+                                    <aura:set attribute="else">
+                                        <div class="outputStyle">{!v.campaignMemObj.RTL_Reason__c}</div>
+                                    </aura:set>
+                                </aura:if> 
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Occupation__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Occupation__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.Avaya_Completion_Code__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.Avaya_Completion_Code__c}</div>
+                            </div>
+                            <!-- LGS -->
+                            <!-- <div class = "slds-size_4-of-4"> -->
+                                <div class="slds-col slds-size_1-of-4">
+                                    <div class="labelStyle">{!v.labelMap.Lead_Score__c}</div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-4">
+                                    <div class="outputStyle">{!v.campaignMemObj.Lead_Score__c}</div>  
+                                </div>
+                                <div class="slds-col slds-size_1-of-4">
+                                    <div class="labelStyle">{!v.labelMap.Lead_Score_Level__c}</div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-4">     
+                                    <lightning:combobox aura:id="LeadScoreLevel" autocomplete="true" class="inputStyle slds-form-element" name="LeadScoreLevel" value="{!v.campaignMemObj.Lead_Score_Level__c}"  options="{!v.leadScoreLevelList }" onchange="{! c.handleChangeLeadScoreLevel }" />
+                                </div>
+                            <!-- </div> -->
+                            <!-- <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.Lead_Score_Level__c}</div>
+                            </div> -->
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.Partner_Lead_ID__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.Partner_Lead_ID__c}</div>
+                            </div>
+                        </div>    
+                    </div>
+                </div>
+                
+                <!-- Promotion / Product Section -->
+                <div class="{! 'slds-section' + (v.isExpanded2 ? ' slds-is-open' : '')}">
+                    <h3 class="slds-section__title">
+                    <button aria-controls="expando-unique-id" aria-expanded="{!v.isExpanded2}" class="slds-button slds-section__title-action" onclick="{!c.changeState2}">
+                        <lightning:icon iconName="{!v.iconName2}" alternativeText="chevrondown" title="chevrondown" size="x-small" />
+                        <span class="slds-truncate section_header" title="Section Title">{!$Label.c.RTL_CampaignMember_SectionTitle_Promotion}</span>
+                    </button>
+                    </h3>
+                    <div class="slds-section__content" aria-hidden="{!!v.isExpanded2}" id="expando-unique-id">
+                        <div class="slds-grid slds-wrap">
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Segmentation__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Segmentation__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Promotion__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Promotion__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Product_Feature__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Product_Feature__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Personalized_Message__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Personalized_Message__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Remark__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <!-- <div class="outputStyle">{!v.campaignMemObj.RTL_Remark__c}</div> -->
+                                <aura:unescapedHtml value="{!v.campaignMemObj.RTL_Remark__c}"/>
+                            </div>   
+                            <!-- lgsws2 -->
+                            <div class="slds-col slds-size_1-of-4">
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_TMB_Campaign_Reference__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_TMB_Campaign_Reference__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.LGS_Child_Campaign_ID__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.LGS_Child_Campaign_ID__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_W2L_Campaign_Name__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_W2L_Campaign_Name__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.LGS_CAMPAIGN_START_DATE__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.LGS_Campaign_Start_Date__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.LGS_CAMPAIGN_END_DATE__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.LGS_Campaign_End_Date__c}</div>
+                            </div>
+                        </div>    
+                    </div>
+                </div>
+                <!-- Call Back Section -->
+               
+                <c:ScheduleCallback Mode="{!v.Mode}" aura:id="callbackCmp" recordId="{!v.recordId}" readonly="{!!v.isCallBack}" task="{!v.task}" marketingCode="{!v.marketingCodeOrWebUniqueId}" 
+                currentUser="{!v.currentUser}" />                    
+                <!-- Product In Campaign Section -->
+                <div class="{! 'slds-section' + (v.isExpanded3 ? ' slds-is-open' : '')}">
+                    <h3 class="slds-section__title">
+                    <button aria-controls="expando-unique-id" aria-expanded="{!v.isExpanded3}" class="slds-button slds-section__title-action" onclick="{!c.changeState3}">
+                        <lightning:icon iconName="{!v.iconName3}" alternativeText="chevrondown" title="chevrondown" size="x-small" />
+                        <span class="slds-truncate section_header" title="Section Title">{!$Label.c.RTL_CampaignMember_SectionTitle_Product}</span>
+                    </button>
+                    </h3>
+                    <div class="slds-section__content" aria-hidden="{!!v.isExpanded2}" id="expando-unique-id">
+                        <div class="slds-grow">
+                            <table class="slds-table slds-table_cell-buffer slds-table_bordered" >
+                                <thead>
+                                    <tr class="slds-line-height_reset">
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title="NO">{!$Label.c.RTL_CampaignMember_TableTitle_NO}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title="Product Group">{!$Label.c.RTL_CampaignMember_TableTitle_ProductGroup}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title="Product Sub Group">{!$Label.c.RTL_CampaignMember_TableTitle_ProductSubGroup}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps productname-tile" scope="col">
+                                            <div class="slds-truncate" title="Product Name">{!$Label.c.RTL_CampaignMember_TableTitle_ProductName}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title="Result">{!$Label.c.RTL_CampaignMember_TableTitle_OfferResult}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title="Reason">{!$Label.c.RTL_CampaignMember_TableTitle_Reason}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title="Opportunity">{!$Label.c.RTL_CampaignMember_TableTitle_Opportunity}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title=""></div>
+                                        </th> 
+                                    </tr>
+                                </thead>
+                                <tbody>                          
+                                    <aura:iteration items="{!v.productList}" var="product" indexVar="index">
+                                        <tr class="slds-hint-parent">             
+                                            <td data-label="">
+                                                <div class="slds-truncate" title="No.">
+                                                    {!product.rowNum}
+                                                </div>                                       
+                                            </td>              
+                                            <td data-label="">
+                                                <aura:renderIf isTrue="{!product.viewGroup}">                                              
+                                                    <div class="slds-truncate" title="Product Group">
+                                                        {!product.productGroup}
+                                                    </div>
+                                                    <aura:set attribute="else">
+                                                    <aura:renderIf isTrue="{!product.productGroup != null}">                                                   
+                                                        <div class="slds-truncate" style="margin-top:-10px;" title="Product Group">                  
+                                                            <lightning:select class="lightning_select"  name="{!index}" aura:id="inputProductGroup" value="" onchange="{! c.handleProductGroup }" disabled="{!v.isDisabled}">
+                                                                <option value="">-- None --</option>    
+                                                                <aura:iteration items="{!product.productGroupList}" var="item">
+                                                                    <option text="{!item.label}" value="{!item.value}" />
+                                                                </aura:iteration>
+                                                            </lightning:select>
+                                                        </div>  
+                                                        <aura:set attribute="else">                                                      
+                                                            <div class="slds-truncate" style="margin-top:-10px;" title="Product Group">                  
+                                                                <lightning:select class="lightning_select"  name="{!index}" aura:id="inputProductGroup" value="" onchange="{! c.handleProductGroup }" disabled="true">
+                                                                    <option value="">-- None --</option>    
+                                                                    <aura:iteration items="{!product.productGroupList}" var="item">
+                                                                        <option text="{!item.label}" value="{!item.value}" />
+                                                                    </aura:iteration>
+                                                                </lightning:select>
+                                                            </div>                   
+                                                        </aura:set>
+                                                    </aura:renderIf> 
+                                                    </aura:set>
+                                                </aura:renderIf>                  
+                                            </td>             
+                                            <td data-label="">
+                                                <aura:renderIf isTrue="{!product.viewSubGroup}">                                                  
+                                                    <div class="slds-truncate" title="Product Sub Group">
+                                                        {!product.productSubGroup}
+                                                    </div>
+                                                    <aura:set attribute="else">
+                                                        <aura:renderIf isTrue="{!product.productGroup != null}">                
+                                                            <div class="" style="margin-top:-10px;" title="Product Sub Group">                  
+                                                                <lightning:select class="lightning_select" name="{!index}" aura:id="inputProductSubGroup" value="{!product.selectedproductsubgroup}" onchange="{! c.handleProductSubGroup }" disabled="{!v.isDisabled}">
+                                                                    <option value="">-- None --</option>    
+                                                                    <aura:iteration items="{!product.productSubGroupList}" var="item">
+                                                                        <option text="{!item.label}" value="{!item.value}" />
+                                                                    </aura:iteration>
+                                                                </lightning:select>
+                                                            </div>                  
+                                                            <aura:set attribute="else">
+                                                                <div class="" style="margin-top:-10px;" title="Product Sub Group">                  
+                                                                    <lightning:select class="lightning_select" name="{!index}" aura:id="inputProductSubGroup" value="{!product.selectedproductsubgroup}" onchange="{! c.handleProductSubGroup }" disabled="true">
+                                                                        <option value="">-- None --</option>  
+                                                                        <aura:iteration items="{!product.productSubGroupList}" var="item">
+                                                                            <option text="{!item.label}" value="{!item.value}" />
+                                                                        </aura:iteration>
+                                                                    </lightning:select>
+                                                                </div>    
+                                                            </aura:set> 
+                                                        </aura:renderIf>                         
+                                                    </aura:set>
+                                                </aura:renderIf>                      
+                                            </td>                
+                                            <td data-label="">
+                                                <aura:renderIf isTrue="{!product.viewProductName}">
+                                                    <div class="slds-truncate" title="Product Name" style="width:150px;white-space: break-spaces;">
+                                                        <span>{!product.productName}</span>
+                                                    </div>
+                                                    <aura:set attribute="else">
+                                                        <aura:renderIf isTrue="{!and(product.productGroup != null,and(product.productSubGroup != null,product.productSubGroup != ''))}">
+                                                            <div class="productname-body" title="Product Name">
+                                                                <c:CustomLookup aura:id="customLookup" objectAPIName="RTL_product_master__c" selectedRecord="{!product.productNameSelect}" extraField="RTL_Product_Group_Upper__c,RTL_Product_Sub_Group_Upper__c,Active__c" IconName="custom:custom64" disabled="{!v.isDisabled}"
+                                                                condition="{!'AND Active__c = true AND RTL_Product_Group_Upper__c = \'' + product.productGroupUpper + '\' AND RTL_Product_Sub_Group_Upper__c = \'' + product.productSubGroup + '\' '}" onchange="{! c.handleSelectedProduct}" index="{!index}" />
+                                                            </div>
+                                                            <aura:set attribute="else">
+                                                                <!-- <aura:renderIf isTrue="{!and(product.productGroup != null, or(product.productSubGroup == null,product.productSubGroup == ''))}"> -->
+                                                                <div class="productname-body" title="Product Name">
+                                                                    <c:CustomLookup aura:id="customLookup" objectAPIName="RTL_product_master__c" selectedRecord="{!product.productNameSelect}" extraField="RTL_Product_Group_Upper__c,RTL_Product_Sub_Group_Upper__c,Active__c" IconName="custom:custom64"  disabled="{!v.isDisabled}"
+                                                                    condition="{!'AND Active__c = true AND RTL_Product_Group_Upper__c = \'' + product.productGroupUpper + '\' '}" onchange="{! c.handleSelectedProduct}"  index="{!index}"/>
+                                                                </div>
+                                                            </aura:set> 
+                                                        </aura:renderIf>                         
+                                                </aura:set>
+                                                </aura:renderIf>
+                                            </td>
+                                            <td data-label="">    
+                                                <aura:renderIf isTrue="{!product.viewOfferResult}">    
+                                                    <div class="slds-truncate" title="Offer Result">
+                                                        {!product.offerResultLabel}
+                                                    </div>
+                                                    <aura:set attribute="else">
+                                                        <div class="" style="margin-top:-10px;" title="Offer Result">                                                
+                                                            <lightning:select class="lightning_select" name="{!index}" aura:id="inputOfferResult" value="{!product.offerResult}" onchange="{!c.handleOfferResult }" disabled="{!v.isDisabled}">
+                                                                <aura:iteration items="{!v.offerResultList}" var="item">
+                                                                    <option text="{!item.label}" value="{!item.value}" selected="{!item.value == product.offerResult}"/>
+                                                                </aura:iteration>
+                                                            </lightning:select>
+                                                        </div> 
+                                                    </aura:set>                                                                                   
+                                                </aura:renderIf>                                              
+                                            </td>
+                                            <td data-label="">
+                                                <aura:renderIf isTrue="{!product.viewReason}"> 
+                                                    <div class="slds-truncate" title="Offer Result" style="white-space: break-spaces;">
+                                                        {!product.reason}
+                                                    </div>
+                                                    <aura:set attribute="else">
+                                                        <aura:renderIf isTrue="{!or(product.offerResult == 'Not Interested',product.offerResult == 'Not Qualified')}">
+                                                            <div class="" style="margin-top:-10px;" title="Reason">                                                
+                                                                <lightning:select class="lightning_select" name="{!index}" aura:id="inputReason" value="{!product.reason}" onchange="{!c.handleReason }" disabled="{!v.isDisabled}">
+                                                                    <aura:iteration items="{!product.reasonOfNotInterestedList}" var="item">
+                                                                        <option text="{!item.label}" value="{!item.value}" selected="{!item.value == product.reason}"/>
+                                                                    </aura:iteration>
+                                                                </lightning:select>
+                                                            </div>    
+                                                            <aura:set attribute="else">
+                                                                <div class="" style="margin-top:-10px;" title="Reason">     
+                                                                    <lightning:select class="lightning_select" value="" onchange="{!c.handleReason }" disabled="true">   
+                                                                        <aura:iteration items="{!product.reasonOfNotInterestedList}" var="item">
+                                                                            <option text="{!item.label}" value="{!item.value}" />
+                                                                        </aura:iteration>
+                                                                    </lightning:select>
+                                                                </div>    
+                                                            </aura:set>
+                                                        </aura:renderIf>
+                                                    </aura:set>                                                                                                    
+                                                </aura:renderIf>              
+                                            </td>
+                                            <td data-label="">
+                                                <div class="" style="margin-top: 5px;;" title="Opportunity">             
+                                                    <a href="javascript:void(0);"  >
+                                                        <span id="{!product.objOpp.Id}" class="slds-m-right_x-small" onclick="{!c.navigateToObject}">{!product.objOpp.Name}</span>                                            
+                                                    </a>                                                
+                                                </div>                                                
+                                            </td>
+                                            <td data-label="">
+                                                <aura:renderIf isTrue="{!product.isShowHLCALMoredetail}">
+                                                    <a id='{!index}' onclick="{!c.showMoreDetail}">More Detail</a>
+                                                </aura:renderIf>
+                                            </td>
+                                        </tr>
+                                        <aura:renderIf isTrue="{!product.offerResult == 'Interested'}">  
+                                        <tr>
+                                            <td colspan="7">
+                                                
+                                                <div class="slds-grid slds-wrap" style="padding-left:30px" >               
+                                                    <div class="slds-size_1-of-4" style="width: 15%;">
+                                                        <div class="labelStyle">{!$Label.c.RTL_CampaignMember_TableTitle_Stage}</div>
+                                                    </div>
+                                                    <div class="slds-size_1-of-4" style="margin-right: 70px;">
+                                                        <aura:renderIf isTrue="{!product.objOpp.Name}">
+                                                            <div class="slds-truncate labelStyle" title="Stage">
+                                                                {!product.stageLabel}
+                                                            </div>
+                                                            <aura:set attribute="else">
+                                                                <div class="" style="margin-top:-10px;" title="Stage">   
+                                                                    <lightning:select class="" name="{!index}" aura:id="inputStage" value="{!product.objOpp.StageName}" onchange="{!c.handleStage }">
+                                                                        <aura:iteration items="{!product.opptyStageList}" var="item">
+                                                                            <option text="{!item.label}" value="{!item.value}" selected="{!item.value == product.objOpp.StageName}" />
+                                                                        </aura:iteration>
+                                                                    </lightning:select>
+                                                                </div> 
+                                                            </aura:set>
+                                                        </aura:renderIf>
+                                                    </div>
+                                                    <div class="slds-size_1-of-4" style="width: 15%;">
+                                                        <div class="labelStyle">{!$Label.c.RTL_CampaignMember_TableTitle_Status}</div>
+                                                    </div>
+                                                    <div class="slds-size_1-of-4">
+                                                        <aura:renderIf isTrue="{!product.objOpp.Name}">
+                                                            <div class="slds-truncate labelStyle" title="Status">
+                                                                {!product.statusLabel}
+                                                            </div>
+                                                            <aura:set attribute="else">
+                                                                <div class="" style="margin-top:-10px;" title="Status">  
+                                                                    <lightning:select class="" name="{!index}" aura:id="inputStatus" value="{!product.objOpp.RTL_Status__c}" onchange="{!c.handleStatus }">
+                                                                        <aura:iteration items="{!product.opptyStatusList}" var="item">
+                                                                            <option text="{!item.label}" value="{!item.value}" selected="{!item.value == product.objOpp.RTL_Status__c}" />
+                                                                        </aura:iteration>
+                                                                    </lightning:select>
+                                                                </div> 
+                                                            </aura:set>
+                                                        </aura:renderIf>
+                                                    </div>
+                                                    <div class="slds-size_1-of-4" style="width: 15%;">
+                                                        <div class="labelStyle" style="margin-top: 20px;">{!$Label.c.RTL_CampaignMember_TableTitle_Amount}</div>
+                                                    </div>
+                                                    <div class="slds-size_1-of-4" style="margin-right: 70px;">
+                                                        <aura:renderIf isTrue="{!product.objOpp.Name}">
+                                                            <div class="slds-truncate labelStyle" title="Amount" style="margin-top: 20px;">
+                                                                {!product.objOpp.Amount}
+                                                            </div>
+                                                            <aura:set attribute="else">
+                                                                <div class="" style="margin-top:-10px;" title="Amount">  
+                                                                    <lightning:input style="width:225px;" name="{!index}" aura:id="inputAmount"  type="number" formatter="currency" step="0.01" value="{!product.objOpp.Amount}" onchange="{! c.handleAmount }"/>
+                                                                </div>
+                                                            </aura:set>
+                                                        </aura:renderIf>
+                                                    </div>
+                                                    <div class="slds-size_1-of-4" style="width: 15%;">
+                                                        <div class="labelStyle" style="margin-top: 20px;">{!$Label.c.RTL_CampaignMember_TableTitle_ExpectedDate}</div>
+                                                    </div>
+                                                    <div class="slds-size_1-of-4">
+                                                        <aura:renderIf isTrue="{!product.objOpp.Name}">
+                                                            <div class="slds-truncate labelStyle" title="Expected Date" style="margin-top: 20px;">
+                                                                {!product.objOpp.CloseDate}                                                            
+                                                            </div>
+                                                            <aura:set attribute="else">
+                                                                <div class="" style="margin-top:-10px;" title="Expected Date">  
+                                                                    <lightning:input name="{!index}" aura:id="inputExpectedDate" type="date" dateStyle="short" value="{!product.objOpp.CloseDate}" onchange="{! c.handleExpectedDate }" /> 
+                                                                </div> 
+                                                            </aura:set>
+                                                        </aura:renderIf>
+                                                    </div>  
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </aura:renderIf> 
+                                    </aura:iteration>    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <c:CampaignMember_CrossSell aura:id="crossSellProduct" recordId="{!v.recordId}" rowList="{!v.CrossSellList}"  Mode="{!v.Mode}"
+                isDisabled="{!v.isDisabled}" isChangeContact="{!v.isChangeContact}"/>
+                
+                <aura:if isTrue="{!and(v.campaignMemObj.ContactId == null,v.extAccObj == null)}">
+                    <aura:if isTrue="{!!v.isConvert}">
+                        <c:CampaignMember_LeadConversion aura:id="leadConversion" Mode="{!v.Mode}" customerName="{!v.customerName}" mobileValue="{!v.mobileNumber}" idType="{!v.idType}" idNoValue="{!v.idNoValue}" />
+                    </aura:if>
+                </aura:if>
+                <footer class="slds-card__footer">
+                    <div class="slds-no-flex" style="text-align: end;">
+                        <lightning:button label="New Referral" title="Non-primary action" onclick="{!c.newReferral}" class="slds-m-left_x-small"/>
+                        <aura:if isTrue="{!v.campaignMemObj.RTL_Channel_Subsidiary__c==false}" >
+                            <aura:if isTrue="{!v.campaignMemObj.ContactId != null}" >
+                                <lightning:button label="Product Holding &amp; NBO" title="Non-primary action" onclick="{!c.navigateToProductHoldingandNBO}" class="slds-m-left_x-small"/>
+                            </aura:if>
+                        </aura:if>
+                        <lightning:button label="Save" title="Non-primary action" onclick="{!c.handleSave}" class="slds-m-left_x-small" disabled="{!v.saveDisable}"/>                
+                        <lightning:button label="Cancel" title="Non-primary action" class="slds-m-left_x-small" onclick="{!c.handleCancelEdit}" />
+                    </div>
+                </footer>
+            </aura:if>
+
+            <!-- View Mode -->
+            <aura:if isTrue="{!v.Mode == 'View'}">
+                <div class="slds-card__header slds-grid">
+                    <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                        <div class="slds-media__figure">
+                            <lightning:icon iconName="standard:campaign_members" alternativeText="campaign_members" title="campaign_members" size="medium" />
+                        </div>
+                        <div class="slds-media__body">
+                            <div>
+                                <span>{!$Label.c.RTL_Campaign_Member_History_Title}</span>
+                            </div>
+                            <h2 class="slds-card__header-title">
+                                <a href="javascript:void(0);" class="slds-card__header-link slds-truncate" title="Accounts">                    
+                                    <div>
+                                        <aura:if isTrue="{!v.campaignMemObj.ContactId != null}" >
+                                            <span>{!v.campaignMemObj.Contact.Name}</span>                                   
+                                        </aura:if>
+                                        <aura:if isTrue="{!and(v.campaignMemObj.ContactId == null, v.campaignMemObj.LeadId != null) }" >
+                                            <span>{!v.campaignMemObj.Lead.Name}</span>                                  
+                                        </aura:if>
+                                        <span style="margin-left: 5px;">({!v.campaignMemObj.Campaign.Name})</span>
+                                    </div>
+                                </a>
+                            </h2>
+                        </div>
+                        <div class="slds-no-flex">
+                            <lightning:button label="New Referral" title="Non-primary action" onclick="{!c.newReferral}" class="slds-m-left_x-small"/>
+                            <aura:if isTrue="{!v.campaignMemObj.RTL_Channel_Subsidiary__c==false}" >
+                                <aura:if isTrue="{!v.campaignMemObj.ContactId != null}" >
+                                    <lightning:button label="Product Holding &amp; NBO" title="Non-primary action" onclick="{!c.navigateToProductHoldingandNBO}" class="slds-m-left_x-small"/>
+                                </aura:if>
+                            </aura:if>
+                            <lightning:button label="Edit" title="Non-primary action" onclick="{!c.handleEdit}" class="slds-m-left_x-small" disabled="{!v.saveDisable}"/> 
+                            <lightning:button label="Cancel" title="Non-primary action" class="slds-m-left_x-small" onclick="{!c.closeFocusedTab}" />                          
+                        </div>
+                    </header>
+                </div>
+                
+                <!-- Customer Infomation Section -->
+                <div class="{! 'slds-section' + (v.isExpanded ? ' slds-is-open' : '')}">
+                    <h3 class="slds-section__title">
+                    <button aria-controls="expando-unique-id" aria-expanded="{!v.isExpanded}" class="slds-button slds-section__title-action" onclick="{!c.changeState}">
+                        <lightning:icon iconName="{!v.iconName}" alternativeText="chevrondown" title="chevrondown" size="x-small" />
+                        <span class="slds-truncate section_header" title="Section Title">{!$Label.c.RTL_CampaignMember_SectionTitle_CustomerInfo}</span>
+                    </button>
+                    </h3>
+                    <div class="slds-section__content" aria-hidden="{!!v.isExpanded}" id="expando-unique-id">
+                        <div class="slds-grid slds-wrap">
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Campaign_Name_TH__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">
+                                    <a href="javascript:void(0);"  >
+                                        <span id="{!v.campaignMemObj.CampaignId}" class="slds-m-right_x-small" onclick="{!c.navigateToObject}">{!v.campaignMemObj.Campaign.Name}</span>                                            
+                                    </a>       
+                                </div>  
+                            </div>                   
+                            <aura:if isTrue="{!v.campaignMemObj.RTL_Marketing_Code__c != null}">
+                                <div class="slds-col slds-size_1-of-4">
+                                    <div class="labelStyle">{!v.labelMap.RTL_Marketing_Code__c}</div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-4">
+                                    <div class="outputStyle">{!v.campaignMemObj.RTL_Marketing_Code__c}</div>
+                                </div> 
+                                <aura:set attribute="else" >
+                                    <div class="slds-col slds-size_1-of-4">
+                                        <div class="labelStyle">Web Unique ID</div>
+                                    </div>
+                                    <div class="slds-col slds-size_1-of-4">
+                                        <div class="outputStyle">{!v.campaignMemObj.RTL_Web_Unique_ID__c}</div>
+                                    </div> 
+                                </aura:set>
+                            </aura:if>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!$Label.c.RTL_ViewCampaignMember_CustomerName}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <aura:if isTrue="{!and(v.campaignMemObj.ContactId != null,v.campaignMemObj.Customer__c != null)}" >                            
+                                    <div class="outputStyle">
+                                        <a href="javascript:void(0);"  >
+                                            <span id="{!v.campaignMemObj.Customer__c}" class="slds-m-right_x-small" onclick="{!c.navigateToObject}">{!v.campaignMemObj.Customer__r.Name}</span>                                            
+                                        </a>  
+                                    </div>
+                                </aura:if>
+                                <aura:if isTrue="{!and(v.campaignMemObj.ContactId == null, v.campaignMemObj.LeadId != null) }" >                                    
+                                    <div class="outputStyle">
+                                        <a href="javascript:void(0);"  >
+                                            <span id="{!v.campaignMemObj.LeadId}" class="slds-m-right_x-small" onclick="{!c.navigateToObject}">{!v.campaignMemObj.Lead.Name}</span>                                            
+                                        </a>  
+                                    </div>                              
+                                </aura:if>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Campaign_Channel_formula__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Campaign_Channel_formula__c}</div>                          
+                            </div>                     
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!$Label.c.RTL_CampaignMember_ExtCustomer}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <aura:if isTrue="{!and(v.campaignMemObj.ContactId == null, v.campaignMemObj.LeadId != null) }" >
+                                    <aura:if isTrue="{!v.campaignMemObj.Customer__c != null }" >
+                                        <div class="outputStyle">{!v.campaignMemObj.Customer__r.Name}</div>                                   
+                                    </aura:if>
+                                </aura:if>        
+                            </div>                            
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_CampHis_Phone__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_CampHis_Phone__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Age__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Age__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Last_Contact_Status__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Last_Contact_Status__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!$Label.c.RTL_CampaignMember_BirthDay}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <aura:if isTrue="{!v.campaignMemObj.ContactId != null}" >
+                                    <div class="outputStyle">{!v.campaignMemObj.Contact.Date_of_Birth__c}</div>                             
+                                </aura:if>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Contact_Status__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Contact_Status__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Income__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Income__c}</div>                             
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Reason__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">      
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Reason__c}</div>                                                                               
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Occupation__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Occupation__c}</div>                        
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.Avaya_Completion_Code__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.Avaya_Completion_Code__c}</div>                             
+                            </div>
+                            <!-- LGS -->
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.Lead_Score__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.Lead_Score__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.Lead_Score_Level__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.Lead_Score_Level__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.Partner_Lead_ID__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.Partner_Lead_ID__c}</div>
+                            </div>
+                        </div>    
+                    </div>
+                </div>
+                
+                <!-- Promotion / Product Section -->
+                <div class="{! 'slds-section' + (v.isExpanded2 ? ' slds-is-open' : '')}">
+                    <h3 class="slds-section__title">
+                    <button aria-controls="expando-unique-id" aria-expanded="{!v.isExpanded2}" class="slds-button slds-section__title-action" onclick="{!c.changeState2}">
+                        <lightning:icon iconName="{!v.iconName2}" alternativeText="chevrondown" title="chevrondown" size="x-small" />
+                        <span class="slds-truncate section_header" title="Section Title">{!$Label.c.RTL_CampaignMember_SectionTitle_Promotion}</span>
+                    </button>
+                    </h3>
+                    <div class="slds-section__content" aria-hidden="{!!v.isExpanded2}" id="expando-unique-id">
+                        <div class="slds-grid slds-wrap">
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Segmentation__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Segmentation__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Promotion__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Promotion__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Product_Feature__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Product_Feature__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Personalized_Message__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_Personalized_Message__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_Remark__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <!-- <div class="outputStyle">{!v.campaignMemObj.RTL_Remark__c}</div>    -->
+                                <aura:unescapedHtml value="{!v.campaignMemObj.RTL_Remark__c}"/>                           
+                            </div>      
+                            <!-- lgsws2 -->
+                            <div class="slds-col slds-size_1-of-4">
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_TMB_Campaign_Reference__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_TMB_Campaign_Reference__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.LGS_Child_Campaign_ID__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.LGS_Child_Campaign_ID__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.RTL_W2L_Campaign_Name__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.RTL_W2L_Campaign_Name__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.LGS_CAMPAIGN_START_DATE__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.LGS_Campaign_Start_Date__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="labelStyle">{!v.labelMap.LGS_CAMPAIGN_END_DATE__c}</div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-4">
+                                <div class="outputStyle">{!v.campaignMemObj.LGS_Campaign_End_Date__c}</div>
+                            </div>        
+                        </div>    
+                    </div>
+                </div>
+                <!-- Call Back Section -->
+                <c:ScheduleCallback Mode="{!v.Mode}" aura:id="callbackCmp" recordId="{!v.recordId}" readonly="{!!v.isCallBack}" task="{!v.task}" marketingCode="{!v.marketingCodeOrWebUniqueId}" 
+                currentUser="{!v.currentUser}" />
+
+                <!-- Product In Campaign Section -->
+                <div class="{! 'slds-section' + (v.isExpanded3 ? ' slds-is-open' : '')}">
+                    <h3 class="slds-section__title">
+                    <button aria-controls="expando-unique-id" aria-expanded="{!v.isExpanded3}" class="slds-button slds-section__title-action" onclick="{!c.changeState3}">
+                        <lightning:icon iconName="{!v.iconName3}" alternativeText="chevrondown" title="chevrondown" size="x-small" />
+                        <span class="slds-truncate section_header" title="Section Title">{!$Label.c.RTL_CampaignMember_SectionTitle_Product}</span>
+                    </button>
+                    </h3>
+                    <div class="slds-section__content" aria-hidden="{!!v.isExpanded2}" id="expando-unique-id">
+                        <div class="slds-grow">
+                            <table class="slds-table slds-table_cell-buffer slds-table_bordered" >
+                                <thead>
+                                    <tr class="slds-line-height_reset">
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title="NO">{!$Label.c.RTL_CampaignMember_TableTitle_NO}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title="Product Group">{!$Label.c.RTL_CampaignMember_TableTitle_ProductGroup}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title="Product Sub Group">{!$Label.c.RTL_CampaignMember_TableTitle_ProductSubGroup}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps productname-title" scope="col">
+                                            <div class="slds-truncate" title="Product Name">{!$Label.c.RTL_CampaignMember_TableTitle_ProductName}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title="Result">{!$Label.c.RTL_CampaignMember_TableTitle_OfferResult}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title="Reason">{!$Label.c.RTL_CampaignMember_TableTitle_Reason}</div>
+                                        </th>
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title="Opportunity">{!$Label.c.RTL_CampaignMember_TableTitle_Opportunity}</div>
+                                        </th> 
+                                        <th class="slds-text-title_caps" scope="col">
+                                            <div class="slds-truncate" title=""></div>
+                                        </th> 
+                                    </tr>
+                                </thead>
+                                <tbody>                          
+                                    <aura:iteration items="{!v.productList}" var="product" indexVar="index">
+                                        <tr class="slds-hint-parent">             
+                                            <td data-label="">
+                                                <div class="slds-truncate" title="No.">
+                                                    {!product.rowNum}
+                                                </div>                                       
+                                            </td>              
+                                            <td data-label="">
+                                                <div class="slds-truncate" title="Product Group">
+                                                    {!product.productGroup}
+                                                </div>
+                                            </td>             
+                                            <td data-label="">
+                                                <div class="slds-truncate" title="Product Sub Group" style="white-space: break-spaces;">
+                                                    {!product.productSubGroup}
+                                                </div>
+                                            </td>                
+                                            <td data-label="">
+                                                <div class="slds-truncate" title="Product Name" style="width:150px;white-space: break-spaces;">
+                                                    {!product.productName}
+                                                </div>
+                                            </td>
+                                            <td data-label="">    
+                                                <div class="slds-truncate" title="Offer Result">
+                                                    {!product.offerResultLabel}
+                                                </div>
+                                            </td>
+                                            <td data-label="">
+                                                <div class="slds-truncate" title="Reason" style="white-space: break-spaces;">
+                                                    {!product.reason}
+                                                </div>
+                                            </td>
+                                            <td data-label="">
+                                                <div class="" style="margin-top: 5px;;" title="Opportunity">             
+                                                    <a href="javascript:void(0);"  >
+                                                        <span id="{!product.objOpp.Id}" class="slds-m-right_x-small" onclick="{!c.navigateToObject}">{!product.objOpp.Name}</span>                                            
+                                                    </a>
+                                                </div>                                                     
+                                            </td>
+                                            <td data-label="">
+                                                <aura:renderIf isTrue="{!product.isShowHLCALMoredetail}">
+                                                    <a id='{!index}' onclick="{!c.showMoreDetail}">More Detail</a>
+                                                </aura:renderIf>
+                                            </td>
+                                        </tr>                               
+                                    </aura:iteration>    
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <c:CampaignMember_CrossSell aura:id="crossSellProduct" recordId="{!v.recordId}" rowList="{!v.CrossSellList}"  Mode="{!v.Mode}"
+                isDisabled="{!v.isDisabled}"/>
+                
+                <aura:if isTrue="{!and(v.campaignMemObj.ContactId == null,v.extAccObj == null)}">
+                    <aura:if isTrue="{!!v.isConvert}">
+                        <c:CampaignMember_LeadConversion aura:id="leadConversion" Mode="{!v.Mode}" />
+                    </aura:if>
+                </aura:if>
+                <footer class="slds-card__footer">
+                    <div class="slds-no-flex" style="text-align: end;">
+                        <lightning:button label="New Referral" title="Non-primary action" onclick="{!c.newReferral}" class="slds-m-left_x-small"/>
+                        <aura:if isTrue="{!v.campaignMemObj.RTL_Channel_Subsidiary__c==false}" >
+                            <aura:if isTrue="{!v.campaignMemObj.ContactId != null}" >
+                                <lightning:button label="Product Holding &amp; NBO" title="Non-primary action" onclick="{!c.navigateToProductHoldingandNBO}" class="slds-m-left_x-small"/>
+                            </aura:if>
+                        </aura:if>
+                        <lightning:button label="Edit" title="Non-primary action" onclick="{!c.handleEdit}" class="slds-m-left_x-small" disabled="{!v.saveDisable}"/> 
+                        <lightning:button label="Cancel" title="Non-primary action" class="slds-m-left_x-small" onclick="{!c.closeFocusedTab}" />                              
+                    </div>
+                </footer>
+            </aura:if>         
+        </article>
+    </div>
+</aura:component>

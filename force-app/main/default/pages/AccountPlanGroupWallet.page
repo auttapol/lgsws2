@@ -1,0 +1,525 @@
+<apex:page standardcontroller="AcctPlanProdStrategy__c" extensions="AcctPlanProStrGrpWalletCtrl"
+           doctype="html-5.0" showchat="false" showheader="{! !isConsoleMode}" sidebar="false"
+           applybodytag="false" applyhtmltag="true" standardstylesheets="true">
+    <head>
+        <title>Product Strategy</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+                  <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+                  <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+                <![endif]-->
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+            /*modify byDA*/
+            .bootstrap-sf1 thead th {
+                text-align: center;
+            }
+
+            .outputText {
+                /*padding-top:7px;*/
+            }
+
+            .bootstrap-sf1 .table tbody tr.endRow {
+                border-bottom-width: 1px;
+                border-bottom-style: solid;
+            }
+
+            .bootstrap-sf1 .table tbody tr td.td25 {
+                width: 25px;
+                border: none;
+                background: none;
+            }
+
+            .bootstrap-sf1 .table-striped > tbody > tr:nth-child(odd) > th.th25 {
+                width: 25px;
+                border: none;
+                background: none;
+            }
+
+            .rowsubtableLeft {
+                border-left: 1px solid #DADEE2;
+            }
+
+            .rowsubtableRight {
+                border-right: 1px solid #DADEE2;
+            }
+
+            .rowsubtableBottom {
+                border-bottom: 1px solid #DADEE2;
+            }
+
+            .bootstrap-sf1 .table tbody tr td.forceBackgroundMaroon {
+                background-color: #993300;
+                color: white;
+            }
+
+            .bootstrap-sf1 .table tbody tr th.forceBackgroundMaroon {
+                background-color: #993300;
+                color: white;
+            }
+
+            .bootstrap-sf1 .table thead tr th.forceRemoveBackground {
+                background-color: white;
+                color: black;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+            /* Icon when the collapsible content is shown */
+            .a-collapse:after {
+                font-family: "Glyphicons Halflings";
+                content: "\e114";
+                float: left;
+                margin-right: 10px;
+            }
+            /* Icon when the collapsible content is hidden */
+            .a-collapse.collapsed:after {
+                content: "\e080";
+            }
+            
+        .bootstrap-sf1 thead th.alt {
+            background-color: #006DCC;
+            color: white;
+            text-align: center;
+            vertical-align: top !important;
+            position: relative;
+        }        
+        </style>
+    </head>
+    <body>
+        <apex:actionstatus id="status">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" />
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+        <c:AccountPlanHeader activetab="1" activesubtab="2"
+                             companyid="{!ViewState.CompanyID}"
+                             groupid="{!ViewState.GroupID}"
+                             walletid="{!ViewState.WalletID}"
+                             isminiview="{!isMiniView}"
+                             ishasprodstrategy="{!ishasProdStrategy}"
+                             ishasactionplan="{!isHasActionPlan}"
+                             isgroupwallet="true" />
+        <div class="bootstrap-sf1">
+            <div id="responseErrors"></div>
+            <apex:form styleclass="form-horizontal">
+                <apex:outputpanel id="statusMessage">
+                    <apex:pagemessages ></apex:pagemessages>
+                </apex:outputpanel>
+                <!-- /Section 1 -->
+                <header class="navbar navbar-default navbar-branded" role="banner">
+                    <div class="panel-heading">
+                        <div class="navbar-header">
+                            <a data-toggle="collapse" aria-expanded="true"
+                               href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                                Group's Wallet
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                <div class="card collapse in panel-collapse" id="collapse1">
+                    <div class="card-detail">
+                        <!--  Section 1 -->
+                        <fieldset>
+                            <div class="col-sm-8 col-md-6 col-lg-6">
+                                <div class="form-group">
+                                    <apex:outputpanel id="targetPanel">
+                                        <div style="padding-top: 30px;">
+                                            <table class="table">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="forceBackground" style="border: none;text-align:left;" width="30%">
+                                                            Year
+                                                            <c:II_Helptext sobjectname="AcctPlanGroupProfile__c" fieldapiname="Year__c" />
+                                                        </td>
+                                                        <td style="border: none;">
+                                                            <span class="form-control text-center calculate">
+                                                                {!groupprofile.Year__c}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="forceBackground" style="border: none;text-align:left;">
+                                                            Group Name
+                                                            <c:II_Helptext sobjectname="AcctPlanGroupProfile__c" fieldapiname="GroupName__c" />
+                                                        </td>
+                                                        <td style="border: none;">
+                                                            <span class="form-control text-center calculate">
+                                                                {!groupprofile.GroupName__c}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </apex:outputpanel>
+                                </div>
+                            </div>
+                            <br />
+                            <!-- -->
+                            <apex:pageblock >
+                                <div id="card">
+                                    <apex:outputpanel id="mainTable">
+                                        <apex:outputtext escape="false" value="{!InfoMessage}"></apex:outputtext>
+                                        <table class="table table-hover" style="">
+                                            <apex:variable var="cols" value="{! ViewState.ViewModel.TotalAccount + 7   }" />
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="{!cols}" class="text-left" style="">
+                                                        Group's wallet
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    <th colspan="{!cols}" class="text-left" style="background-color:#fff;">
+                                                        <apex:outputpanel id="pnlButton">
+                                                            <apex:outputpanel rendered="{! !isDisabled&&isHasPermission&&isHasAuthorized}">
+                                                                <apex:commandlink action="{!refresh}" value=" Refresh" styleclass="btn btn-primary glyphicon glyphicon-repeat"
+                                                                                  id="refreshpanel" rerender="pnlButton,mainTable,statusMessage" rendered="{!!IsLock}" status="status"
+                                                                                  title="กดปุ่มเพื่อ update ค่า Wallet และ Actual NI สำหรับลุกค้าที่ยังไม่ได้สร้าง Account Plan หรือยังไม่ได้ทำ Step 4"
+                                                                                  onclick="if(!confirm('System will update wallet and actual NI for those customers without an Account Plan or have not started Step 4.  Are you sure to continue?')) return false;">
+                                                                </apex:commandlink>
+                                                                <a href="#" disabled="{!IF(IsLock, true, false)}" class="btn btn-primary glyphicon glyphicon-repeat" style="{!IF(IsLock,'','display:none')}">Refresh</a>
+
+                                                                <!-- <span style="color:#000;">
+                                                                    <span style="display:none;"> {!IsLock}</span> Data as of<c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="RefreshAsOf__c" iscustom="true" screen="RefreshButton" /> <label>
+                                                                        <c:II_FormatDateTime date_timevalue="{!ViewState.ViewModel.RefreshAsOf}" />
+                                                                    </label>
+                                                                </span>-->
+                                                            </apex:outputpanel>
+                                                        </apex:outputpanel>
+                                                        <hr style="margin-top: 5px;margin-bottom:5px;" />
+                                                        <!--<a href="#" id="collapeall" onclick="collapeall(); return false;" class="btn btn-info">Collape All</a>
+                                                        <a href="#" id="expandall" onclick="expandall();  return false;" class="btn btn-warning">Expand All</a> -->
+                                                        <button style="" id="groupwallet" class="btn btn-primary " onclick="jsShowToggle();return false; ">Toggle Customer Profiles</button>
+                                                        <button style="display: none;" id="groupwallet1" class="btn btn-primary " onclick="jsHideToggle(); return false; ">Toggle Customer Profiles</button>
+
+                                                        <a href="/apex/AccountPlanGroupWalletToExcel?GroupID={!ViewState.GroupID}&CompanyID={!ViewState.CompanyID}&WalletID={!ViewState.WalletID}" target="_blank" class="btn btn-primary glyphicon"> Print</a>
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    <th class="forceBackground text-center" style=" ">
+                                                        Type of Wallet
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="Name" iscustom="true" screen="AccountPlanProductStrategy" />
+                                                    </th>
+                                                    <th class="forceBackground text-center" style="">
+                                                        Group Wallet Sizing<br /> (Yearly)
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="WalletSizing__c" iscustom="true" screen="AcctPlanProStrGrpWallet" />
+                                                    </th>
+                                                    <apex:variable var="count" value="{!1}" />
+                                                    
+                                                    <!--<apex:repeat value="{!ViewState.ViewModel.mapCompanyName }" var="accoutid">
+
+                                                        <th class="forceBackground text-center pnldetail alt" style="border-left:1px solid #fff;">
+                                                            {!count}.<br /><apex:outputtext escape="false" value="{!ViewState.ViewModel.mapCompanyName[accoutid]} ">
+                                                            </apex:outputtext>
+                                                           
+                                                        </th>
+                                                        <apex:variable var="count" value="{!count+1}" />
+                                                    </apex:repeat>-->
+                                                    <!-- Customer Name Encrypt field -->
+                                                    <apex:repeat value="{!ViewState.ViewModel.mapCompanyNameSObject}" var="status">
+                                                    <apex:repeat value="{!ViewState.ViewModel.mapCompanyNameSObject[status]}" var="accountid">
+                                                        <th class="forceBackground text-center pnldetail alt" style="border-left:1px solid #fff;">
+                                                            {!count}.
+                                                            <apex:outputpanel rendered="{!if(contains(status,'true'),'true','false')}">
+                                                                <apex:outputpanel rendered="{!ViewState.ViewModel.mapCompanyNameSObject[status].AccountName__c == null}">
+                                                                    <br /><apex:outputtext escape="false" value="{!ViewState.ViewModel.mapCompanyNameSObject[status].Account__c}"/>
+                                                                    <br />Need to refresh
+                                                                </apex:outputpanel>  
+                                                                <apex:outputpanel rendered="{!ViewState.ViewModel.mapCompanyNameSObject[status].AccountName__c != null}">
+                                                                    <br /><apex:outputtext escape="false" value="{!ViewState.ViewModel.mapCompanyNameSObject[status].AccountName__c}"/>
+                                                                </apex:outputpanel>
+                                                                <br /><span class="glyphicon glyphicon-user" aria-hidden="true"></span> 
+                                                            </apex:outputpanel> 
+                                                            <apex:outputpanel rendered="{!if(contains(status,'false'),'true','false')}"> 
+                                                                <apex:outputpanel rendered="{!ViewState.ViewModel.mapCompanyNameSObject[status].AccountName__c == null}">
+                                                                    <br /><apex:outputtext escape="false" value="{!ViewState.ViewModel.mapCompanyNameSObject[status].AccountId_PE__c} "/>
+                                                                    <br />Need to refresh
+                                                                </apex:outputpanel>  
+                                                                <apex:outputpanel rendered="{!ViewState.ViewModel.mapCompanyNameSObject[status].AccountName__c != null}">
+                                                                    <apex:outputtext escape="false" value="{!ViewState.ViewModel.mapCompanyNameSObject[status].AccountName__c}"/>
+                                                                </apex:outputpanel>  
+                                                                <br /><span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>    
+                                                           </apex:outputpanel>
+                                                        </th>
+                                                    </apex:repeat> 
+                                                    <apex:variable var="count" value="{!count+1}" />
+                                                    </apex:repeat>  
+                                                        
+                                                    <th class="forceBackground text-center" style="border-left:1px solid #fff;">
+                                                        Group's Actual NI <br /> (12-mth Rolling)
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="AnnualizedPerformance__c" iscustom="true" screen="AcctPlanProStrGrpWallet" />
+                                                    </th>
+                                                    <th class="forceBackground text-center" style="">
+                                                        Group's Adjusted NI<br /> (12-mth Rolling)
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="Adjust_NI__c" iscustom="true" screen="AcctPlanProStrGrpWallet" />
+                                                    </th>
+                                                    <th class="forceBackground text-center" style="">
+                                                        % Existing SOW<br /> Group
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="ExistingSOW__c" iscustom="true" screen="AcctPlanProStrGrpWallet" />
+                                                    </th>
+                                                    <th class="forceBackground text-center" style="">
+                                                        % Aspiration <br />SOW
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="AspirationSOW__c" iscustom="true" screen="AcctPlanProStrGrpWallet" />
+                                                    </th>
+                                                    <th class="forceBackground text-center" style="width:120px;">
+                                                        Expected <br />Incremental NI<br />(Unit: THB)
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="ExpectedIncrementalNI__c" iscustom="true" screen="AcctPlanProStrGrpWallet" />
+                                                    </th>
+                                                </tr> 
+                                                <!-- Refresh As of Date -->
+                                                <tr class="pnldetail">
+
+                                                    <th class=" text-right alt" style="text-align: right;" colspan="2">
+                                                        As of Date : 
+
+                                                    </th>
+                                                    <apex:variable var="count" value="{!1}" />
+                                                    <apex:repeat value="{!ViewState.ViewModel.mapCompanyName }" var="accoutid">
+                                                        <th class="forceBackground text-center pnldetail alt" style="border-left:1px solid #fff;">      
+                                                            <c:II_FormatDateTime date_timevalue="{!ViewState.ViewModel.GroupRefreshDate[accoutid]}" />
+                                                                                                                
+                                                     
+                                                        </th>
+                                                        <apex:variable var="count" value="{!count+1}" />
+                                                    </apex:repeat>
+                                                    <th class=" text-center" style="border-left:1px solid #fff;">
+
+                                                    </th>
+                                                    <th class=" text-center" style="">
+
+                                                    </th>
+                                                    <th class=" text-center" style="">
+
+                                                    </th>
+                                                    <th class=" text-center" style="">
+
+                                                    </th>
+                                                    <th class=" text-center" style="width:120px;">
+
+                                                    </th>
+                                                </tr>
+                                                <!--// Refresh As of Date -->
+                                            </thead>
+                                            <tbody>
+                                                <apex:repeat value="{!ViewState.ViewModel.mapTableLabel}" var="seq">
+                                                    <tr>
+                                                        <td class="text-left"><div style="width:130px;"><label>{!ViewState.ViewModel.mapTableLabel[seq]}</label></div></td>
+                                                        <td>
+                                                            <apex:outputtext value="{0, number, ###,##0}" rendered="{! seq != 4 && seq != 10 }">
+                                                                <apex:param value="{! ViewState.ViewModel.getMapGroupWalletSizing[seq] }" />
+                                                            </apex:outputtext>
+                                                        </td>
+                                                        <apex:repeat value="{!ViewState.ViewModel.mapCompanyName }" var="accoutid">
+                                                            <td class="pnldetail" style="border-left:1px solid #ededed;">
+                                                                <apex:outputtext value="{0, number, ###,##0}" rendered="{! seq != 4 && seq != 10 }">
+                                                                    <apex:param value="{! ViewState.ViewModel.GroupWalletSizing[accoutid][seq]}" />
+                                                                </apex:outputtext>
+                                                            </td>
+                                                        </apex:repeat>
+                                                        <td style="border-left:1px solid #ededed;">
+                                                            <apex:outputtext value="{0, number, ###,##0}" rendered="{! seq != 4  && seq != 10}">
+                                                                <apex:param value="{! ViewState.ViewModel.getMapGroupActualNiRolling[seq]}" />
+                                                            </apex:outputtext>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputtext value="{0, number, ###,##0}" rendered="{! seq != 4 && seq != 10 }">
+                                                                <apex:param value="{! ViewState.ViewModel.geMapGroupAdjustedNI[seq]}" />
+                                                            </apex:outputtext>
+                                                        </td>
+                                                        <td>
+                                                            <!--  % Existing SOW Group  -->
+                                                            <apex:outputtext value="{0, number, #0.00}%" rendered="{! seq != 4 && seq != 10 && seq != 11 && seq != 12 && seq != 13 && seq != 14}">
+                                                                <apex:param value="{! ViewState.ViewModel.geMapExistingSOWGroup[seq]}" />
+                                                            </apex:outputtext>
+
+                                                        </td>
+                                                        <td title="Actual Value={!ViewState.ViewModel.getMapAspirationSOWStep4[seq]}">
+                                                            <apex:outputtext value="{0, number, #0.00}%" rendered="{! seq != 3.00 && seq != 4&& seq != 10&& seq != 13 && seq != 14}">
+                                                                <apex:param value="{!ViewState.ViewModel.getMapAspirationSOWStep4[seq]}" />
+                                                            </apex:outputtext>
+                                                        </td>
+                                                        <td title="Actual Value={!ViewState.ViewModel.getMapGroupExpectedIncrementalNI[seq]}">
+                                                            <apex:outputtext value="{0, number, ###,##0}" rendered="{! seq != 3.00 && seq != 4&& seq != 10 }">
+                                                                <apex:param value="{!ViewState.ViewModel.getMapGroupExpectedIncrementalNI[seq]}" />
+                                                            </apex:outputtext>
+                                                        </td>
+                                                    </tr>
+                                                </apex:repeat>
+                                                <!--  Grand Total -->
+                                                <tr class="info endRow">
+                                                    <td class="forceBackground text-left">Total</td>
+                                                    <td>
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{! ViewState.ViewModel.GrandGroupWalletsizing }" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <apex:repeat value="{!ViewState.ViewModel.mapCompanyName }" var="accoutid">
+                                                        <td class="pnldetail">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{! ViewState.ViewModel.getMapGrandGroupWalletSizingEachCompany[accoutid]}" />
+                                                            </apex:outputtext>
+                                                        </td>
+                                                    </apex:repeat>
+                                                    <td>
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{! ViewState.ViewModel.GrandGroupActualNiRolling}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <td>
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{! ViewState.ViewModel.GrandGroupAdjustedNI }" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <!-- <td>
+                                                        <apex:outputtext value="{0, number, #0.00}%">
+                                                            <apex:param value="{! IF(ViewState.ViewModel.GrandGroupWalletsizing==null || ViewState.ViewModel.GrandGroupWalletsizing== 0,0,   ROUND((( ViewState.ViewModel.GrandGroupAdjustedNI  /  ViewState.ViewModel.GrandGroupWalletsizing) * 100),4))}" />
+                                                        </apex:outputtext>
+                                                    </td> -->
+                                                    <td>-</td>
+                                                    <td>-</td>
+                                                    <td>
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{! ViewState.ViewModel.GrandGroupExpectedIncrementalNI }" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                </tr>
+                                                <!-- //Grand Total -->
+                                                <tr>
+                                                    <td colspan="2" class="forceBackground text-center">
+                                                        <b>Outstanding</b>
+                                                        <c:II_Helptext sobjectname="AcctPlanCusUnderstanding__c" fieldapiname="Name" iscustom="true" screen="AccountPlanGroupWallet_Outstanding" />
+                                                    </td>
+                                                    <td colspan="{!cols-2}" class="forceBackground  text-left">
+                                                        <span> <b> Group Actual <br />Performance <br />(YTD) </b></span>
+                                                        <c:II_Helptext sobjectname="AcctPlanCusUnderstanding__c" fieldapiname="Average_loan_outstanding__c" iscustom="true" screen="AccountPlanGroupWallet_GroupActualPerformanceYTD" />
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=" text-left" colspan="2"><label>1) Average loan outstanding</label></td>
+                                                    <td colspan="{!cols-2}" class="text-left">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.ViewModel.AvgLoan}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=" text-left" colspan="2"><label>2) Ending loan outstanding</label></td>
+                                                    <td colspan="{!cols-2}" class="text-left">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.ViewModel.EndLoan}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=" text-left" colspan="2"><label>3) Average CASA</label></td>
+                                                    <td colspan="{!cols-2}" class="text-left">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.ViewModel.AvgCASA}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=" text-left" colspan="2"><label>4) Ending CASA</label></td>
+                                                    <td colspan="{!cols-2}" class="text-left">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.ViewModel.EndCASA}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=" text-left" colspan="2"><label>5) TF Volume</label></td>
+                                                    <td colspan="{!cols-2}" class="text-left">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.ViewModel.TFVolume}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=" text-left" colspan="2"><label>6) FX volume</label></td>
+                                                    <td colspan="{!cols-2}" class="text-left">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.ViewModel.FXvolume }" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td> </td>
+                                                    <td></td>
+                                                    <apex:repeat value="{!ViewState.ViewModel.mapCompanyName }" var="accoutid">
+                                                        <td></td>
+                                                    </apex:repeat>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                    <td></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </apex:outputpanel>
+                                </div>
+                            </apex:pageblock>
+                        </fieldset>
+                    </div>
+                </div>
+            </apex:form>
+        </div>
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Mustache}" />
+        <apex:includescript value="/support/console/22.0/integration.js" />
+        <script>
+        // Prevent Config
+        var $j = jQuery.noConflict();
+
+        $j(document).ready(function(){
+          $j('[data-toggle="tooltip"]').tooltip();
+        });
+
+        function collapeall(){
+            $j(".pnldetail").hide();
+
+        }
+
+        function expandall(){
+            $j(".pnldetail").show();
+        }
+
+        function jsShowToggle(){
+                 //  alert('show');
+                  $j('#groupwallet').hide();
+                  $j('#groupwallet1').show();
+                   $j(".pnldetail").removeAttr('style');
+                   $j(".pnldetail").attr('style','vertical-align:top;border-left:1px solid #ededed;');
+                }
+                function jsHideToggle(){
+                 // alert('hide');
+                  $j('#groupwallet1').hide();
+                  $j('#groupwallet').show();
+                  $j(".pnldetail").removeAttr('style');
+                  $j(".pnldetail").attr('style','display:none;');
+                }
+
+       collapeall();
+
+        </script>
+    </body>
+</apex:page>

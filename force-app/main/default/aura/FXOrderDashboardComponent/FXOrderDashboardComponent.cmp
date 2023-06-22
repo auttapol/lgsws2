@@ -1,0 +1,485 @@
+<aura:component controller="FX_Order_Summary_Controller" implements="flexipage:availableForAllPageTypes" access="global">
+
+    <!-- <ltng:require scripts="{!$Resource.cometd}" afterScriptsLoaded="{!c.onCometdLoaded}"/> -->
+    <ltng:require scripts="{!$Resource.cometd_3_1_4}" afterScriptsLoaded="{!c.onCometdLoaded}" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+
+    <aura:attribute name="sessionId" type="String" />
+    <aura:attribute name="cometd" type="Object" />
+    <aura:attribute name="cometdSubscriptions" type="Object[]" />
+
+    <aura:attribute name="oscBuyList" type="FX_Order_Summary__c[]" />
+    <aura:attribute name="oscSellList" type="FX_Order_Summary__c[]" />
+
+    <aura:attribute name="oscBuyListOri" type="FX_Order_Summary__c[]" />
+    <aura:attribute name="oscSellListOri" type="FX_Order_Summary__c[]" />
+
+    <aura:attribute name="updatedComponent" type="String[]" />
+    <aura:attribute name="updatedComponentFag" type="Map" default="{}" />
+
+    <aura:attribute name="searchCurrency" type="String" default="" />
+    <aura:attribute name="searchCurrencyCurrent" type="String" default="" />
+    <aura:attribute name="issearching" type="Boolean" default="false" />
+
+    <aura:attribute name="confirmDialogShow" type="Boolean" default="false" />
+    <aura:attribute name="confirmDialogText" type="String" />
+    <aura:attribute name="confirmFXSItem" type="FX_Order_Summary__c" />
+
+    <aura:attribute name="BuyOptionSelectedValue" type="String" access="PRIVATE" />
+    <aura:attribute name="BuyOptionTotalValue" type="String" access="PRIVATE" default="-" />
+    <aura:attribute name="SellOptionSelectedValue" type="String" access="PRIVATE" />
+    <aura:attribute name="SellOptionTotalValue" type="String" access="PRIVATE" default="-" />
+
+    <aura:attribute name="BuyPageItems" type="List" access="PRIVATE" />
+    <aura:attribute name="SellPageItems" type="List" access="PRIVATE" />
+    <aura:attribute name="processSave" type="Boolean" default="false" />
+    <aura:attribute name="blotterProfile" type="FX_Blotter_Profile_Manager__mdt" />
+
+    <aura:attribute name="eventConStatus" type="Boolean" default="false" />
+    <aura:attribute name="showDiscon" type="Boolean" default="false" />
+
+    <aura:handler name="change" value="{!v.searchCurrencyCurrent}" action="{!c.handleKeyUpSearch}" />
+
+    <aura:attribute name="fillValueStorage" type="Map" default="{}" />
+
+    <aura:attribute name="fillamountDialogShow" type="Boolean" default="false" />
+
+
+    <lightning:card class="slds-text-heading_small" title="{!$Label.c.FX_Dashboard_Title}" iconName="utility:feed">
+
+
+
+        <div class="slds-grid slds-wrap">
+
+            <div class="slds-col slds-size_11-of-12 slds-p-around_x-small">
+
+                <lightning:input type="search" aura:id="searchCurrencyCurrent" name="searchCurrencyCurrent" label="{!$Label.c.FX_Dashboard_Search_Label}"
+                    variant="label-hidden" value="{! v.searchCurrencyCurrent }" placeholder="{!$Label.c.FX_Dashboard_Search_Label}"
+                    isLoading="{! v.issearching }" />
+            </div>
+
+            <div class="slds-col slds-size_1-of-12 slds-p-around_x-small">
+
+                <aura:if isTrue="{!v.eventConStatus}">
+                    <div class="row connected  slds-m-top_xx-small slds-inline_icon_text">
+                        <!-- <lightning:icon iconName="utility:connected_apps" variant="success" size="small"/> -->
+                        <div class="slds-float_left">
+                            <lightning:icon iconName="utility:wifi" variant="success" size="small"/>
+                        </div>
+                        <div class="slds-show_medium slds-col slds-align-middle slds-p-left_x-large slds-p-top_xxx-small">
+                            {!$Label.c.FXS_Dashborad_Online}
+                        </div> 
+                        
+                    </div>
+                </aura:if>
+                <aura:if isTrue="{!!v.eventConStatus}">
+                    <div class="row disconnected slds-m-top_xx-small slds-inline_icon_text">
+                        <!-- <lightning:icon iconName="utility:connected_apps" variant="error" size="small"/> -->
+                        <div class="slds-float_left">
+                            <lightning:icon iconName="utility:offline" variant="error" size="small"/> 
+                        </div>
+                        <div class="slds-show_medium slds-col slds-align-middle slds-p-left_x-large slds-p-top_xxx-small">
+                            {!$Label.c. FXS_Dashborad_Offline}
+                        </div> 
+                        
+                    </div>   
+                </aura:if> 
+
+            </div>
+
+            <div class="slds-col slds-size_6-of-12 slds-p-around_x-small slds-wrap">
+
+                <div class="slds-grid slds-grid_vertical-align-center slds-wrap">
+                    <div class="slds-text-heading_small slds-col slds-p-around_x-small">
+                        <ui:outputText value="{!$Label.c.FX_Dashboard_Buy_Header}" />
+                    </div>
+
+                    <div class="slds-p-around_x-small slds-col_bump-left">
+                        <ui:outputText value="{!$Label.c.FX_Dashboard_Page_Text}" />
+                    </div>
+                    <div class="slds-p-around_x-small slds-col_bump-left">
+                        <ui:inputSelect aura:id="BuypageSelector" value="{!v.BuyOptionSelectedValue}" change="{!c.handleKeyUpSearch}">
+                            <aura:iteration items="{!v.BuyPageItems}" var="BuyPageItems">
+                                <option text="{!BuyPageItems.label}" value="{!BuyPageItems.value}" selected="{!BuyPageItems.selected}" />
+                            </aura:iteration>
+                        </ui:inputSelect>
+                    </div>
+
+                    <div class="slds-p-around_x-small slds-col_bump-left">
+                        <ui:outputText value="{!$Label.c.FX_Dashboard_Of_Text}" />
+                    </div>
+
+                    <div class="slds-p-around_x-small slds-col_bump-left">
+                        <ui:outputText value="{!v.BuyOptionTotalValue}" />
+                    </div>
+                </div>
+
+                <table class="slds-table slds-table_fixed-layout slds-table_cell-buffer slds-max-medium-table_stacked-horizontal slds-border_left slds-border_right slds-border_top slds-border_bottom">
+                    <thead>
+                        <tr class="slds-text-title_caps slds-border_bottom">
+                            <th scope="col">
+                                <div class="slds-truncate" title="{!$Label.c.FX_Dashboard_Cuureny_Exchange_Header}">
+                                    {!$Label.c.FX_Dashboard_Cuureny_Exchange_Header}
+                                </div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="{!$Label.c.FX_Dashboard_Exchange_Rate_Header}">
+                                    {!$Label.c.FX_Dashboard_Exchange_Rate_Header}
+                                </div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="{!$Label.c.FX_Dashboard_Amount_Header}">
+                                    {!$Label.c.FX_Dashboard_Amount_Header}
+                                </div>
+                            </th>
+                            <!-- <th scope="col">
+                            	<div class="slds-truncate" title="{!$Label.c.FX_Dashboard_Fill_Header}">
+                                    {!$Label.c.FX_Dashboard_Fill_Header}
+                                </div>
+                            </th> -->
+                            <th scope="col">
+                                <div class="slds-truncate" title="{!$Label.c.FX_Dashboard_Action_Header}">
+                                    {!$Label.c.FX_Dashboard_Action_Header}
+                                </div>
+                            </th>
+
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <aura:iteration var="oscItem" items="{!v.oscBuyList}" indexVar="idx">
+
+                            <tr id="{!oscItem.Id}" class="{! oscItem.hasBorder ? 'slds-border_bottom' : ''}" onclick="{!c.ClearNoti}">
+
+                                <th scope="row" data-label="Currency Exchange" class="dashboard-info">
+                                    <div class="slds-truncate" title="{!oscItem.FXS_CurrencyPair__c}">
+                                        <a id="{!oscItem.Id}" href="javascript:void(0);" onclick="{!c.navToRecDetail}">{!oscItem.FXS_CurrencyPair__c}</a>
+                                    </div>
+                                </th>
+                                <td data-label="Exchange Rate">
+                                    <div class="slds-truncate" title="{!oscItem.FXS_CustomerRate__c}">
+                                        <ui:outputNumber value="{!oscItem.FXS_CustomerRate__c}" format="0.00000" />
+                                    </div>
+                                </td>
+
+                                <td data-label="Request Amount">
+                                    <a id="{!oscItem.Id}" class="{! oscItem.redAleart ? 'slds-truncate totalAmount Text-red' : 'slds-truncate totalAmount'}" style="width: max-width;" title="{!oscItem.FXS_TotalRequestAmount__c}" onclick="{!c.navToRecDetail}">
+                                        <ui:outputNumber value="{!oscItem.Total_Request_Amount_Million_Unit__c}" format="0.00"/>
+                                    </a>
+                                </td>
+
+                                <!-- <td data-label="Fill Amount">
+                            	<div class="slds-truncate" title="Fill Amount" data-idx="{!idx}" data-type="buy"  data-key="{!oscItem.FXS_Order_Key__c}" >
+                                    <lightning:input type="number" name="fillAmount" 
+                                        label="Enter a Amount"  variant="label-hidden"
+                                        onchange="{!c.getSessionId}" step="0.01"
+                                        value="{!oscItem.FXS_TotalAllocateAmount__c}" disabled="{!v.blotterProfile? !v.blotterProfile.FX_Dashboard_Allow_Edit__c:false}"/>
+                                </div>
+                            </td> -->
+                                <td data-label="Submit" class="{! oscItem.FXS_CurrencyPair__c == 'USD/THB' ? 'dashboard-infoR' : ''}">
+                                    <div class="slds-truncate" title="Submit">
+                                        <div onclick="{!c.openModalFillAmount}" data-value="{!idx}" data-type="buy">
+                                            <lightning:button label="{!$Label.c.FX_Dashboard_Fill_Text}" title="{!$Label.c.FX_Dashboard_Fill_Text}"
+                                                disabled="{!v.blotterProfile? !v.blotterProfile.FX_Dashboard_Allow_Edit__c:false}" />
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </aura:iteration>
+
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <div class="slds-col slds-size_6-of-12 slds-p-around_x-small slds-wrap">
+
+                <div class="slds-grid slds-grid_vertical-align-center slds-wrap">
+                    <div class="slds-text-heading_small slds-col slds-p-around_x-small">
+                        <ui:outputText value="{!$Label.c.FX_Dashboard_Sell_Header}" />
+                    </div>
+
+                    <div class="slds-p-around_x-small slds-col_bump-left">
+                        <ui:outputText value="{!$Label.c.FX_Dashboard_Page_Text}" />
+                    </div>
+                    <div class="slds-p-around_x-small slds-col_bump-left">
+
+                        <ui:inputSelect aura:id="SellpageSelector" value="{!v.SellOptionSelectedValue}" change="{!c.handleKeyUpSearch}">
+                            <aura:iteration items="{!v.SellPageItems}" var="SellPageItems">
+                                <option text="{!SellPageItems.label}" value="{!SellPageItems.value}" selected="{!SellPageItems.selected}" />
+                            </aura:iteration>
+                        </ui:inputSelect>
+                    </div>
+
+                    <div class="slds-p-around_x-small slds-col_bump-left">
+                        <ui:outputText value="{!$Label.c.FX_Dashboard_Of_Text}" />
+                    </div>
+
+                    <div class="slds-p-around_x-small slds-col_bump-left">
+                        <ui:outputText value="{!v.SellOptionTotalValue}" />
+                    </div>
+
+                </div>
+
+                <table class="slds-table slds-table_fixed-layout slds-table_cell-buffer slds-max-medium-table_stacked-horizontal slds-border_left slds-border_right slds-border_top slds-border_bottom">
+                    <thead>
+                        <tr class="slds-text-title_caps slds-border_bottom">
+                            <th scope="col">
+                                <div class="slds-truncate" title="{!$Label.c.FX_Dashboard_Cuureny_Exchange_Header}">
+                                    {!$Label.c.FX_Dashboard_Cuureny_Exchange_Header}
+                                </div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="$Label.c.FX_Dashboard_Exchange_Rate_Header">
+                                    {!$Label.c.FX_Dashboard_Exchange_Rate_Header}
+                                </div>
+                            </th>
+                            <th scope="col">
+                                <div class="slds-truncate" title="{!$Label.c.FX_Dashboard_Amount_Header}">
+                                    {!$Label.c.FX_Dashboard_Amount_Header}
+                                </div>
+                            </th>
+                            <!-- <th scope="col">
+                            	<div class="slds-truncate" title="{!$Label.c.FX_Dashboard_Fill_Header}">
+                                    {!$Label.c.FX_Dashboard_Fill_Header}
+                                </div>
+                            </th> -->
+                            <th scope="col">
+                                <div class="slds-truncate" title="{!$Label.c.FX_Dashboard_Action_Header}">
+                                    {!$Label.c.FX_Dashboard_Action_Header}
+                                </div>
+                            </th>
+
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <aura:iteration var="oscItem" items="{!v.oscSellList}" indexVar="idx">
+                            <tr id="{!oscItem.Id}" class="{! oscItem.hasBorder ? 'slds-border_bottom' : ''}" onclick="{!c.ClearNoti}">
+                                <th scope="row" data-label="Currency Exchange" class="dashboard-info">
+                                    <div class="slds-truncate" title="{!oscItem.FXS_CurrencyPair__c}" id="{! 'FXS_CurrencyPair_' + oscItem.Id}">
+                                        <a id="{!oscItem.Id}" href="javascript:void(0);" onclick="{!c.navToRecDetail}">{!oscItem.FXS_CurrencyPair__c}</a>
+                                    </div>
+                                </th>
+                                <td data-label="Exchange Rate">
+                                    <div class="slds-truncate" title="{!oscItem.FXS_CustomerRate__c}">
+                                        <ui:outputNumber value="{!oscItem.FXS_CustomerRate__c}" format="0.00000" />
+                                        <!-- {!oscItem.FXS_CustomerRate__c} -->
+                                    </div>
+                                </td>
+
+                                <td data-label="Request Amount">
+                                    <a id="{!oscItem.Id}" class="{! oscItem.redAleart ? 'slds-truncate totalAmount Text-red' : 'slds-truncate totalAmount'}" style="width: max-width;" onclick="{!c.navToRecDetail}" title="{!oscItem.FXS_TotalRequestAmount__c}">
+                                        <ui:outputNumber value="{!oscItem.Total_Request_Amount_Million_Unit__c}" format="0.00" />
+                                    </a>
+                                </td>
+
+                                <!-- <td data-label="Fill Amount">
+                                    <div class="slds-truncate" title="Fill Amount" data-idx="{!idx}" data-type="sell"
+                                        data-key="{!oscItem.FXS_Order_Key__c}">
+                                         <lightning:input type="number" name="fillAmount" 
+                                            label="Enter a Amount"  variant="label-hidden"
+                                            onchange="{!c.changeFillAmount}" step="0.01"
+                                            value="{!oscItem.FXS_TotalAllocateAmount__c}" disabled="{!v.blotterProfile? !v.blotterProfile.FX_Dashboard_Allow_Edit__c:false}"/>
+                                    </div>
+                                </td> -->
+                                <td data-label="Submit">
+                                    <div class="slds-truncate" title="Submit">
+                                        <div onclick="{!c.openModalFillAmount}" data-value="{!idx}" data-type="sell">
+                                            <lightning:button label="{!$Label.c.FX_Dashboard_Fill_Text}" title="{!$Label.c.FX_Dashboard_Fill_Text}"
+                                                disabled="{!v.blotterProfile? !v.blotterProfile.FX_Dashboard_Allow_Edit__c:false}" />
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </aura:iteration>
+
+                    </tbody>
+
+                </table>
+            </div>
+
+            <aura:if isTrue="{!v.showDiscon}">
+                <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+                    <div class="slds-modal__container">
+                        <!-- ###### MODAL BOX HEADER Part Start From Here ######-->
+                        <div class="slds-modal__header" style="background-color:rgb(194, 57, 52)" >
+                            <button class="slds-button slds-modal__close slds-button--icon-inverse" title="{!$Label.c.FX_Dashboard_Close_Text}"
+                                onclick="{!c.closeDisconnectedDialog}">
+                                X
+                                <span class="slds-assistive-text">{!$Label.c.FX_Dashboard_Close_Text}</span>
+                            </button>
+                            <h2 class="slds-text-heading--medium">{!$Label.c.FX_Dashboard_Title}</h2>
+
+                        </div>
+                        <!--###### MODAL BOX BODY Part Start From Here ######-->
+                         <div class="slds-modal__content slds-p-around--medium">
+                            <lightning:icon iconName="utility:warning" variant="error" size="large"/>
+                            {!$Label.c.FXS_Dashborad_Offline_warning}
+                            <a href="javascript:void(0);" onclick="{!c.refreshBrowser}">{!$Label.c.FX_Refresh_Text}</a>
+                         </div>
+                    </div>
+                </div>
+                <div class="slds-backdrop slds-backdrop--open"></div>
+            </aura:if>
+
+            <aura:if isTrue="{!v.confirmDialogShow}">
+                <div role="dialog" tabindex="-1" aria-labelledby="header99" class="slds-modal slds-fade-in-open ">
+                    <aura:if isTrue="{!v.processSave}">
+                        <lightning:spinner alternativeText="Loading" size="large" />
+                    </aura:if>
+
+
+                    <div class="slds-modal__container">
+                        <!-- ###### MODAL BOX HEADER Part Start From Here ######-->
+                        <div class="slds-modal__header">
+                            <button class="slds-button slds-modal__close slds-button--icon-inverse" title="{!$Label.c.FX_Dashboard_Close_Text}"
+                                onclick="{!c.cancelFill}">
+                                X
+                                <span class="slds-assistive-text">{!$Label.c.FX_Dashboard_Close_Text}</span>
+                            </button>
+                            <h2 id="header99" class="slds-text-heading--medium">{!$Label.c.FX_Dashboard_Confirm_Fill_Order_Text}</h2>
+                        </div>
+                        <!--###### MODAL BOX BODY Part Start From Here ######-->
+                        <div class="slds-modal__content slds-p-around--medium">
+                            <div class="slds-card slds-has-bottom-magnet">
+                                <div class="slds-p-around_medium">
+                                    <div class="slds-grid slds-wrap">
+
+                                        <aura:if isTrue="{!v.fillamountDialogShow}">
+
+                                            <!-- after click confirm -->
+                                            <div class="slds-col slds-size_1-of-2">
+                                                <span>{!$Label.c.FX_Dashboard_Cuureny_Exchange_Header}</span>
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-2">
+                                                <span>{! v.confirmFXSItem.FXS_CurrencyPair__c }</span>
+                                            </div>
+
+                                            <div class="slds-col slds-size_1-of-2">
+                                                <span>{!$Label.c.FX_Dashboard_Exchange_Rate_Header}</span>
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-2">
+                                                <span>
+                                                    <ui:outputNumber value="{! v.confirmFXSItem.FXS_CustomerRate__c }"
+                                                        format="0.00000" />
+                                                </span>
+                                            </div>
+
+                                            <div class="slds-col slds-size_1-of-2">
+                                                <span>{! v.confirmDialogText } :</span>
+                                            </div>
+                                            <div class="slds-col slds-size_1-of-2">
+                                                <span>
+                                                    <ui:outputNumber value="{! v.confirmFXSItem.FXS_TotalAllocateAmount__c }" />
+                                                </span>
+                                            </div>
+
+
+                                            <!-- before click confirm -->
+                                            <aura:set attribute="else">
+                                                <div class="slds-col slds-size_1-of-2">
+                                                    <span>{!$Label.c.FX_Dashboard_Cuureny_Exchange_Header}</span>
+                                                </div>
+                                                <div class="slds-col slds-size_1-of-2">
+                                                    <span>{! v.confirmFXSItem.FXS_CurrencyPair__c}</span>
+                                                </div>
+
+                                                <div class="slds-col slds-size_1-of-2">
+                                                    <span>{!$Label.c.FX_Dashboard_Exchange_Rate_Header}</span>
+                                                </div>
+                                                <div class="slds-col slds-size_1-of-2">
+                                                    <span>
+                                                        <ui:outputNumber value="{! v.confirmFXSItem.FXS_CustomerRate__c}"
+                                                            format="0.00000" />
+                                                    </span>
+                                                </div>
+
+                                                <div class="slds-col slds-size_1-of-2">
+                                                    <span>{!$Label.c.FXS_Short_Total_Request_Amount}</span>
+                                                </div>
+                                                <div class="slds-col slds-size_1-of-2">
+                                                    <span>
+                                                        <ui:outputNumber value="{!v.confirmFXSItem.Total_Request_Amount_Million_Unit__c}"
+                                                            format="0.00" />
+                                                    </span>
+                                                </div>
+
+                                                <div class="slds-col slds-size_1-of-2">
+                                                    <span>{!$Label.c.FXS_LastModified_By}</span>
+                                                </div>
+                                                <div class="slds-col slds-size_1-of-2">
+                                                    <span>{!v.confirmFXSItem.LastModifiedBy.Name},</span>
+                                                </div>
+
+                                                <div class="slds-col slds-size_1-of-2"></div>
+                                                <div class="slds-col slds-size_1-of-2">
+                                                    <span>
+                                                        <ui:outputDateTime value="{!v.confirmFXSItem.LastModifiedDate}"/>
+                                                    </span>
+                                                </div>
+                                                
+                                                <div class="slds-col slds-size_1-of-2">
+                                                    <span>{! $Label.c.FXS_Fill_Total_Allocate_Amount }</span>
+                                                </div>
+                                                <div class="slds-col slds-size_1-of-2">
+                                                    <span>
+
+                                                        <lightning:input type="number" aura:id="inputAmount" name="fillAmount" label="Enter a Amount" 
+                                                            variant="label-hidden" onchange="{!c.changeFillAmount}"
+                                                            step="0.01" value="{!v.confirmFXSItem.FXS_TotalAllocateAmount__c}" 
+                                                            disabled="{!v.blotterProfile? !v.blotterProfile.FX_Dashboard_Allow_Edit__c:false}"
+                                                              />
+
+                                                        <!-- <ui:inputCurrency aura:id="inputAmount" label="{! $Label.c.FXS_Fill_Total_Allocate_Amount }" class="field" value="{! v.confirmFXSItem.FXS_TotalAllocateAmount__c }" format="0.00"
+                                            disabled="{!v.blotterProfile? !v.blotterProfile.FX_Dashboard_Allow_Edit__c:false}" /> -->
+
+                                                    </span>
+                                                </div>
+                                            </aura:set>
+
+                                        </aura:if>
+
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!--###### MODAL BOX FOOTER Part Start From Here ######-->
+                        <div class="slds-modal__footer">
+                            <aura:if isTrue="{!v.fillamountDialogShow}">
+
+                                <button class="slds-button slds-button--brand" onclick="{!c.confirmFill}">
+                                    {!$Label.c.FX_Dashboard_Confirm_Text}
+                                </button>
+                                <button class="slds-button slds-button--brand" onclick="{!c.backFill}">
+                                    {!$Label.c.FXS_Fill_Amount_Back}
+                                </button>
+
+                                <aura:set attribute="else">
+
+                                    <button class="slds-button slds-button--brand" onclick="{!c.saveFill}" variant="brand"
+                                        disabled="{!v.blotterProfile? !v.blotterProfile.FX_Dashboard_Allow_Edit__c:false}">
+                                        {!$Label.c.FXS_Fill_Amount_Save}
+                                    </button>
+
+                                </aura:set>
+
+
+                            </aura:if>
+
+                            <button class="slds-button slds-button--neutral" onclick="{!c.cancelFill}">
+                                {!$Label.c.FX_Dashboard_Cancel_Text}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-backdrop slds-backdrop--open"></div>
+            </aura:if>
+        </div>
+    </lightning:card>
+</aura:component>

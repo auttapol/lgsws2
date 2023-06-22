@@ -1,0 +1,287 @@
+<aura:component controller="SmartBDM_BusinessTypeController"
+    implements="force:appHostable,flexipage:availableForAllPageTypes" access="global">
+    <lightning:workspaceAPI aura:id="workspace" />
+    <ltng:require styles="{!$Resource.Global_TMB_CSS}" />
+    
+    <!---Use Salesforce Lightning Design System CSS From Static resources-->
+    <!-- <ltng:require styles="{!$Resource.SLDS24 + '/assets/styles/salesforce-lightning-design-system.css'}"/> -->
+
+    <!--declare attributes-->
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="varDeepLink" type="string" />
+    
+    <aura:attribute name="selectedRecord" type="IndustryMaster__c" default="{}"
+        description="Use,for store SELECTED sObject Record" />
+    <aura:attribute name="listOfSearchRecords" type="IndustryMaster__c[]"
+        description="Use,for store the list of search records which returns from apex class" />
+    <aura:attribute name="SearchKeyWord" type="string" default="" />
+    <aura:attribute name="Message" type="String" default="Search Result" />
+
+
+    <!--declare events hendlers-->
+    <aura:handler name="oSelectedIndustryMasterEvent" event="c:BusinessTypeSelectedEvent" action="{!c.handleComponentEvent}" />
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}" />
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}" />
+
+    <aura:attribute name="IndustrySelected" type="IndustryMaster__c" />
+    <aura:attribute name="isSelected" type="Boolean" default="false" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+
+    <!-- <aura:handler name="init" value="{!this}" action="{!c.doInit}"/> -->
+
+    <ui:scrollerWrapper class="scrollerSize">
+        <aura:if isTrue="{! v.showSpinnerLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" />
+        </aura:if>
+	    <nav role="navigation" aria-label="Breadcrumbs">
+			<ul class="slds-breadcrumb slds-list_horizontal slds-wrap slds-m-horizontal_x-large slds-m-vertical_medium">
+            	<li class="slds-breadcrumb__item">
+                	<a href="javascript:void(0);" onclick="{! c.redirectToSmartBDM }" class="slds-breadcrumb__item" title="{!$Label.c.TMB_Smart_title}">
+                    	<span class="slds-truncate" title="{!$Label.c.TMB_Smart_title}">{!$Label.c.TMB_Smart_title}</span>
+                    </a>
+                </li>
+                <li class="slds-breadcrumb__item ">
+                    <a href="javascript:void(0);" class="slds-breadcrumb__item textResult" title="{!$Label.c.SmartBDM_CalTools_BusinessType }">
+                       <span class="slds-truncate" title="{!$Label.c.SmartBDM_CalTools_BusinessType }">{!$Label.c.SmartBDM_CalTools_BusinessType }</span>
+                    </a>
+                </li>
+             </ul>
+        </nav>
+        <div class="slds-m-around-large slds-p-vertical_medium slds-p-horizontal_x-large section">
+            <div aura:id="searchRes" class="slds-form-element slds-lookup slds-is-close" data-select="single">
+                <!-- <label class="slds-form-element__label" for="lookup-348"> Account Name </label> -->
+                <div class="slds-form-element__control">
+                    <div class="slds-input-has-icon slds-input-has-icon-right">
+                        <div aura:id="lookup-pill" class="slds-pill-container slds-hide">
+                            <span class="slds-pill" style="width: 100%;">
+                                <span class="slds-pill__label slds-p-horizontal_xx-small">
+                                    {!v.selectedRecord.TMBCode__c} - {!v.selectedRecord.BusinessType__c}
+                                </span>
+                                <lightning:button iconName="utility:close" iconPosition="left" variant="base"
+                                    title="Close" onclick="{! c.clear }" />
+                                <!-- <button class="slds-button slds-button-icon slds-pill__remove" onclick="{!c.clear}">
+                                    <span class="slds-assistive-text">Remove</span>
+                                </button> -->
+                            </span>
+                        </div>
+                        <div aura:id="lookupField" class="slds-show">
+                            <lightning:icon iconName="utility:search" size="x-small" class="sl-search-icon" />
+                            <ui:inputText updateOn="keyup" keyup="{!c.keyPressController}"
+                                class="slds-lookup__search-input slds-input " value="{!v.SearchKeyWord}"
+                                placeholder="Search Business Type" />
+                        </div>
+                    </div>
+                </div>
+                <div class="slds-lookup__menu slds-p-horizontal_x-small">
+                    <div class="slds-lookup__item-label slds-p-horizontal_medium slds-p-vertical_small slds-text-body-small">{!v.Message}</div>
+                    <center>
+                        <ui:spinner aura:id="spinner" />
+                    </center>
+                    <ui:scrollerWrapper class="slds-lookup__list">
+                        <ul role="listbox">
+                            <aura:iteration items="{! v.listOfSearchRecords }" var="objIndustryMaster">
+                                <c:BusinessTypeResult objIndustryMaster="{! objIndustryMaster }" />
+                            </aura:iteration>
+                        </ul>
+                    </ui:scrollerWrapper>
+                </div>
+                
+            </div>
+        </div>
+
+        <aura:if isTrue="{! v.isSelected }">
+
+            <lightning:layout multipleRows="true" class="slds-p-vertical_medium slds-p-horizontal_x-large backgroudResults">
+                
+                <lightning:layoutItem class="slds-p-around_xxx-small" size="12" smallDeviceSize="12"
+                    mediumDeviceSize="12" largeDeviceSize="12">
+                    <lightning:card class="section" variant="base">
+                        <lightning:layout class="slds-p-horizontal_medium">
+                            <lightning:layoutItem size="2" smallDeviceSize="2" mediumDeviceSize="1" largeDeviceSize="1">
+                                <div class="slds-form-element ">
+                                    <lightning:icon iconName="standard:account" alternativeText="account" size="large" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem class="slds-p-left_x-small" size="10" smallDeviceSize="10"
+                                mediumDeviceSize="10" largeDeviceSize="10">
+                                <lightning:layout multipleRows="true">
+                                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                        largeDeviceSize="12">
+                                        <div
+                                            class="slds-form-element slds-form-element_horizontal slds-is-editing slds-form-element_2-col">
+                                            <label class="slds-form-element__label">{!$Label.c.Business_Type_Label}</label>
+                                            <div class="slds-form-element__control halfTextColumnTop">
+                                                <ui:outputText value="{!v.IndustrySelected.BusinessType__c}" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                        largeDeviceSize="12">
+                                        <div
+                                            class="slds-form-element slds-form-element_horizontal slds-is-editing slds-form-element_2-col">
+                                            <label class="slds-form-element__label">{!$Label.c.Business_Group_Label}</label>
+                                            <div class="slds-form-element__control halfTextColumnTop">
+                                                <ui:outputText value="{!v.IndustrySelected.BusinessGroupNameEN__c}" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:card>
+                </lightning:layoutItem>
+                <div class="slds-grid slds-wrap slds-grid_vertical-stretch">
+                <lightning:layoutItem class="slds-p-vertical_xx-small slds-p-right_xx-small  slds-p-left_xxx-small" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                    largeDeviceSize="6">
+                    <lightning:card class="section" variant="base">
+                        <lightning:layout class="slds-p-horizontal_medium">
+                            <lightning:layoutItem size="2" smallDeviceSize="2" mediumDeviceSize="2" largeDeviceSize="2">
+                                <div class="slds-form-element ">
+                                    <lightning:icon iconName="standard:metrics" alternativeText="metrics" size="large" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem class="slds-p-left_x-small" size="10" smallDeviceSize="10"
+                                mediumDeviceSize="10" largeDeviceSize="10">
+                                <lightning:layout multipleRows="true">
+                                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                        largeDeviceSize="12">
+                                        <div
+                                            class="slds-form-element slds-is-editing slds-form-element_2-col">
+                                            <div class="slds-form-element__control ">
+                                                <label class="slds-form-element__label halfLabelColumn">{!$Label.c.Negative_Label}</label>
+                                                <ui:outputText value="{!v.IndustrySelected.Negative__c ? 'Y' : 'N' }" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                        largeDeviceSize="12">
+                                        <div
+                                            class="slds-form-element slds-is-editing slds-form-element_2-col">
+                                            <div class="slds-form-element__control ">
+                                                <label class="slds-form-element__label halfLabelColumn">{!$Label.c.High_Risk_Label}</label>
+                                                <ui:outputText value="{!v.IndustrySelected.HighRisk__c ? 'Y' : 'N' }" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                        largeDeviceSize="12">
+                                        <div
+                                            class="slds-form-element slds-is-editing slds-form-element_2-col">
+                                            <div class="slds-form-element__control ">
+                                                <label class="slds-form-element__label halfLabelColumn">{!$Label.c.Diversification_Label}</label>
+                                                <ui:outputText
+                                                    value="{!v.IndustrySelected.Diversification__c ? 'Y' : 'N' }" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                        largeDeviceSize="12">
+                                        <div
+                                            class="slds-form-element  slds-is-editing slds-form-element_2-col">
+                                            <div class="slds-form-element__control ">
+                                                <label class="slds-form-element__label halfLabelColumn">{!$Label.c.Suspend_Label}</label>
+                                                <ui:outputText value="{!v.IndustrySelected.Suspend__c ? 'Y' : 'N' }" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                        largeDeviceSize="12">
+                                        <div
+                                            class="slds-form-element slds-is-editing slds-form-element_2-col">
+                                            <div class="slds-form-element__control ">
+                                                <label class="slds-form-element__label halfLabelColumn">{!$Label.c.Highly_Selective_Industry_Label}</label>
+                                                <ui:outputText value="{!v.IndustrySelected.HighlySelectiveIndustry__c ? 'Y' : 'N' }" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:card>
+                </lightning:layoutItem>
+
+                <lightning:layoutItem class="slds-p-vertical_xx-small slds-p-right_xxx-small  slds-p-left_xx-small" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                    largeDeviceSize="6">
+                    <lightning:card class="section" variant="base">
+                        <lightning:layout class="slds-p-horizontal_medium">
+                            <lightning:layoutItem size="2" smallDeviceSize="2" mediumDeviceSize="2" largeDeviceSize="2">
+                                <div class="slds-form-element ">
+                                    <lightning:icon iconName="standard:macros" alternativeText="macros" size="large" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem class="slds-p-left_x-small" size="10" smallDeviceSize="10"
+                                mediumDeviceSize="10" largeDeviceSize="10">
+                                <lightning:layout multipleRows="true">
+                                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                        largeDeviceSize="12">
+                                        <div
+                                            class="slds-form-element  slds-is-editing slds-form-element_2-col">
+                                            <div class="slds-form-element__control ">
+                                                <label class="slds-form-element__label halfLabelColumn">{!$Label.c.Income_Factor_Label}</label>
+                                                <ui:outputNumber value="{!v.IndustrySelected.IncomeFactor__c ? v.IndustrySelected.IncomeFactor__c + '%' : ''}" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                        largeDeviceSize="12">
+                                        <div
+                                            class="slds-form-element  slds-is-editing slds-form-element_2-col">
+                                            
+                                            <div class="slds-form-element__control ">
+                                                <label class="slds-form-element__label halfLabelColumn">{!$Label.c.AR_Label}</label>
+                                                <ui:outputNumber value="{!v.IndustrySelected.ARday__c}" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                        largeDeviceSize="12">
+                                        <div
+                                            class="slds-form-element slds-is-editing slds-form-element_2-col">
+                                            
+                                            <div class="slds-form-element__control ">
+                                                <label class="slds-form-element__label halfLabelColumn">{!$Label.c.INV_Label}</label>
+                                                <ui:outputNumber value="{!v.IndustrySelected.INVday__c}" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                        largeDeviceSize="12">
+                                        <div
+                                            class="slds-form-element slds-is-editing slds-form-element_2-col">
+                                            
+                                            <div class="slds-form-element__control ">
+                                                <label class="slds-form-element__label halfLabelColumn">{!$Label.c.AP_Label}</label>
+                                                <ui:outputNumber value="{!v.IndustrySelected.APday__c}" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                        largeDeviceSize="12">
+                                        <div
+                                            class="slds-form-element  slds-is-editing slds-form-element_2-col">
+                                            
+                                            <div class="slds-form-element__control ">
+                                                <label class="slds-form-element__label halfLabelColumn">{!$Label.c.COG_Label}</label>
+                                                <ui:outputNumber value="{!v.IndustrySelected.COGday__c ? v.IndustrySelected.COGday__c + '%' : ''}" />
+                                            </div>
+                                        </div>
+                                    </lightning:layoutItem>
+                                </lightning:layout>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </lightning:card>
+                </lightning:layoutItem>
+                </div>
+            </lightning:layout>
+
+        </aura:if>
+        <!-- <aura:renderIf isTrue="{! and(!v.isSelected, v.SearchKeyWord == '') }"> -->
+            <div aura:id="backgroudImage" class="backgroudImage">
+            <!-- <div aura:id="backgroudImage" class="slds-m-top_x-large"> -->
+                <div class="slds-p-top_xx-large slds-align_absolute-center"><img src="{!$Resource.SmartBDM  + '/img/No-data-for-predictions.png'}"/></div>
+                <div class="slds-form-element__label slds-m-top_large slds-align_absolute-center slds-text-heading_small">Check validity of specific industry</div>
+            </div>
+        <!-- </aura:renderIf> -->
+    </ui:scrollerWrapper>
+
+</aura:component>

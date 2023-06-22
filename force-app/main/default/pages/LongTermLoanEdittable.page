@@ -1,0 +1,318 @@
+<apex:page docType="html-5.0" showChat="false" 
+showHeader="false" sidebar="false" applyBodyTag="false" 
+applyHtmlTag="true"  standardStylesheets="true"
+standardController="AcctPlanWallet__c" extensions="EditableLongTermLoan"
+
+>
+<!-- Header -->
+<head>
+        <title>Long Term Loan</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+        
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->        
+        
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.AccountPlanEditTable)}"/>
+        <style>
+        .bootstrap-sf1 select{
+         	width: 110px;   
+        }
+
+        .table-responsive {
+            overflow-x: auto;
+        }
+    
+        </style>
+    </head>
+
+    <body>  
+        
+        <apex:actionstatus id="status">
+                <apex:facet name="start">
+                    <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                        &nbsp;
+                    </div>
+                    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                        <img src="/img/loading32.gif" />
+                    </div>
+                 </apex:facet>
+        </apex:actionstatus>    
+        <div class="bootstrap-sf1" >
+            <div class="row" >
+                <div class="col-sm-12 col-md-12 col-lg-12">
+                    <apex:form >        
+
+                        <apex:pageMessages id="messages"/>                          
+                            <apex:pageBlock title="{!IF(isExisting==true,'Exisitng Long term Loan','Capital Expenditure Plan')}" id="childList">
+                                
+                            <!--<div class="statusEditable">
+                               
+                                    <span class="label label-info">Total Records <span class="badge">{!Count}</span></span>
+                                    <span class="label label-success">New Records <span class="badge">{!NewRecordsSize}</span></span>
+                                    <span class="label label-warning">Dirty records <span class="badge">{!DirtyRecordsSize}</span></span>
+                                    <span class="label label-danger">Delete records <span class="badge">{!DeleteRecordsSize}</span></span>
+                                    
+                            </div>-->
+                            <apex:outputPanel rendered="{!isExisting==true}">
+                                <div class="table-responsive">
+                                <table class="table table-striped table-hover"  id="edittable">
+                                    <thead>
+                                    <tr>
+                                            <td colspan="1" >
+                                                <apex:commandButton status="status" styleClass="btn  btn-success" value="Add New" action="{!addToList}" rerender="childList, messages" style="margin:15px 0px;"/>
+                                            </td>
+                                            <td colspan="10" class="text-right bs-component">
+                                                <apex:commandButton value="Save" status="status" styleClass="btn  btn-primary" action="{!insertRecord}"  rerender="messages,childList"  style="margin:15px 0px;"/>
+                                                
+                                            </td>        
+                                        </tr>
+                                                
+                                          <tr>
+                                            <th style="vertical-align: top;">
+                                                Bank
+                                            	<span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.Bank__c.inlineHelpText}" />
+                                                
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Currency
+                                            	<span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.CCY__c.inlineHelpText}" />
+                                                
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Amount (THB)
+                                            	<span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.EquivalentAmount__c.inlineHelpText}" />
+                                                
+                                            </th>
+                                            <th>
+                                                Interest Type <br />(Fixed/Float)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.InterestType__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Interest rate
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.InterestFixedRate__c.inlineHelpText} / {!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.InterestFloatingRate__c.inlineHelpText} " />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Collateral
+                                            	<span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.Collateral__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Collateral Detail
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.CollateralDetail__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                LTV (%)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.LTVPercent__c.inlineHelpText}" />
+                                            </th>                                  
+                                            <th style="vertical-align: top;">
+                                                NIMc (%)
+                                            	<span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.NimcPercent__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Remaining Tenors<br/>(Yrs)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.RemainingTenorsYear__c.inlineHelpText}" />
+                                            </th>
+                                            
+                                            <th>&nbsp;</th>   
+                                          </tr>
+                                    </thead>
+                                    <tbody>
+                                        <apex:variable var="rowNum" value="{!ZERO}" />
+                                        <apex:repeat value="{!childrenLongTermLoan}" var="crc">
+                                           
+                                            <tr>
+                                                <td>   
+                                                  <span class="requiredLabel"></span> 
+                                                 <apex:selectList value="{!crc.Bank__c}" multiselect="false" size="1" style="float:left;width:80px;">
+                                                    <apex:selectOptions value="{!banks}" />
+                                                 </apex:selectList>
+                                                </td>
+                                                <td style="display: flex;"> 
+													<span class="requiredLabel"></span> 
+                                                    <apex:selectList value="{!crc.CCY__c}" multiselect="false" size="1"  style="float:left;width:75px;">
+                                                        <apex:selectOptions value="{!currency}" />
+                                                     </apex:selectList>
+                                                 </td>
+                                                <td><apex:inputField value="{!crc.EquivalentAmount__c}" required="true"   /></td>
+                                                <td><apex:inputField value="{!crc.InterestType__c}" required="true" onchange="changeInterestType(this,'{!rowNum}');" styleclass="InterestType{!rowNum}"/></td>
+                                                <td>
+                                                    <script>
+                                                        var $j = jQuery.noConflict();
+                                                        $j(document).ready(function () {
+                                                            var InterestType = '[class$=InterestType'+{!rowNum}+']';
+                                                            changeInterestType(InterestType,'{!rowNum}');
+                                                        });
+                                                    </script>
+                                                     <div id="InterestList{!rowNum}" style="display:{!IF(crc.InterestType__c == 'Floating rate','block','none')};">
+                                                         <apex:inputField value="{!crc.InterestFloatingRate__c}" style="float:left" />
+                                                     </div>
+                                                     <div id="InterestText{!rowNum}" style="display:{!IF(crc.InterestType__c == 'Fixed rate','block','none')};">
+                                                        <apex:inputField value="{!crc.InterestFixedRate__c}"   style="width: 115px; float:left"/> 
+                                                     </div>                    
+                                                 </td>
+                                                <td><apex:inputField value="{!crc.Collateral__c}" /></td>
+                                                <td><apex:inputField value="{!crc.CollateralDetail__c}" /></td>
+                                                <td><apex:inputField value="{!crc.LTVPercent__c}" style="width: 70px;"/></td>
+                                                <td><apex:inputField value="{!crc.NimcPercent__c}" style="width: 70px;"/></td>
+                                                <td><apex:inputField value="{!crc.RemainingTenorsYear__c }" style="width: 100px;"/></td>
+                                                <td>
+                                                    <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                                    <apex:commandLink value="Delete" action="{!removeFromList}" onclick="if(!confirm('Are you sure you want to delete this item?')) return false;" status="status" styleClass="btn btn-danger" rerender="childList, messages" immediate="true">
+                                                      <apex:param name="removeIndex" assignTo="{!removeIndex}" value="{!rowNum}" />
+                                                    </apex:commandLink>
+                                                </td>                                      
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>
+                                </div>
+                            </apex:outputpanel> 
+                                                      
+                             <apex:outputPanel rendered="{!isCapital==true}">
+                                <div class="table-responsive">
+                                <table class="table table-striped table-hover" id="edittable">
+                                    <thead>
+                                    <tr>
+                                            <td colspan="1" class="headerpadding">
+                                                <apex:commandButton styleClass="btn  btn-success" status="status" value="Add New" action="{!addToList}" rerender="childList, messages" style="margin:15px 0px"/>
+                                            </td>
+                                            <td colspan="9" class="text-right bs-component headerpadding"  >
+                                                <apex:commandButton value="Save" status="status" styleClass="btn  btn-primary" action="{!insertRecord}"  rerender="messages,childList" style="margin:15px 0px"/>
+                                                
+                                            </td>        
+                                        </tr>
+                                                
+                                          <tr>
+                                            <th style="vertical-align: top;" class="headerpadding">
+                                                Purpose
+                                            	<span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.Purpose__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;" class="headerpadding">
+                                                Project amount (THB)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.ProjectAmount__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;" class="headerpadding">
+                                                Investment location
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.InvestmentLocation__c.inlineHelpText}" />
+                                            </th>
+                                            <th >
+                                                Financing ratio (%)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.FinancingRation__c.inlineHelpText}" />
+                                            </th>                 
+                                            <th class="headerpadding">
+                                                Tenor (Yrs) 
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.TenorYearly__c.inlineHelpText}" />
+                                            </th>
+                                            <th class="headerpadding">
+                                                NIMc (%)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.NimcPercent__c.inlineHelpText}" />
+                                            </th>                          
+                                            <th style="vertical-align: top;" class="headerpadding">
+                                                Front end fee (%)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                 	data-animation="false" data-placement="bottom" 
+                                                                 	title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.FrontEndFee__c.inlineHelpText}" />
+                                            </th>
+                         
+                                            <th>&nbsp;</th>  
+                                          </tr>
+                                    </thead>
+                                    <tbody>
+                                        <apex:variable var="rowNum" value="{!ZERO}" />
+                                        <apex:repeat value="{!childrenExpenditure}" var="item">
+                                           <tr>
+                                                <td class="leftLine"><apex:inputField value="{!item.Purpose__c}" required="{!isCapital}"/></td>
+                                                <td><apex:inputField value="{!item.ProjectAmount__c}" required="{!isCapital}"/></td>
+                                                <td><apex:inputField value="{!item.InvestmentLocation__c}" /></td>
+                                                <td><apex:inputField value="{!item.FinancingRation__c}" required="{!isCapital}"/></td>
+                                                <td><apex:inputField value="{!item.TenorYearly__c}"/></td>
+                                                <td><apex:inputField value="{!item.NimcPercent__c}"/></td>
+                                                <td><apex:inputField value="{!item.FrontEndFee__c}"/></td>
+                                                             
+                                                <td>
+                                                    <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                                    <apex:commandLink value="Delete" action="{!removeFromList}" onclick="if(!confirm('Are you sure you want to delete this item?')) return false;" status="status"  styleClass="btn btn-danger" rerender="childList, messages" immediate="true">
+                                                      <apex:param name="removeIndex" assignTo="{!removeIndex}" value="{!rowNum}" />
+                                                    </apex:commandLink>
+                                                </td>                                      
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>
+                                </div>
+                            </apex:outputpanel>
+                                                      
+                        </apex:pageBlock>
+                    </apex:form>            
+                </div>              
+            </div>
+        </div>
+        
+<apex:includeScript value="{!$Resource.AccountPlan_JqueryScript}"/>
+            <apex:includeScript value="{!$Resource.AccountPlan_Bootstrap}"/>
+            <apex:includeScript value="/support/console/22.0/integration.js"/>
+        <script>
+            var $j = jQuery.noConflict();
+            function changeInterestType(e,id){
+                //alert($j(e).val());
+                if($j(e).val() =='Fixed rate'){
+                     $j('#InterestText'+id).show();
+                     $j('#InterestList'+id).hide();
+                }else{
+                     $j('#InterestText'+id).hide();
+                     $j('#InterestList'+id).show(); 
+                }                                              
+            }
+			
+			$j(document).ready(function () {
+				$j('[data-toggle="tooltip"]').tooltip();
+           });
+        </script>
+    </body>    
+</apex:page>

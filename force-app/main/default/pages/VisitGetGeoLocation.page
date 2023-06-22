@@ -1,0 +1,56 @@
+<apex:page standardController="Call_Report__c" extensions="VisitCheckInCheckOut">
+<apex:includeScript value="/support/console/48.0/integration.js"/>
+<script>
+function closeTab() {
+    //First find the ID of the current tab to close it
+    sforce.console.getEnclosingTabId(closeSubtab);
+    //return false;
+    }            
+var closeSubtab = function closeSubtab(result) {
+    //Now that we have the tab ID, we can close it
+    var tabId = result.id;
+    // console.log(result);
+    sforce.console.closeTab(tabId);
+};      
+
+
+function getGeolocation() {
+    var lat, lon;
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+        function(position){
+            lat = position.coords.latitude;
+            lon = position.coords.longitude;
+            sforce.one.navigateToURL('/apex/VisitCheckInOutMobile?typeVisit={!typeVisit}&id={!VisitId}&lat='+lat+'&lon='+lon);
+            // console.log('GetGeoLocation');
+            closeTab();
+            /*
+            if ('{!typeVisit}'=='in')
+                window.location='/apex/VisitCheckin?id={!VisitId}&lat='+lat+'&lon='+lon;
+            else if ('{!typeVisit}'=='out')
+                window.location='/apex/VisitCheckout?id={!VisitId}&lat='+lat+'&lon='+lon;
+            else
+                window.location='/{!VisitId}';
+            */
+        });
+    } else {
+        //Set default values for map if the device doesnt have geolocation capabilities
+    }
+    
+}
+
+document.addEventListener("DOMContentLoaded", function(event) { 
+
+    if ('{!isOwner}' == 'yes')
+    {
+        getGeolocation();
+    }else{
+        alert('{!errorText}');
+        sforce.one.navigateToSObject('{!VisitId}');
+    }
+    
+}); 
+ 
+</script>
+
+</apex:page>

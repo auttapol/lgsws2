@@ -1,0 +1,468 @@
+<aura:component implements="lightning:isUrlAddressable" controller="ForecastAdjustmentController">
+    <aura:handler name="init" value="{!this}" action="{!c.onPageReferenceChange}" />
+    <aura:handler name="change" value="{!v.pageReference}" action="{!c.onPageReferenceChange}" />
+
+    <aura:attribute name="account" type="Account" />
+    <aura:attribute name="shortid" type="String" />
+    <aura:attribute name="isCredit" type="Boolean" />
+    <aura:attribute name="product" type="String" />
+    <aura:attribute name="data" type="Object" />
+    <aura:attribute name="drawdownData" type="Object" />
+    <aura:attribute name="columns" type="List" />
+    <aura:attribute name="columns2" type="List" />
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+
+    <force:recordData aura:id="recordLoader" recordId="{!v.pageReference.state.c__id}" fields="Name, RTL_Customer_Name_TH__c, TMB_Customer_ID_PE__c, Owner.Zone__c, Group__r.Name" targetFields="{!v.account}" recordUpdated="{!c.onRecordUpdate}" />
+
+    <aura:if isTrue="{!v.isLoading}">
+        <div class="exampleHolder">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+
+    <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+        <lightning:layoutItem>
+            <lightning:icon size="large" iconName="standard:forecasts" alternativeText="forecasts" />
+        </lightning:layoutItem>
+        <lightning:layoutItem padding="horizontal-small">
+            <h1 class="slds-text-heading_label">
+                <lightning:formattedText title="{!v.data[0].Customer__r.RTL_Customer_Name_TH__c}" value="{!v.data[0].Customer__r.RTL_Customer_Name_TH__c}" />
+            </h1>
+            <div class="page-section page-header">
+                <h2 class="slds-text-heading_medium">
+                    <lightning:formattedText title="{!v.product}" value="{!v.product}" />
+                </h2>
+            </div>
+        </lightning:layoutItem>
+    </lightning:layout>
+
+    <lightning:card>
+        <div class="card-container">
+            <lightning:layout verticalAlign="center" multipleRows="true">
+                <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                    largeDeviceSize="6" padding="horizontal-large" class="slds-p-bottom_small">
+                    <div class="slds-form-element slds-form-element_horizontal">
+                        <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                            <lightning:formattedText value="Short ID" />
+                        </label>
+                        <lightning:helptext content="Short Id of customer Id." class="helptextIcon"/>
+                        <div class="slds-form-element__control">
+                            <c:CallCenterCSV_PillOutput type="STRING" value="{!v.shortid}" />
+                        </div>
+                    </div>
+                </lightning:layoutItem>
+
+                <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                    largeDeviceSize="6" padding="horizontal-large" class="slds-p-bottom_small">
+                    <div class="slds-form-element slds-form-element_horizontal">
+                        <label title="Name Thai" class="slds-form-element__label" style="padding: 5px;">
+                            <lightning:formattedText value="Name Thai" />
+                        </label>
+                        <lightning:helptext content="Customer's name." class="helptextIcon"/>
+                        <div class="slds-form-element__control">
+                            <lightning:formattedUrl value="{!'/lightning/r/' + v.data[0].Customer__c + '/view'}" title="{!v.data[0].Customer__r.RTL_Customer_Name_TH__c}" label="{!v.data[0].Customer__r.RTL_Customer_Name_TH__c}"/>
+                        </div>
+                    </div>
+                </lightning:layoutItem>
+
+                <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                    largeDeviceSize="6" padding="horizontal-large" class="slds-p-bottom_small">
+                    <div class="slds-form-element slds-form-element_horizontal">
+                        <label title="Team" class="slds-form-element__label" style="padding: 5px;">
+                            <lightning:formattedText value="Team" /> 
+                        </label>
+                        <lightning:helptext content="RM's team." class="helptextIcon"/>
+                        <div class="slds-form-element__control">
+                            <c:CallCenterCSV_PillOutput type="STRING" value="{!v.data[0].Customer__r.Owner.Zone__c}" />
+                        </div>
+                    </div>
+                </lightning:layoutItem>
+
+                <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                    largeDeviceSize="6" padding="horizontal-large" class="slds-p-bottom_small">
+                    <div class="slds-form-element slds-form-element_horizontal">
+                        <label title="Group" class="slds-form-element__label" style="padding: 5px;">
+                            <lightning:formattedText value="Group" />
+                        </label>
+                        <lightning:helptext content="Customer's group." class="helptextIcon"/>
+                        <div class="slds-form-element__control">
+                            <c:CallCenterCSV_PillOutput type="STRING" value="{!v.data[0].Customer__r.Group__r.Name}" />
+                        </div>
+                    </div>
+                </lightning:layoutItem>
+
+                <lightning:layoutItem flexibility="auto" size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                    largeDeviceSize="6" padding="horizontal-large" class="slds-p-bottom_small">
+                    <div class="slds-form-element slds-form-element_horizontal">
+                        <label title="Product" class="slds-form-element__label" style="padding: 5px;">
+                            <lightning:formattedText value="Product" />
+                        </label>
+                        <lightning:helptext content="Financial product." class="helptextIcon"/>
+                        <div class="slds-form-element__control">
+                            <c:CallCenterCSV_PillOutput type="STRING" value="{!v.product}" />
+                        </div>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </div>
+
+        <div style="padding: 0 10px;width: 100%;">
+            <div class="slds-scrollable top-scrollbars" style="width:100%;">
+                <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+                    <thead>
+                        <tr>
+                            <aura:iteration items="{!v.columns}" var="col" indexVar="index">
+                                <th class="third-color border-line-color" scope="col" style="text-align: center;">
+                                    <div class="slds-truncate">
+                                        <aura:if isTrue="{!col.label == 'Ending Bal.'}">
+                                            <lightning:helptext content="Current Ending Balance." class="helptextIcon"/>
+                                        </aura:if>
+
+                                        <aura:if isTrue="{!col.label == 'Average Bal.'}">
+                                            <lightning:helptext content="(Ending Balance Last month + Current month) / 2" class="helptextIcon"/>
+                                        </aura:if>
+
+                                        <aura:if isTrue="{!col.label == 'Avg Book Bal'}">
+                                            <lightning:helptext content="(Ending Balance Last month + Current month) / 2" class="helptextIcon"/>
+                                        </aura:if>
+
+                                        <label title="{!col.label}" class="slds-form-element__label" style="padding: 5px;">
+                                            <lightning:formattedText value="{!col.label}" />
+                                        </label>
+                                    </div>
+                                </th>
+                            </aura:iteration>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        <aura:iteration items="{!v.data}" var="data" indexVar="index">
+                            <aura:if isTrue="{!v.isCredit}">
+                                <tr>
+                                    <td style="text-align: right;">
+                                        <div class="slds-truncate">
+                                            <lightning:formattedNumber value="{!data.Limit__c}"/>
+                                        </div>
+                                    </td>
+
+                                    <td style="text-align: right;">
+                                        <div class="slds-truncate">
+                                            <lightning:formattedNumber value="{!data.F_Projected_Balance__c}"/>
+                                        </div>
+                                    </td>
+
+                                    <td style="text-align: right;">
+                                        <div class="slds-truncate">
+                                            <lightning:formattedNumber value="{!data.Average_Balance__c}"/>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="slds-truncate">
+                                            <lightning:formattedText value="{!data.Account_Suffix_Ref__c}"/>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="slds-truncate">
+                                            <lightning:formattedText value="{!data.Issue_Date__c}"/>
+                                        </div>
+                                    </td>
+                                    
+                                    <td>
+                                        <div class="slds-truncate">
+                                            <lightning:formattedText value="{!data.Maturity_Date__c}"/>
+                                        </div>
+                                    </td>
+                                    
+                                    <td style="text-align: right;">
+                                        <div class="slds-truncate">
+                                            <lightning:formattedNumber value="{!data.Gross_Rate__c}"/>
+                                        </div>
+                                    </td>
+
+                                    <td style="text-align: right;">
+                                        <div class="slds-truncate">
+                                            <lightning:formattedNumber value="{!data.NI_Formula__c}"/>
+                                        </div>
+                                    </td>
+
+                                    <td style="text-align: right;">
+                                        <div class="slds-truncate">
+                                            <lightning:formattedNumber value="{!data.Forecast_NIM__c}"/>
+                                        </div>
+                                    </td>
+
+                                    <td style="text-align: right;">
+                                        <div class="slds-truncate">
+                                            <lightning:formattedNumber value="{!data.Interest_Revenue__c}"/>
+                                        </div>
+                                    </td>
+                                    <td style="text-align: right;">
+                                        <div class="slds-truncate">
+                                            <lightning:formattedNumber value="{!data.Hold_Commitment__c}"/>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="slds-truncate">
+                                            <lightning:formattedText value="{!data.RPN_Type__c}"/>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="slds-truncate">
+                                            <lightning:formattedText value="{!data.Product_Code__c}"/>
+                                        </div>
+                                    </td>
+
+                                    <td>
+                                        <div class="slds-truncate">
+                                            <lightning:formattedText value="{!data.Product_Type__c}"/>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <div class="slds-truncate">
+                                            <lightning:formattedText value="{!data.Loan_Status__c}"/>
+                                        </div>
+                                    </td>
+                                </tr>
+
+                                <aura:set attribute="else">
+                                    <tr>
+                                        <td style="text-align: right;">
+                                            <div class="slds-truncate">
+                                                <lightning:formattedNumber value="{!data.F_Projected_Balance__c}"/>
+                                            </div>
+                                        </td>
+
+                                        <td style="text-align: right;">
+                                            <div class="slds-truncate">
+                                                <lightning:formattedNumber value="{!data.Average_Balance__c}"/>
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <div class="slds-truncate">
+                                                <lightning:formattedText value="{!data.Account_Suffix_Ref__c}"/>
+                                            </div>
+                                        </td>
+
+                                        <td style="text-align: right;">
+                                            <div class="slds-truncate">
+                                                <lightning:formattedNumber value="{!data.Gross_Rate__c}"/>
+                                            </div>
+                                        </td>
+
+                                        <td style="text-align: right;">
+                                            <div class="slds-truncate">
+                                                <lightning:formattedNumber value="{!data.Forecast_NIM__c}"/>
+                                            </div>
+                                        </td>
+
+                                        <td style="text-align: right;">
+                                            <div class="slds-truncate">
+                                                <lightning:formattedNumber value="{!data.NI_Formula__c}"/>
+                                            </div>
+                                        </td>
+                                        <td style="text-align: right;">
+                                            <div class="slds-truncate">
+                                                <lightning:formattedNumber value="{!data.Interest_Revenue__c}"/>
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <div class="slds-truncate">
+                                                <lightning:formattedText value="{!data.Issue_Date__c}"/>
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <div class="slds-truncate">
+                                                <lightning:formattedText value="{!data.Maturity_Date__c}"/>
+                                            </div>
+                                        </td>
+
+                                        <td>
+                                            <div class="slds-truncate">
+                                                <lightning:formattedText value="{!data.Account_Status_Desc__c}"/>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </aura:set>
+                            </aura:if>
+                        </aura:iteration>
+
+                        <!-- Drawdown -->
+                        <tr style="background-color: #f68b1fa8;">
+                            <aura:if isTrue="{!and(v.isCredit,v.drawdownData != null)}">
+                                <td>
+                                    <div class="slds-truncate">
+
+                                    </div>
+                                </td>
+
+                                <td style="text-align: right;">
+                                    <div class="slds-truncate">
+                                        <lightning:formattedNumber value="{!v.drawdownData.F_Projected_Balance__c}"/>
+                                    </div>
+                                </td>
+
+                                <td style="text-align: right;">
+                                    <div class="slds-truncate">
+                                        <lightning:formattedNumber value="{!v.drawdownData.Average_Balance__c}"/>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+                                        <lightning:formattedText value="{!v.drawdownData.Account_Suffix_Ref__c}"/>
+                                        
+                                    </div>
+                                </td>
+                                
+                                <td>
+                                    <div class="slds-truncate">
+                                        <lightning:formattedText value="{!v.drawdownData.Issue_Date__c}"/>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+
+                                    </div>
+                                </td>
+
+                                <td style="text-align: right;">
+                                    <div class="slds-truncate">
+                                        <lightning:formattedNumber value="{!v.drawdownData.NI_Formula__c}"/>
+                                    </div>
+                                </td>
+
+                                <td style="text-align: right;">
+                                    <div class="slds-truncate">
+                                        <lightning:formattedNumber value="{!v.drawdownData.Forecast_NIM__c}" maximumFractionDigits="2"/>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+
+                                    </div>
+                                </td>
+                            </aura:if>
+                            
+                            <aura:if isTrue="{!and(!v.isCredit,v.drawdownData != null)}">
+                                <td style="text-align: right;">
+                                    <div class="slds-truncate">
+                                        <lightning:formattedNumber value="{!v.drawdownData.F_Projected_Balance__c}"/>
+                                    </div>
+                                </td>
+
+                                <td style="text-align: right;">
+                                    <div class="slds-truncate">
+                                        <lightning:formattedNumber value="{!v.drawdownData.Average_Balance__c}"/>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+                                        <lightning:formattedText value="{!v.drawdownData.Account_Suffix_Ref__c}"/>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+
+                                    </div>
+                                </td>
+
+                                <td style="text-align: right;">
+                                    <div class="slds-truncate">
+                                        <lightning:formattedNumber value="{!v.drawdownData.Forecast_NIM__c}"  maximumFractionDigits="2"/>
+                                    </div>
+                                </td>
+
+                                <td style="text-align: right;">
+                                    <div class="slds-truncate">
+                                        <lightning:formattedNumber value="{!v.drawdownData.NI_Formula__c}"/>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+                                        
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div class="slds-truncate">
+                                        
+                                    </div>
+                                </td>                                
+
+                                <td>
+                                    <div class="slds-truncate">
+                                        
+                                    </div>
+                                </td>
+                            </aura:if>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <aura:if isTrue="{!v.drawdownData != null}">
+                    <p style="margin: 10px;">
+                        <span style="width: 15px; height: 15px; margin:auto; display: inline-block; border: 1px solid gray; vertical-align: middle; border-radius: 2px; background: #f5ac62a8 ">
+
+                        </span>
+                        <lightning:formattedText title="Drawdown / Rollover" value=": Drawdown / Rollover"/>
+                    </p>
+                </aura:if>
+
+            </div>
+        </div>
+    </lightning:card>
+</aura:component>

@@ -1,0 +1,430 @@
+<apex:page standardController="AcctPlanPortfolio__c" extensions="AccountPlanPortfolioManagementEditCtrlV2"
+    docType="html-5.0" showChat="false" showHeader="true" sidebar="false" applyBodyTag="false" applyHtmlTag="true"
+    standardStylesheets="true">
+
+    <head>
+        <title>Portfolio Management</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Nuttanun S." />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+            .outputText {
+                padding-top: 7px;
+                background-color: #b2a1c7;
+            }
+
+            .event-paging {
+                width: 50px;
+                display: inline-table;
+            }
+
+            .index-paging {
+                color: #acacac;
+                font-size: 13px;
+            }
+        </style>
+    </head>
+
+    <body>
+        <apex:actionstatus id="status">
+            <apex:facet name="start">
+                <div class='overlay'
+                    style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" />
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+        <div class="bootstrap-sf1">
+            <div id="responseErrors"></div>
+            <apex:form styleClass="form-horizontal">
+                <apex:pageBlock id="pgBlock">
+                    <apex:outputPanel id="statusMessage">
+                        <apex:pageMessages ></apex:pageMessages>
+                    </apex:outputPanel>
+                    <fieldset>
+                        <legend>Portfolio Management Editor</legend>
+                    </fieldset>
+
+                    <div class="form-group">
+                        <div style="text-align: center;">
+                            <apex:pageBlockButtons location="both" style="float:left;margin-left:100px;">
+                                <apex:commandButton value="Save" action="{!updateTargetNI}" styleclass="btn btn-success"
+                                    status="status" rerender="statusMessage" />
+                                <apex:commandButton value="Cancel" action="{!cancel}" styleclass="btn btn-success"
+                                    status="status" rerender="statusMessage" />
+                            </apex:pageBlockButtons>
+                        </div>
+                    </div>
+
+                    <div class="card collapse in panel-collapse">
+                        <div class="card-detail">
+                            <!--  Section 1 -->
+                            <fieldset>
+                                <div class="">
+                                    <div class="col-sm-8 col-md-8 col-lg-8">
+                                        <div class="form-group">
+                                            <div style="padding-top: 50px;">
+                                                <apex:outputpanel id="porttableData">
+                                                    <table class="table" style="width:500px;">
+                                                        <thead>
+                                                            <tr>
+                                                                <td style="text-align:left">Unit : THB</td>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+
+                                                            <tr>
+                                                                <td class="forceBackground"
+                                                                    style="border: none;text-align:left;" width="45%">
+                                                                    Year</td>
+                                                                <td style="border: none;" width="45%">
+                                                                    <span class="form-control text-right calculate">
+                                                                        <apex:outputField value="{!portfolio.Year__c}"
+                                                                            styleClass="form-control" />
+                                                                    </span>
+                                                                </td>
+                                                                <td style="border: none;" width="20%">&nbsp;</td>
+                                                            </tr>
+                                                            <!-- <tr>
+                                                        <td class="forceBackground" style="border: none;text-align:left;">Version</td>
+                                                        <td style="border: none;">      
+                                                            <span class="form-control text-right calculate">
+                                                                <apex:outputField value="{!portfolio.AsOf__c}" styleClass="form-control" />
+                                                                    </span>
+                                                        </td>
+                                                        <td style="border: none;">&nbsp;</td>
+                                                    </tr> -->
+                                                            <tr>
+                                                                <td class="forceBackground"
+                                                                    style="border: none;text-align:left;">Status</td>
+                                                                <td style="border: none;">
+                                                                    <span class="form-control text-right calculate">
+                                                                        <apex:outputField value="{!portfolio.Status__c}"
+                                                                            styleClass="form-control" />
+                                                                    </span>
+                                                                </td>
+                                                                <td style="border: none;">&nbsp;</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="forceBackground"
+                                                                    style="border: none;text-align:left;">Target NI</td>
+                                                                <td style="border: none;">
+                                                                    <span class="form-control text-right calculate">
+                                                                        <apex:outputField value="{!portfolio.TargetNI__c}"
+                                                                            styleClass="form-control" />
+                                                                    </span>
+                                                                </td>
+                                                                <td style="border: none;text-align:left;"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="forceBackground"
+                                                                    style="border: none;text-align:left;">No. of
+                                                                    customers under RM</td>
+                                                                <td style="border: none;">
+                                                                    <apex:outputText value="{!tempCustomerNum}"
+                                                                        styleClass="text-right form-control" />
+                                                                </td>
+                                                                <td style="border: none;text-align:left;">customers</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="forceBackground"
+                                                                    style="border: none;text-align:left;">No. of groups
+                                                                    under RM</td>
+                                                                <td style="border: none;">
+                                                                    <apex:outputText value="{!tempGroupNum}"
+                                                                        styleClass="text-right form-control" />
+                                                                </td>
+                                                                <td style="border: none;text-align:left;">groups</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+
+                                                </apex:outputpanel>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <br />
+
+
+
+                                    <div class="col-sm-12 col-md-12 col-lg-12">
+                                        <div class="form-group">
+                                            <div style="text-align: left;">
+
+                                                <apex:outputpanel id="filterpanel">
+
+                                                    <div class="btn-group" style="float:right;margin-right:10px;">
+                                                        <button type="button"
+                                                            class="btn btn-primary dropdown-toggle glyphicon glyphicon-list-alt"
+                                                            data-toggle="dropdown" aria-haspopup="true"
+                                                            aria-expanded="false"
+                                                            style="height:44px;padding-top5px;width:150px;">
+                                                            &nbsp;Filters <span class="caret"></span>
+                                                        </button>
+                                                        <ul class="dropdown-menu">
+
+                                                            <li style="margin-left:0;"
+                                                                class="{!if(FiltersOption=='Flag','active','')}">
+                                                                <apex:commandLink value="With Account Plan Flag"
+                                                                    action="{!AccountPlanFilters}" status="status"
+                                                                    rerender="porttable,messages,filterpanel,targetPanel,porttableData"
+                                                                    immediate="true">
+                                                                    <apex:param name="filtername"
+                                                                        assignTo="{!FiltersOption}" value="Flag" />
+                                                                </apex:commandLink>
+                                                            </li>
+                                                            <li style="margin-left:0;"
+                                                                class="{!if(FiltersOption=='Group','active','')}">
+                                                                <apex:commandLink value="Under Group"
+                                                                    action="{!AccountPlanFilters}" status="status"
+                                                                    rerender="porttable,messages,filterpanel,targetPanel,porttableData"
+                                                                    immediate="true">
+                                                                    <apex:param name="filtername"
+                                                                        assignTo="{!FiltersOption}" value="Group" />
+                                                                </apex:commandLink>
+                                                            </li>
+                                                            <li style="margin-left:0;"
+                                                                class="{!if(FiltersOption=='Target','active','')}">
+                                                                <apex:commandLink value="Has Target Amount"
+                                                                    action="{!AccountPlanFilters}" status="status"
+                                                                    rerender="porttable,messages,filterpanel,targetPanel,porttableData"
+                                                                    immediate="true">
+                                                                    <apex:param name="filtername"
+                                                                        assignTo="{!FiltersOption}" value="Target" />
+                                                                </apex:commandLink>
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </apex:outputpanel>
+                                                <div class="alert alert-info text-left" role="alert"
+                                                    style="float:right;margin-right:25px;background-color: #FFFFCC;color:#000000;border-color:#3399FF;padding: 8px 20px 8px 20px;">
+                                                    <i class="glyphicon glyphicon-info-sign" style="color: #006DCC;font-size: 24px;margin-right: 10px;
+    top: 5px;"></i>
+                                                    <span>
+                                                        {!infoMsg}</span>
+                                                </div>
+
+                                            </div>
+
+                                            <div>
+                                                <apex:outputpanel id="porttable">
+                                                    <apex:panelGrid columns="5" style="margin-top: 40px;">
+                                                        <apex:commandLink action="{!first}" rendered="{!hasPrevious}"
+                                                            status="status" rerender="porttable"
+                                                            styleClass="event-paging">First</apex:commandlink>
+                                                        <apex:commandLink action="{!previous}" rendered="{!hasPrevious}"
+                                                            status="status" rerender="porttable"
+                                                            styleClass="event-paging" style="width:70px;">Previous
+                                                        </apex:commandlink>
+                                                        <apex:commandLink action="{!next}" rendered="{!hasNext}"
+                                                            status="status" rerender="porttable"
+                                                            styleClass="event-paging">Next</apex:commandlink>
+                                                        <apex:commandLink action="{!last}" rendered="{!hasNext}"
+                                                            status="status" rerender="porttable"
+                                                            styleClass="event-paging">Last</apex:commandlink>
+                                                        <apex:outputpanel rendered="{!hasNext || hasPrevious}"
+                                                            styleClass="index-paging">
+                                                            ({!(pageNumber * size)+1-size}-{!IF(((pageNumber *
+                                                            size)>noOfRecords), noOfRecords,(pageNumber * size))} of
+                                                            {!noOfRecords})
+                                                        </apex:outputpanel>
+                                                    </apex:panelGrid>
+                                                    <table class="table table-striped table-hover"
+                                                        style="border-bottom: 1px solid #dadee2;">
+                                                        <thead>
+                                                            <tr>
+                                                                <th style="vertical-align: top;" width="10%">No</th>
+                                                                <th style="vertical-align: top;" width="15%">Group name
+                                                                </th>
+                                                                <th style="vertical-align: top;" width="15%">Customer
+                                                                    name</th>
+                                                                <th style="vertical-align: top;" width="15%">Wallet</th>
+                                                                <th style="vertical-align: top;" width="15%">Actual
+                                                                    Performance <br />(12-mth Rolling)</th>
+                                                                <th style="vertical-align: top;" width="15%">Target NI
+                                                                    by RM/BDM</th>
+                                                                <th style="vertical-align: top;" width="15%">Expected NI
+                                                                    by Account Plan</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody
+                                                            style="display:{!if(companyPortListEdit !=null,'row','none')}">
+                                                            <apex:variable value="{!(pageNumber * size)+1-size}"
+                                                                var="rowNum" />
+
+                                                            <apex:repeat value="{!companyPortListEdit}" var="cpl">
+                                                                <tr class="">
+                                                                    <td class="text-center"
+                                                                        style="vertical-align: middle;">{!rowNum}</td>
+                                                                    <td class="text-left"
+                                                                        style="vertical-align: middle;">
+                                                                        <div class="text-center"
+                                                                            style="display:{!if(cpl.groupName!='None' && !cpl.hasGroupProfile,'grid','none')}">
+                                                                            {!cpl.groupName} </div>
+                                                                        <div class="text-center"
+                                                                            style="display:{!if(cpl.groupName!='None','grid','none')}">
+                                                                            <apex:outputpanel rendered="{!cpl.hasGroupProfile}">
+                                                                                <a href="/{!cpl.groupProfile}">
+                                                                                    {!cpl.groupName} </a>
+                                                                            </apex:outputpanel>
+                                                                        </div>
+                                                                        <div class="text-center"
+                                                                            style="display:{!if(cpl.groupName=='None','grid','none')}">
+                                                                        </div>
+                                                                    </td>
+                                                                    <td class="text-left"
+                                                                        style="vertical-align: middle;">
+                                                                        <div
+                                                                            style="display:{!if(cpl.comport.Account_Plan_Company_Profile__c ==null ,'block','none')};">
+                                                                            {!cpl.comport.Account_Name__c }</div>
+                                                                        <div
+                                                                            style="display:{!if(cpl.comport.Account_Plan_Company_Profile__c !=null ,'block','none')};">
+                                                                            <a
+                                                                                href="/{!cpl.comport.Account_Plan_Company_Profile__c}">
+                                                                                {!cpl.comport.Account_Name__c }</a>
+                                                                        </div>
+                                                                    </td>
+                                                                    <td class="text-right">
+                                                                        <apex:outputfield value="{!cpl.comport.Wallet__c}" />
+                                                                    </td>
+                                                                    <td class="text-right">
+                                                                        <apex:outputfield value="{!cpl.comport.Performance__c }" />
+                                                                    </td>
+                                                                    <td class="text-right"
+                                                                        style="vertical-align: middle;">
+                                                                        <apex:inputfield styleclass="form-control fillin text-right"
+                                                                            value="{!cpl.comport.Target_NI_By_RM__c }" />
+                                                                    </td>
+                                                                    <td class="text-right"
+                                                                        style="vertical-align: middle;"></td>
+                                                                    <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                                                </tr>
+                                                            </apex:repeat>
+
+                                                            <tr class="info endRow"
+                                                                style="display:{!IF(hasNext,'none','row')}">
+                                                                <td colspan="3"
+                                                                    style="text-align:center; font-weight:bold;">Total
+                                                                </td>
+                                                                <td class="text-right" style="font-weight:bold;">
+                                                                    <apex:outputfield value="{!portfolio.SumOfWallet__c}" />
+                                                                </td>
+                                                                <td class="text-right" style="font-weight:bold;">
+                                                                    <apex:outputfield value="{!portfolio.SumOfPerformance__c}" />
+                                                                </td>
+                                                                <td class="text-right" style="font-weight:bold;">
+                                                                    <apex:outputfield value="{!portfolio.SumOfTargetNIByRM__c}" />
+
+                                                                </td>
+                                                                <td class="text-right" style="font-weight:bold;">
+                                                                    <apex:outputfield value="{!portfolio.SumOfExpectedNIByAcctPlan__c}" />
+
+                                                                </td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                    <apex:panelGrid columns="5">
+                                                        <apex:commandLink action="{!first}" rendered="{!hasPrevious}"
+                                                            status="status" rerender="porttable"
+                                                            styleClass="event-paging">First</apex:commandlink>
+                                                        <apex:commandLink action="{!previous}" rendered="{!hasPrevious}"
+                                                            status="status" rerender="porttable"
+                                                            styleClass="event-paging" style="width:70px;">Previous
+                                                        </apex:commandlink>
+                                                        <apex:commandLink action="{!next}" rendered="{!hasNext}"
+                                                            status="status" rerender="porttable"
+                                                            styleClass="event-paging">Next</apex:commandlink>
+                                                        <apex:commandLink action="{!last}" rendered="{!hasNext}"
+                                                            status="status" rerender="porttable"
+                                                            styleClass="event-paging">Last</apex:commandlink>
+                                                        <apex:outputpanel rendered="{!hasNext || hasPrevious}"
+                                                            styleClass="index-paging">
+                                                            ({!(pageNumber * size)+1-size}-{!IF(((pageNumber *
+                                                            size)>noOfRecords), noOfRecords,(pageNumber * size))} of
+                                                            {!noOfRecords})
+                                                        </apex:outputpanel>
+                                                    </apex:panelGrid>
+                                                </apex:outputpanel>
+                                            </div>
+
+                                        </div>
+                                        <br />
+                                    </div>
+
+                                    <div class="col-sm-8 col-md-4 col-lg-4">
+                                        <div class="form-group">
+                                            <div>
+                                                <table class="table">
+                                                    <tbody>
+
+                                                        <tr>
+                                                            <td class="forceBackground"
+                                                                style="border: none;text-align:left;" width="50%">
+                                                                Achievement</td>
+                                                            <td style="border: none;" width="30%">
+
+                                                                <apex:outputText value="{0, number, ###,##0.00}"
+                                                                    styleclass="form-control text-right calculate">
+                                                                    <apex:param value="{!portfolio.Achievement__c}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="border: none;text-align:left;" width="20%">%</td>
+                                                        </tr>
+
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+
+                                </div>
+
+                            </fieldset>
+
+
+                        </div>
+                    </div>
+                </apex:pageBlock>
+            </apex:form>
+        </div>
+
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+        <apex:includeScript value="{!$Resource.AccountPlan_Mustache}" />
+
+
+        <script>
+            var $j = jQuery.noConflict();
+            $j(document).ready(function () {
+
+            });
+        </script>
+    </body>
+
+</apex:page>

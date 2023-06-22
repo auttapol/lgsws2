@@ -1,0 +1,131 @@
+<aura:component controller="T_PerformanceController" implements="force:hasRecordId,lightning:utilityItem,flexipage:availableForAllPageTypes,lightning:isUrlAddressable,force:appHostable" >
+
+    <aura:attribute name="userObj" type="Object" />
+    <aura:attribute name="userType" type="Object" />
+    <aura:attribute name="renderPage" type="String" />
+    <aura:attribute name="branchCode" type="String" />
+    <aura:attribute name="channel" type="String"/>
+    <aura:attribute name="isModalOpen" type="boolean" default="true"/>
+    <aura:attribute name="check" type="boolean" default="false"/>
+    <aura:attribute name="consentLink" type="String" />
+    <aura:attribute name="myBool" type="Boolean" default="false"/>
+    <aura:attribute name="status" type="String" />
+    <aura:attribute name="declineMessage" type="Boolean" default="false" />
+    <aura:attribute name="returnTperf" type="Boolean" default="false" />
+    <aura:attribute name="textList" type="String[]" />
+    <!-- Water Mark -->
+    <aura:attribute name="waterMarkImage" type="String" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInitConsent}" />  
+    <lightning:workspaceAPI aura:id="workspace"/>
+   <aura:if isTrue="{!v.isModalOpen}">
+    <!-- <lightning:card title=""> 
+    <iframe class = "consentController" id = "test" align="center" src= "{!v.consentLink}" frameborder= "0" scrolling="no" allowfullscreen="" height="608px" width="100%" style="overflow-x: hidden; overflow-y: hidden; height: 60vh; border: 1px solid gainsboro;" />
+    <hr style="margin-top:25px ;"></hr>
+    <div class="slds-form-element">
+        <div class="slds-form-element__control">
+            <div class="slds-checkbox" style="margin-top: -15px; margin-bottom:15px;">
+                <input type="checkbox" onclick="{!c.onCheck}"  id="checkbox"  value="checkbox" checked="" />
+                <label class="slds-checkbox__label" style="margin-left: 20px; " for="checkbox">
+                    <span class="slds-checkbox_faux"></span>
+                    <span class="slds-form-element__label">{!$Label.c.T_Performance_Agree_Term_Of_Use}</span>
+                </label>
+                <aura:if isTrue="{!v.myBool}">
+                <lightning:button variant = "success" label = "Continue" title = "Continue" iconName="utility:check" 
+                    class = " continue-button slds-m-left_x-small slds-float_right   " onclick="{!c.selectContinue}" ></lightning:button>
+                
+                <aura:set attribute="else">
+                    <lightning:button variant = "success" label = "Continue" title = "Continue" iconName="utility:check" disabled="true"
+                    class = "disable-button slds-m-left_x-small slds-float_right   "  ></lightning:button>
+                </aura:set>
+            </aura:if> 
+            
+            <lightning:button variant = "destructive" label = "Decline" title = "Decline" iconName="utility:close" 
+             class = "decline-button slds-m-left_x-small slds-float_right " onclick="{! c.selectDecline }" ></lightning:button>
+            </div>
+        </div>
+    </div>
+    </lightning:card >  -->
+
+    <article class="slds-card" style="height: 100%">
+        <div class="slds-card__body slds-card__body_inner padding-card" style="height: 100%;
+        display: flex;
+        flex-direction: column;
+        padding: 0;">
+            <div class="pdf" style="height: 100%">
+                <iframe class = "consentController" id = "test" align="center" src= "{!v.consentLink}" frameborder= "0" scrolling="no" allowfullscreen="" height="608px" width="100%" style="overflow-x: hidden; overflow-y: hidden; height: 100%; border: 1px solid gainsboro;" />
+            </div>
+            <!-- <hr style="margin-top:25px ;"></hr> -->
+            <div class="slds-form-element" style="min-height: 86px;">
+                <div class="slds-form-element__control" style="margin-top: 30px;
+                border-top: 1px solid gainsboro;
+                padding-top: 16px;">
+                    <div class="slds-checkbox" >
+                        <input type="checkbox" onclick="{!c.onCheck}"  id="checkbox"  value="checkbox" checked="" />
+                        <label class="slds-checkbox__label" style="margin-left: 20px; " for="checkbox">
+                            <span class="slds-checkbox_faux"></span>
+                            <span class="slds-form-element__label">{!$Label.c.T_Performance_Agree_Term_Of_Use}</span>
+                        </label>
+                        <aura:if isTrue="{!v.myBool}">
+                        <lightning:button variant = "success" label = "Continue" title = "Continue" iconName="utility:check" 
+                            class = " continue-button slds-m-left_x-small slds-float_right   " onclick="{!c.selectContinue}" ></lightning:button>
+                        
+                        <aura:set attribute="else">
+                            <lightning:button variant = "success" label = "Continue" title = "Continue" iconName="utility:check" disabled="true"
+                            class = "disable-button slds-m-left_x-small slds-float_right   "  ></lightning:button>
+                        </aura:set>
+                    </aura:if> 
+                    
+                    <lightning:button variant = "destructive" label = "Decline" title = "Decline" iconName="utility:close" 
+                    class = "decline-button slds-m-left_x-small slds-float_right " onclick="{! c.selectDecline }" ></lightning:button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </article>
+    </aura:if>  
+
+   <aura:if  isTrue="{!v.declineMessage}">
+        <div class="slds-card slds-card_boundary slds-grid slds-grid--vertical"  style="height: 100%;">
+            <p style="font-family:Arial, sans-serif; font-size:24px; font-weight:normal;text-align:center;">&nbsp;</p>
+            <p style="font-family:Arial, sans-serif; font-size:24px; font-weight:normal;text-align:center;">&nbsp;</p>
+            <p style="font-family:Arial, sans-serif; font-size:24px; font-weight:normal;text-align:center;">&nbsp;</p>
+            <p style="font-family:Arial, sans-serif; font-size:24px; font-weight:normal;text-align:center;">&nbsp;</p>
+            <aura:iteration items="{!v.textList}" var="text" indexVar="idx">
+                <p style="font-family:Arial, sans-serif; font-size:24px; font-weight:normal;text-align:center;">{!text}
+                        <aura:if isTrue="{!(v.textList.length-1)== idx}">
+                            <a onclick="{! c.returnTperf }"> click here.</a>
+                        </aura:if>
+                </p>
+            </aura:iteration>
+                
+        </div>
+    </aura:if>
+
+    <!-- <aura:handler name="init" value="{!this}" action="{!c.onInit}" /> -->  
+
+    <aura:if isTrue="{!v.renderPage == 'LandingPage'}">
+        <c:T_Performance_LandingPage userObj="{!v.userObj}" />
+    </aura:if>
+    <aura:if isTrue="{!v.renderPage == 'P4'}">
+        <c:T_Performance_P4 userType="{!v.userType}" branchCode="{!v.branchCode}" channel="{!v.channel}"/>
+    </aura:if>
+    <aura:if isTrue="{!v.renderPage == 'P1'}">
+        <c:T_Performance_P1 selectedEmpId="{!v.userObj.user.Employee_ID__c}"/>
+    </aura:if>
+
+    <aura:if isTrue="{!v.renderPage == ''}">
+        <lightning:card>
+            <div class="slds-grid">
+                <div class="slds-col slds-size_1-of-8" style="width: 10px;margin-left: 10px;">
+                    <lightning:icon class="some-indicator" variant="warning"  iconName="utility:warning" alternativeText="warning" title="warning" size="x-small" />
+                </div>
+                <div class="slds-col slds-size_7-of-8">          
+                    <p class="slds-p-horizontal_small">    
+                        {!$Label.c.T_Performance_ErrorMsg}
+                    </p>  
+                </div>
+            </div>
+        </lightning:card>
+    </aura:if>
+
+</aura:component>

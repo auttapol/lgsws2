@@ -1,0 +1,490 @@
+<apex:page docType="html-5.0" standardController="Opportunity" tabStyle="Opportunity" extensions="Opportunity_NBO_Controller" title="New Opportunity"
+    recordSetVar="newOpportunity" lightningStylesheets="true">
+    <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+    <apex:includeScript value="/support/console/48.0/integration.js" />
+    <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <apex:actionstatus onstart="startLoading('Inserting ...');" id="InsertStatus" onstop="endLoading();" />
+
+    <style type="text/css">
+        .pageTitleIcon {
+            background-image: url(/img/icon/t4v35/standard/opportunity_60.png);
+            content: url(/img/icon/t4v35/standard/opportunity_60.png);
+            background-size: contain;
+            background-color: #fcb95b;
+            background-position: 0 0;
+        }
+
+        @media (max-width: 500px) {
+            .dateOnlyInput .dateFormat {
+                position: relative !important;
+                padding-top: 8px;
+                top: 0 !important;
+                right: 0 !important;
+            }
+            .pbTitle {
+                width: 0 !important;
+            }
+            .mainTitle {
+                width: 100% !important;
+            }
+            /* .pbButton {
+                padding-left: 30%;
+            } */
+            input.form-control {
+                width: 100%;
+                height: 16px;
+                font-size: 14px;
+                padding: 6px 0 !important;
+                font-size: 14px !important;
+            }
+            input.btn {
+                margin: 10px;
+                /* padding: 5px 20px; */
+                height: 30px;
+                font-size: 14px;
+            }
+            .pbSubheader h3 {
+                font-size: 18px !important;
+            }
+
+        }
+
+        @media (min-width: 500px) {
+            .dateOnlyInput .dateFormat {
+                position: relative !important;
+                padding-top: 8px;
+                top: 0 !important;
+                right: 0 !important;
+            }
+
+        }
+
+        .header1 {
+            font-size: 13px;
+            font-family: Arial, Helvetica, sans-serif;
+            padding: 0 15px;
+            margin-left: 23px;
+            width: 100%;
+        }
+
+        .header2 {
+            font-size: 20px;
+            font-family: Arial, Helvetica, sans-serif;
+            padding: 0 15px;
+            margin-left: 23px;
+            width: 100%;
+        }
+
+        .header3 {
+            font-size: 13px;
+            font-family: Arial, Helvetica, sans-serif;
+            padding: 10px 0;
+            width: 100%;
+        }
+
+        .panelWrapper h2.mainTitle {
+            font-size: 12px !important;
+        }
+
+        .sf1label {
+            font-family: 'ProximaNovaSoft-Regular', 'Helvetica Neue';
+            font-size: 13px;
+        }
+
+        .Indicator {
+            /*position : relative;*/
+        }
+
+        .Indicator.hidden {
+            display: none;
+        }
+
+        .Indicator .modal-glass {
+            background-color: #000000;
+            bottom: 0;
+            display: block;
+            left: 0;
+            margin-left: 0px;
+            opacity: 0.3;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100%;
+            z-index: 1999;
+        }
+
+        .Indicator .hideEl {
+            display: none;
+        }
+
+        /* .Indicator .indicatorContainer {
+            background: none repeat scroll 0 0 #354452;
+            border-radius: 5px;
+            color: #FFFFFF;
+            display: block;
+            height: 82px;
+            left: 0;
+            margin: -65px auto;
+            opacity: 0.9;
+            padding-top: 22px;
+            position: fixed;
+            right: 0;
+            text-align: center;
+            top: 250px;
+            width: 110px;
+            z-index: 2000;
+        } */
+
+        /*Set the color of the icon*/
+
+        svg path,
+        svg rect {
+            fill: #2A94D6;
+        }
+
+        .text-blue-color {
+            color: #2a94d6;
+        }
+
+        .required {
+            border-left: 3px solid #c00;
+        }
+
+        .mainForm {
+            padding: 5px;
+        }
+
+        .pageTitleIcon_classic {
+            background-image: url(/img/sprites/master.png);
+            background-position: 0 -1238px;
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            display: none;
+        }
+    </style>
+    <div>
+
+        <div class="slds">
+            <div id="spin" style="display:none;" class="slds-spinner_container">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                    <div class="slds-spinner--brand slds-spinner slds-spinner--large" aria-hidden="false" role="alert">
+                        <div class="slds-spinner__dot-a"></div>
+                        <div class="slds-spinner__dot-b"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <apex:sectionHeader title="New Opportunity" subtitle="Select Opportunity Record Type" />
+
+        <!-- <div class="header2">Select Opportunity Record Type</div>
+                    <div class="header3">Select a record type for the new opportunity. To skip this page in the future, change your record type
+                        settings on your personal setup page.</div> -->
+        <apex:form id="RecordTypeForm" rendered="{!!continueStep}" styleClass="mainForm">
+            <!-- <p>
+            <!--<img src="/img/s.gif" alt="Opportunity" class="pageTitleIcon" title="Opportunity" />--
+            <apex:image url="/img/s.gif" alt="Opportunity" styleClass="pageTitleIcon" title="Opportunity" />
+            <apex:image url="/img/s.gif" alt="Opportunity" styleClass="pageTitleIcon_classic" title="Opportunity" />
+            <div class="header1">New Opportunity</div>
+
+        	<div class="header2">Select Opportunity Record Type</div>
+
+            <div class="header3">Select a record type for the new opportunity. To skip this page in the future, change your record type settings on your personal setup page.</div>
+        </p> -->
+            <apex:pageBlock mode="Edit">
+
+                <apex:pagemessages />
+
+                <apex:PageBlockSection title="Select Opportunity Record Type" columns="1" id="theRecordType" rendered="{!!Expired && IsCreatable}">
+                    <!-- <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Record Type of new record"></apex:outputLabel>
+                        <apex:selectList rendered="{!!isMobile}" value="{!recordTypeId}" multiselect="false" styleclass="form-control fillin-input90 required"
+                            size="1" disabled="{!Expired}" required="true">
+                            <apex:selectOptions value="{!RecordTypes}" />
+                        </apex:selectList>
+                    </apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem rendered="{!isMobile}">
+                        <apex:selectList value="{!recordTypeId}" multiselect="false" styleclass="form-control fillin-input90 required" size="1" disabled="{!Expired}"
+                            required="true">
+                            <apex:selectOptions value="{!RecordTypes}" />
+                        </apex:selectList>
+                    </apex:pageBlockSectionItem> -->
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="Record Type of new record"></apex:outputLabel>
+                        <apex:selectList value="{!recordTypeId}" multiselect="false" styleclass="form-control fillin-input90 required"
+                            size="1" disabled="{!Expired}" required="true">
+                            <apex:selectOptions value="{!RecordTypes}" />
+                        </apex:selectList>
+                    </apex:pageBlockSectionItem>
+                    
+
+                </apex:PageBlockSection>
+
+                <apex:pageBlockButtons location="Bottom">
+                    <apex:commandButton value="Continue" action="{!continueRecordType}" rendered="{!!Expired && IsCreatable}" />
+                    <apex:commandButton value="Cancel" action="{!cancel}" onclick="CloseCurrentTab();" />
+                </apex:pageBlockButtons>
+
+            </apex:pageBlock>
+        </apex:form>
+        <apex:outputPanel id="forActionFunction"/>
+        <apex:outputPanel id="statusMessage" rendered="{!!Expired}">
+            <apex:pageMessages ></apex:pageMessages>
+        </apex:outputPanel>
+
+        <apex:outputPanel id="displayOpportunityForm_Mobile" rendered="{!isMobile}">
+            <apex:form id="opptyForm_Mobile" rendered="{!continueStep}" styleClass="mainForm">
+
+                <apex:actionStatus id="status" onstart="ShowSpin()" onstop="HideSpin()"></apex:actionStatus>
+                <apex:actionFunction rerender="forActionFunction" name="doSave" action="{!save}">
+                    <apex:param name="submit_date" value="" />
+                    <apex:param name="CloseDate" value="" />
+                </apex:actionFunction>
+                <apex:actionFunction rerender="forActionFunction" name="doSaveAndNew" action="{!saveAndNew}">
+                    <apex:param name="submit_date" value="" />
+                    <apex:param name="CloseDate" value="" />
+                </apex:actionFunction>
+                <apex:actionFunction name="back" action="{!back}" />
+                <!-- <p>
+                        <apex:image url="/img/s.gif" alt="Opportunity" styleClass="pageTitleIcon" title="Opportunity" />
+                        <apex:image url="/img/s.gif" alt="Opportunity" styleClass="pageTitleIcon_classic" title="Opportunity" />
+                        <div class="header1">New Opportunity</div>
+
+                        <div class="header2">Select Opportunity Record Type</div>
+                    </p> -->
+                <apex:pageBlock mode="Edit">
+
+                    <apex:pageBlockButtons >
+                        <apex:commandButton value="Save" action="{!save}" status="status" rerender="statusMessage" />
+                        <apex:commandButton value="Save & New" action="{!saveAndNew}" status="status" rerender="statusMessage" oncomplete="if({!isSaveSuccess})back(); else endLoading();" />
+                        <apex:commandButton value="Cancel" action="{!cancel}" onclick="CloseCurrentTab();" html-formnovalidate="formnovalidate" />
+                    </apex:pageBlockButtons>
+                    <apex:pagemessages />
+
+                    <apex:PageBlockSection columns="1" title="Opportunity Information Mobile" id="theSection">
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <apex:outputField styleClass="form-control" value="{!opp.RecordTypeId}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <apex:outputField styleClass="form-control" value="{!opp.OwnerID}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <apex:outputField styleClass="form-control" value="{!opp.AccountID}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <apex:outputField styleClass="form-control" value="{!opp.product_campaign_recommend__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <apex:inputField styleClass="form-control" value="{!opp.Name}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <!-- <label class="control-label" for="focusedInput">Expected Submit Date</label> -->
+                                <!-- <input id="submit_date" type="date" value="{!opp.Expected_submit_date__c }" html-data-skipFocus="true" class="form-control nodisplay" -->
+                                     <!-- /> -->
+                                <apex:inputField type="date" styleClass="form-control" value="{!opp.Expected_submit_date__c}" required="true" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <!-- <label class="control-label" for="focusedInput">Expected Complete Date</label>
+                                <input type="date" id="CloseDate" value="{!opp.CloseDate }" html-data-skipFocus="true" class="form-control nodisplay" 
+                                /> -->
+                                <apex:inputField type="date" styleClass="form-control" value="{!opp.CloseDate}" required="true"/>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <apex:inputField styleClass="form-control" value="{!opp.StageName}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <apex:inputField styleClass="form-control" value="{!opp.Application_Status__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <apex:inputField styleClass="form-control" value="{!opp.Probability}" />
+                            </div>
+                        </div>
+
+                        <!--<apex:inputField value="{!opp.Main_Branch__c }"/>
+                    <apex:inputField value="{!opp.Details_of_Status__c}"/>
+                    <apex:inputField value="{!opp.Remark__c}"/>
+                    <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                    <apex:inputField Value="{!opp.Reason_of_Lost__c }" />-->
+
+                    </apex:PageBlockSection>
+
+                </apex:pageBlock>
+            </apex:form>
+
+        </apex:outputPanel>
+
+        <apex:outputPanel id="displayOpportunityForm" rendered="{!!isMobile}">
+            <apex:form id="opptyForm" rendered="{!continueStep}" styleClass="mainForm" html-novalidate="true">
+                <!-- <p>
+                        <apex:image url="/img/s.gif" alt="Opportunity" styleClass="pageTitleIcon" title="Opportunity" />
+                        <apex:image url="/img/s.gif" alt="Opportunity" styleClass="pageTitleIcon_classic" title="Opportunity" />
+                        <div class="header1">Opportunity Edit</div>
+                        <div class="header2">New Opportunity</div>
+                    </p> -->
+
+                <apex:actionStatus id="status" onstart="ShowSpin()" onstop="HideSpin()"></apex:actionStatus>
+                <apex:actionFunction name="back" action="{!back}" />
+                <apex:pageBlock mode="Edit">
+                    <apex:pageBlockButtons >
+                        <apex:commandButton value="Save" action="{!save}" status="status" rerender="statusMessage" />
+                        <apex:commandButton value="Save & New" action="{!saveAndNew}" status="status" rerender="statusMessage" oncomplete="if({!isSaveSuccess})back(); else endLoading();" />
+                        <apex:commandButton value="Cancel" action="{!cancel}" onclick="CloseCurrentTab();" />
+                    </apex:pageBlockButtons>
+                    <!--<apex:pagemessages />-->
+
+                    <apex:PageBlockSection columns="2" title="Opportunity Information" id="theSection">
+
+                        <apex:outputField value="{!opp.RecordTypeId}" />
+                        <apex:outputField value="{!opp.OwnerID}" />
+                        <apex:outputField value="{!opp.AccountID}" />
+                        <apex:pageBlockSectionItem >
+                            <apex:outputLabel value="{!$ObjectType.Product_Campaign_Recommend__c.Fields.Name.label}"></apex:outputLabel>
+                            <apex:outputField value="{!opp.product_campaign_recommend__c}" />
+                        </apex:pageBlockSectionItem>
+                        <apex:inputField value="{!opp.Name}" />
+                        <apex:inputField Value="{!opp.StageName}" />
+                        <apex:inputField Value="{!opp.Expected_submit_date__c}" required="true" />
+                        <apex:inputField Value="{!opp.Application_Status__c }" />
+                        <apex:inputField value="{!opp.CloseDate }" />
+                        <apex:inputField Value="{!opp.Probability }" />
+
+                        <!--<apex:inputField value="{!opp.Main_Branch__c }"/>
+                    <apex:inputField value="{!opp.Details_of_Status__c}"/>
+                    <apex:inputField value="{!opp.Remark__c}"/>
+                    <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                    <apex:inputField Value="{!opp.Reason_of_Lost__c }" />-->
+
+                    </apex:PageBlockSection>
+
+                </apex:pageBlock>
+            </apex:form>
+        </apex:outputPanel>
+
+    </div>
+
+    <!-- JAVASCRIPT -->
+    <script type="text/javascript">
+        $(document).ready(function () {
+            sforce.console.setTabTitle('*New Opportunity');
+            sforce.console.setTabIcon("{!URLFOR($Resource.opportunity_tab_icon)}", null);
+            var isIE = function () {
+                var ua = window.navigator.userAgent;
+                var msie = ua.indexOf('MSIE ') > 0;
+                var ie11 = ua.indexOf('Trident/') > 0;
+                var ie12 = ua.indexOf('Edge/') > 0;
+                return msie || ie11 || ie12;
+            };
+
+            /*if (sforce.console.isInConsole()) {
+                if (isIE()) {
+                    $('.pageTitleIcon_classic').css({ "display": "none" });
+                } else {
+                    $('.pageTitleIcon_classic').hide();
+                }
+            } else {
+                if (!{!isMobile
+            }){
+            if (isIE()) {
+                $('.pageTitleIcon_classic').css({ "display": "block" });
+                $('.pageTitleIcon').css({ "display": "none" });
+            } else {
+                $('.pageTitleIcon_classic').show();
+                $('.pageTitleIcon').hide();
+            }
+        }
+        }*/
+        });
+
+        function setTabTitle() {
+            var status = '{!isSaveSuccess}';
+            if (status) {
+                sforce.console.setTabTitle("test");
+                //window.location = '{!newOpportunityID}';
+            }
+        }
+        function save() {
+            var submit_date = document.getElementById("submit_date").value;
+            var CloseDate = document.getElementById("CloseDate").value;
+            doSave(submit_date, CloseDate);
+        }
+
+        function saveAndNew() {
+
+            var submit_date = document.getElementById("submit_date").value;
+            var CloseDate = document.getElementById("CloseDate").value;
+            doSaveAndNew(submit_date, CloseDate);
+        }
+
+        function CloseCurrentTab() {
+            //First find the ID of the current tab to close it
+
+            if (sforce.console.isInConsole()) {
+                sforce.console.getEnclosingTabId(closeSubtab);
+            } else {
+                cancel();
+            }
+        }
+
+        var closeSubtab = function closeSubtab(result) {
+            var tabId = result.id;
+            if (tabId) {
+                sforce.console.closeTab(tabId);
+            }
+        };
+        function ShowSpin() {
+            $('#spin').show();
+        }
+        function HideSpin() {
+            $('#spin').hide();
+        }
+
+        function startLoading() {
+
+        }
+
+        function endLoading() {
+            var status = '{!isSaveSuccess}';            
+            //var status = true;
+            if (status) {
+                sforce.console.setTabTitle("test2");
+                //alert('{!newOpportunityID}');
+                //window.location = '{!newOpportunityID}';
+            }
+        }
+    </script>
+</apex:page>

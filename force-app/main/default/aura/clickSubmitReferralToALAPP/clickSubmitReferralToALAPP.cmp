@@ -1,0 +1,114 @@
+<aura:component implements="force:hasRecordId,force:lightningQuickActionWithoutHeader" access="global"
+    controller="RTL_SubmitReferralToALAPPCtrl">
+    <aura:html tag="style">
+        <!-- .modal-container.slds-modal__container{
+        background: transparent;
+        box-shadow: none !important;
+        }
+        .modal-container.slds-modal__container .modal-header.slds-modal__header{
+        display:none;
+        }
+        .modal-container.slds-modal__container .modal-body{
+        background: transparent;
+        box-shadow: none !important;;
+        }
+        .modal-container.slds-modal__container .modal-footer.slds-modal__footer{
+        display:none;
+        } -->
+        .slds-button.slds-modal__close{
+        display:none;
+        }
+    </aura:html>
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="isInitial" type="Boolean" default="false" />
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+    <aura:attribute name="isError" type="Boolean" default="false" />
+    <aura:attribute name="isSend" type="Boolean" default="false" />
+    <aura:attribute name="isSendDone" type="Boolean" default="false" />
+    <aura:attribute name="errorMessage" type="String" default="" />
+    <aura:attribute name="RefNo" type="String" />
+    <aura:attribute name="iconName" type="String" default="action:preview" />
+
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+
+
+    <lightning:card iconName="{! v.iconName }" class="slds-is-relative">
+        <aura:set attribute="title">
+            Submit to HPAP
+        </aura:set>
+        <aura:if isTrue="{! v.isLoading }">
+            <lightning:spinner alternativeText="Loading" variant="brand" />
+        </aura:if>
+        <div class="slds-box slds-text-align_center">
+            <aura:if isTrue="{! v.isInitial }">
+                <aura:if isTrue="{! v.isSendDone == false}">
+                    <p>Sending data to AL APP system. Please wait.</p>
+                    <p>กำลังส่งข้อมูลไปยังระบบ AL APP กรุณารอสักครู่</p>
+                    <aura:set attribute="else">
+                        <aura:if isTrue="{! v.isError }">
+                            <p>
+                                {! v.errorMessage ? v.errorMessage : '&nbsp;'}
+                            </p>
+                            <p>ขออภัยค่ะ เกิดข้อผิดพลาดในการส่งข้อมูล</p>
+                            <!-- <p>&nbsp;</p> -->
+
+                            <aura:set attribute="else">
+                                <p class="RTL_AL_Refer_No__c slds-text-title_caps slds-text-heading_medium">
+                                    {! v.RefNo ? v.RefNo : '&nbsp;' }
+                                </p>
+                                <aura:if isTrue="{!v.isSend}">
+                                    <p>Referral is already sent to AL App system.</p>
+                                    <p>การอ้างอิงนี้ได้ถูกส่งไปบนระบบ AL APP แล้ว</p>
+                                    <aura:set attribute="else">
+                                        <aura:if isTrue="{!not(empty(v.RefNo))}">
+                                            <p>Please use this ID to update information on HPAP</p>
+                                            <p>โปรดใช้หมายเลขอ้างอิงนี้ในการค้นหา CA บนระบบ HPAP</p>
+                                            <aura:set attribute="else">
+                                                <p>Do you want to submit data to HPAP ?</p>
+                                                <p>คุณต้องการส่งข้อมูลไปยังระบบ HPAP ใช่หรือไม่</p>
+                                            </aura:set>
+                                        </aura:if>
+                                    </aura:set>
+
+                                </aura:if>
+
+                            </aura:set>
+                        </aura:if>
+                    </aura:set>
+                </aura:if>
+            </aura:if>
+        </div>
+
+        <aura:set attribute="footer">
+            <div class="slds-modal__footer slds-modal__footer_directional">
+                <lightning:button label="Close" onclick="{!c.handleCancel}" />
+                <aura:if isTrue="{! v.isSendDone}">
+                    <aura:if isTrue="{!empty(v.RefNo)}">
+                        <lightning:button  variant="brand" label="Submit" onclick="{!c.handleConfirm}" />
+                    </aura:if>
+                    <aura:set attribute="else">
+                        <lightning:button label="Refresh" onclick="{!c.handleRefresh}" />
+                    </aura:set>
+                </aura:if>
+            </div>
+        </aura:set>
+    </lightning:card>
+
+
+
+    <!-- <lightning:card>
+        <div class="slds-form-element" style="text-align:center;margin-top: 20px;">
+            <div class="slds-text-heading_medium slds-truncate slds-text-align_center" title="TITLE">Do you want to send
+                data to AL App ?
+            </div>
+            <div style="text-align:center;margin-top: 25px;">
+                <lightning:button label="Confirm" onclick="{!c.handleConfirm}" />
+                <lightning:button label="Cancel" onclick="{!c.handleCancel}" />
+            </div>
+        </div>
+    </lightning:card> -->
+</aura:component>

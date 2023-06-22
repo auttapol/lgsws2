@@ -1,0 +1,623 @@
+<apex:page standardController="Executive_Summary__c" extensions="ExecutiveSummaryCtrl" doctype="html-5.0"  title="Executive Summary" 
+standardstylesheets="true" id="thePage" >
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">    
+
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Jittramas Kumpeepong" />
+
+    <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+    <apex:includeScript value="/support/console/37.0/integration.js"/>
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+    <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system.css')}" />
+
+    <apex:outputPanel rendered="{!isSF1}" >
+    <apex:includeScript value="/support/console/37.0/integration.js"/>
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}" />
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+    <apex:actionStatus onstart="startLoading('Updating ... ');" onstop="endLoading();" id="Status1" />
+    
+    <style type="text/css">
+            
+            .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1800;
+            }
+            .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 0 0;
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            left: 50%;
+            }
+            
+            .red-label {
+            list-style: none;
+            color: #f00;
+            }
+            
+            @font-face {
+            font-family: 'ProximaNovaSoft-Regular';
+            font-weight: normal;
+            font-style: normal;
+            
+            src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}');
+            src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}?#iefix') format('embedded-opentype'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.woff')}') format('woff'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.ttf')}') format('truetype'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.svg')}#proxima_nova_softregular') format('svg');
+            }
+            @font-face {
+            font-family: 'ProximaNovaSoft-Medium';
+            font-weight: normal;
+            font-style: normal;
+            src: url('../fonts/proximanovasoft-regular.eot');
+            src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}?#iefix') format('embedded-opentype'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.woff')}') format('woff'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.ttf')}') format('truetype'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.svg')}#proxima_nova_softmedium') format('svg');
+            }
+            @font-face {
+            font-family: 'icomoon';        
+            src: url('{!URLFOR($Resource.fonts, 'icon-utility.eot')}');
+            }      
+            @font-face {
+            font-family: 'icomoon';
+            src: url("{!URLFOR($Resource.fonts, 'icon-utility.eot')}?#iefix") format("embedded-opentype"), url("{!URLFOR($Resource.fonts, 'icon-utility.woff')}") format("woff"), url("{!URLFOR($Resource.fonts, 'icon-utility.ttf')}") format("truetype"), url("{!URLFOR($Resource.fonts, 'icon-utility.svg')}#icomoon") format("svg");
+            font-weight: normal;
+            font-style: normal;
+            }
+            
+        </style>
+        <div id="load_scrl" class="loadingBox loader" style="display:none"></div> 
+        <div class="loadingBox overlay"></div>
+        <script type="text/javascript">
+            function startLoading(text){
+                $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+                $('.loadingBox').show();
+            }
+            function endLoading(){
+                $('.loadingBox').hide();
+            }
+        </script>
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>  
+        <!-- Mobile fix -->
+        <style type="text/css">
+            @media (max-width: 500px) {
+            
+            .bootstrap-sf1 .form-horizontal .form-group {
+            margin-left: -10px;
+            margin-right: -10px;
+            }
+            .dateOnlyInput .dateFormat {
+            
+            top: 25px;
+            
+            }
+            input[type="checkbox"], input[type="radio"] {
+            
+            height: 30px;
+            width: 50px;
+            }
+            .bootstrap-sf1 .form-horizontal .checkbox{
+            margin-bottom: 5px;
+            }
+            .bootstrap-sf1 .radio label, .bootstrap-sf1 .checkbox label {
+            padding-left: 40px;
+            }
+            .bootstrap-sf1 .radio input[type="radio"], .bootstrap-sf1 .radio-inline input[type="radio"], .bootstrap-sf1 .checkbox input[type="checkbox"], .bootstrap-sf1 .checkbox-inline input[type="checkbox"] {
+            position: absolute;
+            margin-left: -45px;
+            top:-5px;
+            }
+            
+            .bootstrap-sf1{
+            overflow: hidden;
+            }
+            .bootstrap-sf1 .container{
+            padding-left :0px;
+            padding-right:0px;
+            }
+            .bootstrap-sf1 .page-header[class*="context-"] {
+                position: relative;
+                padding-top: 14px;
+                margin: -15px -15px 10px -15px;
+            }
+            
+            
+            }
+            .bootstrap-sf1{
+            background-color: #FFF;
+            
+            }
+            
+            /*<!-- Loading style -->*/
+            
+            
+        </style>
+        
+        <!-- svg loader style -->
+        <style>
+            .Indicator{
+            /*position : relative;*/
+            }
+            .Indicator.hidden {
+            display: none;
+            }
+            .Indicator .modal-glass {
+            background-color: #000000;
+            bottom: 0;
+            display: block;
+            left: 0;
+            margin-left: 0px;
+            opacity: 0.3;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height : 100%;
+            z-index: 1999;
+            
+            }            
+            .Indicator .hideEl {
+            display: none;
+            }
+            .Indicator .indicatorContainer {
+            background: none repeat scroll 0 0 #354452;
+            border-radius: 5px;
+            color: #FFFFFF;
+            display: block;
+            height: 82px;
+            left: 0;
+            margin: -65px auto;
+            opacity: 0.9;
+            padding-top: 22px;
+            position: fixed;
+            right: 0;
+            text-align: center;
+            top: 250px;
+            width: 110px;
+            z-index: 2000;
+            }
+            
+            /*
+            Set the color of the icon
+            */
+            svg path,
+            svg rect {
+            fill: #2A94D6;
+            }
+
+        </style>   
+        </apex:outputPanel>     
+    </head>
+    <body>
+
+    <div id="appearOnDesktop" style="font-size: 13px;display: none">
+    <apex:sectionHeader title="Executive Summary" />
+    
+    <apex:form id="theForm">
+    
+        <apex:actionstatus id="status">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" style="max-width: none;"/>
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+        
+       
+        <apex:pageblock mode="Edit" id="theblock" >
+
+            <apex:pageblockButtons >
+
+             <apex:commandButton value="Save" action="{!save}"  rerender="messages" rendered="{! !SelectAcctPlanMode && !isDisable && !isNewByOwn&&(isHasPermission || isOwner) }" status="status"/>
+                <apex:commandButton value="Select" action="{!selectAcctPlan}"  rerender="messages,theblock" styleClass="btn btn-default" rendered="{! SelectAcctPlanMode && !isDisable && isOwner}"  status="status"/>
+
+                <!--<apex:commandButton value="Save" action="{!save}"  rerender="messages" rendered="{! !SelectAcctPlanMode && !isDisable && !isNewByOwn && !!isHasPermission}"  />
+                <apex:commandButton value="Select" action="{!selectAcctPlan}"  rerender="messages,theblock" styleClass="btn btn-default" rendered="{! SelectAcctPlanMode && !isDisable && !isNewByOwn }"  />-->
+
+                <apex:commandButton value="Cancel" action="{!cancel}"  rerender="messages" status="status"/>
+            </apex:pageblockButtons>
+
+            <apex:outputPanel id="messages">
+                <apex:pageMessages ></apex:pageMessages> 
+            </apex:outputPanel> 
+
+            <apex:outputPanel rendered="{!isNewByOwn }">
+                    <apex:actionSupport action="{!CannotNewExecbyOwn}" reRender="messages"/>
+            </apex:outputPanel>
+
+            <!-- <apex:outputPanel rendered="{! !isHasPermission && (!isNewByOwn && !isOwner)}">
+                    <apex:actionSupport action="{!checkSharingPermission}" reRender="messages,theblock"/>
+            </apex:outputPanel>
+ -->
+            <!-- <apex:outputPanel rendered="{!isHasPermission && !isRefresh}">
+                    <apex:actionSupport action="{!checkSharingPermission}" reRender="messages,theblock"/>
+            </apex:outputPanel> -->
+
+            <!-- <apex:outputPanel rendered="{! (isHasPermission || isOwner) }">   -->
+            <apex:outputPanel rendered="{! !isNewByOwn && (isHasPermission || isOwner) }">  
+                    
+            <apex:outputPanel rendered="{! SelectAcctPlanMode}">
+            <apex:pageBlockSection title="Select Account Plan" id="theSection11" columns="1" collapsible="false">
+                 <apex:outputField value="{!ExecutiveSummary.Customer_Name__c }" />
+                <apex:pageBlockSectionITem >
+                 <apex:outputLabel value="Year Of Company Profile" for="comprofile"/>
+                    <apex:selectList value="{!selectedYear}" multiselect="false" size="1" id="comprofile" required="true">
+                        <apex:selectOptions value="{!availableyear}" ></apex:selectOptions>                    
+                    </apex:selectList>
+                </apex:pageBlockSectionITem>
+                <apex:outputtext value="{!SelectedYear}" />
+                </apex:pageBlockSection>
+            </apex:outputPanel>
+
+            <apex:outputPanel rendered="{! !isDisable && !SelectAcctPlanMode}">
+            <apex:outputPanel style="display: none;"> 
+                <apex:inputField value="{!ExecutiveSummary.Customer_Name__c }"  id="readonly" />
+            </apex:outputPanel>
+            <apex:pageBlockSection title="Customer Information" id="theSection13" columns="2" collapsible="false">
+             
+                <apex:outputField value="{!ExecutiveSummary.Customer_Name__c }"/>
+                <apex:outputField value="{!ExecutiveSummary.Account_Plan_Company_Profile__c }" />
+                <apex:inputField value="{!ExecutiveSummary.Team_Head__c}" id="teamhead" required="true"/>
+                <apex:outputField value="{!ExecutiveSummary.RM_Owner_Name__c }" id="rmname"/>
+                <apex:inputField value="{!ExecutiveSummary.TMB_Guests__c}" id="TMBGuests1"  />
+                <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                <apex:inputField value="{!ExecutiveSummary.TMB_Guests_2__c}" id="TMBGuests2" />
+                <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                <apex:inputField value="{!ExecutiveSummary.TMB_Guests_3__c}" id="TMBGuests3"/>
+                <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                <apex:inputField value="{!ExecutiveSummary.TMB_Guests_4__c}"  id="TMBGuests4"/>
+                <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+                <apex:inputField value="{!ExecutiveSummary.Master_Scale__c}"  id="masterscale"/>
+                
+                
+            </apex:pageBlockSection>
+
+            <apex:pageBlockSection title="Executive Summary" id="theSection31" columns="1" collapsible="false">
+               <!-- <apex:inputTextarea value="{!ExecutiveSummary.Action__c }" rows="5" cols="150"/>
+                <apex:pageBlockSectionItem ></apex:pageBlockSectionItem> -->
+                <apex:pageBlockSectionItem > Talk Point
+                <apex:outputPanel layout="block" style="float:left">
+                  <apex:outputPanel >
+                    <div class="requiredInput"><div class="requiredBlock"/>
+                        <apex:inputTextarea value="{!ExecutiveSummary.Talk_Point__c }"  rows="5" cols="150" id="talkpoint"  />
+                    </div>
+                  </apex:outputPanel>                               
+                </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection> 
+           </apex:outputPanel> 
+
+           </apex:outputPanel> <!--End IsNewByOwn-->
+           <!-- </apex:outputPanel> -->
+        </apex:pageblock>
+  
+
+    
+
+    </apex:form>
+    </div>
+
+
+
+   
+    <!--  SF1 -->
+    <div id="appearOnSF1" style="display: none;">
+
+       <!--  <apex:outputPanel rendered="{!isNewByOwn}" >
+            <div style="padding: 5px;">
+                <h4>{!warningMsg}</h4>
+            </div>
+        </apex:outputPanel>
+
+        <apex:outputPanel rendered="{!isDisable}" >
+            <div style="padding: 5px;">
+                <h4>{!errorMsg}</h4>
+            </div>
+        </apex:outputPanel> -->
+
+        <apex:outputPanel id="sfmessages">
+                <apex:pageMessages ></apex:pageMessages> 
+            </apex:outputPanel> 
+
+        <apex:outputPanel rendered="{!!isNewByOwn}">
+        <apex:outputPanel rendered="{!!isDisable}">
+        <apex:outputPanel rendered="{! !isNewByOwn && (isHasPermission || isOwner) }">  
+        <div class="bootstrap-sf1" > 
+             <div class="container">    
+                <div class="page-header page-header-anchor context-c-envelope">
+                    <div class="container">
+                        <h1>Executive Summary</h1>
+                    </div>
+                </div> 
+
+                <apex:Form onkeypress="return noenter(event);" id="theFormsf1" styleClass="form-horizontal">  
+                    <apex:actionStatus id="statussf1" onclick="backToExecutive();" />
+                   
+                    <div class="text-center" style="margin-bottom:10px">
+                        <!-- apex:commandButton value="Save" action="{!save}" tabindex="370" reRender="messages" styleClass="btn btn-default" status="statussf1" rendered="{! !SelectAcctPlanMode && !isDisable}" / -->
+                        <apex:commandButton value="Save" action="{!mobileSave}" reRender="sfmessages,panelRedirect" tabindex="370"  styleClass="btn btn-default" rendered="{! !SelectAcctPlanMode && !isDisable && !isNewByOwn&&(isHasPermission || isOwner)}"  status="statussf1"/>
+                        &nbsp;<apex:commandButton value="Select" styleClass="btn btn-default" action="{!selectAcctPlan}"   rendered="{! SelectAcctPlanMode && !isDisable && isOwner}"  />
+                        &nbsp;<!-- apex:commandButton value="Cancel" styleClass="btn btn-default" action="{!cancleSF1}" tabindex="380"   status="statussf1"/ -->
+                        <apex:commandButton value="Cancel" onclick="sforce.one.navigateToSObject('{!AccountID}')" rendered="{!if(AccountID != '',true,false)}"/>
+                        <apex:commandButton value="Cancel" onclick="sforce.one.navigateToSObject('{!ExecutiveSummaryID}')" rendered="{!if(ExecutiveSummaryID != '',true,false)}"/>
+                    </div>
+
+                
+
+                <apex:outputPanel rendered="{! SelectAcctPlanMode}">
+                <!--<apex:pageBlockSection title="Select Account Plan" id="theSection11" columns="1">-->
+                <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                    <div class="container panel-heading">
+                        <div class="navbar-header ">
+                            <a href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                                &nbsp;Select Account Plan
+                            </a>
+                        </div>
+                    </div>
+                </header>
+
+                    <!--<apex:outputField value="{!ExecutiveSummary.Customer_Name__c }" label="Customer Name"/>-->
+
+                <div class="col-md-12">
+                    <div class="form-group">
+                        <label class="control-label" for="focusedInput">Customer Name
+                        <span class="red-label" id="namereddot">&emsp;</span></label>
+                        <apex:outputField styleclass="form-control" value="{!ExecutiveSummary.Customer_Name__c }" />
+                    </div>
+                </div>
+
+                <div class="col-md-12">
+                    <div class="form-group">   
+                        <label class="control-label" for="focusedInput">Year Of Company Profile
+                            <span>&nbsp;</span></label>
+
+                            <apex:selectList value="{!selectedYear}" multiselect="false" size="1" id="comprofile" required="true">
+                                <apex:selectOptions value="{!availableyear}" ></apex:selectOptions>                    
+                            </apex:selectList>
+                    </div>
+                </div>
+                    <apex:outputtext value="{!SelectedYear}" />
+                
+
+                <!--</apex:pageBlockSection>-->
+                </apex:outputPanel>    
+
+                <apex:outputPanel rendered="{! !isDisable && !SelectAcctPlanMode}">
+                <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                    <div class="container panel-heading">
+                        <div class="navbar-header ">
+                            <a href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                                &nbsp;Customer Information
+                            </a>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="card collapse in panel-collapse" id="collapse1" >
+                    <div class="card-detail">
+                        <div class="row">
+
+                            <!-- Customer Name -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Customer Name
+                                    <span class="red-label" id="namereddot">&emsp;</span></label>
+                                    <apex:outputField styleclass="form-control" value="{!ExecutiveSummary.Customer_Name__r.Name }" />                            
+                                </div>
+                            </div>
+
+                            <!-- Team Head -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Team Head 
+                                    <span class="red-label" id="namereddot">&nbsp;*</span></label>
+                                    <apex:inputfield value="{!ExecutiveSummary.Team_Head__c }" required="true" style="width: 90%;height: 100%;"/>
+                                </div>
+                            </div>
+
+
+                            <!-- TMB Guests -->
+                            <div class="col-md-12 depend">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">TMB Guests 1</label>
+                                    <apex:inputfield value="{!ExecutiveSummary.TMB_Guests__c }" style="width: 90%;height: 100%;"/>
+                                </div>
+                            </div>
+
+
+
+                            <!-- TMB Guests 2 -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">TMB Guests 2</label>
+                                    <apex:inputfield value="{!ExecutiveSummary.TMB_Guests_2__c }" style="width: 90%;height: 100%;"/>
+                                </div>
+                            </div>
+                        
+                            <!-- TMB Guests 3 -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">TMB Guests 3</label>
+                                    <apex:inputfield value="{!ExecutiveSummary.TMB_Guests_3__c }" style="width: 90%;height: 100%;"/>
+                                </div>
+                            </div>
+
+                            <!-- TMB Guests 4 -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">TMB Guests 4</label>
+                                    <apex:inputfield value="{!ExecutiveSummary.TMB_Guests_4__c }" style="width: 90%;height: 100%;"/>
+                                </div>
+                            </div>
+
+                            <!-- Master Scale -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Master Scale
+                                    <span>&nbsp;</span></label>
+                                    <apex:inputfield styleclass="form-control" value="{!ExecutiveSummary.Master_Scale__c }" />
+                                </div>
+                            </div>
+
+                            <!-- Account Plan Company Profile -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Account Plan Company Profile</label>
+                                    <br/>
+                                    <apex:outputField value="{!ExecutiveSummary.Account_Plan_Company_Profile__c }"  label="Account Plan Company Profile" /> 
+                                </div>
+                            </div>
+                            
+                            <!--RM/Owner Name -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">RM/Owner Name 
+                                    <span class="red-label" id="namereddot">&emsp;</span></label>
+                                    <apex:outputField styleclass="form-control" value="{!ExecutiveSummary.RM_Owner_Name__c }" />
+                                </div>
+                            </div>
+
+                        </div><!-- /.row -->
+
+
+
+                    </div>
+                </div>
+
+                <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                    <div class="container panel-heading">
+                        <div class="navbar-header ">
+                            <a href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                                &nbsp;Executive Summary
+                            </a>
+                        </div>
+                    </div>
+                </header>
+
+                <div class="card collapse in panel-collapse" id="collapse2" >
+                    <div class="card-detail">
+                        <div class="row">
+
+                            <!-- Customer Name -->
+                            <div class="col-md-12">
+                                <div class="form-group">
+                                    <label class="control-label" for="focusedInput">Talk Point
+                                    <span class="red-label" id="namereddot">&nbsp;*</span></label>
+                                    <apex:inputTextarea styleclass="form-control" value="{!ExecutiveSummary.Talk_Point__c }" rows="3" />
+                                </div>
+                            </div>
+
+                           
+
+                        </div><!-- /.row -->
+
+                    </div>
+                </div>
+                </apex:outputPanel>
+                
+
+                <br/> 
+                <div class="text-center" style="margin-bottom:10px">
+
+               <!-- apex:commandButton value="Save" action="{!save}" tabindex="370"  styleClass="btn btn-default" rendered="{! !SelectAcctPlanMode && !isDisable}"  status="statussf1"/ -->
+               <apex:commandButton value="Save" action="{!mobileSave}" reRender="sfmessages,panelRedirect" tabindex="370"  styleClass="btn btn-default" rendered="{! !SelectAcctPlanMode && !isDisable}"  status="statussf1"/>
+                        &nbsp;<apex:commandButton value="Select" action="{!selectAcctPlan}"  styleClass="btn btn-default" rendered="{! SelectAcctPlanMode && !isDisable }"  />
+                        &nbsp;<!-- apex:commandButton value="Cancel" action="{!cancleSF1}" tabindex="380" styleClass="btn btn-default"  status="statussf1"/ -->
+                        <apex:commandButton value="Cancel" onclick="sforce.one.navigateToSObject('{!AccountID}')" rendered="{!if(AccountID != '',true,false)}"/>
+                        <apex:commandButton value="Cancel" onclick="sforce.one.navigateToSObject('{!ExecutiveSummaryID}')" rendered="{!if(ExecutiveSummaryID != '',true,false)}"/>
+                </div>
+          <!-- /apex:PageBlock -->   
+            </apex:form>
+            </div>
+        </div>
+        </apex:outputPanel>
+        </apex:outputPanel>
+        </apex:outputPanel> <!-- !isNewByOwn && (isHasPermission || isOwner)  --> 
+    </div> <!--End appearOnSF1-->
+    
+    <apex:outputPanel id="panelRedirect">
+        <apex:outputPanel id="panelCheckSave" rendered="{!isSaveSuccess}">
+            <script>sforce.one.navigateToSObject('{!redirectMobileID}');</script>
+        </apex:outputPanel>
+    </apex:outputPanel>
+
+    <!-- Console  -->
+    <div id="appearOnConsole">
+        
+    </div> <!-- End Console -->
+
+
+    
+    </body>
+        <script type="text/javascript">
+            
+        </script>
+        <script type="text/javascript">
+                $(document).ready(function(){  
+
+                    // if( (typeof sforce.one != 'undefined') && (sforce.one != null) ) {
+                    //     console.log('SF1Mode');
+                    //     $('#appearOnSF1').show();
+                    //     $('#appearOnDesktop').hide();
+                    // //     $('#appearOnConsole').hide();
+                    // // }else if(sforce.console.isInConsole()){
+                    // //     $('#appearOnConsole').show();
+                    // //     $('#appearOnSF1').hide();
+                    // //     $('#appearOnDesktop').hide();
+                    // //     sforce.console.setTabTitle('Executive Summary');
+
+                    // }else{
+                        console.log('DesktopMode');
+                        $('#appearOnDesktop').show();
+                        $('#appearOnSF1').hide();
+                        
+                        sforce.console.setTabTitle('Executive Summary');
+                        // $('#appearOnConsole').hide();
+                    // }
+
+
+
+                    /*$("[id$=TMBGuests1]").change(function(){
+                    if(this.value!=""){
+                            $("[id$=TMBGuests2]").val("");
+                            $("[id$=TMBGuests3]").val("");
+                            $("[id$=TMBGuests4]").val("");                       
+                            $("input[id$=TMBGuests2]").prop("disabled",true);
+                            $("[id$=TMBGuests3]").prop("disabled",true);
+                            $("[id$=TMBGuests4]").prop("disabled",true);
+                    }
+                    else{
+                      $("[id$=TMBGuests2]").prop("disabled",false);
+                        $("[id$=TMBGuests3]").prop("disabled",false);
+                        $("[id$=TMBGuests4]").prop("disabled",false);
+                    }  
+                    });      */     
+                });
+  
+                function backToExecutive(){
+                    if((typeof sforce.one != 'undefined') && (typeof sforce.one != null)){
+                        sforce.one.navigateToSOject('{!ExecutiveSummary.Id}');
+                        console.log('SF1 back to Executive');
+                    }
+                    
+                }
+
+        
+        </script>
+</html>    
+    
+</apex:page>

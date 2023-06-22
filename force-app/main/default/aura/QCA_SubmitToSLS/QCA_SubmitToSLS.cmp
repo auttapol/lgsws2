@@ -1,0 +1,162 @@
+<aura:component controller="SmartBDMPreviewQuickCAController"
+    implements="force:appHostable,flexipage:availableForAllPageTypes" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <aura:registerEvent name="varSimplifiedLeadProcessStatus" type="c:SimplifiedLeadProcessStatus" />
+    <aura:registerEvent name="varSimplifiedOpportunityProcessStatus" type="c:SimplifiedOpportunityProcessStatus" />
+
+    <aura:attribute name="oppty" type="Opportunity" />
+    <aura:attribute name="opptyObjId" type="Id" />
+    <aura:attribute name="acc" type="Account" />
+
+    <aura:attribute name="listOpportunityProduct2" type="SmartBDMPreviewQuickCAController.wrapProductList[]" />
+    <aura:attribute name="listProgram" type="SmartBDMPreviewQuickCAController.productItem[]" />
+    <aura:attribute name="host" type="String" />
+    <aura:attribute name="toggleModal" type="Boolean" default="false" />
+
+    <!-- <aura:attribute name="ProductInterestMap" type="Map[]" /> -->
+    <aura:attribute name="flowType" type="String" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+    <aura:if isTrue="{! v.showSpinnerLoading }">
+        <lightning:spinner alternativeText="Loading" size="medium" />
+    </aura:if>
+
+    <div>
+        <div class="slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_info" role="alert"
+            aura:id="notify">
+            <span class="slds-m-right_xx-small slds-m-bottom_xxx-small">
+                <lightning:icon iconName="utility:info" alternativeText="info" size="small" class="infoIcon" />
+            </span>
+            <h2>Please review the information at below, then click Submit to Host Button</h2>
+            <div class="slds-notify__close">
+                <button class="slds-button slds-button_icon  slds-button_icon-inverse" title="Close"
+                    onclick="{!c.handleShowNotice}">
+                    <span>
+                        <lightning:icon iconName="utility:close" alternativeText="close" size="small"
+                            class="infoIcon" />
+                    </span>
+                    <span class="slds-assistive-text">Close</span>
+                </button>
+            </div>
+        </div>
+
+
+        <div class="slds-p-horizontal_large slds-p-vertical_x-small">
+                <div class="slds-var-p-horizontal_xx-small slds-var-p-vertical_small slds-text-title_caps ">Customer Information</div>
+
+            <div class="slds-form_stacked slds-m-top_x-small slds-m-bottom_x-small">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                        largeDeviceSize="6">
+
+                        <lightning:input class="slds-form-element" readonly="true" value="{!v.oppty.Account.Name}"
+                            label="Customer Name" />
+                        <lightning:input class="slds-form-element" readonly="true"
+                            value="{!v.oppty.Account.Customer_Type__c}" label="Customer Type" />
+                        <lightning:input class="slds-form-element" readonly="true"
+                            value="{!v.oppty.Account.ID_Type_PE__c}" label="ID Type" />
+                        <lightning:input class="slds-form-element" readonly="true"
+                            value="{!v.oppty.Account.ID_Number_PE__c}" label="ID Number" />
+                        <lightning:input class="slds-form-element" readonly="true" value="{!v.oppty.Name}"
+                            label="Opportunity Name" />
+                        <lightning:input class="slds-form-element" readonly="true" value="{!v.oppty.CAID__c}"
+                            label="CRM ID" />
+
+
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                        largeDeviceSize="6">
+
+                        <lightning:input class="slds-form-element" readonly="true" value="{!v.host}"
+                            label="Host System" />
+                        <lightning:input class="slds-form-element" readonly="true"
+                            value="{!v.oppty.Host_Product_Group__c}" label="Product Group" />
+                        <lightning:input class="slds-form-element" readonly="true" value="{!v.oppty.Owner.Name}"
+                            label="Owner Name" />
+                        <lightning:input class="slds-form-element" readonly="true"
+                            value="{!v.oppty.Owner.Employee_ID__c}" label="Owner Employee ID" />
+                        <lightning:input class="slds-form-element" readonly="true" value="{!v.oppty.Owner.Zone_Code__c}"
+                            label="Zone Code" />
+                        <lightning:input class="slds-form-element" readonly="true"
+                            value="{!v.oppty.Owner.Region_Code__c}" label="Region Code" />
+
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+        </div>
+        <hr/>
+        <div class="slds-p-horizontal_large slds-p-vertical_x-small section">
+                <div class="slds-var-p-horizontal_xx-small slds-var-p-vertical_small slds-text-title_caps ">Product Information</div>
+                <div class="slds-form_stacked slds-m-top_x-small slds-m-bottom_x-small">
+
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" largeDeviceSize="12">
+                        <aura:iteration items="{!v.listOpportunityProduct2}" var="p">
+                                <div class="slds-card">
+                                            <div class="slds-card__header slds-grid">
+                                                <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                                                    <div class="slds-media__body">
+                                                        <div class="slds-card__header-title">
+                                                            <span>{!p.programName }</span>
+                                                        </div>
+                                                    </div>
+                                                </header>
+                                            </div>
+                                        <div class="slds-m-around_medium slds-m-top_large">
+                                            <ui:scrollerWrapper>
+                                                        <div class="slds-grid slds-wrap  slds-var-p-bottom_xx-small ">
+                                                            <div class="slds-form-element__label slds-col slds-size_4-of-12">
+                                                                <span>SF Product Name</span>
+                                                            </div>
+                                                            <div class="slds-form-element__label slds-col slds-size_4-of-12">
+                                                                <span>Credit Facility</span>
+                                                            </div>
+                                                            <div class="slds-form-element__label slds-col slds-size_4-of-12">
+                                                                <span>Request Amount (THB)</span>
+                                                            </div>                               
+                                                        </div>
+                                                        <aura:iteration items="{!p.programList}" var="pg">
+                                                                <div class="slds-grid slds-wrap slds-var-p-vertical_xx-small ">
+                                                                        <div class="slds-col slds-size_4-of-12">
+                                                                            <article class="slds-tile">
+                                                                                <div class="slds-tile__title slds-truncate">
+                                                                                    <span>{!pg.hostMapTemp.Salesforce_Product__r.Name}</span>
+                                                                                </div>
+                                                                                </article>
+                                                                        </div>
+                                                                        <div class="slds-text-align_left slds-col slds-size_4-of-12">
+                                                                            <span>{!pg.hostMapTemp.Host_Prod_Name_Credit_Facility__c}</span>
+                                                                        </div>
+                                                                        <div class="slds-text-align_left slds-col slds-size_4-of-12">
+                                                                            <span><ui:outputCurrency currencyCode="THB" currencySymbol="฿"
+                                                                                format="#,###,###,###.00" value="{! pg.amount }" /></span>
+                                                                        </div>       
+                                                                    </div>
+                                                        </aura:iteration>
+                                            </ui:scrollerWrapper>
+                                        </div>
+                                </div>
+                         </aura:iteration>
+                    </lightning:layoutItem>
+                </lightning:layout>
+
+            </div>
+        </div>
+        <hr/>
+        <div class="slds-p-horizontal_large slds-p-vertical_x-small">
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+
+                </lightning:layoutItem>
+                <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                    <div class="slds-clearfix">
+                        <div class="slds-clearfix">
+                            <lightning:button class="slds-float_right" variant="brand" label="Submit"
+                                onclick="{!c.submitToHostButton}" />
+                        </div>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </div>
+    </div>
+</aura:component>

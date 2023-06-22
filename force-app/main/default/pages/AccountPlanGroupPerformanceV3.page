@@ -1,0 +1,884 @@
+<apex:page standardcontroller="AcctPlanProdStrategy__c" extensions="AcctPlanGroupProjectedPerformanceCtrlV3"
+           doctype="html-5.0" showchat="false" showheader="{! !isConsoleMode && !isStep6}" sidebar="false"
+           applybodytag="false" applyhtmltag="true" standardstylesheets="true">
+    <head>
+        <title>Product Strategy</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+                  <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+                  <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+                <![endif]-->
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+            /*modify byDA*/
+            .bootstrap-sf1 thead th {
+                text-align: center;
+            }
+
+            .outputText {
+                /*padding-top:7px;*/
+            }
+
+            .bootstrap-sf1 .table tbody tr.endRow {
+                border-bottom-width: 1px;
+                border-bottom-style: solid;
+            }
+
+            .bootstrap-sf1 .table tbody tr td.td25 {
+                width: 25px;
+                border: none;
+                background: none;
+            }
+
+            .bootstrap-sf1 .table-striped > tbody > tr:nth-child(odd) > th.th25 {
+                width: 25px;
+                border: none;
+                background: none;
+            }
+
+            .rowsubtableLeft {
+                border-left: 1px solid #DADEE2;
+            }
+
+            .rowsubtableRight {
+                border-right: 1px solid #DADEE2;
+            }
+
+            .rowsubtableBottom {
+                border-bottom: 1px solid #DADEE2;
+            }
+
+            .bootstrap-sf1 .table tbody tr td.forceBackgroundMaroon {
+                background-color: #993300;
+                color: white;
+            }
+
+            .bootstrap-sf1 .table tbody tr th.forceBackgroundMaroon {
+                background-color: #993300;
+                color: white;
+            }
+
+            .bootstrap-sf1 .table thead tr th.forceRemoveBackground {
+                background-color: white;
+                color: black;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+            /* Icon when the collapsible content is shown */
+            .a-collapse:after {
+                font-family: "Glyphicons Halflings";
+                content: "\e114";
+                float: left;
+                margin-right: 10px;
+            }
+            /* Icon when the collapsible content is hidden */
+            .a-collapse.collapsed:after {
+                content: "\e080";
+            }
+            .bootstrap-sf1 .popover {
+                max-width : 500px;
+            }
+             .bootstrap-sf1 thead th.alt {
+            background-color: #006DCC;
+            color: white;
+            text-align: center;
+            vertical-align: top !important;
+            position: relative;
+        }
+        /*CSS for R5.2*/
+        .event-paging{
+            width: 50px;
+            display: inline-table;
+        }
+        .index-paging{
+            color: #acacac;
+            font-size: 13px;
+        }
+        .table-wrapper{
+            width: 100% !important;
+            margin-bottom: 0px !important;
+        }
+        .headerLabel{
+            height: 100px !important;
+        }
+        .table-wrapper td{
+            padding-bottom: 13px !important;    
+        }
+        .table-wrapper label{
+            margin: 0 !important;
+        }
+        td.leftSection{
+            padding : 0px 0px !important;
+            width: 180px !important;
+            min-width: 180px !important;
+            max-width: 180px !important;
+        }
+        .bgHover{
+            background-color: #FFF !important;    
+        }
+        </style>
+    </head>
+    <body>
+        <apex:actionstatus id="status">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" />
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+        <c:AccountPlanHeader activetab="1" activesubtab="3"
+                             companyid="{!CompanyID}"
+                             groupid="{!GroupID}"
+                             walletid="{!WalletID}"
+                             isminiview="{!isMiniView}"
+                             ishasprodstrategy="{!ishasProdStrategy}"
+                             ishasactionplan="{!isHasActionPlan}"
+                             isgroupperformance="true" rendered="{! !isStep6}"/>
+        <div class="bootstrap-sf1"  style="display: {!IF(!isStep6,'block','table')}">
+            <div id="responseErrors"></div>
+            <apex:form styleclass="form-horizontal">
+                <apex:outputpanel id="statusMessage">
+                    <apex:pagemessages ></apex:pagemessages>
+                </apex:outputpanel>
+                <!-- /Section 1 -->
+                <header class="navbar navbar-default navbar-branded" role="banner" style="display: {!IF(!isStep6,'block','none')}">
+                    <div class="panel-heading">
+                        <div class="navbar-header">
+                            <a data-toggle="collapse" aria-expanded="true"
+                               href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                                Group Performance
+
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                <div class="card collapse in panel-collapse" id="collapse1" >
+                    <div class="card-detail">
+                        <!--  Section 1 -->
+                        <fieldset>
+                            <div class="col-sm-8 col-md-6 col-lg-6">
+                                <div class="form-group">
+                                    <apex:outputpanel id="targetPanel">
+                                        <div style="padding-top: 30px; width: 800px;">
+                                            <table class="table">
+                                                <tbody>
+                                                    <tr>
+                                                        <td class="forceBackground" style="border: none;text-align:left; width: 250px;">
+                                                            Year
+                                                            <c:II_Helptext sobjectname="AcctPlanGroupProfile__c" fieldapiname="Year__c" />
+                                                        </td>
+                                                        <td style="border: none;">
+                                                            <span class="form-control text-center calculate">
+                                                                {!groupprofile.Year__c}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="forceBackground" style="border: none;text-align:left;">
+                                                            Group Name
+                                                            <c:II_Helptext sobjectname="AcctPlanGroupProfile__c" fieldapiname="GroupName__c" />
+                                                        </td>
+                                                        <td style="border: none;">
+                                                            <span class="form-control text-center calculate">
+                                                                {!groupprofile.GroupName__c}
+                                                            </span>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </apex:outputpanel>
+                                </div>
+                            </div>
+                            <br />
+                            <apex:pageblock >
+                                <!-- Start Header Refresh Section -->
+                                <div id="card">
+                                    <apex:outputpanel id="mainTable">
+                                        <apex:outputtext escape="false" value="{!InfoMessage}" styleclass="text-left"></apex:outputtext>
+                                        <apex:outputpanel rendered="{! !IsLock}">
+                                            
+                                        <table class="table table-hover" style="">
+                                            <apex:variable var="cols" value="{! ViewState.ViewModel.TotalAccount + 11   }" />
+                                            <thead>
+                                                <tr>
+                                                    <th colspan="{!cols}" class="text-left" style="">
+                                                        Group Performance
+                                                    </th>
+                                                </tr>
+                                                <tr>
+                                                    <th colspan="{!cols}" class="text-left" style="background-color:#fff;">
+                                                        <apex:outputpanel id="pnlButton">
+                                                            <apex:outputpanel rendered="{! !isDisabled&&isHasPermission&&isHasAuthorized}">
+                                                            <!--<apex:commandlink action="{!refresh}" value=" Refresh" styleclass="btn btn-primary glyphicon glyphicon-repeat"
+                                                                                  id="refreshpanel" rerender="pnlButton,mainTable,statusMessage" rendered="{!!IsLock}" status="status"
+                                                                                  title="กดปุ่มเพื่อ update ค่า Wallet และ Actual NI สำหรับลุกค้าที่ยังไม่ได้สร้าง Account Plan หรือยังไม่ได้ทำ Step 4"
+                                                                                  onclick="if(!confirm('System will update wallet and actual NI for those customers without an Account Plan or have not started Step 4.  Are you sure to continue?')) return false;">
+                                                                </apex:commandlink>-->
+                                                                <apex:commandlink action="{!refresh}" value=" Refresh" styleclass="btn btn-primary glyphicon glyphicon-repeat"
+                                                                                  id="refreshpanel" rerender="pnlButton,mainTable,statusMessage,PaginationSection" rendered="{!!IsLock}" status="status"
+                                                                                  title="กดปุ่มเพื่อ update ค่า Wallet และ Actual NI สำหรับลุกค้าที่ยังไม่ได้สร้าง Account Plan หรือยังไม่ได้ทำ Step 4"
+                                                                                  onclick="if(!confirm('{!confirmMsg}')) return false;">
+                                                                </apex:commandlink>
+
+                                                                <a href="#" disabled="{!IF(IsLock, true, false)}" class="btn btn-primary glyphicon glyphicon-repeat" style="{!IF(IsLock,'','display:none')}">Refresh</a>
+
+                                                                <!--<span style="color:#000;">
+                                                                    <span style="display:none;"> {!IsLock}</span> Data as of<c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="RefreshAsOf__c" iscustom="true" screen="RefreshButton" /> <label>
+                                                                        <c:II_FormatDateTime date_timevalue="{!ViewState.ViewModel.RefreshAsOf}" />
+                                                                    </label>
+                                                                </span>--> 
+                                                            </apex:outputpanel>
+                                                        </apex:outputpanel>
+                                                        <span style="color:black;">Refresh as of&nbsp;
+                                                                <!--<apex:outputtext value="{0, date, dd/MM/yyyy hh:mm}">
+                                                                    <apex:param value="{!RefreshAsOf}"/>
+                                                                 </apex:outputtext>-->
+                                                                 <apex:outputfield value="{!groupprofile.RefreshAsOf__c} " />
+                                                            </span>
+                                                        <hr style="margin-top: 5px;margin-bottom:5px;" />
+                                                        <!--<a href="#" id="collapeall" onclick="collapeall(); return false;" class="btn btn-info">Collape All</a>
+                                                        <a href="#" id="expandall" onclick="expandall();  return false;" class="btn btn-warning">Expand All</a> -->
+                                                         <apex:outputPanel rendered="{! !isInitial}">
+                                                        <button style="" id="groupwallet" class="btn btn-primary " onclick="jsShowToggle();return false; ">Toggle Customer Profiles</button>
+                                                        <button style="display: none;" id="groupwallet1" class="btn btn-primary " onclick="jsHideToggle(); return false; ">Toggle Customer Profiles</button>
+
+                                                        <a href="/apex/ExportGroupPerformanceToExcel?GroupID={!ViewState.GroupID}&CompanyID={!ViewState.CompanyID}&WalletID={!ViewState.WalletID}" target="_blank" class="btn btn-primary"> Print</a>
+                                                        </apex:outputPanel>
+                                                    </th>
+                                                </tr>
+                                            </thead>
+                                           </table>
+                                           </apex:outputpanel>
+                                          </apex:outputpanel>        
+                                            <!-- End Header Refresh Section -->
+                                           <!-- Start Pagianation-->    
+                                <!--isPagiantion = {!isPagiantion}<br/>
+                                IsLock = {!IsLock}<br/>
+                                isInitial = {!isInitial}<br/>
+                                isDisabled = {!isDisabled}<br/>-->      
+                              <apex:outputPanel id="PaginationSection" >
+                              <apex:outputpanel rendered="{!isOverlimit}">
+                                   <!-- <div class="alert alert-info text-left" role="alert"
+                                                                         style="width:100%;margin-right:25px;background-color: #FFFFCC;color:#000000;border-color:#3399FF;padding: 8px 20px 15px 20px;">
+                                                                         <i class="glyphicon glyphicon-info-sign" 
+                                                                         style="color: #006DCC;font-size: 24px;margin-right: 10px;
+    top: 5px;"></i>
+                                                                          <span>
+                                                                            {!Overlimit}</span>
+                                                                         </div>  -->
+    
+      <div class="alert alert-info text-left" role="alert"
+                                                                         style="width:100%;margin-right:25px;background-color: #FFFFCC;color:#000000;border-color:#FF9900;padding: 8px 20px 15px 20px;margin-top:40px;">
+                                                                         <i class="glyphicon glyphicon-warning-sign" 
+                                                                         style="color: #ff9900;font-size: 24px;margin-right: 10px;top: 5px;padding-bottom: 8px;"></i>
+                                                                         <strong>Warning : </strong> <br />
+                                                                         <span style="margin-left:38px">
+                                                                            {!Overlimit}</span>
+                                                                         </div>
+                                                                         
+                              </apex:outputpanel>
+                              <apex:outputPanel id="MessageRunBatchWait" style="clear:both;" rendered="{! IsLock && !isInitial && !isRefresh}">
+                                    <div class="alert alert-info text-left" role="alert"
+                                                                         style="width:100%;margin-right:25px;background-color: #FFFFCC;color:#000000;border-color:#3399FF;padding: 8px 20px 15px 20px;">
+                                                                         <i class="glyphicon glyphicon-info-sign" 
+                                                                         style="color: #006DCC;font-size: 24px;margin-right: 10px;
+    top: 5px;"></i>
+                                                                          <span>
+                                                                            {!waitBatch}</span>
+                                                                         </div>
+                              </apex:outputPanel>
+                              <apex:outputPanel id="MessageRunBatchInitail" style="clear:both;" rendered="{! !IsLock && isInitial}">
+                                   <div class="alert alert-info text-left" role="alert"
+                                                                         style="width:100%;margin-right:25px;background-color: #FFFFCC;color:#000000;border-color:#3399FF;padding: 8px 20px 15px 20px;">
+                                                                         <i class="glyphicon glyphicon-info-sign" 
+                                                                         style="color: #006DCC;font-size: 24px;margin-right: 10px;
+    top: 5px;"></i>
+                                                                          <span>
+                                                                           {!initialBatch}</span>
+                                                                         </div>
+                              </apex:outputPanel>     
+                              <apex:outputPanel id="Paginationitem"  style="clear:both;" rendered="{! !IsLock && !isInitial}">
+                                  <apex:outputPanel id="wallettable">
+                                    <apex:outputPanel id="eventPaginationBottom">
+                                        <apex:panelGrid columns="5"  style="margin-bottom: 15px;">
+                                            <apex:commandLink action="{!first}" oncomplete="jsShowToggle();return false; " rendered="{!hasPrevious}" status="status"  rerender="wallettable" styleClass="event-paging" >First</apex:commandlink>
+                                            <apex:commandLink action="{!previous}" oncomplete="jsShowToggle();return false; " rendered="{!hasPrevious}" status="status" rerender="wallettable" styleClass="event-paging" style="width:70px;">Previous</apex:commandlink>
+                                            <apex:commandLink action="{!next}" oncomplete="jsShowToggle();return false; " rendered="{!hasNext}" status="status" rerender="wallettable,Subtotalpanel" styleClass="event-paging" >Next</apex:commandlink>
+                                            <apex:commandLink action="{!last}" oncomplete="jsShowToggle();return false; " rendered="{!hasNext}" status="status" rerender="wallettable" styleClass="event-paging" >Last</apex:commandlink>
+                                            <apex:outputpanel rendered="{!hasNext || hasPrevious}" styleClass="index-paging">
+                                                ({!(pageNumber * size)+1-size}-{!IF(((pageNumber * size)>noOfRecords), noOfRecords,(pageNumber * size))} of {!noOfRecords})
+                                            </apex:outputpanel>
+                                       </apex:panelGrid>
+                                   </apex:outputpanel>
+                              
+                                   <!-- Start Main Table -->
+                                   <div class="table-responsive">
+                                    <table class="table" style="margin-bottom : 0px;">
+                                            <tr>
+                                                <!-- Start label -->
+                                                <td class="leftSection">
+                                                    <table class="table table-hover table-wrapper">
+                                                        <tr class="headerLabel">
+                                                            <th class="forceBackground text-center" style="vertical-align: middle;height: 150px;">
+                                                                Type of Wallet
+                                                                <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="Name" iscustom="true" screen="AccountPlanProductStrategy" />       
+                                                            </th>
+                                                        </tr>
+                                                        <!--<tr class="toggleAccount"><td class="forceBackground text-center">&nbsp;</td></tr>-->
+                                                        <tr><td class="text-left SEQ1"><label>1. NIIc</label></td></tr>
+                                                        <tr><td class="text-left SEQ2"><label>2. NIId</label></td></tr>
+                                                        <tr><td class="text-left SEQ3"><label>3. Fee</label></td></tr>
+                                                        <tr><td class="text-left SEQ4"><label>Recurring Fee</label></td></tr>
+                                                        <tr><td class="text-left SEQ5"><label>3.1 TF Fee</label></td></tr>
+                                                        <tr><td class="text-left SEQ6"><label>3.2 FX Fee</label></td></tr>
+                                                        <tr><td class="text-left SEQ7"><label>3.3 L/G Fee</label></td></tr>
+                                                        <tr><td class="text-left SEQ8"><label>3.4 Cash Fee</label></td></tr>
+                                                        <tr><td class="text-left SEQ9"><label>3.5 AS Fee</label></td></tr>
+                                                        <tr><td class="text-left SEQ10"><label>Non Recurring Fee</label></td></tr>
+                                                        <tr><td class="text-left SEQ11"><label>3.6 Credit Fee</label></td></tr>
+                                                        <tr><td class="text-left SEQ12"><label>3.7 BA Fee</label></td></tr>
+                                                        <tr><td class="text-left SEQ13"><label>3.8 Derivative Fee</label></td></tr>
+                                                        <tr><td class="text-left SEQ14"><label>3.9 IB Fee</label></td></tr> 
+                                                        <tr>
+                                                            <td class="forceBackground text-left">Total</td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                                <!-- End label -->
+                                                <!-- Start section 1 : Summary Wallet Sizing -->
+                                                <td class="leftSection" style="border-right: 1px solid #dadee2 !important;">
+                                                    <apex:variable value="{!SummaryWalletSizingReport}" var="pro"/>
+                                                    <table class="table table-hover table-wrapper">
+                                                        <tr class="headerLabel">
+                                                            <th class="forceBackground text-center" style="vertical-align: middle;height: 150px;">
+                                                                Group Wallet Sizing<br/>(Yearly) 
+                                                                <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'WalletSizing'}" >
+                                                                    <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="WalletSizing__c" iscustom="true" screen="AccountPlanGroupPerformance" />
+                                                                </apex:outputpanel>
+                                                            </th>
+                                                        </tr>
+                                                        <!--<tr class="toggleAccount"><td class="forceBackground text-right"><b>As of Date : </b></td></tr>-->
+                                                        <tr ><td class="SEQ1  text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.WalletSizing.NIIc__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ2 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.WalletSizing.NIId__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ3 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.WalletSizing.Fee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ4 text-right">&nbsp;</td></tr>
+                                                        <tr ><td class="SEQ5 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}" >
+                                                                <apex:param value="{!pro.WalletSizing.TFFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ6 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.WalletSizing.FXFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ7 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.WalletSizing.LGFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ8 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.WalletSizing.CashFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ9 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.WalletSizing.ASFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ10 text-right">&nbsp;</td></tr>
+                                                        <tr ><td class="SEQ11 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.WalletSizing.CreditFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ12 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.WalletSizing.BAFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ13 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}" style="visibility: hidden;">
+                                                                <apex:param value="{!pro.WalletSizing.DerivativeFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ14 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}" style="visibility: hidden;">
+                                                                <apex:param value="{!pro.WalletSizing.IBFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr class="info endRow"><td class="SEQTotal  text-right">
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}" >
+                                                                <apex:outputtext value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!pro.WalletSizing.GrandTotal__c}"/>
+                                                                </apex:outputtext>
+                                                            </apex:outputpanel>
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'TargetbyGroup'}" >
+                                                                <apex:outputtext value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!pro.WalletSizing.TargetbyGroup__c}"/>
+                                                                </apex:outputtext>
+                                                            </apex:outputpanel>
+                                                        </td></tr>
+                                                    </table>    
+                                                </td>
+                                        <!-- End section 1 : Summary Wallet Sizing -->            
+                                                
+                                        <!-- Start section 2 : Wallet Sizing Item -->       
+                                        <apex:variable value="{!(pageNumber * size)+1-size}" var="rowNum"/>  
+                                        <td class="toggleAccount " style="padding: 0px;">
+                                            <div style="max-width:905px; overflow-x: auto;">
+                                            <table>
+                                            <tr>
+                                        <apex:repeat value="{!walletSizingList}" var="pro">
+                                            <td class=" leftSection" style="border-right: 1px solid #dadee2 !important;">
+                                            <table class="table table-hover table-wrapper">
+                                                        <tr class="headerLabel">
+                                                            <th class="forceBackground text-center" style="vertical-align: middle;height: 150px;">
+                                                                <apex:outputpanel rendered="{!pro.SummaryType__c == 'None'}" >
+                                                                    {!rowNum}.<br/>
+                                                                    <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                                                </apex:outputpanel>
+
+
+
+                                                                    <apex:outputField value="{!pro.AccountNamePE__c}"/><br/>
+                                                                    <apex:outputpanel rendered="{!pro.IsProductStrategy__c}" >
+                                                                        <span class="glyphicon glyphicon-user" aria-hidden="true"></span> 
+                                                                    </apex:outputpanel>
+                                                                    <apex:outputpanel rendered="{! !pro.IsProductStrategy__c}" >
+                                                                        <!--Need to refresh<br />-->
+                                                                        <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span> 
+                                                                    </apex:outputpanel>
+                                                                    
+                                                            </th>
+                                                        </tr>
+                                                        <!--<tr ><td class="forceBackground text-center">
+                                                            <b>
+                                                            <apex:outputtext value="{0, date, dd/MM/yyyy hh:mm}">
+                                                                <apex:param value="{!pro.RefreshDate__c}"/>
+                                                            </apex:outputtext>
+                                                            </b>
+                                                        </td></tr>-->
+                                                        <tr ><td class="SEQ1 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.NIIc__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ2 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.NIId__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ3 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.Fee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ4 text-right">&nbsp;</td></tr>
+                                                        <tr ><td class="SEQ5 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.TFFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ6 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.FXFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ7 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.LGFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ8 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.CashFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ9 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.ASFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ10 text-right">&nbsp;</td></tr>
+                                                        <tr ><td class="SEQ11 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.CreditFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ12 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.BAFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ13 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.DerivativeFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ14 text-right">
+                                                            <apex:outputtext value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.IBFee__c}"/>
+                                                            </apex:outputtext>
+                                                        </td></tr>
+                                                        <tr class="info endRow"><td  class="SEQTotal text-right">
+                                                            <apex:outputpanel rendered="{!pro.SummaryType__c != 'TargetbyGroup'}" >
+                                                                <apex:outputtext value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!pro.GrandTotal__c}"/>
+                                                                </apex:outputtext>
+                                                            </apex:outputpanel>
+                                                            <apex:outputpanel rendered="{!pro.SummaryType__c == 'TargetbyGroup'}" >
+                                                                <apex:outputtext value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!pro.TargetbyGroup__c}"/>
+                                                                </apex:outputtext>
+                                                            </apex:outputpanel>
+                                                        </td></tr>
+                                                    </table>    
+                                        </td>  
+                                        </apex:repeat>
+                                        </tr>
+                                        </table>
+                                        
+                                        </div>
+                                        </td>
+                                        <!-- End section 2 : Wallet Sizing Item --> 
+                                        
+                                        <!-- Start section 3 : Summary Report -->  
+                                        <apex:repeat value="{!SummaryReport}" var="pro">
+                                        <td class="leftSection">
+                                                <apex:variable value="{0, number, ###,##0}" var="FormatDisplay"/>  
+                                                <table class="table table-hover table-wrapper">
+                                                        <tr class="headerLabel">
+                                                            <th class="forceBackground text-center" style="vertical-align: middle;height: 150px;">
+                                                                
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c != 'None'}" >
+                                                                <apex:outputtext value="{!pro.SummaryType}" escape="false"/>
+                                                            </apex:outputpanel> 
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'TargetbyGroup'}" >
+                                                                <c:II_Helptext sobjectname="AcctPlanCompanyProfile__c" fieldapiname="TargetNIByRM__c" iscustom="true" screen="AccountPlanGroupPerformance" />
+                                                            </apex:outputpanel>
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'ActualNI'}" >
+                                                                    <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="AnnualizedPerformance__c" iscustom="true" screen="AccountPlanGroupPerformance" />
+                                                            </apex:outputpanel> 
+                                                                <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AdjustedNI'}" >
+                                                                <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="Adjust_NI__c" iscustom="true" screen="AccountPlanGroupPerformance" />    
+                                                            </apex:outputpanel> 
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'ExistingSOW'}" >
+                                                                <apex:variable value="{0, number, #0.00}%" var="FormatDisplay"/> 
+                                                                <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="ExistingSOW__c" iscustom="true" screen="AccountPlanGroupPerformance" />    
+                                                            </apex:outputpanel> 
+                                                                <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'ExpectedIncrementalNIStep5'}" >
+                                                                <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="ExpectedIncrementalNIFromStep5__c" iscustom="true" screen="AccountPlanGroupPerformance" />    
+                                                            </apex:outputpanel> 
+                                                                <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'TotalCompanyNI'}" >
+                                                                <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="TotalCompanyNI__c" iscustom="true" screen="AccountPlanGroupPerformance" />    
+                                                            </apex:outputpanel> 
+                                                                <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'ExpectedSOW'}" >
+                                                                <apex:variable value="{0, number, #0.00}%" var="FormatDisplay"/> 
+                                                                <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="ExpectedSOWPercent__c" iscustom="true" screen="AccountPlanGroupPerformance" />    
+                                                            </apex:outputpanel> 
+                                                                <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AspirationSOWStep6'}" >
+                                                                <apex:variable value="{0, number, #0.00}%" var="FormatDisplay"/> 
+                                                                <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="AspirationSOW__c" iscustom="true" screen="AccountPlanGroupPerformance" />    
+                                                            </apex:outputpanel> 
+                                                                <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'CompareExpectedtoAspirationSOW'}" >
+                                                                <apex:variable value="{0, number, #0.00}%" var="FormatDisplay"/> 
+                                                                <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="CompareSOW__c" />    
+                                                            </apex:outputpanel>
+                                                            </th>
+                                                        </tr>
+                                                        <!--<tr class="toggleAccount"><td class="forceBackground text-center">&nbsp;</td></tr>-->
+                                                        <tr ><td class="SEQ1 text-right">
+                                                            <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                                                <apex:param value="{!pro.WalletSizing.NIIc__c}" />
+                                                            </apex:outputtext>&nbsp;
+                                                            <!-- Detail -->   
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AdjustedNI'}" >    
+                                                                <!--<a style="float:right;" class="adjusedNIDetail glyphicon glyphicon-info-sign" onclick="openAdjustedNI('1')"></a>-->
+                                                            </apex:outputpanel>     
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ2 text-right">
+                                                            <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                                                <apex:param value="{!pro.WalletSizing.NIId__c}" />
+                                                            </apex:outputtext>&nbsp;
+                                                                <!-- Detail -->   
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AdjustedNI'}" >    
+                                                                <!--<a style="float:right;" class="adjusedNIDetail glyphicon glyphicon-info-sign" onclick="openAdjustedNI('2')"></a>-->
+                                                            </apex:outputpanel> 
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ3 text-right">
+                                                            <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'AspirationSOW' 
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'ExpectedIncrementalNI'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'AspirationSOWStep6'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'ExpectedSOW'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'CompareExpectedtoAspirationSOW' 
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'TargetbyGroup'
+                                                                                                                }">
+                                                                <apex:param value="{!pro.WalletSizing.Fee__c}"/>
+                                                            </apex:outputtext>&nbsp;
+                                                                
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ4 text-right">&nbsp;</td></tr>
+                                                        <tr ><td class="SEQ5 text-right">
+                                                            <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                                                <apex:param value="{!pro.WalletSizing.TFFee__c}"/>
+                                                            </apex:outputtext>&nbsp;
+                                                                <!-- Detail -->   
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AdjustedNI'}" >    
+                                                                <!--<a style="float:right;" class="adjusedNIDetail glyphicon glyphicon-info-sign" onclick="openAdjustedNI('5')"></a>-->
+                                                            </apex:outputpanel> 
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ6 text-right">
+                                                            <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                                                <apex:param value="{!pro.WalletSizing.FXFee__c}"/>
+                                                            </apex:outputtext>&nbsp;
+                                                                <!-- Detail -->   
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AdjustedNI'}" >    
+                                                                <!--<a style="float:right;" class="adjusedNIDetail glyphicon glyphicon-info-sign" onclick="openAdjustedNI('6')"></a>-->
+                                                            </apex:outputpanel> 
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ7 text-right">
+                                                            <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                                                <apex:param value="{!pro.WalletSizing.LGFee__c}"/>
+                                                            </apex:outputtext>&nbsp;
+                                                                <!-- Detail -->   
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AdjustedNI'}" >    
+                                                                <!--<a style="float:right;" class="adjusedNIDetail glyphicon glyphicon-info-sign" onclick="openAdjustedNI('7')"></a>-->
+                                                            </apex:outputpanel> 
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ8 text-right">
+                                                            <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                                                <apex:param value="{!pro.WalletSizing.CashFee__c}"/>
+                                                            </apex:outputtext>&nbsp;
+                                                                <!-- Detail -->   
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AdjustedNI'}" >    
+                                                                <!--<a style="float:right;" class="adjusedNIDetail glyphicon glyphicon-info-sign" onclick="openAdjustedNI('8')"></a>-->
+                                                            </apex:outputpanel> 
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ9 text-right">
+                                                            <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'ExistingSOW' /*proformance page*/
+                                                                                                                /*&& pro.WalletSizing.SummaryType__c != 'ExpectedIncrementalNIStep5'*/ 
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'AspirationSOWStep6'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'ExpectedSOW'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'CompareExpectedtoAspirationSOW'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                                                <apex:param value="{!pro.WalletSizing.ASFee__c}"/>
+                                                            </apex:outputtext>&nbsp;
+                                                                <!-- Detail -->   
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AdjustedNI'}" >    
+                                                                <!--<a style="float:right;" class="adjusedNIDetail glyphicon glyphicon-info-sign" onclick="openAdjustedNI('9')"></a>-->
+                                                            </apex:outputpanel> 
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ10 text-right">&nbsp;</td></tr>
+                                                        <tr ><td class="SEQ11 text-right">
+                                                            <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'ExistingSOW' && pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                                                <apex:param value="{!pro.WalletSizing.CreditFee__c}"/>
+                                                            </apex:outputtext>&nbsp;
+                                                                <!-- Detail -->   
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AdjustedNI'}" >    
+                                                                <!--<a style="float:right;" class="adjusedNIDetail glyphicon glyphicon-info-sign" onclick="openAdjustedNI('11')"></a>-->
+                                                            </apex:outputpanel> 
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ12 text-right">
+                                                            <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'ExistingSOW' && pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                                                <apex:param value="{!pro.WalletSizing.BAFee__c}"/>
+                                                            </apex:outputtext>&nbsp;
+                                                                <!-- Detail -->   
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AdjustedNI'}" >    
+                                                                <!--<a style="float:right;" class="adjusedNIDetail glyphicon glyphicon-info-sign" onclick="openAdjustedNI('12')"></a>-->
+                                                            </apex:outputpanel> 
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ13 text-right">
+                                                            <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'ExistingSOW' 
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'AspirationSOW'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'AspirationSOWStep6'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'ExpectedSOW'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'CompareExpectedtoAspirationSOW'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                                                <apex:param value="{!pro.WalletSizing.DerivativeFee__c}"/>
+                                                            </apex:outputtext>&nbsp;
+                                                                <!-- Detail -->   
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AdjustedNI'}" >    
+                                                                <!--<a style="float:right;" class="adjusedNIDetail glyphicon glyphicon-info-sign" onclick="openAdjustedNI('13')"></a>-->
+                                                            </apex:outputpanel> 
+                                                        </td></tr>
+                                                        <tr ><td class="SEQ14 text-right">
+                                                            <apex:outputtext value="{!FormatDisplay}" rendered="{!pro.WalletSizing.SummaryType__c != 'ExistingSOW'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'AspirationSOW'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'AspirationSOWStep6'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'ExpectedSOW'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'CompareExpectedtoAspirationSOW'
+                                                                                                                && pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                                                <apex:param value="{!pro.WalletSizing.IBFee__c}"/>
+                                                            </apex:outputtext>&nbsp;
+                                                                <!-- Detail -->   
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'AdjustedNI'}" >    
+                                                                <!--<a style="float:right;" class="adjusedNIDetail glyphicon glyphicon-info-sign" onclick="openAdjustedNI('14')"></a>-->
+                                                            </apex:outputpanel> 
+                                                        </td></tr>
+                                                        <tr class="info endRow"><td class="SEQTotal  text-right">
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c != 'TargetbyGroup'}">
+                                                                <apex:outputtext value="{!FormatDisplay}" rendered="{! pro.WalletSizing.SummaryType__c != 'ExistingSOW' /*proformance page*/
+                                                                                                                    && pro.WalletSizing.SummaryType__c != 'AspirationSOW'
+                                                                                                                    && pro.WalletSizing.SummaryType__c != 'ExpectedSOW'
+                                                                                                                    && pro.WalletSizing.SummaryType__c != 'AspirationSOWStep6'
+                                                                                                                    && pro.WalletSizing.SummaryType__c != 'CompareExpectedtoAspirationSOW'
+                                                                                                                    }">
+                                                                    <apex:param value="{!pro.WalletSizing.GrandTotal__c}"/>
+                                                                </apex:outputtext>
+                                                                
+                                                                <apex:outputtext rendered="{! pro.WalletSizing.SummaryType__c == 'AspirationSOW'
+                                                                                            || pro.WalletSizing.SummaryType__c == 'ExpectedSOW'
+                                                                                            || pro.WalletSizing.SummaryType__c == 'AspirationSOWStep6'
+                                                                                            || pro.WalletSizing.SummaryType__c == 'CompareExpectedtoAspirationSOW'
+                                                                                            }">
+                                                                    -
+                                                                </apex:outputtext>
+                                                                <apex:outputtext value="{!FormatDisplay}" rendered="{! pro.WalletSizing.SummaryType__c == 'ExistingSOW'}">
+                                                                    <apex:param value="{!TotalGroupExitingSOWGroup}"/>
+                                                                </apex:outputtext>                         
+                                                                                            
+                                                            </apex:outputpanel>
+                                                            <apex:outputpanel rendered="{!pro.WalletSizing.SummaryType__c == 'TargetbyGroup'}" >
+                                                                <apex:outputtext value="{!FormatDisplay}">
+                                                                    <apex:param value="{!TotalGroupTargetNIByRm}"/>
+                                                                </apex:outputtext>
+                                                            </apex:outputpanel>&nbsp;
+                                                        </td></tr>
+                                                    </table>
+                                            </td>
+                                        </apex:repeat>
+                                        <!-- End section 3 : Summary Report -->            
+                                    </tr>
+                                    </table>
+                                   </div>
+                                               
+                                  </apex:outputPanel> 
+                               </apex:outputpanel>  
+                               </apex:outputpanel>          
+                               <!-- End Pagianation-->                 
+                                           
+                                   
+                                </div>
+                            </apex:pageblock>
+                        </fieldset>
+                    </div>
+                </div>
+            </apex:form>
+        </div>
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Mustache}" />
+        <apex:includescript value="/support/console/22.0/integration.js" />
+        <script>
+        // Prevent Config
+        var $j = jQuery.noConflict();
+
+        $j(document).ready(function(){
+          $j('[data-toggle="tooltip"]').tooltip({html:true});
+          $j('[data-toggle="popover"]').popover({html:true});
+            $j(".toggleAccount").hide();
+        });
+
+        function collapeall(){
+            $j(".pnldetail").hide();
+
+        }
+
+        function expandall(){
+            $j(".pnldetail").show();
+        }
+
+        function jsShowToggle(){
+                 //  alert('show');
+                  $j('#groupwallet').hide();
+                  $j('#groupwallet1').show();
+                   $j(".pnldetail").removeAttr('style');
+                   $j(".pnldetail").attr('style','vertical-align:top;border-left:1px solid #ededed;');
+                    $j(".toggleAccount").show();
+                }
+                function jsHideToggle(){
+                 // alert('hide');
+                  $j('#groupwallet1').hide();
+                  $j('#groupwallet').show();
+                  $j(".pnldetail").removeAttr('style');
+                  $j(".pnldetail").attr('style','display:none;');
+                     $j(".toggleAccount").hide();
+                }
+
+       collapeall();
+
+//hover td
+        var className;
+        $j('.SEQ1, .SEQ2, .SEQ3, .SEQ4, .SEQ5, .SEQ6, .SEQ7, .SEQ8, .SEQ9, .SEQ10, .SEQ11, .SEQ12, .SEQ13, .SEQ14, .SEQTotal').hover( 
+            function(){
+                if($j(this).hasClass('SEQ1')){
+                    className = 'SEQ1';
+                }else if($j(this).hasClass('SEQ2')){
+                    className = 'SEQ2';
+                }else if($j(this).hasClass('SEQ3')){
+                    className = 'SEQ3';
+                }else if($j(this).hasClass('SEQ4')){
+                    className = 'SEQ4';
+                }else if($j(this).hasClass('SEQ5')){
+                    className = 'SEQ5';
+                }else if($j(this).hasClass('SEQ6')){
+                    className = 'SEQ6';
+                }else if($j(this).hasClass('SEQ7')){
+                    className = 'SEQ7';
+                }else if($j(this).hasClass('SEQ8')){
+                    className = 'SEQ8';
+                }else if($j(this).hasClass('SEQ9')){
+                    className = 'SEQ9';
+                }else if($j(this).hasClass('SEQ10')){
+                    className = 'SEQ10';
+                }else if($j(this).hasClass('SEQ11')){
+                    className = 'SEQ11';
+                }else if($j(this).hasClass('SEQ12')){
+                    className = 'SEQ12';
+                }else if($j(this).hasClass('SEQ13')){
+                    className = 'SEQ13';
+                }else if($j(this).hasClass('SEQ14')){
+                    className = 'SEQ14';
+                }else if($j(this).hasClass('SEQTotal')){
+                    className = 'SEQTotal';
+                }
+                //alert(className);
+                $j('.'+className).addClass('bgHover');
+            },function(){
+                $j('.'+className).removeClass('bgHover');
+        });
+
+        </script>
+    </body>
+</apex:page>

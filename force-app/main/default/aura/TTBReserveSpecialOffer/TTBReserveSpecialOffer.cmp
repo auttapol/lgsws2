@@ -1,0 +1,185 @@
+<aura:component controller="RetailCSVLightningUtil"
+    implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler event="c:RetailCSV_Event" action="{!c.handleRefreshfield}" />
+
+    <aura:attribute name="userId" type="Id" default="{! $SObjectType.CurrentUser.Id }" />
+    <aura:attribute name="profileName" type="String" default="" />
+    <aura:handler name="change" value="{!v.profileName}" action="{!c.handleProfileName}" />
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="fields" type="List" />
+    <aura:attribute name="dataFields" type="Map" />
+    <aura:attribute name="dataPartion" type="Map" default="{}" />
+    <aura:attribute name="customColorField" type="Map" />
+
+    <!-- DataTable -->
+    <aura:attribute name="TouchIBProm" type="Map" default="{}" />
+    <aura:attribute name="EStatement" type="Map" default="{}" />
+    <aura:attribute name="CYCCampaignMappingInq" type="Object" />
+    <aura:attribute name="CYCCampaignMappingInqStatus" type="Object" />
+    <aura:attribute name="deviceSize" type="Map" default="{
+        small: '12',
+        medium: '6',
+        large: '6',
+        size: '12',
+    }" />
+    <aura:attribute name="width" type="String" description=" width of parent region" />
+    <lightning:flexipageRegionInfo width="{!v.width}" />
+
+    <aura:attribute name="account" type="Object" />
+
+
+    <aura:attribute name="isError" type="Boolean" default="false" />
+    <aura:attribute name="isRerender" type="Boolean" default="false" />
+    <aura:if isTrue="{! v.isRerender }">
+        <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        <div class="fixHeight"></div>
+    </aura:if>
+
+   
+
+    <aura:if isTrue="{! v.width == 'small' }">
+        <aura:html tag="style">
+            .flexipageEditorContainer {
+            padding-top: 0;
+            }
+        </aura:html>
+    </aura:if>
+
+  
+    <div>
+        <aura:if isTrue="{!v.dataFields}">
+
+            <div class="slds-section slds-is-open">
+                <div class="slds-section slds-is-open">
+                    <h3 class="slds-section__title">
+                        <div aria-controls="expando-unique-id" aria-expanded="true"
+                            class="slds-button slds-section__title-action">
+
+                            <span class="slds-truncate" title="Special Offer">Special Offer</span>
+                        </div>
+                    </h3>
+                </div>
+
+                <div aria-hidden="false" class="slds-section__content" id="expando-unique-id">
+
+                    <lightning:layout verticalAlign="stretch" multipleRows="true" class="slds-form__row">
+
+                        <lightning:layoutItem size="6" padding="horizontal-small">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label
+                                    class="slds-form-element__label fieldLabel">{!v.dataFields.RTL_Entitled_Privilege2__c.label}</label>
+                                <div class="slds-form-element__control">
+                                    <aura:if isTrue="{!v.dataFields.RTL_Entitled_Privilege2__c.isAccessible}">
+                                        <div class="slds-form-element__static">
+                                            <c:CallCenterCSV_PillOutput
+                                                aura:id="{!v.dataFields.RTL_Entitled_Privilege2__c.name}"
+                                                type="{!v.dataFields.RTL_Entitled_Privilege2__c.type}"
+                                                value="{!v.dataFields.RTL_Entitled_Privilege2__c.value}" />
+                                        </div>
+                                        <aura:set attribute="else">
+                                            <div class="slds-form-element__static">
+                                                <lightning:formattedText
+                                                    value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                            </div>
+                                        </aura:set>
+                                    </aura:if>
+
+                                </div>
+                            </div>
+                        </lightning:layoutItem>
+
+                        <lightning:layoutItem size="6" padding="horizontal-small">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label fieldLabel">{!v.dataFields.RTL_Privilege2__c.label}</label>
+                                <div class="slds-form-element__control">
+                                    <aura:if isTrue="{!v.dataFields.RTL_Privilege2__c.isAccessible}">
+                                        <div class="slds-form-element__static">
+                                            <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.RTL_Privilege2__c.name}"
+                                                type="{!v.dataFields.RTL_Privilege2__c.type}"
+                                                value="{!v.dataFields.RTL_Privilege2__c.value}" />
+                                        </div>
+                                        <aura:set attribute="else">
+                                            <div class="slds-form-element__static">
+                                                <lightning:formattedText
+                                                    value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                            </div>
+                                        </aura:set>
+                                    </aura:if>
+
+                                </div>
+                            </div>
+                        </lightning:layoutItem>
+
+
+                        <lightning:layoutItem size="6" padding="horizontal-small">
+                            <div class="slds-form-element slds-form-element_readonly">
+                                <label class="slds-form-element__label fieldLabel">{!$Label.c.cyc_promo_cond}</label>
+                                <div class="slds-form-element__control">
+                                    <aura:if isTrue="{!v.dataFields.CYC_Campaign_PromoCond_api.isAccessible}">
+                                        <div class="slds-form-element__static">
+                                            <c:CallCenterCSV_PillOutput aura:id="{!v.dataFields.CYC_Campaign_PromoCond_api.name}"
+                                                type="{!v.dataFields.CYC_Campaign_PromoCond_api.type}"
+                                                value="{!v.dataFields.CYC_Campaign_PromoCond_api.value}" />
+                                        </div>
+                                        <aura:set attribute="else">
+                                            <div class="slds-form-element__static">
+                                                <lightning:formattedText
+                                                    value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                            </div>
+                                        </aura:set>
+                                    </aura:if>
+
+                                </div>
+                            </div>
+                        </lightning:layoutItem>
+
+                        <!-- <lightning:layoutItem class="slds-form__item slds-p-bottom_x-small slds-p-horizontal_x-small"
+                            flexibility="auto" size="6">
+                            <div class="slds-form-element slds-form-element_horizontal slds-form-element_readonly">
+                                <label class="slds-form-element__label">{!$Label.c.cyc_promo_cond}</label>
+
+                                <div class="slds-form-element__control">
+                                    <aura:if isTrue="{!v.dataFields.CYC_Campaign_PromoCond_api.isAccessible}">
+                                        <div class="slds-form-element__static">
+                                         
+                                            <aura:if isTrue="{!v.CYCCampaignMappingInqStatus.cyc_status == 'SUCCESS'}">
+                                                <c:CallCenterCSV_PillOutput aura:id="test1" type="STRING"
+                                                    value="{!v.CYCCampaignMappingInq.promotion_condition}" />
+                                                <aura:set attribute="else">
+                                                    <aura:if
+                                                        isTrue="{!v.CYCCampaignMappingInqStatus.cyc_status == 'INACTIVE'}">
+                                                        <c:CallCenterCSV_PillOutput aura:id="test1" type="STRING"
+                                                            value="-" />
+                                                        <aura:set attribute="else">
+                                                            <span style="color :red;font-weight: bold;">
+                                                                {!$Label.c.cyc_promo_apifail}
+                                                            </span>
+                                                            <span id="cycException"
+                                                                style="display:none">{!v.CYCCampaignMappingInqStatus.description}</span>
+                                                        </aura:set>
+                                                    </aura:if>
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                        <aura:set attribute="else">
+                                            <div class="slds-form-element__static">
+                                                <lightning:formattedText
+                                                    value="{!$Label.c.Data_Condition_Hidden_Text}" />
+                                            </div>
+                                        </aura:set>
+                                    </aura:if>
+
+                                </div>
+                            </div>
+                        </lightning:layoutItem> -->
+
+                    </lightning:layout>
+
+                </div>
+            </div>
+        </aura:if>
+    </div>
+
+</aura:component>

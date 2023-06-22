@@ -1,0 +1,1696 @@
+<apex:page standardController="Account" extensions="ProductTransactionRisk2" readOnly="true" standardStylesheets="true" title="Performance Report" lightningStylesheets="true" >
+    <style>
+        body {
+            overflow-x: scroll !important;
+        }
+
+        .bordertop {
+            border-top: 1px solid black;
+        }
+
+        .borderright {
+            border-right: 1px solid black;
+        }
+
+        .borderbottom {
+            border-bottom: 1px solid black;
+        }
+
+        .borderleft {
+            border-left: 1px solid black;
+        }
+
+        .textcenter {
+            text-align: center;
+        }
+
+        .textleft {
+            text-align: left;
+        }
+
+        .textright {
+            text-align: right;
+        }
+
+        .textbold {
+            font-weight: bold;
+        }
+
+        .bgcolor1 {
+            background-color: #ffff99;
+        }
+
+        .bgcolor2 {
+            background-color: #ddebf7;
+        }
+
+        .bgcolor3 {
+            background-color: #92d050;
+        }
+
+        .bgcolor4 {
+            background-color: #a6a6a6;
+        }
+
+        .bgcolor5 {
+            background-color: #d9d9d9;
+        }
+
+        .fontsize1 {
+            font-size: 25px;
+        }
+
+        .fontsize2 {
+            font-size: 20px;
+        }
+
+        .table_font {
+            font-size: 11px;
+        }
+
+        .link {
+            color: #0000FF;
+            font-size: 14px;
+        }
+
+        .warningMsg {
+            /*	text-align: center; */
+            padding: 20px;
+            color: red;
+            font-weight: bold;
+        }
+        .closebtn {
+            text-align: center;
+            margin-bottom: 20px !important;
+        }
+        
+    </style>
+    <apex:includeScript value="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js" />
+    <script>
+
+        /*
+        try { 
+            //sforce.one.navigateToURL('/aa{!$CurrentPage.parameters.id}');
+            sforce.one.navigateToURL('/apex/Performance_ReportMobile?id={!$CurrentPage.parameters.id}');
+        } catch(e) { 
+            //window.location = "/apex/Performance_Report?id={!$CurrentPage.parameters.id}";
+        }
+        */
+
+        function show(a) {
+            $('#' + a).toggle();
+        }
+
+    </script>
+    <apex:form id="frm">
+        <div class="bootstrap-sf1">
+        <div class="closebtn" id="closebutton" >
+            <apex:commandbutton onclick="closetab();" value="Close" styleClass="btn btn-default" />
+        </div>
+    <apex:outputPanel rendered="{! !isValid}">
+        <apex:pagemessages />
+    </apex:outputPanel>
+    <apex:outputPanel rendered="{!isValid}">
+        <apex:outputPanel rendered="{!DataExist}">
+            <apex:outputPanel rendered="{!!isVisible}">
+                
+            </apex:outputPanel>
+            
+                <apex:actionFunction name="loadPerformanceData" action="{!loadData}" rerender="PerformanceMsg,PerformanceData">
+                    <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Performance" />
+                </apex:actionFunction>
+
+                <apex:outputPanel id="PerformanceMsg">
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <Apex:pageMessages />
+                    </apex:outputPanel>
+                </apex:outputPanel>
+
+                <apex:outputPanel id="PerformanceData">
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <table class="table_font">
+                            <tr>
+                                <td class="textbold fontsize1">Performance - MONTHLY</td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <div style="width:87%;display:inline-block">
+                                        <apex:outputField value="{!acct.TMB_Customer_ID_PE__c}" />&nbsp;&nbsp;&nbsp;
+                                        <apex:outputField value="{!acct.Name}" />
+                                    </div>
+                                    <div style="display:inline-block">
+                                        Date as of : {!ProductTransRisk.As_of_Month__c}
+                                        <br/>Unit : Baht
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                        <table class="table_font">
+                            <tr>
+                                <td>
+                                    <table>
+                                        <tr>
+                                            <td class="textbold fontsize2">Transactional Banking</td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <table style="border-collapse:collapse;" class="textright">
+                                                    <tr class="bordertop borderright borderleft textcenter">
+                                                        <th rowspan="2" class="borderright bgcolor1">Fee</th>
+                                                        <th colspan="3" class="borderright textcenter bgcolor2">YTD</th>
+                                                        <th colspan="3" class="textcenter bgcolor3">MTD</th>
+                                                    </tr>
+                                                    <tr class="borderright borderbottom borderleft">
+                                                        <td class="textcenter bgcolor2">Volume</td>
+                                                        <td class="textcenter bgcolor2">Fee</td>
+                                                        <td class="borderright textcenter bgcolor2">Margin</td>
+                                                        <td class="textcenter bgcolor3">Volume</td>
+                                                        <td class="textcenter bgcolor3">Fee</td>
+                                                        <td class="textcenter bgcolor3">Margin</td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright">
+                                                        <td style="width:132px" class="borderright bgcolor1 textleft">AS</td>
+                                                        <td style="width:132px"></td>
+                                                        <td style="width:132px">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.AS_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:132px" class="borderright"></td>
+                                                        <td style="width:132px"></td>
+                                                        <td style="width:132px">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.AS_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:132px"></td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright">
+                                                        <td class="borderright bgcolor1 textleft">CM</td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.DIRECT_CM_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td class="borderright"></td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.DIRECT_CM_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td></td>
+                                                    </tr>
+
+                                                    <tr class="borderleft borderright">
+                                                        <td class="borderright bgcolor1 textleft">EDC</td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.EDC_VOL_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.EDC_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td class="borderright">
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!if((ProductTransRisk.EDC_FEE_YTD__c > 0 && ProductTransRisk.EDC_VOL_YTD__c > 0),(ProductTransRisk.EDC_FEE_YTD__c/ProductTransRisk.EDC_VOL_YTD__c),0) * 100}"
+                                                                />
+                                                            </apex:outputText>
+                                                            <apex:outputPanel rendered="{!if((ProductTransRisk.EDC_FEE_YTD__c > 0 && ProductTransRisk.EDC_VOL_YTD__c > 0),if(!isnull(ProductTransRisk.EDC_FEE_YTD__c/ProductTransRisk.EDC_VOL_YTD__c),true,false),false)}">%</apex:outputPanel>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.EDC_VOL_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.EDC_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!if((ProductTransRisk.EDC_FEE_MTD__c > 0 && ProductTransRisk.EDC_VOL_MTD__c > 0),(ProductTransRisk.EDC_FEE_MTD__c/ProductTransRisk.EDC_VOL_MTD__c),0) * 100}"
+                                                                />
+                                                            </apex:outputText>
+                                                            <apex:outputPanel rendered="{!if((ProductTransRisk.EDC_FEE_MTD__c > 0 && ProductTransRisk.EDC_VOL_MTD__c > 0),if(!isnull(ProductTransRisk.EDC_FEE_MTD__c/ProductTransRisk.EDC_VOL_MTD__c),true,false),false)}">%</apex:outputPanel>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright">
+                                                        <td class="borderright bgcolor1 textleft">Fleet</td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.FLEET_VOL_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.FLEET_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td class="borderright">
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!if((ProductTransRisk.FLEET_FEE_YTD__c > 0 && ProductTransRisk.FLEET_VOL_YTD__c > 0),(ProductTransRisk.FLEET_FEE_YTD__c/ProductTransRisk.FLEET_VOL_YTD__c),0) * 100}"
+                                                                />
+                                                            </apex:outputText>
+                                                            <apex:outputPanel rendered="{!if((ProductTransRisk.FLEET_FEE_YTD__c > 0 && ProductTransRisk.FLEET_VOL_YTD__c > 0),if(!isnull(ProductTransRisk.FLEET_FEE_YTD__c/ProductTransRisk.FLEET_VOL_YTD__c),true,false),false)}">%</apex:outputPanel>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.FLEET_VOL_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.FLEET_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!if((ProductTransRisk.FLEET_FEE_MTD__c > 0 && ProductTransRisk.FLEET_VOL_MTD__c > 0),(ProductTransRisk.FLEET_FEE_MTD__c/ProductTransRisk.FLEET_VOL_MTD__c),0) * 100}"
+                                                                />
+                                                            </apex:outputText>
+                                                            <apex:outputPanel rendered="{!if((ProductTransRisk.FLEET_FEE_MTD__c > 0 && ProductTransRisk.FLEET_VOL_MTD__c > 0),if(!isnull(ProductTransRisk.FLEET_FEE_MTD__c/ProductTransRisk.FLEET_VOL_MTD__c),true,false),false)}">%</apex:outputPanel>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright">
+                                                        <td class="borderright bgcolor1 textleft">TF</td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.TF_VOL_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.TF_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td class="borderright">
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!if((ProductTransRisk.TF_FEE_YTD__c > 0 && ProductTransRisk.TF_VOL_YTD__c > 0),(ProductTransRisk.TF_FEE_YTD__c/ProductTransRisk.TF_VOL_YTD__c),0) * 100}"
+                                                                />
+                                                            </apex:outputText>
+                                                            <apex:outputPanel rendered="{!if((ProductTransRisk.TF_FEE_YTD__c > 0 && ProductTransRisk.TF_VOL_YTD__c > 0),if(!isnull(ProductTransRisk.TF_FEE_YTD__c/ProductTransRisk.TF_VOL_YTD__c),true,false),false)}">%</apex:outputPanel>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.TF_VOL_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.TF_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!if((ProductTransRisk.TF_FEE_MTD__c > 0 && ProductTransRisk.TF_VOL_MTD__c > 0),(ProductTransRisk.TF_FEE_MTD__c/ProductTransRisk.TF_VOL_MTD__c),0) * 100}"
+                                                                />
+                                                            </apex:outputText>
+                                                            <apex:outputPanel rendered="{!if((ProductTransRisk.TF_FEE_MTD__c > 0 && ProductTransRisk.TF_VOL_MTD__c > 0),if(!isnull(ProductTransRisk.TF_FEE_MTD__c/ProductTransRisk.TF_VOL_MTD__c),true,false),false)}">%</apex:outputPanel>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="borderleft borderbottom borderright">
+                                                        <td class="borderright bgcolor1">&nbsp;</td>
+                                                        <td colspan="3" class="borderright"></td>
+                                                        <td colspan="3"></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table class="table_font">
+                                        <tr>
+                                            <td>
+                                                <table style="border-collapse:collapse;width:1000px" class="textright">
+                                                    <tr class="bordertop borderright borderleft textcenter">
+                                                        <th colspan="2" class="borderright bgcolor1">Product</th>
+                                                        <th colspan="2" class="borderright textcenter bgcolor2">YTD</th>
+                                                        <th colspan="2" class="textcenter bgcolor3">MTD</th>
+                                                    </tr>
+                                                    <tr class="borderright borderbottom borderleft">
+                                                        <td class="textleft bgcolor1 textbold">Trade Finance (Volume)</td>
+                                                        <td class="textcenter bgcolor1 borderright"></td>
+                                                        <td class="textcenter bgcolor2">Volume</td>
+                                                        <td class="textcenter bgcolor2 borderright">No. of Transaction</td>
+                                                        <td class="textcenter bgcolor3">Volume</td>
+                                                        <td class="textcenter bgcolor3">No. of Transaction</td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright bgcolor4 textbold">
+                                                        <td style="width:20%" class="textleft textbold">Total Product</td>
+                                                        <td style="width:20%" class="borderright" />
+                                                        <td style="width:15%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!TFVtotal1}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:15%" class="borderright">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!TFVtotal3}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:15%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!TFVtotal2}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:15%">
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!TFVtotal4}" />
+                                                            </apex:outputText>
+                                                        </td>
+
+                                                    </tr>
+                                                </table>
+
+                                                <apex:variable value="{!0}" var="cnt" />
+                                                <apex:repeat value="{!TradeFinanceVolumn}" var="a">
+                                                    <apex:variable value="{!cnt+1}" var="cnt" />
+                                                    <table style="border-collapse:collapse;width:1000px" class="textright">
+                                                        <tr class="borderleft borderright bgcolor5">
+                                                            <td style="width:20%" class="textleft">Total {!a.header}</td>
+                                                            <td style="width:20%" class="borderright" />
+                                                            <td style="width:15%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum1}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:15%" class="borderright">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum3}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:15%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum2}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:15%" class="borderright">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum4}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                    <table style="border-collapse:collapse;width:1000px" id="{!cnt}" class="textright">
+                                                        <apex:variable value="{!1}" var="rowNum" />
+                                                        <apex:repeat value="{!a.content}" var="b">
+                                                            <tr class="borderleft borderright">
+                                                                <td style="width:20%" class="textleft borderright">{!if(rowNum == 1 ,b.product_group__c,'')}</td>
+                                                                <td style="width:20%" class="borderright textleft">
+                                                                    {!b.Product_Type__c}
+                                                                </td>
+                                                                <td style="width:15%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Volume_YTD__c }" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:15%" class="borderright">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Transaction_YTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:15%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Volume_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:15%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Transaction_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                            </tr>
+                                                            <apex:variable value="{!rowNum+1}" var="rowNum" />
+                                                        </apex:repeat>
+                                                    </table>
+                                                </apex:repeat>
+
+                                                <table style="border-collapse:collapse;width:1000px" id="last">
+                                                    <tr class="bordertop">
+                                                        <td></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table class="table_font">
+                                        <tr>
+                                            <td>
+                                                <table style="border-collapse:collapse;width:1000px" class="textright">
+                                                    <tr class="bordertop borderright borderleft textcenter">
+                                                        <th colspan="2" class="borderright bgcolor1">Product</th>
+                                                        <th colspan="1" class="borderright textcenter bgcolor2">YTD</th>
+                                                        <th colspan="1" class="textcenter bgcolor3">MTD</th>
+                                                    </tr>
+                                                    <tr class="borderright borderbottom borderleft">
+                                                        <td class="textleft bgcolor1 textbold">Trade Finance (Fee)</td>
+                                                        <td class="textcenter bgcolor1 borderright"></td>
+                                                        <td class="textcenter bgcolor2 borderright">Fee</td>
+                                                        <td class="textcenter bgcolor3">Fee</td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright bgcolor4 textbold">
+                                                        <td style="width:20%" class="textleft textbold">Total Product</td>
+                                                        <td style="width:20%" class="borderright" />
+                                                        <td style="width:30%" class="borderright">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!TFFtotal1}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:30%" class="borderright">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!TFFtotal2}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+                                                <apex:repeat value="{!TradeFinanceFee}" var="a">
+                                                    <apex:variable value="{!cnt+1}" var="cnt" />
+                                                    <table style="border-collapse:collapse;width:1000px" class="textright">
+                                                        <tr class="borderleft borderright bgcolor5">
+                                                            <td style="width:20%" class="textleft">Total {!a.header}</td>
+                                                            <td style="width:20%" class="borderright" />
+                                                            <td style="width:30%" class="borderright">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum1}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:30%" class="borderright">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum2}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                    <table style="border-collapse:collapse;width:1000px" id="{!cnt}" class="textright">
+                                                        <apex:variable value="{!1}" var="rowNum" />
+                                                        <apex:repeat value="{!a.content}" var="b">
+                                                            <tr class="borderleft borderright">
+                                                                <td style="width:20%" class="textleft borderright">{!if(rowNum == 1 ,b.product_group__c,'')}</td>
+                                                                <td style="width:20%" class="borderright textleft">
+                                                                    {!b.Product_Type__c}
+                                                                </td>
+                                                                <td style="width:30%" class="borderright">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Fee_YTD__c  }" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:30%" class="borderright">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Fee_MTD__c }" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                            </tr>
+                                                            <apex:variable value="{!rowNum+1}" var="rowNum" />
+                                                        </apex:repeat>
+                                                    </table>
+                                                </apex:repeat>
+
+                                                <table style="border-collapse:collapse;width:1000px" id="last">
+                                                    <tr class="bordertop">
+                                                        <td></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table class="table_font">
+                                        <tr>
+                                            <td class="textbold fontsize2">Deposit &amp; Investment</td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <table style="border-collapse:collapse;width:1290px" class="textright">
+                                                    <tr class="bordertop borderright borderleft textcenter">
+                                                        <th colspan="3" class="borderright bgcolor1">Product</th>
+                                                        <th colspan="4" class="borderright textcenter bgcolor2">YTD</th>
+                                                        <th colspan="4" class="textcenter bgcolor3">MTD</th>
+                                                    </tr>
+                                                    <tr class="borderright borderbottom borderleft">
+                                                        <td class="textcenter bgcolor1">TMB Account ID</td>
+                                                        <td class="textcenter bgcolor1">TMB Suffix</td>
+                                                        <td class="textcenter borderright bgcolor1">TMB Ref</td>
+                                                        <td class="textcenter bgcolor2">Outstanding</td>
+                                                        <td class="textcenter bgcolor2">Average</td>
+                                                        <td class="textcenter bgcolor2">NIMd-DPA</td>
+                                                        <td class="borderright textcenter bgcolor2">NIId-DPA</td>
+                                                        <td class="textcenter bgcolor3">Outstanding</td>
+                                                        <td class="textcenter bgcolor3">Average</td>
+                                                        <td class="textcenter bgcolor3">NIMd-DPA</td>
+                                                        <td class="textcenter bgcolor3">NIId-DPA</td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright bgcolor4 textbold">
+                                                        <td style="width:10%" class="textleft textbold">Total</td>
+                                                        <td style="width:9%" />
+                                                        <td style="width:9%" class="borderright" />
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!DAItotal1}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!DAItotal3}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!nim.NIMD_YTD__c}" />
+                                                            </apex:outputText>
+                                                            <apex:outputPanel rendered="{!if(!isnull(nim.NIMD_YTD__c),true,false)}">%</apex:outputPanel>
+                                                        </td>
+                                                        <td style="width:9%" class="borderright">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!DAItotal7}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!DAItotal2}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!DAItotal4}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!nim.NIMD_MTD__c}" />
+                                                            </apex:outputText>
+                                                            <apex:outputPanel rendered="{!if(!isnull(nim.NIMD_MTD__c),true,false)}">%</apex:outputPanel>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!DAItotal8}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                    </tr>
+                                                </table>
+
+                                                <!-- <apex:variable value="{!0}" var="cnt"/> -->
+                                                <apex:repeat value="{!ProductInfoDepositInvestment}" var="a">
+                                                    <apex:variable value="{!cnt+1}" var="cnt" />
+                                                    <table style="border-collapse:collapse;width:1290px" class="textright">
+                                                        <tr class="borderleft borderright bgcolor5">
+                                                            <td style="width:10%" class="textleft">
+                                                                <span style="cursor:pointer" onclick="show('{!cnt}')">{!a.header}</span>
+                                                            </td>
+                                                            <td style="width:9%" />
+                                                            <td style="width:9%" class="borderright" />
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum1}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum3}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0.00}">
+                                                                    <apex:param value="{!a.sum5}" />
+                                                                </apex:outputText>
+                                                                <apex:outputPanel rendered="{!if(!isnull(a.sum5),true,false)}">%</apex:outputPanel>
+                                                            </td>
+                                                            <td style="width:9%" class="borderright">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum7}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum2}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum4}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0.00}">
+                                                                    <apex:param value="{!a.sum6}" />
+                                                                </apex:outputText>
+                                                                <apex:outputPanel rendered="{!if(!isnull(a.sum6),true,false)}">%</apex:outputPanel>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum8}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                    <table style="border-collapse:collapse;display:none;width:1290px" id="{!cnt}" class="textright">
+                                                        <apex:variable value="{!1}" var="rowNum" />
+                                                        <apex:repeat value="{!a.content}" var="b">
+                                                            <tr class="borderleft borderright" style="{!if(rowNum <= 30,'','display: none;')}">
+                                                                <td style="width:10%" class="textleft">
+                                                                    <apex:outputText value="{!b.TMB_Account_ID__c}" escape="false" />
+                                                                </td>
+                                                                <td style="width:9%" class="textcenter">{!b.TMB_Suffix__c}</td>
+                                                                <td style="width:9%" class="borderright textcenter">{!b.TMB_Ref__c}</td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0.00}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%" class="borderright">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Ending_OS_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Average_OS_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0.00}">
+                                                                        <apex:param value="{!b.NIMd_DPA_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                    <apex:outputPanel rendered="{!if(!isnull(b.NIMd_DPA_MTD__c),true,false)}">%</apex:outputPanel>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.NIID_DPA_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                            </tr>
+                                                            <tr class="borderleft borderright" style="{!if(rowNum <= 30,'','display: none;')}">
+                                                                <td colspan="3" class="borderright">&nbsp;</td>
+                                                                <td colspan="4" class="borderright"></td>
+                                                                <td colspan="4"></td>
+                                                            </tr>
+                                                            <apex:variable value="{!rowNum+1}" var="rowNum" />
+                                                        </apex:repeat>
+                                                        <tr class="borderleft borderright borderbottom" style="{!if(rowNum > 30,'','display: none;')}">
+                                                            <td colspan="11" style="text-align:left;">
+                                                                <a class="link" href="/{!PerfDepositReportId}?pv1={!acct.ID}&pv2={!a.header}" target="_blank">
+
+
+                                                                    More>></a>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </apex:repeat>
+
+                                                <table style="border-collapse:collapse;width:1290px" id="last">
+                                                    <tr class="bordertop">
+                                                        <td></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table class="table_font">
+                                        <tr>
+                                            <td class="textbold fontsize2">Funding &amp; Borrowing</td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <table style="border-collapse:collapse;width:1290px" class="textright">
+                                                    <tr class="bordertop borderright borderleft textcenter">
+                                                        <th colspan="3" class="borderright bgcolor1">Product : Loan</th>
+                                                        <th colspan="4" class="borderright textcenter bgcolor2">YTD</th>
+                                                        <th colspan="4" class="textcenter bgcolor3">MTD</th>
+                                                    </tr>
+                                                    <tr class="borderright borderbottom borderleft">
+                                                        <td class="textcenter bgcolor1">TMB Account ID</td>
+                                                        <td class="textcenter bgcolor1">TMB Suffix</td>
+                                                        <td class="textcenter borderright bgcolor1">TMB Ref</td>
+                                                        <td class="textcenter bgcolor2">Outstanding</td>
+                                                        <td class="textcenter bgcolor2">Average</td>
+                                                        <td class="textcenter bgcolor2">NIMc</td>
+                                                        <td class="borderright textcenter bgcolor2">NIIc</td>
+                                                        <td class="textcenter bgcolor3">Outstanding</td>
+                                                        <td class="textcenter bgcolor3">Average</td>
+                                                        <td class="textcenter bgcolor3">NIMc</td>
+                                                        <td class="textcenter bgcolor3">NIIc</td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright bgcolor4 textbold">
+                                                        <td style="width:10%" class="textleft textbold">Total Product</td>
+                                                        <td style="width:9%" />
+                                                        <td style="width:9%" class="borderright" />
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!FABLoantotal1}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!FABLoantotal3}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!nim.NIMC_YTD__c}" />
+                                                            </apex:outputText>
+                                                            <apex:outputPanel rendered="{!if(!isnull(nim.NIMC_YTD__c),true,false)}">%</apex:outputPanel>
+                                                        </td>
+                                                        <td style="width:9%" class="borderright">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!FABLoantotal7}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!FABLoantotal2}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!FABLoantotal4}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!nim.NIMC_MTD__c}" />
+                                                            </apex:outputText>
+                                                            <apex:outputPanel rendered="{!if(!isnull(nim.NIMC_MTD__c),true,false)}">%</apex:outputPanel>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!FABLoantotal8}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                    </tr>
+
+                                                </table>
+
+                                                <!-- apex:variable value="{!0}" var="cnt"/ -->
+                                                <apex:repeat value="{!ProductInfoFundingBorrowing}" var="a">
+                                                    <apex:variable value="{!cnt+1}" var="cnt" />
+                                                    <table style="border-collapse:collapse;width:1290px" class="textright">
+                                                        <tr class="borderleft borderright bgcolor5">
+                                                            <td style="width:10%" class="textleft">
+                                                                <span style="cursor:pointer" onclick="show('{!cnt}')">{!a.header}</span>
+                                                            </td>
+                                                            <td style="width:9%" />
+                                                            <td style="width:9%" class="borderright" />
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum1}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum3}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0.00}">
+                                                                    <apex:param value="{!a.sum5}" />
+                                                                </apex:outputText>
+                                                                <apex:outputPanel rendered="{!if(!isnull(a.sum5),true,false)}">%</apex:outputPanel>
+                                                            </td>
+                                                            <td style="width:9%" class="borderright">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum7}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum2}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum4}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0.00}">
+                                                                    <apex:param value="{!a.sum6}" />
+                                                                </apex:outputText>
+                                                                <apex:outputPanel rendered="{!if(!isnull(a.sum6),true,false)}">%</apex:outputPanel>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum8}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                    <table style="border-collapse:collapse;display:none;width:1290px" id="{!cnt}" class="textright">
+                                                        <apex:variable value="{!1}" var="rowNum" />
+                                                        <apex:repeat value="{!a.content}" var="b">
+                                                            <tr class="borderleft borderright" style="{!if(rowNum <= 30,'','display: none;')}">
+                                                                <td style="width:10%" class="textleft">
+                                                                    <apex:outputText value="{!b.TMB_Account_ID__c}" escape="false" />
+                                                                </td>
+                                                                <td style="width:9%" class="textcenter">{!b.TMB_Suffix__c}</td>
+                                                                <td style="width:9%" class="borderright textcenter">{!b.TMB_Ref__c}</td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0.00}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%" class="borderright">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Ending_OS_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Average_OS_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0.00}">
+                                                                        <apex:param value="{!b.NIMC_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                    <apex:outputPanel rendered="{!if(!isnull(b.NIMC_MTD__c),true,false)}">%</apex:outputPanel>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.NIIC_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                            </tr>
+                                                            <tr class="borderleft borderright" style="{!if(rowNum <= 30,'','display: none;')}">
+                                                                <td colspan="3" class="borderright">&nbsp;</td>
+                                                                <td colspan="4" class="borderright"></td>
+                                                                <td colspan="4"></td>
+                                                            </tr>
+                                                            <apex:variable value="{!rowNum+1}" var="rowNum" />
+                                                        </apex:repeat>
+                                                        <tr class="borderleft borderright borderbottom" style="{!if(rowNum > 30,'','display: none;')}">
+                                                            <td colspan="11" style="text-align:left;">
+                                                                <a class="link" href="/{!PerfFundingReportLoanId}?pv1={!Left(acct.ID,15)}&pv2={!a.header}" target="_blank">More >></a>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </apex:repeat>
+
+                                                <table style="border-collapse:collapse;width:1290px" id="last">
+                                                    <tr class="bordertop">
+                                                        <td></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <table style="border-collapse:collapse;width:1290px" class="textright">
+                                                    <tr class="bordertop borderright borderleft textcenter">
+                                                        <th colspan="3" class="borderright bgcolor1">Product : Liabilities</th>
+                                                        <th colspan="2" class="borderright textcenter bgcolor2">YTD</th>
+                                                        <th colspan="2" class="textcenter bgcolor3">MTD</th>
+                                                    </tr>
+                                                    <tr class="borderright borderbottom borderleft">
+                                                        <td class="textcenter bgcolor1">TMB Account ID</td>
+                                                        <td class="textcenter bgcolor1">TMB Suffix</td>
+                                                        <td class="textcenter borderright bgcolor1">TMB Ref</td>
+                                                        <td class="textcenter bgcolor2">Outstanding</td>
+                                                        <td class="textcenter bgcolor2 borderright">Average</td>
+                                                        <td class="textcenter bgcolor3">Outstanding</td>
+                                                        <td class="textcenter bgcolor3">Average</td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright bgcolor4 textbold">
+                                                        <td style="width:10%" class="textleft textbold">Total Product</td>
+                                                        <td style="width:9%" />
+                                                        <td style="width:9%" class="borderright" />
+                                                        <td style="width:18%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!FABLiabilitytotal1}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:18%" class="borderright">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!FABLiabilitytotal3}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:18%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!FABLiabilitytotal2}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:18%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!FABLiabilitytotal4}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                    </tr>
+
+                                                </table>
+
+                                                <!-- apex:variable value="{!0}" var="cnt"/ -->
+                                                <apex:repeat value="{!ProductInfoFundingBorrowingLiability}" var="a">
+                                                    <apex:variable value="{!cnt+1}" var="cnt" />
+                                                    <table style="border-collapse:collapse;width:1290px" class="textright">
+                                                        <tr class="borderleft borderright bgcolor5">
+                                                            <td style="width:10%" class="textleft">
+                                                                <span style="cursor:pointer" onclick="show('{!cnt}')">{!a.header}</span>
+                                                            </td>
+                                                            <td style="width:9%" />
+                                                            <td style="width:9%" class="borderright" />
+                                                            <td style="width:18%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum1}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:18%" class="borderright">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum3}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:18%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum2}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:18%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum4}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                    <table style="border-collapse:collapse;display:none;width:1290px" id="{!cnt}" class="textright">
+                                                        <apex:variable value="{!1}" var="rowNum" />
+                                                        <apex:repeat value="{!a.content}" var="b">
+                                                            <tr class="borderleft borderright" style="{!if(rowNum <= 30,'','display: none;')}">
+                                                                <td style="width:10%" class="textleft">
+                                                                    <apex:outputText value="{!b.TMB_Account_ID__c}" escape="false" />
+                                                                </td>
+                                                                <td style="width:9%" class="textcenter">{!b.TMB_Suffix__c}</td>
+                                                                <td style="width:9%" class="borderright textcenter">{!b.TMB_Ref__c}</td>
+                                                                <td style="width:18%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:18%" class="borderright">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:18%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Ending_OS_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:18%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Average_OS_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                            </tr>
+                                                            <tr class="borderleft borderright" style="{!if(rowNum <= 30,'','display: none;')}">
+                                                                <td colspan="3" class="borderright">&nbsp;</td>
+                                                                <td colspan="2" class="borderright"></td>
+                                                                <td colspan="2"></td>
+                                                            </tr>
+                                                            <apex:variable value="{!rowNum+1}" var="rowNum" />
+                                                        </apex:repeat>
+                                                        <tr class="borderleft borderright borderbottom" style="{!if(rowNum > 30,'','display: none;')}">
+                                                            <td colspan="7" style="text-align:left;">
+                                                                <a class="link" href="/{!PerfFundingReportLiabilityId}?pv1={!Left(acct.ID,15)}&pv2={!a.header}" target="_blank">More >></a>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </apex:repeat>
+
+                                                <table style="border-collapse:collapse;width:1290px" id="last">
+                                                    <tr class="bordertop">
+                                                        <td></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table>
+                                        <tr>
+                                            <td>
+                                                <table style="border-collapse:collapse;" class="textright">
+                                                    <tr class="bordertop borderright borderleft textcenter">
+                                                        <th rowspan="2" class="borderright bgcolor1">Fee</th>
+                                                        <th colspan="3" class="borderright textcenter bgcolor2">YTD</th>
+                                                        <th colspan="3" class="textcenter bgcolor3">MTD</th>
+                                                    </tr>
+                                                    <tr class="borderright borderbottom borderleft">
+                                                        <td class="textcenter bgcolor2">Volume</td>
+                                                        <td class="textcenter bgcolor2">Fee</td>
+                                                        <td class="borderright textcenter bgcolor2">Margin</td>
+                                                        <td class="textcenter bgcolor3">Volume</td>
+                                                        <td class="textcenter bgcolor3">Fee</td>
+                                                        <td class="textcenter bgcolor3">Margin</td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright bgcolor4 textbold">
+                                                        <td style="width:132px" class="borderright textleft textbold">Fee Income</td>
+                                                        <td style="width:132px"></td>
+                                                        <td style="width:132px">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.CREDIT_FEE_YTD__c + ProductTransRisk.IB_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:132px" class="borderright"></td>
+                                                        <td style="width:132px"></td>
+                                                        <td style="width:132px">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.CREDIT_FEE_MTD__c + ProductTransRisk.IB_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:132px"></td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright">
+                                                        <td class="borderright bgcolor1 textleft">Credit Fee</td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.CREDIT_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td class="borderright"></td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.CREDIT_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td></td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright">
+                                                        <td class="borderright bgcolor1 textleft">IB Fee</td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.IB_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td class="borderright"></td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.IB_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td></td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright">
+                                                        <td class="borderright bgcolor1 textleft">Other Fee</td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.OTHER_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td class="borderright"></td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.OTHER_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td></td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright borderbottom">
+                                                        <td class="borderright bgcolor1 textleft">Front End Fee</td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.FRONT_END_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td class="borderright"></td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.FRONT_END_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>
+                                    <table>
+                                        <tr>
+                                            <td class="textbold fontsize2">Risk Protection</td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <table style="border-collapse:collapse;" class="textright">
+                                                    <tr class="bordertop borderright borderleft textcenter">
+                                                        <th rowspan="2" class="borderright bgcolor1">Fee</th>
+                                                        <th colspan="3" class="borderright textcenter bgcolor2">YTD</th>
+                                                        <th colspan="3" class="textcenter bgcolor3">MTD</th>
+                                                    </tr>
+                                                    <tr class="borderright borderbottom borderleft">
+                                                        <td class="textcenter bgcolor2">Volume</td>
+                                                        <td class="textcenter bgcolor2">Fee</td>
+                                                        <td class="borderright textcenter bgcolor2">Margin</td>
+                                                        <td class="textcenter bgcolor3">Volume</td>
+                                                        <td class="textcenter bgcolor3">Fee</td>
+                                                        <td class="textcenter bgcolor3">Margin</td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright bgcolor4 textbold">
+                                                        <td style="width:132px" class="borderright textleft textbold">Fee Income</td>
+                                                        <td style="width:132px"></td>
+                                                        <td style="width:132px">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.FX_FEE_YTD__c + ProductTransRisk.BA_FEE_YTD__c
+                                        + ProductTransRisk.DERIVATIVES_FEE_YTD__c + ProductTransRisk.LG_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:132px" class="borderright"></td>
+                                                        <td style="width:132px"></td>
+                                                        <td style="width:132px">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.FX_FEE_MTD__c + ProductTransRisk.BA_FEE_MTD__c
+                                        + ProductTransRisk.DERIVATIVES_FEE_MTD__c + ProductTransRisk.LG_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:132px"></td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright">
+                                                        <td class="borderright bgcolor1 textleft">FX</td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.FX_VOL_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.FX_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td class="borderright">
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!if((ProductTransRisk.FX_FEE_YTD__c > 0 && ProductTransRisk.FX_VOL_YTD__c > 0),(ProductTransRisk.FX_FEE_YTD__c/ProductTransRisk.FX_VOL_YTD__c),0) * 100}"
+                                                                />
+                                                            </apex:outputText>
+                                                            <apex:outputPanel rendered="{!if((ProductTransRisk.FX_FEE_YTD__c > 0 && ProductTransRisk.FX_VOL_YTD__c > 0),if(!isnull(ProductTransRisk.FX_FEE_YTD__c/ProductTransRisk.FX_VOL_YTD__c),true,false),false)}">%</apex:outputPanel>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.FX_VOL_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.FX_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0.00}">
+                                                                <apex:param value="{!if((ProductTransRisk.FX_FEE_MTD__c > 0 && ProductTransRisk.FX_VOL_MTD__c > 0),(ProductTransRisk.FX_FEE_MTD__c/ProductTransRisk.FX_VOL_MTD__c),0) * 100}"
+                                                                />
+                                                            </apex:outputText>
+                                                            <apex:outputPanel rendered="{!if((ProductTransRisk.FX_FEE_MTD__c > 0 && ProductTransRisk.FX_VOL_MTD__c > 0),if(!isnull(ProductTransRisk.FX_FEE_MTD__c/ProductTransRisk.FX_VOL_MTD__c),true,false),false)}">%</apex:outputPanel>
+                                                        </td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright">
+                                                        <td class="borderright bgcolor1 textleft">BA</td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.BA_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td class="borderright"></td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.BA_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td></td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright">
+                                                        <td class="borderright bgcolor1 textleft">DERIVATIVES</td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.DERIVATIVES_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td class="borderright"></td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.DERIVATIVES_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td></td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright">
+                                                        <td class="borderright bgcolor1 textleft">LG</td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.LG_FEE_YTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td class="borderright"></td>
+                                                        <td></td>
+                                                        <td>
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ProductTransRisk.LG_FEE_MTD__c}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td></td>
+                                                    </tr>
+                                                    <tr class="borderleft borderbottom borderright">
+                                                        <td class="borderright bgcolor1">&nbsp;</td>
+                                                        <td colspan="3" class="borderright"></td>
+                                                        <td colspan="3"></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                <table style="border-collapse:collapse;width:1290px" class="textright">
+                                                    <tr class="bordertop borderright borderleft textcenter">
+                                                        <th colspan="3" class="borderright bgcolor1">Product : Loan</th>
+                                                        <th colspan="4" class="borderright textcenter bgcolor2">YTD</th>
+                                                        <th colspan="4" class="textcenter bgcolor3">MTD</th>
+                                                    </tr>
+                                                    <tr class="borderright borderbottom borderleft">
+                                                        <td class="textcenter bgcolor1">TMB Account ID</td>
+                                                        <td class="textcenter bgcolor1">TMB Suffix</td>
+                                                        <td class="textcenter borderright bgcolor1">TMB Ref</td>
+                                                        <td class="textcenter bgcolor2">Outstanding</td>
+                                                        <td class="textcenter bgcolor2">Average</td>
+                                                        <td class="textcenter bgcolor2">NIMc</td>
+                                                        <td class="borderright textcenter bgcolor2">NIIc</td>
+                                                        <td class="textcenter bgcolor3">Outstanding</td>
+                                                        <td class="textcenter bgcolor3">Average</td>
+                                                        <td class="textcenter bgcolor3">NIMc</td>
+                                                        <td class="textcenter bgcolor3">NIIc</td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright bgcolor4 textbold">
+                                                        <td style="width:10%" class="textleft textbold">Total Product</td>
+                                                        <td style="width:9%" />
+                                                        <td style="width:9%" class="borderright" />
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!RPLoantotal1}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!RPLoantotal3}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                        </td>
+                                                        <td style="width:9%" class="borderright">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!RPLoantotal7}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!RPLoantotal2}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!RPLoantotal4}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:9%">
+                                                        </td>
+                                                        <td style="width:9%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!RPLoantotal8}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                    </tr>
+
+                                                </table>
+
+                                                <!-- apex:variable value="{!0}" var="cnt"/ -->
+                                                <apex:repeat value="{!ProductInfoRiskProtectionLoan}" var="a">
+                                                    <apex:variable value="{!cnt+1}" var="cnt" />
+                                                    <table style="border-collapse:collapse;width:1290px" class="textright">
+                                                        <tr class="borderleft borderright bgcolor5">
+                                                            <td style="width:20%" class="textleft">
+                                                                <span style="cursor:pointer" onclick="show('{!cnt}')">{!a.header}</span>
+                                                            </td>
+                                                            <td style="width:9%" />
+                                                            <td style="width:9%" class="borderright" />
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum1}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum3}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0.00}">
+                                                                    <apex:param value="{!a.sum5}" />
+                                                                </apex:outputText>
+                                                                <apex:outputPanel rendered="{!if(!isnull(a.sum5),true,false)}">%</apex:outputPanel>
+                                                            </td>
+                                                            <td style="width:9%" class="borderright">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum7}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum2}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum4}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0.00}">
+                                                                    <apex:param value="{!a.sum6}" />
+                                                                </apex:outputText>
+                                                                <apex:outputPanel rendered="{!if(!isnull(a.sum6),true,false)}">%</apex:outputPanel>
+                                                            </td>
+                                                            <td style="width:9%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum8}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                    <table style="border-collapse:collapse;display:none;width:1290px" id="{!cnt}" class="textright">
+                                                        <apex:variable value="{!1}" var="rowNum" />
+                                                        <apex:repeat value="{!a.content}" var="b">
+                                                            <tr class="borderleft borderright" style="{!if(rowNum <= 30,'','display: none;')}">
+                                                                <td style="width:10%" class="textleft">
+                                                                    <apex:outputText value="{!b.TMB_Account_ID__c}" escape="false" />
+                                                                </td>
+                                                                <td style="width:9%" class="textcenter">{!b.TMB_Suffix__c}</td>
+                                                                <td style="width:9%" class="borderright textcenter">{!b.TMB_Ref__c}</td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0.00}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%" class="borderright">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Ending_OS_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Average_OS_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0.00}">
+                                                                        <apex:param value="{!b.NIMC_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                    <apex:outputPanel rendered="{!if(!isnull(b.NIMC_MTD__c),true,false)}">%</apex:outputPanel>
+                                                                </td>
+                                                                <td style="width:9%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.NIIC_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                            </tr>
+                                                            <tr class="borderleft borderright" style="{!if(rowNum <= 30,'','display: none;')}">
+                                                                <td colspan="3" class="borderright">&nbsp;</td>
+                                                                <td colspan="4" class="borderright"></td>
+                                                                <td colspan="4"></td>
+                                                            </tr>
+                                                            <apex:variable value="{!rowNum+1}" var="rowNum" />
+                                                        </apex:repeat>
+                                                        <tr class="borderleft borderright borderbottom" style="{!if(rowNum > 30,'','display: none;')}">
+                                                            <td colspan="11" style="text-align:left;">
+                                                                <a class="link" href="/{!PerfRiskReportLoanId}?pv1={!Left(acct.ID,15)}&pv2={!a.header}" target="_blank">More >></a>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </apex:repeat>
+
+                                                <table style="border-collapse:collapse;width:1290px" id="last">
+                                                    <tr class="bordertop">
+                                                        <td></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>
+                                                <table style="border-collapse:collapse;width:1290px" class="textright">
+                                                    <tr class="bordertop borderright borderleft textcenter">
+                                                        <th colspan="3" class="borderright bgcolor1">Product : Liabilities</th>
+                                                        <th colspan="2" class="borderright textcenter bgcolor2">YTD</th>
+                                                        <th colspan="2" class="textcenter bgcolor3">MTD</th>
+                                                    </tr>
+                                                    <tr class="borderright borderbottom borderleft">
+                                                        <td class="textcenter bgcolor1">TMB Account ID</td>
+                                                        <td class="textcenter bgcolor1">TMB Suffix</td>
+                                                        <td class="textcenter borderright bgcolor1">TMB Ref</td>
+                                                        <td class="textcenter bgcolor2">Outstanding</td>
+                                                        <td class="textcenter bgcolor2 borderright">Average</td>
+                                                        <td class="textcenter bgcolor3">Outstanding</td>
+                                                        <td class="textcenter bgcolor3">Average</td>
+                                                    </tr>
+                                                    <tr class="borderleft borderright bgcolor4 textbold">
+                                                        <td style="width:10%" class="textleft textbold">Total Product</td>
+                                                        <td style="width:9%" />
+                                                        <td style="width:9%" class="borderright" />
+                                                        <td style="width:18%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!RPLiabilitytotal1}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:18%" class="borderright">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!RPLiabilitytotal3}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:18%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!RPLiabilitytotal2}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                        <td style="width:18%">
+                                                            <apex:outputText value="{0, number, ###,##0}">
+                                                                <apex:param value="{!RPLiabilitytotal4}" />
+                                                            </apex:outputText>
+                                                        </td>
+                                                    </tr>
+
+                                                </table>
+
+                                                <!-- apex:variable value="{!0}" var="cnt"/ -->
+                                                <apex:repeat value="{!ProductInfoRiskProtectionLiability}" var="a">
+                                                    <apex:variable value="{!cnt+1}" var="cnt" />
+                                                    <table style="border-collapse:collapse;width:1290px" class="textright">
+                                                        <tr class="borderleft borderright bgcolor5">
+                                                            <td style="width:10%" class="textleft">
+                                                                <span style="cursor:pointer" onclick="show('{!cnt}')">{!a.header}</span>
+                                                            </td>
+                                                            <td style="width:9%" />
+                                                            <td style="width:9%" class="borderright" />
+                                                            <td style="width:18%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum1}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:18%" class="borderright">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum3}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:18%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum2}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                            <td style="width:18%">
+                                                                <apex:outputText value="{0, number, ###,##0}">
+                                                                    <apex:param value="{!a.sum4}" />
+                                                                </apex:outputText>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                    <table style="border-collapse:collapse;display:none;width:1290px" id="{!cnt}" class="textright">
+                                                        <apex:variable value="{!1}" var="rowNum" />
+                                                        <apex:repeat value="{!a.content}" var="b">
+                                                            <tr class="borderleft borderright" style="{!if(rowNum <= 30,'','display: none;')}">
+                                                                <td style="width:10%" class="textleft">
+                                                                    <apex:outputText value="{!b.TMB_Account_ID__c}" escape="false" />
+                                                                </td>
+                                                                <td style="width:9%" class="textcenter">{!b.TMB_Suffix__c}</td>
+                                                                <td style="width:9%" class="borderright textcenter">{!b.TMB_Ref__c}</td>
+                                                                <td style="width:18%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:18%" class="borderright">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:18%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Ending_OS_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                                <td style="width:18%">
+                                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!b.Average_OS_MTD__c}" />
+                                                                    </apex:outputText>
+                                                                </td>
+                                                            </tr>
+                                                            <tr class="borderleft borderright" style="{!if(rowNum <= 30,'','display: none;')}">
+                                                                <td colspan="3" class="borderright">&nbsp;</td>
+                                                                <td colspan="2" class="borderright"></td>
+                                                                <td colspan="2"></td>
+                                                            </tr>
+                                                            <apex:variable value="{!rowNum+1}" var="rowNum" />
+                                                        </apex:repeat>
+                                                        <tr class="borderleft borderright borderbottom" style="{!if(rowNum > 30,'','display: none;')}">
+                                                            <td colspan="7" style="text-align:left;">
+                                                                <a class="link" href="/{!PerfRiskReportLiabilityId}?pv1={!Left(acct.ID,15)}&pv2={!a.header}" target="_blank">More >></a>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </apex:repeat>
+
+                                                <table style="border-collapse:collapse;width:1290px" id="last">
+                                                    <tr class="bordertop">
+                                                        <td></td>
+                                                    </tr>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </td>
+                            </tr>
+                        </table>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+            
+        </apex:outputPanel>
+    </apex:outputPanel>
+
+    <apex:outputPanel rendered="{!if(DataExist=='false','true','false')}">
+        <table width="800px">
+            <tr>
+                <td colspan="2" style="height:20px"></td>
+            </tr>
+            <tr>
+                <td style="width:50px"></td>
+                <td style="font-size:14px">{!errorMsg}</td>
+            </tr>
+        </table>
+    </apex:outputPanel>
+    </div>
+    </apex:form>
+    <script>
+        loadPerformanceData();
+        function closetab() {
+            var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+            var theme = '{!$User.UIThemeDisplayed}';
+            // console.log(theme);
+            if (theme == 'Theme4u') {
+                refreshTab();
+            }else{
+                sforce.one.navigateToSObject('{!acct.Id}' );
+            }
+            
+        }
+
+        function refreshTab() {
+            sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                "componentDef": "c:workspaceAPIforVF",
+                "attributes": {
+                    "action": 'closeAndRefresh',
+                    "recordId": '{!acct.Id}',
+                    "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    }),
+                }
+            })), true);
+        }
+    </script>
+</apex:page>

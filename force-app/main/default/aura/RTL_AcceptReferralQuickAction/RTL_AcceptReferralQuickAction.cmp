@@ -1,0 +1,44 @@
+<aura:component controller="RTL_ReferralChangeOwner"
+    implements="lightning:actionOverride,force:lightningQuickActionWithoutHeader,force:hasRecordId,lightning:isUrlAddressable" access="global">
+    <aura:html tag="style">
+        .modal-container.slds-modal__container{
+        background: transparent;
+        box-shadow: none !important;
+        }
+        .modal-container.slds-modal__container .modal-header.slds-modal__header{
+        display:none;
+        }
+        .modal-container.slds-modal__container .modal-body{
+        background: transparent;
+        box-shadow: none !important;;
+        }
+        .modal-container.slds-modal__container .modal-footer.slds-modal__footer{
+        display:none;
+        }
+        .slds-button.slds-modal__close{
+        display:none;
+        }
+    </aura:html>
+    <lightning:workspaceAPI aura:id="workspace" />
+    <!-- 
+        For check condition don't remove this
+     -->
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler name="change" value="{!v.referralObj}" action="{!c.referralHandler}" />
+    <aura:handler name="change" value="{!v.userObj}" action="{!c.userHandler}" />
+    <aura:attribute name="isOnce" type="Boolean" default="true" />
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="referralObj" type="Object" />
+    <force:recordData recordId="{!v.recordId}" fields="Name,OwnerId,RTL_RecordType_Name__c" targetFields="{!v.referralObj}" />
+    <aura:attribute name="userId" type="Id" default="{! $SObjectType.CurrentUser.Id }" />
+    <aura:attribute name="userObj" type="Object" />
+    <force:recordData aura:id="userRecordData" recordId="{!v.userId}"
+        fields="RTL_License_No_Paper_1__c,RTL_Expiry_Date_Paper_1__c,RTL_License_No_Complex_P2__c,RTL_Expiry_Date_Complex_P2__c" targetFields="{!v.userObj}" />
+
+
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+    <aura:if isTrue="{! v.isLoading }">
+        <lightning:spinner style="background-color: unset;" alternativeText="Loading" size="medium" variant="inverse" />
+    </aura:if>
+</aura:component>

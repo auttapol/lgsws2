@@ -1,0 +1,389 @@
+<aura:component controller="EditCustomerController" implements="lightning:isUrlAddressable,force:hasRecordId,force:appHostable" access="global">
+    <lightning:workspaceAPI aura:id="workspace" />
+    <lightning:navigation aura:id="navService" />
+    <aura:registerEvent name="RetailCSVEvent" type="c:RetailCSV_Event" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="theme" type="String" default="{!$Browser.formFactor == 'PHONE' ? 'Theme4t' : 'Theme4u'}" />
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="recordTypeId" type="Id" />
+
+    <aura:attribute name="userId" type="Id" default="{! $SObjectType.CurrentUser.Id }" access="private" />
+    <aura:attribute name="account" type="Object" />
+    <force:recordData aura:id="recordLoader" recordId="{!v.recordId}" fields="Name" targetFields="{!v.account}" />
+
+    <aura:attribute name="hiddenText" type="String" default="{! $Label.c.Data_Condition_Hidden_Text }"
+        access="private" />
+    <aura:attribute name="profileName" type="String" default="" access="private" />
+    <aura:handler name="change" value="{!v.profileName}" action="{!c.handleProfileName}" />
+
+    <aura:attribute name="fields" type="Map" default="{}" access="private" />
+    <aura:attribute name="fieldsPartition" type="Map" default="{}" access="private" />
+    <aura:attribute name="dataPartition" type="Map" default="{}" access="private" />
+    <aura:attribute name="fieldUpdate" type="Map" default="{}" access="private" />
+    <aura:attribute name="isModify" type="Boolean" default="true" access="private" />
+    <aura:attribute name="isSubmit" type="Boolean" default="false" access="private" />
+    <aura:attribute name="isError" type="Boolean" default="false" access="private" />
+    <aura:attribute name="errorDetail" type="String" default="" access="private" />
+    <aura:attribute name="errorMessage" type="String" default="" access="private" />
+
+    <aura:attribute name="IncomeData" type="Object" />
+    <aura:attribute name="IncomeColumn" type="List" />
+
+    <aura:attribute name="ExpenseData" type="Object" />
+    <aura:attribute name="ExpenseColumn" type="List" />
+
+    <!-- <aura:handler event="c:RetailCSV_Event" action="{!c.handleRefreshfield}" /> -->
+    
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" access="private" />
+    <aura:attribute name="activeSections" type="List"
+        default="['OccupationSection', 'IncomeSection', 'ExpenseSection', 'A','B','C','D']" access="private" />
+    <aura:attribute name="deviceSize" type="Map" default="{
+        'size': '12',
+        'smallDeviceSize': '6',
+        'mediumDeviceSize': '6',
+        'largeDeviceSize': '6',
+    }" access="private" />
+
+    <!-- <aura:handler name="change2" value="{!v.pageReference}" action="{!c.onPageReferenceChange}"/> -->
+
+    <aura:attribute name="incomeCatOption" type="List" default="[]" />
+    <aura:attribute name="incomeAmountOption" type="List" default="[]" />
+    <aura:attribute name="expenseCatOption" type="List" default="[]" />
+    <aura:attribute name="expenseAmountOption" type="List" default="[]" />
+    <aura:attribute name="frequencyOption" type="List" default="[]" />
+
+    <ui:scrollerWrapper class="{! v.theme == 'Theme4t' ? 'container' : 'slds-is-relative slds-m-bottom_small'}">
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:account" alternativeText="{!$Label.c.Account_Edit}" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 class="slds-text-heading_label">
+                        {!$Label.c.Account_Edit}
+                    </h1>
+                    <h2 class="slds-text-heading_medium">
+                        {!v.account.Name}
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+
+        <lightning:recordEditForm aura:id="recordEditForm" density="compact" 
+            onsubmit="{!c.onSubmit}" onerror="{!c.onError}" objectApiName="Account"
+            recordId="{! v.recordId }" >
+
+            <lightning:card>
+                <aura:set attribute="title">
+                    {!$Label.c.Customer_Edit}   
+                </aura:set>
+                <aura:set attribute="actions">
+                    <aura:if isTrue="{! and(v.isSubmit, v.isModify) }">
+                        <lightning:button label="{!$Label.c.Save}" variant="brand" type="submit" />
+                    </aura:if>
+                    <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.onClose}" />
+                </aura:set>
+                <aura:set attribute="footer">
+                    <aura:if isTrue="{! and(v.isSubmit, v.isModify) }">
+                        <lightning:button label="{!$Label.c.Save}" variant="brand" type="submit" />
+                    </aura:if>
+                    <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.onClose}" />
+                </aura:set>
+
+                <aura:if isTrue="{! v.showSpinnerLoading }">
+                    <lightning:spinner alternativeText="Loading" size="medium" />
+                </aura:if>
+                <aura:if isTrue="{! v.isError }">
+                    <div class="slds-align_absolute-center">
+                        <div class="slds-scoped-notification slds-media slds-media_center slds-theme_error"
+                            role="status">
+                            <div class="slds-media__figure">
+                                <span class="slds-icon_container slds-icon-utility-error" title="error">
+                                    <lightning:icon iconName="utility:error" />
+                                </span>
+                            </div>
+                            <div class="slds-media__body">
+                                <div class="slds-text-heading_small">{!v.errorMessage}</div>
+                                <aura:if isTrue="{!v.errorDetail}">
+                                    <lightning:formattedText value="{!v.errorDetail}" />
+                                </aura:if>
+                            </div>
+                        </div>
+                    </div>
+                </aura:if>
+                <!-- <lightning:messages /> -->
+
+                <lightning:accordion aura:id="accordion" allowMultipleSectionsOpen="true"
+                    onsectiontoggle="{! c.handleSectionToggle }" activeSectionName="{! v.activeSections }">
+
+                    <lightning:accordionSection name="SpecialPrefAndRelationshipLevel" label="ความต้องการพิเศษ/ระดับความสัมพันธ์">
+                        <!-- class="slds-section__title slds-theme_shade" -->
+                        <lightning:layout verticalAlign="stretch" multipleRows="true">
+                            <aura:iteration items="{!v.fieldsPartition.SpecialPrefAndRelationshipLevel}" var="field"
+                                indexVar="index">
+                                <lightning:layoutItem padding="horizontal-small" size="{!v.deviceSize.size}"
+                                    smallDeviceSize="{!v.deviceSize.smallDeviceSize}"
+                                    mediumDeviceSize="{!v.deviceSize.mediumDeviceSize}"
+                                    largeDeviceSize="{!v.deviceSize.largeDeviceSize}">
+                                    <aura:renderIf isTrue="{!v.dataPartition.SpecialPrefAndRelationshipLevel.isRerender}">
+
+                                        <lightning:inputField aura:id="SpecialPrefAndRelationshipLevel"
+                                            fieldName="{!field.name}" />
+                                        <aura:set attribute="else">
+                                            <lightning:input variant="label-inline" label="{!field.label}"
+                                                value="{!field.value}" readonly="true" />
+                                        </aura:set>
+
+                                    </aura:renderIf>
+                                </lightning:layoutItem>
+                            </aura:iteration>
+                        </lightning:layout>
+                    </lightning:accordionSection>
+                
+                    <lightning:accordionSection name="OccupationSection" label="อาชีพ">
+                        <!-- class="slds-section__title slds-theme_shade" -->
+                        <aura:renderIf isTrue="{!v.dataPartition.Occupation.isRerender}">
+                            <lightning:layout verticalAlign="stretch" multipleRows="true">
+
+                                <aura:iteration items="{!v.fieldsPartition.Occupation}" var="field" indexVar="index">
+                               
+                                    <lightning:layoutItem padding="horizontal-small" size="{!v.deviceSize.size}"  class="Personalized_Information"
+                                    smallDeviceSize="{!v.deviceSize.size}"
+                                    mediumDeviceSize="{!v.deviceSize.size}"
+                                    largeDeviceSize="{!v.deviceSize.size}">
+
+                                        <lightning:inputField fieldName="{!field.name}" />
+
+
+                                    </lightning:layoutItem>
+                              
+                                </aura:iteration>
+                            </lightning:layout>
+                        </aura:renderIf>
+                    </lightning:accordionSection>
+
+
+                    <lightning:accordionSection name="IncomeSection" label="รายรับ">
+                        <!-- class="slds-section__title slds-theme_shade" -->
+
+
+                        <aura:renderIf isTrue="{!v.dataPartition.Sales_Support_Information.isRerender}">
+                            <div style="padding-left: 2%; padding-right:2%;">
+                                <div class="slds-grid slds-gutters">
+                                    <div class="slds-col">
+                                        <lightning:combobox  label="หมวดหมู่" placeholder="Select"
+                                            required="true" aura:id="IncomeCat" value=''
+                                            options="{! v.incomeCatOption }" />
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning:combobox label="ความถี่" placeholder="Select"
+                                            required="true" aura:id="IncomeFreq" value=''
+                                            options="{! v.frequencyOption }" />
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning:combobox  label="ยอดรายรับต่อปี" placeholder="Select"
+                                            required="true" aura:id="IncomeAmount" value=''
+                                            options="{! v.incomeAmountOption }" />
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning:input name="input1" label="หมายเหตุ" aura:id="IncomeRemark" />
+                                    </div>
+                                    <div class="slds-col" style="text-align: center">
+                                        <div style="position: relative;bottom: -20px;">
+                                            <lightning:buttonIcon iconName="utility:add" variant="brand"
+                                                onclick="{!c.addIncome}" alternativeText="Settings" title="Settings" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+
+                            <div style="height: 200px; margin-left: 2%; margin-right: 2%">
+                                <lightning:datatable keyField="Id" data="{! v.IncomeData }"
+                                    columns="{! v.IncomeColumn }" onrowaction="{! c.rowActionIncome }"
+                                    hideCheckboxColumn="true" />
+                            </div>
+
+
+
+                        </aura:renderIf>
+
+
+
+                    </lightning:accordionSection>
+
+                    <lightning:accordionSection name="ExpenseSection" label="รายจ่าย">
+                        <!-- class="slds-section__title slds-theme_shade" -->
+                        <!-- <lightning:layout verticalAlign="stretch" multipleRows="true"> -->
+                        <!-- <aura:iteration items="{!v.fieldsPartition.Sales_Support_Information}" var="field"
+                                indexVar="index"> -->
+                        <!-- <lightning:layoutItem padding="around-small" flexibility="auto" size="{!v.deviceSize.size}"
+                                    smallDeviceSize="{!v.deviceSize.smallDeviceSize}"
+                                    mediumDeviceSize="{!v.deviceSize.mediumDeviceSize}"
+                                    largeDeviceSize="{!v.deviceSize.largeDeviceSize}"> -->
+                        <aura:renderIf isTrue="{!v.dataPartition.Sales_Support_Information.isRerender}">
+                            <div style="padding-left: 2%; padding-right:2%;">
+                                <div class="slds-grid slds-gutters">
+                                    <div class="slds-col">
+                                        <lightning:combobox label="หมวดหมู่" placeholder="Select" required="true"
+                                            aura:id="ExpenseCat" value='' options="{! v.expenseCatOption }" />
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning:combobox label="ความถี่" placeholder="Select" required="true"
+                                            aura:id="ExpenseFreq" value='' options="{! v.frequencyOption }" />
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning:combobox label="ยอดรายจ่ายต่อปี" placeholder="Select" required="true"
+                                            aura:id="ExpenseAmount" value='' options="{! v.expenseAmountOption }" />
+                                    </div>
+                                    <div class="slds-col">
+                                        <lightning:input label="หมายเหตุ" aura:id="ExpenseRemark" />
+                                    </div>
+                                    <div class="slds-col" style="text-align: center">
+                                        <div style="position: relative;bottom: -20px;">
+                                            <lightning:buttonIcon iconName="utility:add" variant="brand"
+                                                onclick="{!c.addExpense}" alternativeText="Settings" title="Settings" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <br />
+                            <div style="height: 200px; margin-left: 2%; margin-right: 2%">
+                                <lightning:datatable keyField="Id" data="{! v.ExpenseData }"
+                                    columns="{! v.ExpenseColumn }" onrowaction="{! c.rowActionExpense }"
+                                    hideCheckboxColumn="true" />
+                            </div>
+
+                        </aura:renderIf>
+                        <!-- </lightning:layoutItem> -->
+                        <!-- </aura:iteration> -->
+                        <!-- </lightning:layout> -->
+                    </lightning:accordionSection>
+
+
+
+                    <lightning:accordionSection name="B" label="{!$Label.c.Personalized_Information}">
+                        <lightning:layout verticalAlign="stretch" multipleRows="true">
+                            <aura:iteration items="{!v.fieldsPartition.Personalized_Information}" var="field"
+                                indexVar="index">
+                                <lightning:layoutItem class="Personalized_Information" padding="horizontal-small"
+                                    size="{!v.deviceSize.size}" smallDeviceSize="{!v.deviceSize.size}"
+                                    mediumDeviceSize="{!v.deviceSize.size}" largeDeviceSize="{!v.deviceSize.size}">
+                                    <aura:renderIf isTrue="{!v.dataPartition.Personalized_Information.isRerender}">
+
+                                        <lightning:inputField fieldName="{!field.name}" />
+                                        <aura:set attribute="else">
+                                            <lightning:input variant="label-inline" label="{!field.label}"
+                                                value="{!field.value}" readonly="true" />
+                                        </aura:set>
+
+                                    </aura:renderIf>
+                                </lightning:layoutItem>
+                            </aura:iteration>
+                        </lightning:layout>
+                    </lightning:accordionSection>
+
+                    <lightning:accordionSection name="C" label="{!$Label.c.Contact_Number_and_Email_Address}">
+                        <lightning:layout verticalAlign="stretch" multipleRows="true">
+                            <aura:iteration items="{!v.fieldsPartition.Contact_Number_and_Email_Address}" var="field"
+                                indexVar="index">
+                                <lightning:layoutItem padding="horizontal-small" size="{!v.deviceSize.size}"
+                                    smallDeviceSize="{!v.deviceSize.smallDeviceSize}"
+                                    mediumDeviceSize="{!v.deviceSize.mediumDeviceSize}"
+                                    largeDeviceSize="{!v.deviceSize.largeDeviceSize}">
+                                    <aura:renderIf
+                                        isTrue="{!v.dataPartition.Contact_Number_and_Email_Address.isRerender}">
+
+                                        <lightning:inputField fieldName="{!field.name}" />
+                                        <aura:set attribute="else">
+                                            <lightning:input variant="label-inline" label="{!field.label}"
+                                                value="{!field.value}" readonly="true" />
+                                        </aura:set>
+
+                                    </aura:renderIf>
+                                </lightning:layoutItem>
+                            </aura:iteration>
+                        </lightning:layout>
+                    </lightning:accordionSection>
+
+                    <lightning:accordionSection name="D" label="{!$Label.c.Alternate_Contact_Information}">
+                        <lightning:layout verticalAlign="stretch" multipleRows="true">
+                            <aura:iteration items="{!v.fieldsPartition.Alternate_Contact_Information}" var="field"
+                                indexVar="index">
+                                <lightning:layoutItem padding="horizontal-small" size="{!v.deviceSize.size}"
+                                    smallDeviceSize="{!v.deviceSize.smallDeviceSize}"
+                                    mediumDeviceSize="{!v.deviceSize.mediumDeviceSize}"
+                                    largeDeviceSize="{!v.deviceSize.largeDeviceSize}">
+                                    <aura:renderIf isTrue="{!v.dataPartition.Alternate_Contact_Information.isRerender}">
+
+                                        <lightning:inputField fieldName="{!field.name}" />
+                                        <aura:set attribute="else">
+                                            <lightning:input variant="label-inline" label="{!field.label}"
+                                                value="{!field.value}" readonly="true" />
+                                        </aura:set>
+
+                                    </aura:renderIf>
+                                </lightning:layoutItem>
+                            </aura:iteration>
+                        </lightning:layout>
+                    </lightning:accordionSection>
+
+                    <lightning:accordionSection name="E" label="Visit and Event">
+                        <lightning:layout verticalAlign="stretch" multipleRows="true">
+                            <aura:iteration items="{!v.fieldsPartition.Visit_and_Event}" var="field" indexVar="index">
+
+                                <lightning:layoutItem padding="horizontal-small" size="{!v.deviceSize.size}"
+                                    smallDeviceSize="{!v.deviceSize.smallDeviceSize}"
+                                    mediumDeviceSize="{!v.deviceSize.mediumDeviceSize}"
+                                    largeDeviceSize="{!v.deviceSize.largeDeviceSize}">
+                                    <aura:renderIf isTrue="{!v.dataPartition.Visit_and_Event.isRerender}">
+
+                                        <lightning:inputField fieldName="{!field.name}" />
+                                        <aura:set attribute="else">
+                                            <lightning:input variant="label-inline" label="{!field.label}"
+                                                value="{!field.value}" readonly="true" />
+                                        </aura:set>
+
+                                    </aura:renderIf>
+                                </lightning:layoutItem>
+                            </aura:iteration>
+                        </lightning:layout>
+                    </lightning:accordionSection>
+                    <!-- <lightning:accordionSection name="A" label="{!$Label.c.Sales_Support_Information}"> -->
+                        <!-- class="slds-section__title slds-theme_shade" -->
+                        <!-- <lightning:layout verticalAlign="stretch" multipleRows="true">
+                            <aura:iteration items="{!v.fieldsPartition.Sales_Support_Information}" var="field"
+                                indexVar="index">
+                                <lightning:layoutItem padding="horizontal-small" size="{!v.deviceSize.size}"
+                                    smallDeviceSize="{!v.deviceSize.smallDeviceSize}"
+                                    mediumDeviceSize="{!v.deviceSize.mediumDeviceSize}"
+                                    largeDeviceSize="{!v.deviceSize.largeDeviceSize}">
+                                    <aura:renderIf isTrue="{!v.dataPartition.Sales_Support_Information.isRerender}">
+
+                                        <lightning:inputField aura:id="Sales_Support_Information"
+                                            fieldName="{!field.name}" />
+                                        <aura:set attribute="else">
+                                            <lightning:input variant="label-inline" label="{!field.label}"
+                                                value="{!field.value}" readonly="true" />
+                                        </aura:set>
+
+                                    </aura:renderIf>
+                                </lightning:layoutItem>
+                            </aura:iteration>
+                        </lightning:layout>
+                    </lightning:accordionSection> -->
+
+                    <!-- <lightning:accordionSection name="F" label="Visit and Event"> -->
+                    <!-- <lightning:layout verticalAlign="stretch" multipleRows="true">
+                            <aura:iteration items="{!v.fieldsPartition.Visit_and_Event}" var="field" indexVar="index">
+                                123{!field.name}<br/>
+                            </aura:iteration>
+                        </lightning:layout>F -->
+                    <!-- </lightning:accordionSection> -->
+
+                </lightning:accordion>
+            </lightning:card>
+        </lightning:recordEditForm>
+    </ui:scrollerWrapper>
+</aura:component>

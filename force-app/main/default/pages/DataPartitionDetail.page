@@ -1,0 +1,1133 @@
+<apex:page standardController="Account" showHeader="false" sidebar="false" standardstylesheets="true" extensions="AccountConsoleExtension"
+    title="{!title}" lightningStylesheets="true">
+
+    <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}" />
+    <apex:includeScript value="{!$Resource.SFScript}" />
+
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:includeScript value="/support/console/34.0/integration.js" />
+
+    <style>
+        <!-- Tooltip text -->.tooltip .tooltiptext {
+            visibility: hidden;
+            width: 120px;
+            background-color: #b5f3fe;
+            color: black;
+            text-align: center;
+            padding: 5px 0;
+            border-radius: 6px;
+            position: absolute;
+            z-index: 1;
+        }
+
+        <!-- Show the tooltip text when you mouse over the tooltip container -->.tooltip:hover .tooltiptext {
+            visibility: visible;
+        }
+    </style>
+
+    <style>
+        .navigateButton {
+           display: none;
+        }
+        .refreshContainer{
+            padding-left: 27px !important;
+        }
+        svg {
+            display: none;
+        }
+        body {
+            background: #eee;
+            overflow-x: scroll !important;
+        }
+
+        .bootstrap-sf1 {
+            padding: 20px 20px 40px 20px;
+            background-color: white;
+            max-width: 90%;
+            <!-- 670px -->border: 1px solid #ccc;
+            margin: 10px auto;
+            background: #fff;
+        }
+
+        .bootstrap-sf1 tbody td {
+            text-align: left;
+            line-height: normal;
+            font-size: 13px;
+            height: auto !important;
+        }
+
+        .bootstrap-sf1 tbody tr {}
+
+        .asOfDate {
+            font-family: "ProximaNovaSoft-Regular", Calibri, "Gill Sans", "Gill Sans MT", Candara, Segoe, "Segoe UI", Arial, sans-serif;
+            font-size: 13px;
+        }
+
+        .closebtn {
+            text-align: center;
+            margin-bottom: 20px !important;
+        }
+
+        .reportClick {
+            top: 0;
+            width: 285px;
+            height: 235px;
+            position: absolute;
+            z-index: 102;
+            background-image: url('{!$Resource.transparent}');
+        }
+
+        .activityPipelineSection {
+            height: 600px;
+        }
+
+        .activitySection {
+            font-size: 80%;
+            width: 49%;
+        }
+
+        .revenueSection {
+            font-size: 80%;
+            width: 65%;
+        }
+
+        @media (max-width: 670px) {
+            body {
+                background: #fff;
+                overflow-x: scroll !important;
+            }
+            .bootstrap-sf1 {
+                margin: 0px auto;
+                border: none;
+            }
+            .activitySection {
+                clear: both;
+                width: 100%;
+            }
+            .revenueSection {
+                width: 100%;
+            }
+        }
+
+        .warningMsg {
+            text-align: center;
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+
+    <script type="text/javascript">
+        $(document).ready(function () {
+            $('#closebutton').show();
+            if ({!isRenderWallet
+        }){
+            loadDataWallet();
+        }else if ({!isRenderRisk}) {
+            loadDataRisk();
+        }else if ({!isCollateralReport}) {
+            loadCollateralReport();
+        }else if ({!isRenderActivity}) {
+            loadPipeline();
+        }else if ({!isIncomeEstimation}) {
+            loadDataIncomeEstimation();
+        }
+        else if ({!isRenderPayroll}) {
+            loadDataPayroll();
+        }
+
+        if ({!isTransBankReport} || {!isDepInvestReport} || {!isFundBorrowReport} || {!isRiskProtectReport}) {
+            loadParam();
+        }
+        });
+    </script>
+
+
+
+    <apex:form id="frm">
+        <div class="bootstrap-sf1">
+            <div class="closebtn" id="closebutton" style="display: none">
+                <apex:commandbutton onclick="closetab();return false;" value="Close" styleClass="btn btn-default" />
+                <apex:actionFunction name="doCancel" action="{!cancel}" status="CancelStatus" />
+                <!-- <apex:commandbutton action="{!cancel}" value="Close" styleClass="btn btn-default" /> -->
+            </div>
+
+            <apex:actionFunction name="loadParam" action="{!loadParameter}" rerender="productOnhandMsg"></apex:actionFunction>
+
+            <apex:actionFunction name="loadCollateralReport" action="{!loadParameter}" rerender="MsgPanel">
+                <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Collateral" />
+            </apex:actionFunction>
+
+            <apex:actionFunction name="loadDataWallet" action="{!loadData}" rerender="customerwallet,MsgPanel">
+                <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Wallet" />
+            </apex:actionFunction>
+
+            <apex:actionFunction name="loadPipeline" action="{!loadData}" rerender="activityPipeline,MsgPanel">
+                <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Pipeline" />
+            </apex:actionFunction>
+
+            <apex:actionFunction name="loadDataRisk" action="{!loadData}" rerender="risk,MsgPanel">
+                <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Risk Information" />
+            </apex:actionFunction>
+
+            <!-- CR Income Estimation -->
+            <apex:actionFunction name="loadDataIncomeEstimation" action="{!loadData}" rerender="incomeestimation,MsgPanel">
+                <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Income Estimation" />
+            </apex:actionFunction>
+            <!-- CR Income Estimation -->
+
+            <!-- CR Payroll -->
+            <apex:actionFunction name="loadDataPayroll" action="{!loadData}" rerender="payroll,MsgPanel">
+                <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Payroll Information" />
+            </apex:actionFunction>
+            <!-- CR Payroll -->
+
+            <apex:outputPanel id="productOnhandMsg" rendered="{!isTransBankReport || isDepInvestReport || isFundBorrowReport || isRiskProtectReport}">
+                <apex:outputPanel >
+                    <Apex:pageMessages />
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:outputPanel >
+                <apex:outputPanel id="MsgPanel" rendered="{! isIncomeEstimation || isRenderWallet || isRenderActivity || isCollateralReport}">
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <Apex:pageMessages />
+                    </apex:outputPanel>
+                </apex:outputPanel>
+
+                <!-- CR Income Estimation -->
+                <apex:outputPanel id="incomeestimation" rendered="{!isIncomeEstimation}" style="clear:both;">
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <!-- <apex:include pageName="CustomerIncomeEstimation" /> -->
+                        <!-- <apex:outputPanel rendered="{!isVisible}">
+                            <apex:include pageName="CustomerIncomeEstimation" />
+                        </apex:outputPanel> -->
+                        <div style="font-weight:bold" class="alert alert-info">
+                            <span style="margin: 0 0 0 5%;">
+                                <apex:outputText value="Income Estimation"></apex:outputText>
+                            </span>
+                        </div>
+
+                        <br/>
+
+                        <table width="80%" style="border-collapse: collapse; margin: auto;" border="1">
+                            <tr style="background: rgb(206,206,208);">
+                                <td width="10%">
+                                    <center>
+                                        <b>No.</b>
+                                    </center>
+                                </td>
+                                <td width="10%">
+                                    <center>
+                                        <b>Annual Income</b>
+                                    </center>
+                                </td>
+                                <td width="35%">
+                                    <center>
+                                        <b>BOT ID</b>
+                                    </center>
+                                </td>
+                                <td width="20%">
+                                    <center>
+                                        <b>Model Type</b>
+                                    </center>
+                                </td>
+                                <td width="25%">
+                                    <center>
+                                        <b>Valid Date</b>
+                                    </center>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td colspan="5" style="background: rgb(248,229,216);">
+                                    <center>
+                                        <b>Data as of {!prev1MonthName} {!prev1year}</b>
+                                    </center>
+                                </td>
+                            </tr>
+
+                            <apex:variable value="{!0}" var="count" />
+
+                            <apex:repeat value="{!prev1Month}" var="var">
+                                <apex:variable var="count" value="{!count+ 1}" />
+                                <tr>
+                                    <td>
+                                        <center>{!count}</center>
+                                    </td>
+                                    <td>
+                                        <center>
+                                            <apex:outputText value="{0, number, ###,###,###,###,###}">
+                                                <apex:param value="{!var.AVG_Income_amount__c}" />
+                                            </apex:outputText>
+                                        </center>
+                                    </td>
+                                    <td>
+                                        <center>{!var.BOT_ID__c}</center>
+                                    </td>
+                                    <td>
+                                        <center>{!var.Model_Type__c}</center>
+                                    </td>
+                                    <td>
+                                        <center>{!var.Valida_date__c}</center>
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+
+                            <tr>
+                                <td colspan="5" style="background: rgb(248,229,216);">
+                                    <center>
+                                        <b>Data as of {!prev2MonthName} {!prev2year}</b>
+                                    </center>
+                                </td>
+                            </tr>
+
+                            <apex:variable value="{!0}" var="count" />
+
+                            <apex:repeat value="{!prev2Month}" var="var">
+                                <apex:variable var="count" value="{!count+ 1}" />
+                                <tr>
+                                    <td>
+                                        <center>{!count}</center>
+                                    </td>
+                                    <td>
+                                        <center>
+                                            <apex:outputText value="{0, number, ###,###,###,###,###}">
+                                                <apex:param value="{!var.AVG_Income_amount__c}" />
+                                            </apex:outputText>
+                                        </center>
+                                    </td>
+                                    <td>
+                                        <center>{!var.BOT_ID__c}</center>
+                                    </td>
+                                    <td>
+                                        <center>{!var.Model_Type__c}</center>
+                                    </td>
+                                    <td>
+                                        <center>{!var.Valida_date__c}</center>
+                                    </td>
+                                </tr>
+                            </apex:repeat>
+                        </table>
+
+                        <br/>
+                        <br/>
+                        <hr style="border:1px solid #e5e5e5" />
+                        <br/>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+                <!-- CR Income Estimation -->
+
+                <apex:outputPanel id="customerwallet" rendered="{!isRenderWallet}" style="clear:both;">
+                    <apex:outputPanel rendered="{!isVisible}">
+
+                        <div style="font-weight:bold" class="alert alert-info">
+                            Customer Wallet
+                        </div>
+                        <br/>
+                        <table width="100%">
+                            <tr>
+                                <td width="50%">
+                                    <center> Wallet vs Expected NI (Account Plan)
+                                        <br/>
+                                    </center>
+                                </td>
+                                <td width="50%">
+                                    <center> Wallet vs Actual NI(Core Bank)
+                                        <br/> </center>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td width="50%">
+                                    <div style="width: 320px;margin: 0 auto;" align="center">
+                                        <apex:chart height="150" width="300" data="{!PieDataAccPlan}">
+                                            <apex:legend position="right" />
+                                            <apex:axis type="Numeric" position="left" fields="Wallet,Expected_NI" grid="true" />
+                                            <apex:axis type="Category" position="bottom" fields="name" />
+                                            <apex:barSeries orientation="vertical" axis="bottom" xField="name" yField="Wallet,Expected_NI">
+                                                <apex:chartTips height="20" width="120" />
+                                            </apex:barSeries>
+                                        </apex:chart>
+                                    </div>
+                                </td>
+
+                                <td width="50%">
+                                    <div style="width: 320px;margin: 0 auto;" align="center">
+                                        <apex:chart height="150" width="300" data="{!pieData}">
+                                            <apex:legend position="right" />
+                                            <apex:axis type="Numeric" position="left" fields="Wallet,Actual_NI" grid="true" />
+                                            <apex:axis type="Category" position="bottom" fields="name" />
+                                            <apex:barSeries orientation="vertical" axis="bottom" xField="name" yField="Wallet,Actual_NI">
+                                                <apex:chartTips height="20" width="120" />
+                                            </apex:barSeries>
+                                        </apex:chart>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                        <br/>
+                        <apex:outputText value="(Unit: Baht)" />
+                        <table width="100%" style="font-size:80%; border-collapse: collapse;" border="1">
+                            <tr>
+                                <td colspan="1" rowspan="2" width="13%"></td>
+                                <td colspan="3">
+                                    <center>
+                                        <b>
+                                            <div class="tooltip">
+                                                <b>Data From Account Plan
+                                                    <b>(?)</b>
+                                                </b>
+                                                <span class="tooltiptext">As of Date from latest Approved account plan</span>
+                                            </div>
+                                            <apex:outputText value="As of {!AsOfDatefromAccPlan}" />
+                                        </b>
+                                    </center>
+                                </td>
+                                <td colspan="3">
+                                    <center>
+                                        <b>
+                                            <div class="tooltip">
+                                                <b>Data From Core Banking System
+                                                    <b>(?)</b>
+                                                </b>
+                                                <span class="tooltiptext">As of Date from Core banking , Data Cut off End of Month</span>
+                                            </div>
+                                            <apex:outputText value="As of {!AsOfDate}" />
+                                        </b>
+                                    </center>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <!--  <td width="13%"></td> -->
+                                <td width="14%">
+                                    <center>
+                                        <b>Wallet</b>
+                                    </center>
+                                </td>
+                                <td width="14%">
+                                    <center>
+                                        <b>Expected NI</b>
+                                    </center>
+                                </td>
+                                <td width="14%">
+                                    <center>
+                                        <div class="tooltip">
+                                            <b>%SoW
+                                                <b>(?)</b>
+                                            </b>
+                                            <span class="tooltiptext">Expected NI / Wallet</span>
+                                        </div>
+                                    </center>
+                                </td>
+                                <td width="15%">
+                                    <center>
+                                        <b>Wallet</b>
+                                    </center>
+                                </td>
+                                <td width="15%">
+                                    <center>
+                                        <b>Actual NI (YTD)</b>
+                                    </center>
+                                </td>
+                                <td width="15%">
+                                    <center>
+                                        <div class="tooltip">
+                                            <b>%SoW
+                                                <b>(?)</b>
+                                            </b>
+                                            <span class="tooltiptext">Actual NI (YTD)'s Run Rate / Wallet</span>
+                                        </div>
+                                    </center>
+                                </td>
+
+                            </tr>
+                            <!--  <tr><td colspan="6"><hr style="border:1px solid #e5e5e5"/></td></tr>  -->
+                            <tr>
+                                <td>
+                                    <b>NI</b>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!TotalExpNi}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!niPlan}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <!-- SoW -->
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0.00}%">
+                                            <apex:param value="{!NiSoWAccPlan}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <!-- SoW -->
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!niWallet}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!niAct}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0.00}%">
+                                            <apex:param value="{!niSow}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+
+                            </tr>
+                            <!--  <tr><td colspan="6"><hr style="border:1px solid #e5e5e5"/></td></tr> -->
+                            <tr>
+                                <td>
+                                    <b>NIIc</b>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!TotalExpNIIc}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!niicPlan}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <!-- SoW -->
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0.00}%">
+                                            <apex:param value="{!NiicSoWAccPlan}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <!-- SoW -->
+
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!niicWallet}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!niicAct}" /></apex:outputText>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0.00}%">
+                                            <apex:param value="{!niicSow}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+
+                            </tr>
+                            <!--  <tr><td colspan="6"><hr style="border:1px solid #e5e5e5"/></td></tr>  -->
+                            <tr>
+                                <td>
+                                    <b>NIId</b>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!TotalExpNIId}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!niidPlan}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <!-- SoW -->
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0.00}%">
+                                            <apex:param value="{!NiidSoWAccPlan}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <!-- SoW -->
+
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!niidWallet}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!niidAct}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0.00}%">
+                                            <apex:param value="{!niidSow}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+
+                            </tr>
+                            <!--  <tr><td colspan="6"><hr style="border:1px solid #e5e5e5"/></td></tr>  -->
+                            <tr>
+                                <td>
+                                    <b>Fee</b>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!TotalExpFee}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!feePlan}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <!-- SoW -->
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0.00}%">
+                                            <apex:param value="{!FeeSoWAccPlan}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <!-- SoW -->
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!feeWallet}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!feeAct}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0.00}%">
+                                            <apex:param value="{!feeSow}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+
+                            </tr>
+
+                            <!-- <tr><td colspan="6"><hr style="border:1px solid #e5e5e5"/></td></tr>  -->
+                            <tr>
+                                <td>
+                                    <b>Supply Chain</b>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="N/A">
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="N/A">
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="N/A">
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="N/A">
+                                        </apex:outputText>
+                                    </div>
+
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="{0, number, ###,##0}">
+                                            <apex:param value="{!supplyActual}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="N/A">
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+
+                            </tr>
+                        </table>
+
+                        <br/>
+                        <br/>
+                        <hr style="border:1px solid #e5e5e5" />
+                        <br/>
+
+                        <table>
+                            <td>
+                                <div style="font-weight:bold" class="alert alert-info">
+                                    Customer Revenue
+                                </div>
+                            </td>
+                            <td>
+                                <p style="color: #aaa;">
+                                    ( Data from Enlite System
+                                    <apex:outputText value="  as of {!AsOfDate} )" />
+                                </p>
+                            </td>
+                        </table>
+
+                        <table width="40%">
+                            <!-- class="revenueSection" style="font-size:80%; border-collapse: collapse;" -->
+                            <tr>
+                                <td width="40%">
+                                    <b>Total Revenue (Baht)</b>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="฿{0, number, ###,##0}">
+                                            <apex:param value="{!totalRevenue}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <b>Gross Profit</b>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="฿{0, number, ###,##0}">
+                                            <apex:param value="{!grossProfit}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                            </tr>
+
+                            <tr>
+                                <td>
+                                    <b>Net Profit (Baht)</b>
+                                </td>
+                                <td>
+                                    <div align="right">
+                                        <apex:outputText value="฿{0, number, ###,##0}">
+                                            <apex:param value="{!netProfit}" />
+                                        </apex:outputText>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+
+
+                <apex:outputPanel id="activityPipeline" rendered="{!isRenderActivity}">
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="activityPipelineSection">
+                            <div style="font-weight:bold" class="alert alert-info">
+                                Activity Summary / Pipeline
+                            </div>
+                            <br/>
+                            <table style="float:left;" class="activitySection">
+                                <tr>
+                                    <td style="text-align:left; font-weight: bold;">Last Activity Date</td>
+                                    <td></td>
+                                    <td style="text-align:left">
+                                        <apex:outputText value="{0, Date, dd/MM/yyyy}">
+                                            <apex:param value="{!activityDate}" />
+                                        </apex:outputText>
+                                    </td>
+
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <hr style="border:1px solid #e5e5e5" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left; font-weight: bold;">Last Visit Date</td>
+                                    <td width="20px"></td>
+                                    <td style="text-align:left">
+                                        <apex:outputText value="{0, Date, dd/MM/yyyy}">
+                                            <apex:param value="{!LastVisitDate}" />
+                                        </apex:outputText>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <hr style="border:1px solid #e5e5e5" />
+                                    </td>
+                                </tr>
+                            </table>
+                            <table style="float:right;" class="activitySection">
+
+                                <tr>
+                                    <td style="text-align:left; font-weight: bold;">Open Tasks</td>
+                                    <td width="20px"></td>
+                                    <td style="text-align:left">{!SumOpenTask}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <hr style="border:1px solid #e5e5e5" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left; font-weight: bold;">Open Visit Plan</td>
+                                    <td></td>
+                                    <td style="text-align:left">{!SumOpenVisit}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <hr style="border:1px solid #e5e5e5" />
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="text-align:left; font-weight: bold;">Open Opportunity</td>
+                                    <td></td>
+                                    <td style="text-align:left">{!SumOpenOpt}</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3">
+                                        <hr style="border:1px solid #e5e5e5" />
+                                    </td>
+                                </tr>
+
+                            </table>
+
+                            <div style="clear:both; float:left; margin:25px 30px 15px 0px; position: relative;">
+                                <font style="font-weight:bold;" class="alert alert-warning">Credit Pipeline</font>
+                                <analytics:reportChart reportId="{!CreditPipeReportId}" filter="[{column:'ACCOUNT_ID', operator:'equals', value:'{!acct.id}'}]"
+                                    size="tiny" rendered="{!IF(CreditPipeReportId != null , true , false)}" />
+                                <div onclick="reportclickCreditPipeline();return false;" class="reportClick"></div>
+                            </div>
+                            <div style="float:left; margin:25px 0px 15px 0px;position: relative;">
+                                <font style="font-weight:bold;" class="alert alert-warning">Non-Credit Pipeline.</font>
+                                <analytics:reportChart reportId="{!NonCreditPipeReportId}" filter="[{column:'ACCOUNT_ID', operator:'equals', value:'{!acct.id}'}]"
+                                    size="tiny" rendered="{!IF(NonCreditPipeReportId != null , true , false)}" />
+                                <div onclick="reportclickNonCreditPipeline();return false;" class="reportClick"></div>
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+
+                <apex:outputPanel id="risk" rendered="{!isRenderRisk}">
+                    <apex:pageBlock mode="maindetail" rendered="{!isVisible}">
+                        <apex:PageBlockSection columns="2" title="Risk Information" id="theSection">
+                            <apex:outputField value="{!Account.High_Risk_Flag__c }" />
+                            <apex:outputField value="{!Account.Last_Annual_Review_Date__c }" />
+                            <apex:outputField value="{!Account.EL_CL__c }" />
+                            <apex:outputField value="{!Account.Next_Annual_Review_Date__c }" />
+                            <apex:outputField value="{!Account.SCF_Score__c }" />
+                            <apex:outputField value="{!Account.Automate_Flag__c }" />
+                            <apex:outputField value="{!Account.QRS__c}" />
+                            <apex:outputField value="{!Account.Automate_Result__c }" />
+                            <apex:outputField value="{!Account.QRS_Date__c }" />
+                            <apex:outputField value="{!Account.Early_Warning_Flag__c }" />
+                            <apex:outputField value="{!Account.Loan_Classification__c }" />
+                            <apex:outputField value="{!Account.NAMBRL__c }" />
+                            <apex:outputField value="{!Account.Warning_Code__c }" />
+                            <apex:outputField value="{!Account.DPD__c }" />
+                            <apex:outputField value="{!Account.CSI_Waring_Message__c }" />
+                            <apex:outputField value="{!Account.Average_Utilization_and_Swing_over_6_mon__c }" />
+                            <!-- CR T-Score Estimation -->
+                            <apex:outputText value="" />
+                            <apex:outputField value="{!Account.T_Score__c}" label="T-score for deposit customer" />
+                            <!-- CR T-Score Estimation -->
+                        </apex:PageBlockSection>
+                    </apex:pageBlock>
+
+                    <apex:pageBlock mode="maindetail" rendered="{!!isVisible}">
+                        <apex:PageBlockSection columns="2" title="Risk Information">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.High_Risk_Flag__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.Last_Annual_Review_Date__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.EL_CL__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.Next_Annual_Review_Date__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.SCF_Score__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.Automate_Flag__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.QRS__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.Automate_Result__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.QRS_Date__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.Early_Warning_Flag__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.Loan_Classification__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.NAMBRL__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.Warning_Code__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.DPD__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.CSI_Waring_Message__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.Average_Utilization_and_Swing_over_6_mon__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <!-- CR T-Score Estimation -->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value=""></apex:outputLabel>
+                                <apex:outputText value="" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="T-score for deposit customer"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <!-- CR T-Score Estimation -->
+                        </apex:PageBlockSection>
+                    </apex:pageBlock>
+                </apex:outputPanel>
+
+                <!-- CR Payroll -->
+                <apex:outputPanel id="payroll" rendered="{!isRenderPayroll}">
+                    <apex:pageBlock mode="maindetail" rendered="{!isVisible}">
+                        <apex:PageBlockSection columns="2" title="Payroll Information" id="payrollSection">
+                            <apex:outputField value="{!Account.RTL_Employee_No__c }" />
+                            <apex:outputField value="{!Account.RTL_Basic_Life_ACT__c }" />
+                            <apex:outputField value="{!Account.RTL_Product_Holding_No__c }" />
+                            <apex:outputField value="{!Account.RTL_All_Free_AMT__c }" />
+                            <apex:outputField value="{!Account.RTL_Product_Holding_Percent__c }" />
+                            <apex:outputField value="{!Account.RTL_No_Fixed_AMT__c }" />
+                            <apex:outputField value="{!Account.RTL_Average_Salary__c}" />
+                            <apex:outputField value="{!Account.RTL_Main_Bank1_Percent__c }" />
+                            <apex:outputField value="{!Account.RTL_Payroll_Branch__c }" />
+                            <apex:outputField value="{!Account.RTL_Main_Bank2_Percent__c }" />
+                            <apex:outputField value="{!Account.RTL_Ttype_Of_Benefit_Offered__c }" />
+                            <apex:outputField value="{!Account.RTL_Touch_Percent__c }" />
+
+                            <!-- Checkbox -->
+                            <apex:outputField value="{!Account.RTL_Payroll_BIZ_TOUCH_Flag__c }" />
+                            <apex:outputField value="{!Account.RTL_Payroll_BIZ_CLICK_Flag__c }" />
+                        </apex:PageBlockSection>
+                    </apex:pageBlock>
+
+                    <apex:pageBlock mode="maindetail" rendered="{!!isVisible}">
+                        <apex:PageBlockSection columns="2" title="Payroll Information">
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Employee_No__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Basic_Life_ACT__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Product_Holding_No__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_All_Free_AMT__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Product_Holding_Percent__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_No_Fixed_AMT__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Average_Salary__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Main_Bank1_Percent__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Payroll_Branch__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Main_Bank2_Percent__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Ttype_Of_Benefit_Offered__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Touch_Percent__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+
+                            <!-- Checkbox -->
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Payroll_BIZ_TOUCH_Flag__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                            <apex:pageBlockSectionItem >
+                                <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Payroll_BIZ_CLICK_Flag__c.label}"></apex:outputLabel>
+                                <apex:outputText value="{!hiddenText}" />
+                            </apex:pageBlockSectionItem>
+                        </apex:PageBlockSection>
+                    </apex:pageBlock>
+                </apex:outputPanel>
+                <!-- CR Payroll -->
+
+            </apex:outputPanel>
+        </div>
+
+    </apex:form>
+    <script>
+        function reportclickCreditPipeline() {
+            var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+            var theme = '{!$User.UIThemeDisplayed}';
+            // console.log(theme);
+            if (theme == 'Theme4u' || isLightningMode) {
+                var acctid = '{!acct.id}'.slice(0, - 3);
+                // NavigateTo('{!CreditPipeReportId}?pc3=ACCOUNT_ID&pn3=eq&pv3=' + acctid, 'Credit Pipeline Report');
+                sforce.one.navigateToURL('/{!CreditPipeReportId}?pv1=' + acctid);
+            }
+            else if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                NavigateTo('apex/Credit_Pipeline_Mobile?id={!acct.id}', 'Credit Pipeline Report');
+            } else {
+                var acctid = '{!acct.id}'.slice(0, - 3);
+                NavigateTo('{!CreditPipeReportId}?pc3=ACCOUNT_ID&pn3=eq&pv3=' + acctid, 'Credit Pipeline Report');
+            }
+        }
+        function reportclickNonCreditPipeline() {
+            var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+            var theme = '{!$User.UIThemeDisplayed}';
+            // console.log(theme);
+            if (theme == 'Theme4u' && isLightningMode) {
+                var acctid = '{!acct.id}'.slice(0, - 3);
+                // console.log('acctid:' + acctid);
+                // NavigateTo('{!NonCreditPipeReportId}?pc3=ACCOUNT_ID&pn3=eq&pv3=' + acctid, 'Non Credit Pipeline Report');
+                sforce.one.navigateToURL('/{!NonCreditPipeReportId}?pv1=' + acctid);
+            }
+            else if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                NavigateTo('apex/NonCredit_Pipeline_Mobile?id={!acct.id}', 'Non Credit Pipeline Report');
+
+            } else {
+
+                var acctid = '{!acct.id}'.slice(0, - 3);
+                NavigateTo('{!NonCreditPipeReportId}?pc3=ACCOUNT_ID&pn3=eq&pv3=' + acctid, 'Non Credit Pipeline Report');
+            }
+        }
+
+        function closetab() {
+            var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+            var theme = '{!$User.UIThemeDisplayed}';
+            // console.log(theme);
+            if (theme == 'Theme4u' || isLightningMode) {
+                doCancel();
+            }
+            else if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                NavigateTo('{!acct.id}', 'Account');
+            } else if (sforce.console.isInConsole()) {
+                sforce.console.getEnclosingTabId(closeSubtab);
+            } else {
+                window.close();
+            }
+        }
+
+        var closeSubtab = function closeSubtab(result) {
+            //Now that we have the tab ID, we can close it
+            var tabId = result.id;
+            sforce.console.closeTab(tabId);
+        };
+
+    // function closetab(){
+    //     var id = '{!tabId}';
+    //     console.log(id);
+    //     if ((typeof sforce.one != 'undefined') && (sforce.one != null) ) {
+    //         NavigateTo('{!acct.id}','Account');
+    //     }else if (sforce.console.isInConsole()){
+    //         if(sforce.console.getEnclosingTabId() == 'undefined' || sforce.console.getEnclosingTabId() == undefined){
+    //             //window.parent.document.getElementsByClassName('x-tab-strip-active')[1].getElementsByClassName('x-tab-strip-close')[0].click();   
+    //             sforce.console.closeTab(id);
+    //         }else{
+    //         sforce.console.getEnclosingTabId(closeSubtab);                    
+    //         }
+    //     }else{
+    //         window.close();
+    //     }
+    // }
+
+    </script>
+
+</apex:page>

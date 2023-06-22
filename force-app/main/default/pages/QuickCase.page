@@ -1,0 +1,86 @@
+<apex:page standardController="Case" extensions="QuickCaseController" lightningStylesheets="true" recordSetVar="Case" >
+	<apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+	<apex:includeScript value="/support/console/43.0/integration.js"/>
+	<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+	<apex:sectionHeader title="New" subtitle="Quick Case"/>
+	<style>
+		.sub-cat {
+	        text-indent: 20px;
+	    }
+	    .sub-cat2 {
+	        text-indent: 40px;
+	    }
+        
+		@media screen and (min-width: 800px) {
+	        .onDesktop{
+	            padding-left:10%;
+	        }
+	    }
+
+	    @media only screen and (min-device-width : 375px) and (max-device-width : 667px) {
+	        .onIPhone{
+	            width:375px;
+	        }
+	    }
+
+	    html,html body{
+	        overflow: auto;
+	        -webkit-overflow-scrolling:touch;
+	    }
+	    body{
+	    	position:absolute;
+	        left:0;
+	        right:0;
+	        top:0;
+	        bottom:0;
+	    }    
+	</style>
+
+	<div class="onIPhone">
+		<apex:form id="frm">
+			<apex:actionstatus id="loading">
+                <apex:facet name="start">
+                    <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                        &nbsp;
+                    </div>
+                    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                        <img src="/img/loading32.gif" />
+                    </div>
+                </apex:facet>
+            </apex:actionstatus>
+	      
+			<apex:PageBlock id="main">
+	    	    <apex:outputPanel id="statusMessage" rendered="{!errorMessage}">
+	    	        <apex:pageMessages />
+	    	    </apex:outputPanel>
+	    	    <apex:pageBlockButtons title="Case Edit" >
+	    	        <apex:commandButton value="{!$Label.Save}" action="{!save}" status="loading" tabindex="280" reRender="frm"/>
+	    	       <apex:commandButton onclick="closeTab();return false;" value="Cancel"/>
+	    	       <apex:actionFunction action="{!cancel}" name="closeSaleMode"/>
+	    	    </apex:pageBlockButtons>
+	    	    <apex:PageBlockSection columns="2" >
+	    	     <apex:pageBlockSectionItem > 
+	    	    	<apex:outputLabel value="Quick Issue" />
+	    	    	<apex:selectList value="{!quickIssue}" size="1" >
+	                    <apex:selectOptions value="{!caseList}"/>
+	                </apex:selectList>
+	                </apex:pageBlockSectionItem>
+	    	    </apex:PageBlockSection>    
+			</apex:PageBlock>
+		</apex:form>
+	</div>
+	<script type="text/javascript">
+		function closeTab() {
+			if(sforce.console.isInConsole()){
+                sforce.console.getEnclosingTabId(callCloseTab);
+            }
+            else{
+                closeSaleMode();
+            }
+        }
+        var callCloseTab= function callCloseTab(result) {
+        	var tabId = result.id;
+            sforce.console.closeTab(result.id);
+        }
+	</script>
+</apex:page>

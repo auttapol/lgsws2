@@ -1,0 +1,412 @@
+<aura:component controller="ForecastAdjustmentController">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:method name="refreshData" action="{!c.doSearch}" />
+    <aura:method name="checkIsShow" action="{!c.checkIsShow}"/>
+
+    <aura:attribute name="parent" type="Aura.Component" required="true" />
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+    <aura:attribute name="period" type="Object[]" />
+    
+    <aura:attribute name="allData" type="Object[]" />
+    <aura:attribute name="existingdata" type="Object" />
+    <aura:attribute name="lastYearData" type="Object" />
+    <aura:attribute name="drawDownData" type="Object" />
+    <aura:attribute name="drawDownLastYearData" type="Object" />
+
+    <aura:attribute name="selectYear" type="string" />
+    <aura:attribute name="selectYearOpts" type="List" />
+    <aura:attribute name="selectedPrdDomain" type="String" />
+    <aura:attribute name="selectedPort" type="String" />
+    <aura:attribute name="selectedPrdGroup" type="String" />
+    <aura:attribute name="selectMonth" type="string" />
+    <aura:attribute name="asOfDate" type="string" />
+    <aura:attribute name="selectMonthOpts" type="List" />
+    <aura:attribute name="searchAcct" type="Object" default="" />
+    <aura:attribute name="searchGroup" type="Object" default="" />
+    <aura:attribute name="searchTeam" type="string" default="" />
+    <aura:attribute name="isAdjustedItem" type="boolean" default="false" />
+    <aura:attribute name="isMatured" type="boolean" default="false" />
+    <aura:attribute name="ProdDomainOpts" type="List" />
+    <aura:attribute name="PortOpts" type="List" />
+    <aura:attribute name="PrdGroupOpts" type="List" />
+    <aura:attribute name="isCredit" type="boolean" default="true" />
+    <aura:attribute name="allDataLenght" type="integer" />
+    <aura:attribute name="isHasShowedRec" type="boolean"/>
+
+    <aura:attribute name="week" type="integer" />
+    <aura:attribute name="currentMonth" type="string" />
+
+    <aura:attribute name="showTeamSelect" type="boolean" default="false" />
+    <aura:attribute name="selectedTeamList" type="List" />
+    <aura:attribute name="selectedTeamListtmp" type="List" />
+    <aura:attribute name="teamOpts" type="Object[]" />
+    <aura:attribute name="mapPortTeam" type="Object" />
+
+    <lightning:accordion aura:id="accordion" activeSectionName="A" allowMultipleSectionsOpen="true">
+        <lightning:accordionSection name="A" label="Filter">
+            <div class="slds-grid slds-wrap">
+                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <label class="slds-form-element__label" style="padding: 5px;">Product Domain</label>
+                    <lightning:helptext content="Select financial product domain." class="helptextIcon" />
+                    <lightning:select class="label-hidden" name="ProductDomainSelect" label=""
+                        aura:id="selectProductDomain" value="{!v.selectedPrdDomain}"
+                        onchange="{!c.onProductDomainChange}" variant="label-hidden">
+                        <aura:iteration items="{!v.ProdDomainOpts}" var="option">
+                            <option text="{!option.label}" value="{!option.id}" selected="{!option.selected}" />
+                        </aura:iteration>
+                    </lightning:select>
+                </div>
+
+                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <label class="slds-form-element__label" style="padding: 5px;">Customer Port</label>
+                    <lightning:helptext content="Group by." class="helptextIcon" />
+                    <lightning:select class="label-hidden" name="PortSelect" label="" aura:id="selectCustomerPort"
+                        value="{!v.selectedPort}" onchange="{!c.onChangePort}" variant="label-hidden">
+                        <aura:iteration items="{!v.PortOpts}" var="option">
+                            <option text="{!option.label}" value="{!option.id}" selected="{!option.selected}" />
+                        </aura:iteration>
+                    </lightning:select>
+                </div>
+
+                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <label class="slds-form-element__label" style="padding: 5px;">Product Group</label>
+                    <lightning:helptext content="Select financial product group." class="helptextIcon" />
+                    <lightning:select class="label-hidden" name="ProductGroupSelect" label=""
+                        aura:id="selectProductGroup" value="{!v.selectedPrdGroup}" variant="label-hidden">
+                        <aura:iteration items="{!v.PrdGroupOpts}" var="option">
+                            <option text="{!option.label}" value="{!option.id}" selected="{!option.selected}" />
+                        </aura:iteration>
+                    </lightning:select>
+                </div>
+
+                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <label class="slds-form-element__label" style="padding: 5px;">Team</label>
+                    <lightning:helptext content="Select RM's team" class="helptextIcon" />
+                    <lightning:input aura:id="teamInput" name="teamInput" value="{!v.searchTeam}" autocomplete="off"
+                        onclick="{!c.showSelectTeam}" label="Team" variant="label-hidden" id="teaminput"
+                        placeholder="Please select team..." messageWhenValueMissing="Complete this field."
+                        required="true" />
+                </div>
+
+                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <label class="slds-form-element__label" style="padding: 5px;">Group</label>
+                    <lightning:helptext content="Select customer's group." class="helptextIcon" />
+                    <c:CustomLookup aura:id="customLookupGroup" objectAPIName="Group__c"
+                        selectedRecord="{!v.searchGroup}" nameField="Id, Name" IconName="standard:buyer_group"
+                        queryType="SOSL" SearchKeyWord="" />
+                </div>
+
+                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <label class="slds-form-element__label" style="padding: 5px;">Year</label>
+                    <lightning:helptext content="Select year." class="helptextIcon" />
+                    <lightning:select class="label-hidden" name="selectYear" label="" value="{!v.selectYear}"
+                        aura:id="yearId" onchange="{!c.onYearChange}" variant="label-hidden">
+                        <aura:iteration items="{!v.selectYearOpts}" var="year">
+                            <option text="{!year.label}" value="{!year.id}" selected="{!year.selected}" />
+                        </aura:iteration>
+                    </lightning:select>
+                </div>
+
+                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <label class="slds-form-element__label" style="padding: 5px;">Customer</label>
+                    <lightning:helptext content="Select customer's name" class="helptextIcon" />
+                    <c:CustomLookup aura:id="customLookupCustomer" objectAPIName="Account"
+                        selectedRecord="{!v.searchAcct}" nameField="Id,Name" IconName="standard:account"
+                        queryType="SOSL" SearchKeyWord="" />
+                </div>
+
+                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                    <label class="slds-form-element__label" style="padding: 5px;">Month</label>
+                    <lightning:helptext content="Select month." class="helptextIcon" />
+                    <lightning:select class="label-hidden" name="selectMonth" label="" aura:id="monthId"
+                        value="{!v.selectMonth}" variant="label-hidden">
+                        <aura:iteration items="{!v.selectMonthOpts}" var="Month">
+                            <option value="{!Month.id}" text="{!Month.label}" selected="{!Month.selected}" />
+                        </aura:iteration>
+                    </lightning:select>
+                </div>
+
+                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+
+                </div>
+
+                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1" style="margin: 8px 0px;display: block;">
+                    <div style="padding: 0px 10px 0 0;display: flex;">
+                        <lightning:input style="padding: 3px;" checked="{!v.isAdjustedItem}" type="checkbox" label=""
+                            variant="label-hidden" />
+                        <label class="slds-form-element__label" style="padding: 5px;">Adjusted Item</label>
+                        <lightning:helptext content="Show only adjusted items." class="helptextIcon" />
+                    </div>
+                    <div style="padding: 0px 10px 0 0;display: flex;">
+                        <lightning:input style="padding: 3px;" checked="{!v.isMatured}" type="checkbox" label=""
+                            variant="label-hidden" />
+                        <label class="slds-form-element__label" style="padding: 5px;">Matured in the same month</label>
+                        <lightning:helptext content="Show only matured in the same month." class="helptextIcon" />
+                    </div>
+                </div>
+            </div>
+            <div style="text-align: center;">
+                <lightning:button label="Search" onclick="{!c.doSearch}" variant="brand" />
+                <lightning:button label="Clear" onclick="{!c.clearFilter}" variant="base" />
+            </div>
+        </lightning:accordionSection>
+    </lightning:accordion>
+
+    <div>
+        <div class="slds-scrollable top-scrollbars">
+            <table class="slds-table slds-table_bordered slds-table_cell-buffer" aura:id="table">
+                <thead>
+                    <tr class="slds-text-title--caps">
+                        <th class="fixed-column border-line-color third-color">
+                            <div class="slds-truncate">
+                                <lightning:helptext content="Customer's name." class="helptextIcon" />
+                                <label title="Name Thai" class="slds-form-element__label" style="padding: 5px;">
+                                    <lightning:formattedText value="Name Thai" />
+                                </label>
+                            </div>
+                        </th>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <lightning:helptext content="Short ID of customer ID." class="helptextIcon" />
+                                <label title="Short ID" class="slds-form-element__label" style="padding: 5px;">
+                                    <lightning:formattedText value="Short ID" />
+                                </label>
+                            </div>
+                        </th>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <lightning:helptext content="Customer's group." class="helptextIcon" />
+                                <label title="Group Name" class="slds-form-element__label" style="padding: 5px;">
+                                    <lightning:formattedText value="Group Name" />
+                                </label>
+                            </div>
+                        </th>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <lightning:helptext content="RM's team." class="helptextIcon" />
+                                <label title="Team" class="slds-form-element__label" style="padding: 5px;">
+                                    <lightning:formattedText value="Team" />
+                                </label>
+                            </div>
+                        </th>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <lightning:helptext content="RM's Name." class="helptextIcon" />
+                                <label title="RM" class="slds-form-element__label" style="padding: 5px;">
+                                    <lightning:formattedText value="RM" />
+                                </label>
+                            </div>
+                        </th>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <lightning:helptext content="Customer 4G Group." class="helptextIcon" />
+                                <label title="4G" class="slds-form-element__label" style="padding: 5px;">
+                                    <lightning:formattedText value="4G" />
+                                </label>
+                            </div>
+                        </th>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <div class="slds-truncate">
+                                    <lightning:helptext content="Financial product." class="helptextIcon" />
+                                    <label title="Product" class="slds-form-element__label" style="padding: 5px;">
+                                        <lightning:formattedText value="Product" />
+                                    </label>
+                                </div>
+                            </div>
+                        </th>
+
+
+                        <aura:if isTrue="{!v.isCredit}">
+                            <th class="border-line-color third-color" scope="col">
+                                <div class="slds-truncate">
+                                    <lightning:helptext content="หน่วยล้านบาท" class="helptextIcon" />
+                                    <label title="Limit" class="slds-form-element__label" style="padding: 5px;">
+                                        <lightning:formattedText value="Limit" />
+                                        <br />
+                                        <lightning:formattedText value="{!v.asOfDate}" />
+
+                                    </label>
+                                </div>
+                            </th>
+                        </aura:if>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <lightning:helptext content="หน่วยล้านบาท" class="helptextIcon" />
+                                <label title="Current Ending Balance" class="slds-form-element__label"
+                                    style="padding: 5px;">
+                                    <lightning:formattedText value="Ending Bal." />
+                                    <br />
+                                    <lightning:formattedText value="{!v.asOfDate}" />
+                                </label>
+                            </div>
+                        </th>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <lightning:helptext content="หน่วยล้านบาท" class="helptextIcon" />
+                                <label title="Ending Balance (Last year December)" class="slds-form-element__label"
+                                    style="padding: 5px;">
+                                    <lightning:formattedText value="Ending Bal." />
+                                    <br />
+                                    <lightning:formattedText value="(Last year December)" />
+                                </label>
+                            </div>
+                        </th>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <lightning:helptext content="หน่วยล้านบาท" class="helptextIcon" />
+                                <label title="Average Balance (YTD)" class="slds-form-element__label"
+                                    style="padding: 5px;">
+                                    <lightning:formattedText value="Average Balance" />
+                                    <br />
+                                    <lightning:formattedText value="(YTD)" />
+                                </label>
+                            </div>
+                        </th>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <lightning:helptext content="หน่วยล้านบาท" class="helptextIcon" />
+                                <label title="Ending Balance (Last Month)" class="slds-form-element__label"
+                                    style="padding: 5px;">
+                                    <lightning:formattedText value="Ending Balance" />
+                                    <br />
+                                    <lightning:formattedText value="(Last Month)" />
+                                </label>
+                            </div>
+                        </th>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <lightning:helptext
+                                    content="Ending Balance Last month - Repayment + Drawdown (หน่วยล้านบาท)"
+                                    class="helptextIcon" />
+                                <label title="Projected Balance" class="slds-form-element__label" style="padding: 5px;">
+                                    <lightning:formattedText value="Projected Bal." />
+                                </label>
+                            </div>
+                        </th>
+
+                        <aura:iteration items="{!v.period}" var="period" indexVar="index">
+                            <th class=" first-color border-line-color" scope="col">
+                                <div class="slds-truncate">
+                                    <lightning:helptext content="หน่วยล้านบาท" class="helptextIcon" />
+                                    <label class="slds-form-element__label first-color" style="padding: 5px;">
+                                        <aura:if isTrue="{!v.isCredit}">
+                                            <lightning:formattedText title="Repayment" value="Repayment" />
+                                            <aura:set attribute="else">
+                                                <lightning:formattedText title="Due Amount" value="Due Amount" />
+                                            </aura:set>
+                                        </aura:if>
+                                        <br />
+                                        <aura:if isTrue="{!equals(period[0],period[1])}">
+                                            ({!period[1]} &nbsp;{!v.currentMonth})
+                                            <aura:set attribute="else">
+                                                ({!period[0]} - {!period[1]} &nbsp;{!v.currentMonth})
+                                            </aura:set>
+                                        </aura:if>
+                                    </label>
+                                </div>
+                            </th>
+                        </aura:iteration>
+
+                        <aura:iteration items="{!v.period}" var="period" indexVar="index">
+                            <th class="second-color border-line-color" scope="col">
+                                <div class="slds-truncate">
+                                    <lightning:helptext content="หน่วยล้านบาท" class="helptextIcon" />
+                                    <label class="slds-form-element__label second-color" style="padding: 5px;">
+                                        <aura:if isTrue="{!v.isCredit}">
+                                            <lightning:formattedText title="Drawdown" value="Drawdown" />
+                                            <aura:set attribute="else">
+                                                <lightning:formattedText title="Rollover" value="Rollover" />
+                                            </aura:set>
+                                        </aura:if>
+                                        <br />
+                                        <aura:if isTrue="{!equals(period[0],period[1])}">
+                                            ({!period[1]} &nbsp;{!v.currentMonth})
+                                            <aura:set attribute="else">
+                                                ({!period[0]} - {!period[1]} &nbsp;{!v.currentMonth})
+                                            </aura:set>
+                                        </aura:if>
+                                    </label>
+                                </div>
+                            </th>
+                        </aura:iteration>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <lightning:formattedText title="Last Updated By" value="Last Updated By" />
+                            </div>
+                        </th>
+
+                        <th class="border-line-color third-color" scope="col">
+                            <div class="slds-truncate">
+                                <lightning:formattedText title="Last Updated Date" value="Last Updated Date" />
+                            </div>
+                        </th>
+
+                        <th class="border-line-color" scope="col">
+                            <div class="slds-truncate">
+                                <!--Space Save Button -->
+                            </div>
+                        </th>
+                    </tr>
+                </thead>
+
+                <aura:renderIf isTrue="{!not(empty(v.allData))}">
+                    <tbody>
+                        <aura:iteration items="{!v.allData}" var="allData" indexVar="index">
+                            <c:ForecastExistingAcctChildTable isCredit="{!v.isCredit}" selectedPrdDomain="{!v.selectedPrdDomain}"
+                                week="{!v.week}" groupData="{!allData}" parent="{! this}"
+                                showAdjustedItem="{!v.isAdjustedItem}" period="{!v.period}" isLoading="{!v.isLoading}" />
+                        </aura:iteration>
+                    </tbody>
+                    <aura:set attribute="else">
+                        <tr>
+                            <td class="first-child">
+                                <div class="slds-truncate" style="transform: rotateX(0deg);">
+                                    <aura:unescapedHtml value="{!$Label.c.no_record_to_display}">
+                                        <lightning:formattedText value="{!$Label.c.no_record_to_display}" />
+                                    </aura:unescapedHtml>
+                                </div>
+                            </td>
+                        </tr>
+                    </aura:set>
+                </aura:renderIf >
+            </table>
+        </div>
+    </div>
+
+    <aura:if isTrue="{!v.showTeamSelect}">
+        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+            <div class="slds-modal__container">
+                <header class="slds-modal__header">
+                    <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeSelectTeamModel }"
+                        alternativeText="Close" variant="bare-inverse" class="slds-modal__close" />
+                    <h2 class="slds-text-heading_medium slds-hyphenate">Select Team</h2>
+                </header>
+
+                <div class="slds-modal__content slds-p-around_medium" style="text-align: center;padding: 40px;">
+                    <lightning:dualListbox name="languages" sourceLabel="Available" selectedLabel="Selected"
+                        options="{!v.teamOpts}" value="{!v.selectedTeamList}" />
+                </div>
+
+                <footer class="slds-modal__footer">
+                    <lightning:button variant="brand" label="Done" title="Done" onclick="{! c.selectTeamOption }" />
+                    <lightning:button label="Cancel" title="Cancel" onclick="{! c.closeSelectTeamModel }" />
+                </footer>
+            </div>
+        </section>
+        <div class="slds-backdrop slds-backdrop_open"></div>
+    </aura:if>
+</aura:component>

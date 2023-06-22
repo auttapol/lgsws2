@@ -1,0 +1,334 @@
+<aura:component controller="CampaignMemberLeadConversionCtrl">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />  
+    <aura:attribute name="iconName" type="String" default="utility:chevrondown"/>
+    <aura:attribute name="isExpanded" type="Boolean" default="true"/>
+    <aura:attribute name="Mode" type="String" default="View"/>
+    <aura:attribute name="option" type="List"/>
+
+    <aura:attribute name="merge_Options" type="List" default="[
+    {'label': 'Merge', 'value': 'Merge'},
+    {'label': 'Create', 'value': 'Create'}
+    ]"/>
+
+    <aura:attribute name="customerName" type="String"/>
+    <aura:attribute name="mobileValue" type="String"/>
+    <aura:attribute name="idNoValue" type="String"/>
+    <aura:attribute name="idType" type="String"/>
+    <aura:attribute name="accList" type="List"/>
+    <aura:attribute name="isDuplicate" type="Boolean" default="false"/>
+    <aura:attribute name="mapPicklistValues" type="Map" />
+    <aura:attribute name="selectDupAcc" type="Account" />
+    <aura:attribute name="isMerge" type="Boolean"/>
+    <aura:attribute name="paginationList" type="List"/>
+    <aura:attribute name="pageSize" type="Integer" default="5"/>
+    <aura:attribute name="totalSize" type="Integer"/>
+    <aura:attribute name="start" type="Integer" />
+    <aura:attribute name="end" type="Integer"/>
+
+    <aura:handler name="change" value="{!v.customerName}" action="{!c.handleChange}"/> 
+    <aura:handler name="change" value="{!v.mobileValue}" action="{!c.handleChange}"/> 
+    <aura:handler name="change" value="{!v.idNoValue}" action="{!c.handleChange}"/> 
+    <aura:handler name="change" value="{!v.idType}" action="{!c.handleChange}"/> 
+
+    <aura:registerEvent name="selectAccountEvent" type="c:selectDuplicateAccountEvent" />
+    <aura:method name="getLeadConversionData" action="{!c.getLeadConversionData}" /> 
+
+    <aura:if isTrue="{!v.Mode == 'Edit'}">
+        <div class="{! 'slds-section' + (v.isExpanded ? ' slds-is-open' : '')}">
+            <h3 class="slds-section__title">
+            <button aria-controls="expando-unique-id" aria-expanded="{!v.isExpanded}" class="slds-button slds-section__title-action" onclick="{!c.changeState}">
+                <lightning:icon iconName="{!v.iconName}" alternativeText="chevrondown" title="chevrondown" size="x-small" />
+                <span class="slds-truncate section_header" title="Section Title">{!$Label.c.RTL_CampaignMember_SectionTitle_LeadConversion}</span>
+            </button>
+            </h3>
+            <div class="slds-section__content" aria-hidden="{!!v.isExpanded}" id="expando-unique-id"> 
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-4">
+                        <div class="slds-large-size_4-of-5 labelStyle">Full Name</div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">
+                        <lightning:input class="slds-large-size_4-of-5 inputStyle" aura:id="customerName" name="input1" value="{!v.customerName}" onchange="{! c.handleNameChange }"/>              
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">
+                        <div class="slds-large-size_4-of-5 labelStyle">Mobile Number</div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">
+                        <lightning:input class="slds-large-size_4-of-5 inputStyle" aura:id="mobileNumber" type="tel" name="input1" onchange="{! c.handleMobileChange }" value="{!v.mobileValue}"/>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">
+                        <div class="slds-large-size_4-of-5 labelStyle">ID Type</div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">                     
+                        <lightning:select class="slds-large-size_4-of-5" aura:id="idType" name="mySelect" value="" onchange="{! c.handleIDTypeChange }">
+                            <option value="">-- None --</option>    
+                            <aura:iteration items="{!v.option}" var="item"> 
+                                <option text="{!item.label}" value="{!item.value}" selected="{!item.value == 'Other ID'}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">
+                        <div class="slds-large-size_4-of-5 labelStyle">ID No</div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">
+                        <lightning:input class="slds-large-size_4-of-5 inputStyle" aura:id="idNo"  name="input1" onchange="{! c.handleIDNoChange }" value="{!v.idNoValue}"/>
+                    </div>
+                </div>
+                <aura:if isTrue="{!v.isDuplicate}">  
+                    <h3 class="slds-section__title">
+                        <button aria-controls="expando-unique-id" aria-expanded="true" class="slds-button slds-section__title-action" style="margin-top: 20px;">          
+                            <span class="slds-truncate section_header" title="Duplicate Account">Customer Merge</span>
+                        </button>
+                    </h3>    
+                    <div class="slds-col slds-grid slds-size_1-of-4 slds-align_absolute-center" style="margin-top: 10px;margin-bottom: 10px;">
+                        <lightning:radioGroup name="radioGroup"
+                          options="{! v.merge_Options }"
+                          value=""
+                          type="radio"
+                          class="customRadioCls"
+                          onchange="{! c.handleDuplicateAcc }"/>
+
+                        <!-- <div class="slds-size_2-of-4">
+                            <span class="slds-radio radioStyle">
+                                <input type="radio" id="radio-4" value="Merge" name="default" onchange="{! c.handleDuplicateAcc }" checked="" />
+                                <label class="slds-radio__label" for="radio-4">
+                                    <span aura:id="radioMerge" class="slds-radio_faux"></span>
+                                    <span class="slds-form-element__label">Merge</span>
+                                </label>
+                            </span>
+                        </div>
+                        <div class="slds-size_2-of-4">
+                            <span class="slds-radio radioStyle">
+                                <input type="radio" id="radio-5" value="Create" name="default" onchange="{! c.handleDuplicateAcc }" checked=""/>
+                                <label class="slds-radio__label" for="radio-5">
+                                    <span aura:id="radioCreate" class="slds-radio_faux"></span>
+                                    <span class="slds-form-element__label">Create</span>
+                                </label>
+                            </span>
+                        </div> -->
+                    </div>
+                    <div class="slds-scrollable--x">
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="Select">Select</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="No">No</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="Customer Name">Customer Name</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="TMB Customer ID">TMB Customer ID</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="ID Type">ID Type</div>
+                                    </th>                              
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="Mobile Number">Mobile Number</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="Last 3 digits">Last 3 digits of ID No.</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="Segment">Segment</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="Account Owner">Account Owner</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>                          
+                                <aura:iteration items="{!v.paginationList}" var="acc" indexVar="index">
+                                    <tr class="slds-hint-parent">
+                                        <td scope="row">
+                                            <input id="{!acc}" name="radiogroup1" onchange="{!c.handleSelected}" type="radio" value="{!acc.Id}" disabled="{!!v.isMerge}"/>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!v.start+index+1}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.Name}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.TMB_Customer_ID_PE__c}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.ID_Type_PE__c}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.Mobile_Number_PE__c}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.NID__c}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.Core_Banking_Suggested_Segment__c}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.Owner.Name}</div>
+                                        </td>
+                                    </tr>
+                                </aura:iteration>                    
+                            </tbody>         
+                        </table>
+                        <div class="slds-align_absolute-center slds-no-flex" style="margin-top:10px">
+                            <lightning:button label="Previous" disabled="{!v.start == 0}"  onclick="{!c.handlePrevious}" />
+                            <lightning:button label="Next" disabled="{!v.end >= v.totalSize}" onclick="{!c.handleNext}" />
+                        </div>
+                    </div>     
+                </aura:if>            
+            </div>
+        </div>
+    </aura:if>
+    <aura:if isTrue="{!v.Mode == 'View'}">
+        <div class="{! 'slds-section' + (v.isExpanded ? ' slds-is-open' : '')}">
+            <h3 class="slds-section__title">
+            <button aria-controls="expando-unique-id" aria-expanded="{!v.isExpanded}" class="slds-button slds-section__title-action" onclick="{!c.changeState}">
+                <lightning:icon iconName="{!v.iconName}" alternativeText="chevrondown" title="chevrondown" size="x-small" />
+                <span class="slds-truncate section_header" title="Section Title">{!$Label.c.RTL_CampaignMember_SectionTitle_LeadConversion}</span>
+            </button>
+            </h3>
+            <div class="slds-section__content" aria-hidden="{!!v.isExpanded}" id="expando-unique-id"> 
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-4">
+                        <div class="slds-large-size_4-of-5 labelStyle">Full Name</div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">
+                        <lightning:input class="slds-large-size_4-of-5 inputStyle" aura:id="customerName" name="input1" value="{!v.customerName}" onchange="{! c.handleNameChange }" disabled="true"/>              
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">
+                        <div class="slds-large-size_4-of-5 labelStyle">Mobile Number</div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">
+                        <lightning:input class="slds-large-size_4-of-5 inputStyle" aura:id="mobileNumber" type="tel" name="input1" onchange="{! c.handleMobileChange }" value="{!v.mobileValue}" disabled="true"/>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">
+                        <div class="slds-large-size_4-of-5 labelStyle">ID Type</div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">                     
+                        <lightning:select class="slds-large-size_4-of-5" aura:id="idType" name="mySelect" value="" onchange="{! c.handleIDTypeChange }" disabled="true">
+                            <option value="">-- None --</option>    
+                            <aura:iteration items="{!v.option}" var="item"> 
+                                <option text="{!item.label}" value="{!item.value}" selected="{!item.selected}"/>
+                            </aura:iteration>
+                        </lightning:select>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">
+                        <div class="slds-large-size_4-of-5 labelStyle">ID No</div>
+                    </div>
+                    <div class="slds-col slds-size_1-of-4">
+                        <lightning:input class="slds-large-size_4-of-5 inputStyle" aura:id="idNo"  name="input1" onchange="{! c.handleIDNoChange }" disabled="true"/>
+                    </div>
+                </div>
+                <aura:if isTrue="{!v.isDuplicate}">  
+                    <h3 class="slds-section__title">
+                        <button aria-controls="expando-unique-id" aria-expanded="true" class="slds-button slds-section__title-action" style="margin-top: 20px;">          
+                            <span class="slds-truncate section_header" title="Duplicate Account">Customer Merge</span>
+                        </button>
+                    </h3>    
+                    <div class="slds-col slds-grid slds-size_1-of-4 slds-align_absolute-center" style="margin-top: 10px;margin-bottom: 10px;">
+                        <lightning:radioGroup name="radioGroup"
+                        options="{! v.merge_Options }"
+                        value=""
+                        type="radio"
+                        class="customRadioCls"
+                        disabled="true"
+                        onchange="{! c.handleDuplicateAcc }"/>
+                        <!-- <div class="slds-size_2-of-4">
+                            <span class="slds-radio radioStyle">
+                                <input type="radio" id="radio-4" value="Merge" name="default" onchange="{! c.handleDuplicateAcc }" checked="" disabled="true"/>
+                                <label class="slds-radio__label" for="radio-4">
+                                    <span class="slds-radio_faux"></span>
+                                    <span class="slds-form-element__label">Merge</span>
+                                </label>
+                            </span>
+                        </div>
+                        <div class="slds-size_2-of-4">
+                            <span class="slds-radio radioStyle">
+                                <input type="radio" id="radio-5" value="Create" name="default" onchange="{! c.handleDuplicateAcc }" checked="" disabled="true"/>
+                                <label class="slds-radio__label" for="radio-5">
+                                    <span class="slds-radio_faux"></span>
+                                    <span class="slds-form-element__label">Create</span>
+                                </label>
+                            </span>
+                        </div> -->
+                    </div>
+                    <div class="slds-scrollable--x">
+                        <table class="slds-table slds-table_cell-buffer slds-table_bordered">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="Select">Select</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="No">No</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="Customer Name">Customer Name</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="TMB Customer ID">TMB Customer ID</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="ID Type">ID Type</div>
+                                    </th>                              
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="Mobile Number">Mobile Number</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="Last 3 digits">Last 3 digits of ID No.</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="Segment">Segment</div>
+                                    </th>
+                                    <th class="slds-text-title_caps" scope="col">
+                                        <div class="slds-truncate" title="Account Owner">Account Owner</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>                          
+                                <aura:iteration items="{!v.paginationList}" var="acc" indexVar="index">
+                                    <tr class="slds-hint-parent">
+                                        <td scope="row">
+                                            <input id="{!acc}" name="radiogroup" onchange="{!c.handleSelected}" type="radio" value="{!acc.Id}" disabled="{!!v.isMerge}"/>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!index+1}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.Name}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.TMB_Customer_ID_PE__c}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.ID_Type_PE__c}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.Mobile_Number_PE__c}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.NID__c}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.Core_Banking_Suggested_Segment__c}</div>
+                                        </td>
+                                        <td>
+                                            <div class="slds-truncate" title="">{!acc.Owner.Name}</div>
+                                        </td>
+                                    </tr>
+                                </aura:iteration>                            
+                            </tbody>                       
+                        </table>   
+                        <div class="slds-align_absolute-center slds-no-flex" style="margin-top:10px">
+                            <lightning:button label="Previous" disabled="true" />
+                            <lightning:button label="Next" disabled="true" />
+                        </div>                 
+                    </div>     
+                </aura:if>            
+            </div>
+        </div>
+    </aura:if>
+</aura:component>

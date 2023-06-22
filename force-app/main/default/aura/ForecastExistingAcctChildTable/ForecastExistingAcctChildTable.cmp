@@ -1,0 +1,476 @@
+<aura:component controller="ForecastAdjustmentController">
+
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+
+    <aura:attribute name="parent" type="Aura.Component" required="true" />
+
+    <aura:attribute name="groupData" type="Object" />
+
+    <aura:attribute name="period" type="Object[]" />
+    <aura:attribute name="selectedPrdDomain" type="String" />
+    <aura:attribute name="currentData" type="Object[]" />
+    <aura:attribute name="lastYearData" type="Object[]" />
+    <aura:attribute name="isCredit" type="boolean" default="true" />
+    <aura:attribute name="drawDownData" type="Object[]" />
+    <aura:attribute name="drawDownLastYearData" type="Object[]" />
+    
+    <aura:attribute name="DummyRecData" type="Object" />
+    <aura:attribute name="TempRecData" type="Object" />
+    <aura:attribute name="isDaft" type="boolean" default="false" />
+    <aura:attribute name="isModalOpen" type="boolean" default="false" />
+    <aura:attribute name="showSaveChildeBtn" type="boolean" default="false" />
+    <aura:attribute name="week" type="integer" />
+
+    <aura:attribute name="isLoading" type="boolean" />
+    <aura:attribute name="showAdjustedItem" type="boolean" />
+    <aura:attribute name="isShowRec" type="boolean" default="false" />
+
+    <aura:attribute name="repayment1EditMode" type="boolean" default="false" />
+    <aura:attribute name="repayment2EditMode" type="boolean" default="false" />
+    <aura:attribute name="repayment3EditMode" type="boolean" default="false" />
+    <aura:attribute name="repayment4EditMode" type="boolean" default="false" />
+    <aura:attribute name="repayment5EditMode" type="boolean" default="false" />
+    <aura:attribute name="repayment6EditMode" type="boolean" default="false" />
+
+    <aura:attribute name="drawdown1EditMode" type="boolean" default="false" />
+    <aura:attribute name="drawdown2EditMode" type="boolean" default="false" />
+    <aura:attribute name="drawdown3EditMode" type="boolean" default="false" />
+    <aura:attribute name="drawdown4EditMode" type="boolean" default="false" />
+    <aura:attribute name="drawdown5EditMode" type="boolean" default="false" />
+    <aura:attribute name="drawdown6EditMode" type="boolean" default="false" />
+
+    <aura:renderIf isTrue="{!v.isShowRec}">
+        <tr aura:id="isDaft">
+            <td class="first-child">
+                <div class="slds-truncate">
+                    <c:CallCenterCSV_PillOutput type="REFERENCE" value="{!v.DummyRecData.customerId}" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate slds-has-error">
+                    <aura:unescapedHtml value="{!v.DummyRecData.shortId}">
+                        <lightning:formattedText value="{!v.DummyRecData.shortId}" title="{!v.DummyRecData.shortId}"/>
+                    </aura:unescapedHtml>
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <aura:unescapedHtml value="{!v.DummyRecData.groupName}">
+                        <lightning:formattedText value="{!v.DummyRecData.groupName}" title="{!v.DummyRecData.groupName}"/>
+                    </aura:unescapedHtml>
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <aura:unescapedHtml value="{!v.DummyRecData.team}">
+                        <lightning:formattedText value="{!v.DummyRecData.team}" title="{!v.DummyRecData.team}"/>
+                    </aura:unescapedHtml>
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <aura:unescapedHtml value="{!v.DummyRecData.rm}">
+                        <lightning:formattedText value="{!v.DummyRecData.rm}" title="{!v.DummyRecData.rm}"/>
+                    </aura:unescapedHtml>
+                </div>
+            </td>
+
+            <td>
+                <div class="slds-truncate">
+                    <aura:unescapedHtml value="{!v.DummyRecData._4G}">
+                        <lightning:formattedText value="{!v.DummyRecData._4G}" title="{!v.DummyRecData._4G}"/>
+                    </aura:unescapedHtml>
+                </div>
+            </td>
+
+            <td>
+                <div class="slds-truncate">
+                    <aura:unescapedHtml value="{!v.DummyRecData.productType}">
+                        <lightning:formattedText value="{!v.DummyRecData.productType}" title="{!v.DummyRecData.productType}" />
+                    </aura:unescapedHtml>
+                </div>
+            </td>
+            <aura:if isTrue="{!v.isCredit}">
+                <td>
+                    <div class="slds-truncate">
+                        <lightning:formattedNumber value="{!v.DummyRecData.limitMillionUnit}" title="{!v.DummyRecData.limitWCommas}" style="decimal"
+                            minimumFractionDigits="2" maximumFractionDigits="4" />
+                    </div>
+                </td>
+            </aura:if>
+            <td>
+                <div class="slds-truncate">
+                    <lightning:formattedNumber value="{!v.DummyRecData.currentEndingBalanceMillionUnit}" title="{!v.DummyRecData.currentEndingBalanceWCommas}" style="decimal"
+                        minimumFractionDigits="2" maximumFractionDigits="4" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <lightning:formattedNumber value="{!v.DummyRecData.lastYearEndingBalMillionUnit}" title="{!v.DummyRecData.lastYearEndingBalWCommas}" style="decimal"
+                        minimumFractionDigits="2" maximumFractionDigits="4" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <lightning:formattedNumber value="{!v.DummyRecData.averageBalanceMillionUnit}" title="{!v.DummyRecData.averageBalanceWCommas}" style="decimal"
+                        minimumFractionDigits="2" maximumFractionDigits="4" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <lightning:formattedNumber value="{!v.DummyRecData.lastMonthEndingBalMillionUnit}" title="{!v.DummyRecData.lastMonthEndingBalWCommas}" style="decimal"
+                        minimumFractionDigits="2" maximumFractionDigits="4" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <lightning:formattedNumber value="{!v.DummyRecData.projectBalMillionUnit}" title="{!v.DummyRecData.projectBalWCommas}" style="decimal"
+                        minimumFractionDigits="2" maximumFractionDigits="4" />
+                </div>
+            </td>
+
+
+            <td ondblclick="{!c.EditData}" data-value="repayment1-1" onmouseenter="{!c.showEdit}"
+                onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="repayment1-1">
+                    <aura:if isTrue="{!v.repayment1EditMode == false}">
+                        <span class="slds-truncate" title="{!v.DummyRecData.repayment1WCommas}" data-value="repayment1-1">
+                            <lightning:formattedNumber value="{!v.DummyRecData.repayment1}" style="decimal"
+                                minimumFractionDigits="2" maximumFractionDigits="4" />
+                        </span>
+                        <button onclick="{!c.EditData}" data-value="repayment1-1"
+                            class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0"
+                            title="Edit Name">
+                            <lightning:icon aura:id="repayment1EditButton" iconName="utility:edit" size="xx-small"
+                                alternativeText="edit" class="slds-hidden" />
+                        </button>
+                        <aura:set attribute="else">
+                            <ui:inputNumber aura:id="repayment1id" blur="{!c.closeInputBox}" change="{!c.onChange}"
+                                value="{!v.DummyRecData.repayment1}" />
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <td ondblclick="{!c.EditData}" data-value="repayment2-2" onmouseenter="{!c.showEdit}"
+                onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="repayment2-2">
+                    <aura:if isTrue="{!v.repayment2EditMode == false}">
+                        <span class="slds-truncate" title="{!v.DummyRecData.repayment2WCommas}" data-value="repayment2-2">
+                            <lightning:formattedNumber value="{!v.DummyRecData.repayment2}" style="decimal"
+                                minimumFractionDigits="2" maximumFractionDigits="4" />
+                        </span>
+                        <button onclick="{!c.EditData}" data-value="repayment2-2"
+                            class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0"
+                            title="Edit Name">
+                            <lightning:icon aura:id="repayment2EditButton" iconName="utility:edit" size="xx-small"
+                                alternativeText="edit" class="slds-hidden" />
+                        </button>
+                        <!-- Inline Edit Section in else case-->
+                        <aura:set attribute="else">
+                            <ui:inputNumber aura:id="repayment2id" blur="{!c.closeInputBox}" change="{!c.onChange}"
+                                value="{!v.DummyRecData.repayment2}" />
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <td ondblclick="{!c.EditData}" data-value="repayment3-3" onmouseenter="{!c.showEdit}"
+                onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="repayment3-3">
+                    <aura:if isTrue="{!v.repayment3EditMode == false}">
+                        <span class="slds-truncate" title="{!v.DummyRecData.repayment3WCommas}" data-value="repayment3-3">
+                            <lightning:formattedNumber value="{!v.DummyRecData.repayment3}" style="decimal"
+                                minimumFractionDigits="2" maximumFractionDigits="4" />
+                        </span>
+                        <button onclick="{!c.EditData}" data-value="repayment3-3"
+                            class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0"
+                            title="Edit Name">
+                            <lightning:icon aura:id="repayment3EditButton" iconName="utility:edit" size="xx-small"
+                                alternativeText="edit" class="slds-hidden" />
+                        </button>
+                        <!-- Inline Edit Section in else case-->
+                        <aura:set attribute="else">
+                            <ui:inputNumber aura:id="repayment3id" blur="{!c.closeInputBox}" change="{!c.onChange}"
+                                value="{!v.DummyRecData.repayment3}" />
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+
+            <td ondblclick="{!c.EditData}" data-value="repayment4-4" onmouseenter="{!c.showEdit}"
+                onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="repayment4-4">
+                    <aura:if isTrue="{!v.repayment4EditMode == false}">
+                        <span class="slds-truncate" title="{!v.DummyRecData.repayment4WCommas}" data-value="repayment4-4">
+                            <lightning:formattedNumber value="{!v.DummyRecData.repayment4}" style="decimal"
+                                minimumFractionDigits="2" maximumFractionDigits="4" />
+                        </span>
+                        <button onclick="{!c.EditData}" data-value="repayment4-4"
+                            class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0"
+                            title="Edit Name">
+                            <lightning:icon aura:id="repayment4EditButton" iconName="utility:edit" size="xx-small"
+                                alternativeText="edit" class="slds-hidden" />
+                        </button>
+                        <!-- Inline Edit Section in else case-->
+                        <aura:set attribute="else">
+                            <ui:inputNumber aura:id="repayment4id" blur="{!c.closeInputBox}" change="{!c.onChange}"
+                                value="{!v.DummyRecData.repayment4}" />
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+
+            <aura:if isTrue="{!v.week >= 5}">
+                <td ondblclick="{!c.EditData}" data-value="repayment5-5" onmouseenter="{!c.showEdit}"
+                    onmouseleave="{!c.hideEdit}"
+                    class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                    <span data-value="repayment5-5">
+                        <aura:if isTrue="{!v.repayment5EditMode == false}">
+                            <span class="slds-truncate" title="{!v.DummyRecData.repayment5WCommas}" data-value="repayment5-5">
+                                <lightning:formattedNumber value="{!v.DummyRecData.repayment5}" style="decimal"
+                                    minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </span>
+                            <button onclick="{!c.EditData}" data-value="repayment5-5"
+                                class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small"
+                                tabindex="0" title="Edit Name">
+                                <lightning:icon aura:id="repayment5EditButton" iconName="utility:edit" size="xx-small"
+                                    alternativeText="edit" class="slds-hidden" />
+                            </button>
+                            <!-- Inline Edit Section in else case-->
+                            <aura:set attribute="else">
+                                <ui:inputNumber aura:id="repayment5id" blur="{!c.closeInputBox}" change="{!c.onChange}"
+                                    value="{!v.DummyRecData.repayment5}" />
+                            </aura:set>
+                        </aura:if>
+                    </span>
+                </td>
+            </aura:if>
+            <aura:if isTrue="{!v.week == 6}">
+                <td ondblclick="{!c.EditData}" data-value="repayment6-6" onmouseenter="{!c.showEdit}"
+                    onmouseleave="{!c.hideEdit}"
+                    class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                    <span data-value="repayment6-6">
+                        <aura:if isTrue="{!v.repayment6EditMode == false}">
+                            <span class="slds-truncate" title="{!v.DummyRecData.repayment6WCommas}" data-value="repayment6-6">
+                                <lightning:formattedNumber value="{!v.DummyRecData.repayment6}" style="decimal"
+                                    minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </span>
+                            <button onclick="{!c.EditData}" data-value="repayment6-6"
+                                class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small"
+                                tabindex="0" title="Edit Name">
+                                <lightning:icon aura:id="repayment6EditButton" iconName="utility:edit" size="xx-small"
+                                    alternativeText="edit" class="slds-hidden" />
+                            </button>
+                            <!-- Inline Edit Section in else case-->
+                            <aura:set attribute="else">
+                                <ui:inputNumber aura:id="repayment6id" blur="{!c.closeInputBox}" change="{!c.onChange}"
+                                    value="{!v.DummyRecData.repayment6}" />
+                            </aura:set>
+                        </aura:if>
+                    </span>
+                </td>
+            </aura:if>
+            <td ondblclick="{!c.EditData}" data-value="drawdown1-1" onmouseenter="{!c.showEdit}"
+                onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="drawdown1-1">
+                    <aura:if isTrue="{!v.drawdown1EditMode == false}">
+                        <span class="slds-truncate" title="{!v.DummyRecData.drawdown1WCommas}" data-value="drawdown1-1">
+                            <lightning:formattedNumber value="{!v.DummyRecData.drawdown1}" style="decimal"
+                                minimumFractionDigits="2" maximumFractionDigits="4" />
+                        </span>
+                        <button onclick="{!c.EditData}" data-value="drawdown1-1"
+                            class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0"
+                            title="Edit Name">
+                            <lightning:icon aura:id="drawdown1EditButton" iconName="utility:edit" size="xx-small"
+                                alternativeText="edit" class="slds-hidden" />
+                        </button>
+                        <!-- Inline Edit Section in else case-->
+                        <aura:set attribute="else">
+                            <ui:inputNumber aura:id="drawdown1id" blur="{!c.closeInputBox}" change="{!c.onChange}"
+                                value="{!v.DummyRecData.drawdown1}" />
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+
+            <td ondblclick="{!c.EditData}" data-value="drawdown2-2" onmouseenter="{!c.showEdit}"
+                onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="drawdown2-2">
+                    <aura:if isTrue="{!v.drawdown2EditMode == false}">
+                        <span class="slds-truncate" title="{!v.DummyRecData.drawdown2WCommas}" data-value="drawdown2-2">
+                            <lightning:formattedNumber value="{!v.DummyRecData.drawdown2}" style="decimal"
+                                minimumFractionDigits="2" maximumFractionDigits="4" />
+                        </span>
+                        <button onclick="{!c.EditData}" data-value="drawdown2-2"
+                            class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0"
+                            title="Edit Name">
+                            <lightning:icon aura:id="drawdown2EditButton" iconName="utility:edit" size="xx-small"
+                                alternativeText="edit" class="slds-hidden" />
+                        </button>
+                        <!-- Inline Edit Section in else case-->
+                        <aura:set attribute="else">
+                            <ui:inputNumber aura:id="drawdown2id" blur="{!c.closeInputBox}" change="{!c.onChange}"
+                                value="{!v.DummyRecData.drawdown2}" />
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+
+            <td ondblclick="{!c.EditData}" data-value="drawdown3-3" onmouseenter="{!c.showEdit}"
+                onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="drawdown3-3">
+                    <aura:if isTrue="{!v.drawdown3EditMode == false}">
+                        <span class="slds-truncate" title="{!v.DummyRecData.drawdown3WCommas}" data-value="drawdown3-3">
+                            <lightning:formattedNumber value="{!v.DummyRecData.drawdown3}" style="decimal"
+                                minimumFractionDigits="2" maximumFractionDigits="4" />
+                        </span>
+                        <button onclick="{!c.EditData}" data-value="drawdown3-3"
+                            class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0"
+                            title="Edit Name">
+                            <lightning:icon aura:id="drawdown3EditButton" iconName="utility:edit" size="xx-small"
+                                alternativeText="edit" class="slds-hidden" />
+                        </button>
+                        <!-- Inline Edit Section in else case-->
+                        <aura:set attribute="else">
+                            <ui:inputNumber aura:id="drawdown3id" blur="{!c.closeInputBox}" change="{!c.onChange}"
+                                value="{!v.DummyRecData.drawdown3}" />
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+
+            <td ondblclick="{!c.EditData}" data-value="drawdown4-4" onmouseenter="{!c.showEdit}"
+                onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="drawdown4-4">
+                    <aura:if isTrue="{!v.drawdown4EditMode == false}">
+                        <span class="slds-truncate" title="{!v.DummyRecData.drawdown4WCommas}" data-value="drawdown4-4">
+                            <lightning:formattedNumber value="{!v.DummyRecData.drawdown4}" style="decimal"
+                                minimumFractionDigits="2" maximumFractionDigits="4" />
+                        </span>
+                        <button onclick="{!c.EditData}" data-value="drawdown4-4"
+                            class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0"
+                            title="Edit Name">
+                            <lightning:icon aura:id="drawdown4EditButton" iconName="utility:edit" size="xx-small"
+                                alternativeText="edit" class="slds-hidden" />
+                        </button>
+                        <!-- Inline Edit Section in else case-->
+                        <aura:set attribute="else">
+                            <ui:inputNumber aura:id="drawdown4id" blur="{!c.closeInputBox}" change="{!c.onChange}"
+                                value="{!v.DummyRecData.drawdown4}" />
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <aura:if isTrue="{!v.week >= 5}">
+                <td ondblclick="{!c.EditData}" data-value="drawdown5-5" onmouseenter="{!c.showEdit}"
+                    onmouseleave="{!c.hideEdit}"
+                    class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                    <span data-value="drawdown5-5">
+                        <aura:if isTrue="{!v.drawdown5EditMode == false}">
+                            <span class="slds-truncate" title="{!v.DummyRecData.drawdown5WCommas}" data-value="drawdown5-5">
+                                <lightning:formattedNumber value="{!v.DummyRecData.drawdown5}" style="decimal"
+                                    minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </span>
+                            <button onclick="{!c.EditData}" data-value="drawdown5-5"
+                                class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small"
+                                tabindex="0" title="Edit Name">
+                                <lightning:icon aura:id="drawdown5EditButton" iconName="utility:edit" size="xx-small"
+                                    alternativeText="edit" class="slds-hidden" />
+                            </button>
+                            <!-- Inline Edit Section in else case-->
+                            <aura:set attribute="else">
+                                <ui:inputNumber aura:id="drawdown5id" blur="{!c.closeInputBox}" change="{!c.onChange}"
+                                    value="{!v.DummyRecData.drawdown5}" />
+                            </aura:set>
+                        </aura:if>
+                    </span>
+                </td>
+            </aura:if>
+            <aura:if isTrue="{!v.week == 6}">
+                <td ondblclick="{!c.EditData}" data-value="drawdown6-6" onmouseenter="{!c.showEdit}"
+                    onmouseleave="{!c.hideEdit}"
+                    class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                    <span data-value="drawdown6-6">
+                        <aura:if isTrue="{!v.drawdown6EditMode == false}">
+                            <span class="slds-truncate" title="{!v.DummyRecData.drawdown6WCommas}" data-value="drawdown6-6">
+                                <lightning:formattedNumber value="{!v.DummyRecData.drawdown6}" style="decimal"
+                                    minimumFractionDigits="2" maximumFractionDigits="4" />
+                            </span>
+                            <button onclick="{!c.EditData}" data-value="drawdown6-6"
+                                class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small"
+                                tabindex="0" title="Edit Name">
+                                <lightning:icon aura:id="drawdown6EditButton" iconName="utility:edit" size="xx-small"
+                                    alternativeText="edit" class="slds-hidden" />
+                            </button>
+                            <!-- Inline Edit Section in else case-->
+                            <aura:set attribute="else">
+                                <ui:inputNumber aura:id="drawdown6id" blur="{!c.closeInputBox}" change="{!c.onChange}"
+                                    value="{!v.DummyRecData.drawdown6}" />
+                            </aura:set>
+                        </aura:if>
+                    </span>
+                </td>
+            </aura:if>
+            <td>
+                <div class="slds-truncate">
+                    <aura:unescapedHtml value="{!v.DummyRecData.lastUpdatedBy}">
+                        <lightning:formattedText value="{!v.DummyRecData.lastUpdatedBy}" />
+                    </aura:unescapedHtml>
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <lightning:formattedDateTime value="{!v.DummyRecData.lastUpdatedDate}" year="numeric"
+                        month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" hour12="false" />
+                </div>
+            </td>
+            <td>
+                <lightning:button label="Save" onclick="{!c.saveRow}" disabled="{!!v.showSaveChildeBtn}"
+                    variant="brand" />
+                <lightning:button label="Cancel" onclick="{!c.cancelEdit}" disabled="{!!v.showSaveChildeBtn}"
+                    variant="destructive" />
+                <lightning:button label="Detail" onclick="{!c.goToDetail}" variant="brand-outline" />
+            </td>
+        </tr>
+
+        <!-- Modall -->
+        <aura:if isTrue="{!v.isModalOpen}">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <lightning:buttonIcon iconName="utility:close" onclick="{! c.closeModel }" alternativeText="close" variant="bare-inverse" class="slds-modal__close"/>
+                        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">SAVE</h2>
+                    </header>
+    
+                    <div class="slds-modal__content slds-p-around_medium" style="text-align: center;" id="modal-content-id-1">
+                        <p>
+                            <b>
+                                <lightning:formattedText title="{!$Label.c.Drawdown_Over_Limit}" value="{!$Label.c.Drawdown_Over_Limit}"/>
+                            </b> 
+    
+                            <br/>
+                            <lightning:formattedText title="{!$Label.c.Drawdown_Over_Limit_Save}" value="{!$Label.c.Drawdown_Over_Limit_Save}"/>
+                        </p>
+                    </div>
+    
+                    <footer class="slds-modal__footer slds-modal__footer_directional">
+                        <lightning:button variant="slds-button slds-button_outline-brand" label="Cancel" title="Cancel" onclick="{! c.closeModel }"/>
+                        <lightning:button variant="slds-button slds-button_brand" label="Save" title="Save" onclick="{!c.saveRow}"/>
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </aura:if>
+    
+    </aura:renderIf>
+
+</aura:component>

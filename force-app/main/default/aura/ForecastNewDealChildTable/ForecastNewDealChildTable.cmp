@@ -1,0 +1,355 @@
+<aura:component controller="ForecastAdjustmentController">
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <lightning:navigation aura:id="navService" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <aura:method name="refreshData" action="{!c.refreshData}"/> 
+    <aura:method name="deleteRecord" action="{!c.deleteRowId}"/>
+
+    <!-- Set attribute -->
+    <aura:method name="parentRemoveRowMethod" action="{!c.removeSubChildRow}">
+        <aura:attribute name="param1" type="String" />
+    </aura:method>
+    <aura:attribute name="isDaft" type="boolean" default="false" />
+    <aura:attribute name="showSaveChildeBtn" type="boolean" default="false" />
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+    <aura:attribute name="index" type="Integer" />
+    <aura:attribute name="parent" type="Aura.Component" required="true" />
+    <aura:attribute name="mydata" type="Object" />
+    <aura:attribute name="dumpData" type="List" />
+    <aura:attribute name="ChildList" type="List" default="[]" />
+    <aura:attribute name="noOfSubChild" type="Integer" default="0" />
+    <aura:attribute name="showSubChild" type="boolean" default="false" />
+    <aura:attribute name="showAdjustedItem" type="boolean"/>
+    <aura:attribute name="isShowRec" type="boolean" default="false"/>
+
+    <aura:attribute name="isModalOpen" type="boolean" default="false"/>
+    <aura:attribute name="deleteData" type="Object"/>
+
+    <!-- set data for edit mode -->
+    <aura:attribute name="InputList" type="List" />
+    <aura:attribute name="InputNumber" type="List" /> 
+    <aura:attribute name="remarkEdited" type="String" />
+    <aura:attribute name="expectedStartMonthFullName" type="String" />
+    
+    <!-- set edit mode -->
+    <aura:attribute name="limitVolumeEditMode" type="boolean" default="false" />
+    <aura:attribute name="propEditMode" type="boolean" default="false" />
+    <aura:attribute name="incomeTypeEditMode" type="boolean" default="false" />
+    <aura:attribute name="recurringTypeEditMode" type="boolean" default="false" />
+    <aura:attribute name="frequencyEditMode" type="boolean" default="false" />
+    <aura:attribute name="expectedStartYearEditMode" type="boolean" default="false" />
+    <aura:attribute name="expectedStartMonthEditMode" type="boolean" default="false" />
+    <aura:attribute name="utilizationEditMode" type="boolean" default="false" />
+    <aura:attribute name="NIMfeeRateEditMode" type="boolean" default="false" />
+    <aura:attribute name="startingVolumeEditMode" type="boolean" default="false" />
+    <aura:attribute name="remarkEditMode" type="boolean" default="false" />
+
+    <aura:renderIf isTrue="{!v.isShowRec}">
+
+        <tr aura:id="isDaft">
+            <td class="first-child">
+                <div class="slds-truncate">
+                    <aura:if isTrue="{!v.noOfSubChild != 0}">
+                        <button onclick="{!c.expandRow}"
+                            class="slds-button slds-button_icon slds-button_icon slds-button_icon-x-small slds-m-right_x-small"
+                            aria-hidden="true" tabindex="-1" title="Expand">
+                            <aura:if isTrue="{!!v.showSubChild}">
+                                <lightning:icon iconName="utility:right" size="xx-small" alternativeText="Expand" />
+                                <aura:set attribute="else">
+                                    <lightning:icon iconName="utility:down" size="xx-small" alternativeText="Expand" />
+                                </aura:set>
+                            </aura:if>
+                        </button>
+                    </aura:if>
+                    <c:CallCenterCSV_PillOutput type="REFERENCE" value="{!v.mydata.customerId}" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <c:CallCenterCSV_PillOutput type="STRING" value="{!v.mydata.groupName}" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <c:CallCenterCSV_PillOutput type="STRING" value="{!v.mydata.team}" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <c:CallCenterCSV_PillOutput type="REFERENCE" value="{!v.mydata.opportunityId}" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <c:CallCenterCSV_PillOutput type="STRING" value="{!v.mydata.stage}" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <c:CallCenterCSV_PillOutput type="STRING" value="{!v.mydata.oppApplicationStatus}" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <c:CallCenterCSV_PillOutput type="DATE" value="{!v.mydata.expectedCompleteDate}" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <c:CallCenterCSV_PillOutput type="STRING" value="{!v.mydata.product}" />
+                </div>
+            </td>
+            <td ondblclick="{!c.EditName}" data-value="limitVolume" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="limitVolume">
+                    <aura:if isTrue="{!v.limitVolumeEditMode == false}">
+                        <span class="slds-truncate" title="{!v.mydata.limitVolumeWCommas}" data-value="limitVolume">
+                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.mydata.limitVolume}" />
+                        </span>
+                        <button onclick="{!c.EditName}" data-value="limitVolume" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                            <lightning:icon aura:id="limitVolumeEditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                        </button>
+                        <aura:set attribute="else">
+                            <ui:inputNumber aura:id="limitVolumeid" value="{!v.InputNumber.limitVolumeEdited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <td ondblclick="{!c.EditName}" data-value="prop" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="prop">
+                    <aura:if isTrue="{!v.propEditMode == false}">
+                        <span class="slds-truncate" title="{!v.mydata.prop}" data-value="prop">
+                            <c:CallCenterCSV_PillOutput type="STRING" value="{!v.mydata.prop}" />
+                        </span>
+                        <button onclick="{!c.EditName}" data-value="prop" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                            <lightning:icon aura:id="propEditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                        </button>
+                        <aura:set attribute="else">
+                            <ui:inputSelect aura:id="propid" change="{!c.onChange}" blur="{!c.closeNameBox}">
+                                <aura:iteration var="propOption" items="{! v.InputList.propOptions }">
+                                    <ui:inputSelectOption text="{!propOption.text}" label="{!propOption.label}"
+                                        value="{!propOption.value}" />
+                                </aura:iteration>
+                            </ui:inputSelect>
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <td ondblclick="{!c.EditName}" data-value="incomeType" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="incomeType">
+                    <aura:if isTrue="{!v.incomeTypeEditMode == false}">
+                        <span class="slds-truncate" title="{!v.mydata.incomeType}" data-value="incomeType">
+                            <c:CallCenterCSV_PillOutput type="STRING" value="{!v.mydata.incomeType}" />
+                        </span>
+                        <button onclick="{!c.EditName}" data-value="incomeType" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                            <lightning:icon aura:id="incomeTypeEditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                        </button>
+                        <aura:set attribute="else">
+                            <ui:inputSelect aura:id="incomeTypeid" change="{!c.onChange}" blur="{!c.closeNameBox}">
+                                <aura:iteration var="incomeTypeOption" items="{! v.InputList.incomeTypeOptions }">
+                                    <ui:inputSelectOption text="{!incomeTypeOption.text}" label="{!incomeTypeOption.label}"
+                                        value="{!incomeTypeOption.value}" />
+                                </aura:iteration>
+                            </ui:inputSelect>
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <td ondblclick="{!c.EditName}" data-value="recurringType" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="recurringType">
+                    <aura:if isTrue="{!v.recurringTypeEditMode == false}">
+                        <span class="slds-truncate" title="{!v.mydata.recurringType}" data-value="recurringType">
+                            <c:CallCenterCSV_PillOutput type="STRING" value="{!v.mydata.recurringType}" />
+                        </span>
+                        <button onclick="{!c.EditName}" data-value="recurringType" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                            <lightning:icon aura:id="recurringTypeEditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                        </button>
+                        <aura:set attribute="else">
+                            <ui:inputSelect aura:id="recurringTypeid" change="{!c.onChange}" blur="{!c.closeNameBox}">
+                                <aura:iteration var="recurringTypeOption" items="{! v.InputList.recurringTypeOptions }">
+                                    <ui:inputSelectOption text="{!recurringTypeOption.text}" label="{!recurringTypeOption.label}"
+                                        value="{!recurringTypeOption.value}" />
+                                </aura:iteration>
+                            </ui:inputSelect>
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <td ondblclick="{!c.EditName}" data-value="frequency" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="frequency">
+                    <aura:if isTrue="{!v.frequencyEditMode == false}">
+                        <span class="slds-truncate" title="{!v.mydata.frequency}" data-value="frequency">
+                            <c:CallCenterCSV_PillOutput type="STRING" value="{!v.mydata.frequency}" />
+                        </span>
+                        <button onclick="{!c.EditName}" data-value="frequency" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                            <lightning:icon aura:id="frequencyEditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                        </button>
+                        <aura:set attribute="else">
+                            <ui:inputSelect aura:id="frequencyid" change="{!c.onChange}" blur="{!c.closeNameBox}">
+                                <aura:iteration var="frequencyOption" items="{! v.InputList.frequencyOptions }">
+                                    <ui:inputSelectOption text="{!frequencyOption.text}" label="{!frequencyOption.label}"
+                                        value="{!frequencyOption.value}" />
+                                </aura:iteration>
+                            </ui:inputSelect>
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <td ondblclick="{!c.EditName}" data-value="expectedStartYear" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="expectedStartYear">
+                    <aura:if isTrue="{!v.expectedStartYearEditMode == false}">
+                        <span class="slds-truncate" title="{!v.mydata.expectedStartYear}" data-value="expectedStartYear">
+                            <c:CallCenterCSV_PillOutput type="STRING" value="{!v.mydata.expectedStartYear}" />
+                        </span>
+                        <button onclick="{!c.EditName}" data-value="expectedStartYear" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                            <lightning:icon aura:id="expectedStartYearEditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                        </button>
+                        <aura:set attribute="else">
+                            <ui:inputSelect aura:id="expectedStartYearid" change="{!c.onChange}" blur="{!c.closeNameBox}">
+                                <aura:iteration var="expectedStartYearOption" items="{! v.InputList.expectedStartYearOptions }">
+                                    <ui:inputSelectOption text="{!expectedStartYearOption.text}"
+                                        label="{!expectedStartYearOption.label}" value="{!expectedStartYearOption.value}" />
+                                </aura:iteration>
+                            </ui:inputSelect>
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <td ondblclick="{!c.EditName}" data-value="expectedStartMonth" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="expectedStartMonth">
+                    <aura:if isTrue="{!v.expectedStartMonthEditMode == false}">
+                        <span class="slds-truncate" title="{!v.expectedStartMonthFullName}" data-value="expectedStartMonth">
+                            <c:CallCenterCSV_PillOutput type="STRING" value="{!v.expectedStartMonthFullName}" />
+                        </span>
+                        <button onclick="{!c.EditName}" data-value="expectedStartMonth" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                            <lightning:icon aura:id="expectedStartMonthEditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                        </button>
+                        <aura:set attribute="else">
+                            <ui:inputSelect aura:id="expectedStartMonthid" change="{!c.onChange}" blur="{!c.closeNameBox}">
+                                <aura:iteration var="expectedStartMonthOption" items="{! v.InputList.expectedStartMonthOptions }">
+                                    <ui:inputSelectOption text="{!expectedStartMonthOption.text}"
+                                        label="{!expectedStartMonthOption.label}" value="{!expectedStartMonthOption.value}" />
+                                </aura:iteration>
+                            </ui:inputSelect>
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <td ondblclick="{!c.EditName}" data-value="utilization" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="utilization">
+                    <aura:if isTrue="{!v.utilizationEditMode == false}">
+                        <span class="slds-truncate" title="{!v.mydata.utilization}" data-value="utilization">
+                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.mydata.utilization}" />
+                        </span>
+                        <button onclick="{!c.EditName}" data-value="utilization" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                            <lightning:icon aura:id="utilizationEditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                        </button>
+                        <aura:set attribute="else">
+                            <ui:inputText aura:id="utilizationid" value="{!v.InputNumber.utilizationEdited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <td ondblclick="{!c.EditName}" data-value="NIMfeeRate" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="NIMfeeRate">
+                    <aura:if isTrue="{!v.NIMfeeRateEditMode == false}">
+                        <span class="slds-truncate" title="{!v.mydata.NIMfeeRate}" data-value="NIMfeeRate">
+                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.mydata.NIMfeeRate}" />
+                        </span>
+                        <button onclick="{!c.EditName}" data-value="NIMfeeRate" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                            <lightning:icon aura:id="NIMfeeRateEditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                        </button>
+                        <aura:set attribute="else">
+                            <ui:inputNumber aura:id="NIMfeeRateid" value="{!v.InputNumber.NIMfeeRateEdited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <td ondblclick="{!c.EditName}" data-value="startingVolume" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="startingVolume">
+                    <aura:if isTrue="{!v.startingVolumeEditMode == false}">
+                        <span class="slds-truncate" title="{!v.mydata.startingVolumeWCommas}" data-value="startingVolume">
+                            <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.mydata.startingVolume}" />
+                        </span>
+                        <button onclick="{!c.EditName}" data-value="startingVolume" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                            <lightning:icon aura:id="startingVolumeEditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                        </button>
+                        <aura:set attribute="else">
+                            <ui:inputNumber aura:id="startingVolumeid" value="{!v.InputNumber.startingVolumeEdited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            
+            
+            <td>
+                <div class="slds-truncate" title="{!v.mydata.ThisYearExpectedBalanceWCommas}">
+                    <c:CallCenterCSV_PillOutput type="NUMBER" value="{!v.mydata.ThisYearExpectedBalance}"  />
+                </div>
+            </td>
+            
+            <td ondblclick="{!c.EditName}" data-value="remark" onmouseenter="{!c.showEdit}" onmouseleave="{!c.hideEdit}"
+                class="{! v.showErrorClass == true ? 'slds-cell-edit slds-has-error right-align' : 'slds-cell-edit right-align'}">
+                <span data-value="remark">
+                    <aura:if isTrue="{!v.remarkEditMode == false}">
+                        <span class="slds-truncate" title="{!v.mydata.remark}" data-value="remark">
+                            <c:CallCenterCSV_PillOutput type="STRING" value="{!v.mydata.remark}" />
+                        </span>
+                        <button onclick="{!c.EditName}" data-value="remark" class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0" title="Edit Name">
+                            <lightning:icon aura:id="remarkEditButton" iconName="utility:edit" size="xx-small" alternativeText="edit" class="slds-hidden"/>
+                        </button>
+                        <aura:set attribute="else">
+                            <ui:inputText aura:id="remarkid" value="{!v.remarkEdited}" change="{!c.onChange}" blur="{!c.closeNameBox}"/>
+                        </aura:set>
+                    </aura:if>
+                </span>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <c:CallCenterCSV_PillOutput type="STRING" value="{!v.mydata.lastUpdatedBy}" />
+                </div>
+            </td>
+            <td>
+                <div class="slds-truncate">
+                    <lightning:formattedDateTime value="{!v.mydata.lastUpdated}" year="numeric" month="2-digit" day="2-digit" hour="2-digit" minute="2-digit" />
+                </div>
+            </td>
+            <td> 
+                <lightning:button label="Save" onclick ="{!c.saveEditedTalent}" disabled="{!!v.showSaveChildeBtn}" />
+                <lightning:button label="Cancel" onclick ="{!c.cancelEditedTalent}" disabled="{!!v.showSaveChildeBtn}" />
+                <lightning:button label="detail" onclick="{!c.openDetailTab}" />
+            </td>
+    
+            <!-- add new row -->
+            <td>
+                <button class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small">
+                    <lightning:icon aura:id="addButtn" iconName="utility:new" size="xx-small" alternativeText="add"
+                        onclick="{!c.addRow}" />
+                </button>
+                <button onclick="{!c.openModel}"
+                    class="slds-button slds-button_icon slds-cell-edit__button slds-m-left_x-small" tabindex="0"
+                    title="Delete">
+                    <lightning:icon aura:id="deleteButtn" iconName="utility:ban" size="xx-small"
+                        alternativeText="cancle" />
+                </button>
+            </td>
+        </tr>
+        <aura:if isTrue="{!and(v.noOfSubChild != 0,v.showSubChild)}">
+            <aura:iteration items="{!v.ChildList}" var="chd" indexVar="index">
+                    <!-- Sub Child Component -->
+                    <c:ForecastSubNewDeal mydata="{!chd}" parent="{!this}" index="{!index}" isModalOpen="{!v.isModalOpen}" deleteData="{!v.deleteData}" />
+            </aura:iteration>
+        </aura:if>
+    </aura:renderIf>
+
+
+</aura:component>

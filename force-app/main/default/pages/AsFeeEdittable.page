@@ -1,0 +1,248 @@
+<apex:page docType="html-5.0" showChat="false" 
+showHeader="false" sidebar="false" applyBodyTag="false" 
+applyHtmlTag="true"  standardStylesheets="true"
+standardController="AcctPlanWallet__c" extensions="EditableASFee"
+
+>
+<!-- Header -->
+<head>
+        <title>AS Fee</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+        
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->        
+        
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.AccountPlanEditTable)}"/>
+        <style>
+        .bootstrap-sf1 select{
+           
+        }
+        .requiredLabel2{
+          height: 25px;
+        }
+        .ProductInput{
+          /*pointer-events:none;*/
+        }
+        td{
+          /*padding: 5px !important;*/
+        }
+        body .bPageBlock{
+          margin-bottom: 10px;
+        }
+        </style>
+    </head>
+
+    <body>  
+        
+        <apex:actionstatus id="status">
+                <apex:facet name="start">
+                    <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                        &nbsp;
+                    </div>
+                    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                        <img src="/img/loading32.gif" />
+                    </div>
+                 </apex:facet>
+        </apex:actionstatus>    
+        <div class="bootstrap-sf1" >
+            <div class="row" >
+                <div class="col-sm-12 col-md-12 col-lg-12">
+                    <apex:form id="myform" >        
+                        
+                        <apex:pageMessages id="messages"/>                          
+                            <apex:pageBlock title="AS Fee" id="childList">
+                            <apex:outputPanel >
+                                <table class="table table-striped table-hover"  id="edittable">
+                                    <thead>
+                                        <tr>
+                                            <td colspan="1" >
+                                                <apex:commandButton status="status" styleClass="btn  btn-success" value="Add New" action="{!addToList}" oncomplete="scroll();" rerender="childList, messages" style="margin:8px 0px;"/>
+                                            </td>
+                                            <td colspan="10" class="text-right bs-component"  style="padding: 0px 20px">
+                                                <apex:commandButton value="Save" status="status" styleClass="btn  btn-primary" action="{!insertRecord}" oncomplete="scroll();" rerender="messages,childList"  style="margin:8px 0px;"/>
+                                                
+                                            </td>        
+                                        </tr>
+                                                
+                                          <tr>
+                                          <th style="vertical-align: top;">
+                                                AS Product/Service
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.Account_Plan_AS_Fee__c.Fields.AS_Product_Service__c.inlineHelpText}" />
+                                                
+                                            </th> 
+                                            <th style="vertical-align: top;">
+                                                Type of Fee
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.Account_Plan_AS_Fee__c.Fields.Type_of_Fee__c.inlineHelpText}" />
+                                                
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                Net Asset Value (NAV) (THB)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.Account_Plan_AS_Fee__c.Fields.Net_Asset_Value__c.inlineHelpText}" />
+                                            </th>                      
+                                           <th style="vertical-align: top;">
+                                                AS Fee (%)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.Account_Plan_AS_Fee__c.Fields.AS_Fee__c.inlineHelpText}" />
+                                            </th>   
+                                            <th style="vertical-align: top;">
+                                                Fixed AS Fee (Yearly: THB)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.Account_Plan_AS_Fee__c.Fields.Fixed_AS_Fee__c.inlineHelpText}" />
+                                            </th> 
+                                            <!--<th style="vertical-align: top;">
+                                                Wallet AS Fee
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.Account_Plan_AS_Fee__c.Fields.Wallet_AS_Fee__c.inlineHelpText}" />
+                                            </th> -->           
+                                            
+                                            <!--<th style="vertical-align: top;">
+                                                IB Fee<br/>(Yearly)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                  data-animation="false" data-placement="bottom" 
+                                                                  title="{!$ObjectType.AccountPlanBond__c.Fields.IB_Fee__c.inlineHelpText}" />
+                                            </th>
+                                            <th style="vertical-align: top;">
+                                                AS Fee (Bond Rep)<br/>(Yearly)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                  data-animation="false" data-placement="bottom" 
+                                                                  title="{!$ObjectType.AccountPlanBond__c.Fields.AS_Fee_Bond_Rep__c.inlineHelpText}" />
+                                            </th>    -->   
+                                            <th>&nbsp;</th>   
+                                          </tr>
+                                    </thead>
+                                    <tbody>
+                                        <apex:actionFunction action="{!changeTypeOfFee}" name="changeTypeOfFee" status="status" />
+                                        <apex:variable var="rowNum" value="{!ZERO}" />
+                                        <apex:repeat value="{!children}" var="crc" >
+                                           
+                                            <tr>
+                                                <td> <span class="requiredLabel" style="margin-top: 2px;"></span> <apex:inputField value="{!crc.AS_Product_Service__c}"  required="ture" /></td>
+                                                <td>
+                                                <span class="requiredLabel" style="margin-top: 2px;"></span> 
+                                                <apex:inputField value="{!crc.Type_of_Fee__c}" required="ture"  onchange="changeTypeFee(this,'{!rowNum}'); "  styleclass="changeTypeFee{!rowNum} TypeFee"/>
+                                                <!--<apex:inputField value="{!crc.Type_of_Fee__c}">
+                                                    <apex:actionsupport event="onchange" action="{!changeTypeOfFee}" reRender="net" status="status">
+                                                        <apex:param name="row" value="{!rowNum}" assignto="{!row}" />
+                                                    </apex:actionsupport>
+                                                </apex:inputField>-->
+                                                </td>
+                                                
+                                                    <td>
+                                                    
+                                                    <div id="Net{!rowNum}" style="display: {!IF((crc.Type_of_Fee__c == null || crc.Type_of_Fee__c == '' || crc.Type_of_Fee__c == 'Fixed') ,'none','block')}" class="requiredInput">
+                                                   <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+
+                                                    <apex:inputField value="{!crc.Net_Asset_Value__c}"  required="ture"   styleClass="Net{!rowNum} Net"
+                                                    />
+                                                    
+                                                    </div>
+                                                    </td>
+                                                    
+                                                    <td>
+                                                    <div id="ASFee{!rowNum}" style="display: {!IF((crc.Type_of_Fee__c == null || crc.Type_of_Fee__c == '' || crc.Type_of_Fee__c == 'Fixed'),'none','block')}" class="requiredInput">
+                                                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+
+                                                    <apex:inputField value="{!crc.AS_Fee__c}"  required="ture"   styleClass="ASFee{!rowNum} ASFee"
+                                                    />
+                                                    </div>
+                                                    </td> 
+                                                    
+                                                    <td>
+                                                    <div id="Fixed{!rowNum}" style="display: {!IF((crc.Type_of_Fee__c == null || crc.Type_of_Fee__c == '' || crc.Type_of_Fee__c == 'Percent') ,'none','block')}" class="requiredInput">
+                                                    <apex:outputPanel styleClass="requiredBlock" layout="block"/>
+
+                                                    <apex:inputField value="{!crc.Fixed_AS_Fee__c}"  required="ture"   styleClass="Fixed{!rowNum} Fixed"
+                                                    />
+                                                    </div>
+
+                                                    </td>
+                                                    <!--<td><apex:outputField value="{!crc.Wallet_AS_Fee__c}" /></td>-->
+
+                                                    <td>
+                                                    <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                                    <apex:commandLink value="Delete" action="{!removeFromList}" onclick="if(!confirm('Are you sure you want to delete this item?')) return false;" status="status" styleClass="btn btn-danger" rerender="childList, messages" immediate="true" style="padding: 5px 15px;">
+                                                      <apex:param name="removeIndex" assignTo="{!removeIndex}" value="{!rowNum}" />
+                                                    </apex:commandLink>
+                                                  </td>                                      
+                                            </tr>
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>
+                            </apex:outputpanel> 
+                                                      
+                             
+                                                      
+                        </apex:pageBlock>
+                    </apex:form>            
+                </div>              
+            </div>
+        </div>
+        
+<apex:includeScript value="{!$Resource.AccountPlan_JqueryScript}"/>
+            <apex:includeScript value="{!$Resource.AccountPlan_Bootstrap}"/>
+            <apex:includeScript value="/support/console/22.0/integration.js"/>
+        <script>
+            var $j = jQuery.noConflict();
+            function changeTypeFee(e,id){
+                //$j("html, body").animate({ scrollTop: $j(document).height() }, 1000);
+                //alert($j(e).val());
+                if($j(e).val() =='Percent'){
+                     $j('#Net'+id).show();
+                     $j('#ASFee'+id).show();
+                     $j('#Fixed'+id).hide();
+                     $j('[class$=Net'+id+']').prop('required',true);
+                     $j('[class$=ASFee'+id+']').prop('required',true);
+                     $j('[class$=Fixed'+id+']').prop('required',false);
+                }else{
+                     $j('#Net'+id).hide(); 
+                     $j('#ASFee'+id).hide();
+                     $j('#Fixed'+id).show();
+                     $j('[class$=Fixed'+id+']').prop('required',true);
+                     $j('[class$=Net'+id+']').prop('required',false);
+                     $j('[class$=ASFee'+id+']').prop('required',false);
+                }  
+
+            }
+      
+      $j(document).ready(function () {
+        /*comment*/
+                     /*$j('[class$=Net').prop('required',true);
+                     $j('[class$=ASFee').prop('required',true);
+                     $j('[class$=Fixed').prop('required',true);
+                     $j('[class$=ProductInput').prop('required',true);
+                     $j('[class$=TypeFee').prop('required',true);*/
+        
+        $j('[data-toggle="tooltip"]').tooltip();
+        //$j("html, body").animate({ scrollTop: $j(document).height() }, 1000);
+           });
+
+      function scroll(){
+         //$j("html, body").animate({ scrollTop: $j(document).height() }, 1000);
+      }
+        </script>
+    </body>    
+</apex:page>

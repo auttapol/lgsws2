@@ -1,0 +1,346 @@
+<aura:component controller="VisitPlanComponentController"  implements="force:appHostable,flexipage:availableForAllPageTypes,flexipage:availableForRecordHome,force:hasRecordId,forceCommunity:availableForAllPageTypes,force:lightningQuickAction" access="global" >
+    
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="activeSections" type="List" default="['A','B']" />
+    <aura:attribute name ="Title" type="String" default="New Visit Plan / Report"/>
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="accid" type="Id" /> 
+    <aura:attribute name="leadid" type="Id" />
+    <aura:attribute name="opptyid" type="Id" />
+    <aura:attribute name="cancelId" type="Id" />
+    <aura:attribute name="recordTypeId" type="Id"/>
+    <aura:attribute name="owner" type="Id"/>
+    <aura:attribute name="recordTypeName" type="String"/>
+    <aura:attribute name="invitee" type="Visit_Plan_Invitee__c[]" />
+    <aura:attribute name="old_invitee" type="Visit_Plan_Invitee__c[]" />
+    <aura:attribute name ="isEdit" type="Boolean" default="false"/>
+    <aura:attribute name ="theme" type="String"/>
+    <aura:attribute name ="isDuplicate" type="Boolean" default="false"/>
+    <aura:attribute name ="isOwner" type="Boolean" default="false"/>
+    <aura:attribute name ="isLead" type="Boolean" default="false"/>
+    <aura:attribute name="spinner" type="Boolean" default="false" />
+    <aura:attribute name="error" type="String" default=""/>
+    <lightning:workspaceAPI aura:id="workspace"/>
+    <lightning:navigation aura:id="navService" />
+    
+    <ui:scrollerWrapper> 
+
+        <aura:if isTrue="{!v.spinner}">
+            <lightning:spinner style="position: fixed;" alternativeText="Loading" size="medium" variant="brand" />
+        </aura:if>
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="custom:custom31" alternativeText="Visit Plann / Report" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 class="slds-text-heading_label">
+                        {!v.Title}
+                    </h1>
+                    <h2 class="slds-text-heading_medium">
+                        Visit Plan / Report
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+        <lightning:recordEditForm aura:id="recordCreateForm" objectApiName="Call_Report__c" recordId="{!v.recordId}" recordTypeId="{!v.recordTypeId}" onsubmit="{!c.handleSubmit}" onsuccess="{!c.handleSuccess}" onload="{!c.handleLoad}" onerror="{!c.handleError}" >
+            <lightning:card>
+                <aura:set attribute="actions">
+                    <lightning:button type="submit" label="Save" />
+                    <lightning:button label="Cancel" title="Cancel" onclick="{!c.handleCancel}" />
+                </aura:set>
+                <aura:set attribute="footer">
+                    <lightning:button type="submit" label="Save" />
+                    <lightning:button label="Cancel" title="Cancel" onclick="{!c.handleCancel}" />
+                </aura:set>
+                <lightning:accordion allowMultipleSectionsOpen="true" activeSectionName="{! v.activeSections }">
+                    <lightning:accordionSection name="A" label="Information">
+                        <div class="slds-grid slds-wrap">
+                            <aura:if isTrue="{!v.theme != 'Theme4t'}">
+                                 <!-- True : PC  -->
+                                 <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                    <aura:if isTrue="{! and( !v.isLead, !v.isEdit)}">
+                                        <lightning:inputField fieldName="Customer_name__c" required="true" value="{!v.accid}" />
+                                    </aura:if>
+                                    <aura:if isTrue="{! and(v.isLead , !v.isEdit) }">
+                                        <lightning:inputField fieldName="Lead__c" required="true" value="{!v.leadid}" />
+                                    </aura:if>
+                                    <aura:if isTrue="{! and(v.isLead , v.isEdit) }">
+                                        <lightning:outputField fieldName="Lead__c" required="true" />
+                                    </aura:if>
+                                    <aura:if isTrue="{! and( !v.isLead, v.isEdit) }">
+                                        <lightning:outputField fieldName="Customer_name__c" required="true" />
+                                    </aura:if>
+                                </div>
+                                <aura:set attribute="else">
+                                 <!-- False : Tablet  -->
+                                    <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                        <div class="slds-col slds-size_1-of-3 slds-max-small-size_1-of-1">
+                                            <aura:if isTrue="{! (!v.isLead) }">
+                                                <span title="required" class="slds-required">*</span>
+                                                <label for="custId" style="padding-left:5px;padding-top:5px;color:#3E3E3C;font-size:14px;">Customer Name</label>
+                                            </aura:if>
+                                            <aura:if isTrue="{! v.isLead }">
+                                                <span title="required" class="slds-required">*</span>
+                                                <label for="leadId" style="padding-left:5px;padding-top:5px;color:#3E3E3C;font-size:14px;">Lead</label>
+                                            </aura:if>
+                                        </div>
+                                        <div class = "slds-col slds-size_2-of-3 slds-max-small-size_1-of-1 slds-is-relative customPositionSF1">
+                                            <aura:if isTrue="{! and( !v.isLead, !v.isEdit)}">
+                                                <lightning:inputField variant="label-hidden" id="custId" fieldName="Customer_name__c" required="true" value="{!v.accid}" style="width: 65%;"/>
+                                            </aura:if>
+                                            <aura:if isTrue="{! and(v.isLead , !v.isEdit) }">
+                                                <lightning:inputField variant="label-hidden" id="leadId" fieldName="Lead__c" required="true" value="{!v.leadid}" style="width: 65%;"/>
+                                            </aura:if>
+                                            <aura:if isTrue="{! and(v.isLead , v.isEdit) }">
+                                                <lightning:outputField variant="label-hidden" id="leadId" fieldName="Lead__c" required="true" style="width: 65%;"/>
+                                            </aura:if>
+                                            <aura:if isTrue="{! and( !v.isLead, v.isEdit) }">
+                                                <lightning:outputField variant="label-hidden" id="custId" fieldName="Customer_name__c" required="true" style="width: 65%;"/>
+                                            </aura:if>
+                                        </div>
+                                    </div>    
+                                </aura:set>
+                            </aura:if>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning:input type="text" label="Record Type" value="{!v.recordTypeName}" variant="label-inline" readonly="true"/>
+                            </div>
+
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Date_of_Visit__c" showDatePicker="false" type="date" required="true"/>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <!-- <lightning:inputField fieldName="Status__c" readonly="true" disabled="true" /> -->
+                                <lightning:input type="text" label="Status" value="1 - Open" variant="label-inline" readonly="true"/>
+                            </div>
+
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Start_Visit_Time__c" />
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <!-- <lightning:input type="text" label="Record Type" value="{!v.recordTypeName}" variant="label-inline" readonly="true"/> -->
+                                <lightning:outputField fieldName="OwnerId" aura:id="OwnerId" />
+                            </div>
+
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="End_Visit_Time__c" />
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1"></div>
+
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Categories__c" required="true"/>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1"></div>
+                            
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Rating__c"/>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1"></div> 
+
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Main_purpose__c" required="true"/>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1"></div>
+
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Sub_Purpose__c" required="true" />
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1"></div>
+
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Next_Step__c"/>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1"> </div>
+
+                            <!-- <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                               <div class="customcss2"> <lightning:inputField fieldName="Customer_Counterparty__c" /></div>
+                            </div> -->
+                            <aura:if isTrue="{!v.theme != 'Theme4t'}">
+                                 <!-- True : PC  -->
+                                <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                    <!-- <label style="padding-left:5px;color:#3E3E3C;font-size:12px;">Customer Counterparty</label> -->
+                                    <lightning:inputField fieldName="Customer_Counterparty__c" width="100%" />
+                                </div> 
+                                <aura:set attribute="else">
+                                 <!-- False : Tablet  -->
+                                    <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                        <div class="slds-col slds-size_1-of-3 slds-max-small-size_1-of-1">
+                                            <label for="counterpartyId" style="padding-left:5px;padding-top:5px;color:#3E3E3C;font-size:14px;">Customer Counterparty</label>
+                                        </div>
+                                        <div class = "slds-col slds-size_2-of-3 slds-max-small-size_1-of-1 slds-is-relative customPositionSF1 customCounterpartySF1">
+                                            <lightning:inputField variant="label-hidden" fieldName="Customer_Counterparty__c" id="counterpartyId" style="width: 65%;"/>
+                                        </div>
+                                    </div>    
+                                </aura:set>
+                            </aura:if>
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1"></div>
+
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <label style="padding-left:5px;color:#3E3E3C;font-size:14px;">TMB Counterparty</label>
+                                
+                                <div class="TMBcounterParty">
+                                    <div class="counterParty">
+                                        <lightning:recordEditForm objectApiName="Visit_Plan_Invitee__c">
+                                            <aura:iteration items="{!v.invitee}" var="s">
+                                                <div style="display: flex;">
+                                                    <lightning:inputField fieldName="TMB_Person__c" variant="label-hidden" value="{!s.TMB_Person__c}" style="width: 100% !important;" /><br/>  
+                                                    <lightning:buttonIcon iconName="utility:close" variant="bare" size="small" onclick="{!c.removeInvitee}" value="{!s.SEQ__c}" />
+                                                </div>
+                                                <br/>
+                                            </aura:iteration>
+                                        </lightning:recordEditForm>
+                                    </div>
+                                    <div class="button-in-line">
+                                        <lightning:button label="Add" onclick="{! c.addInvitee }"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1"></div>
+
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Additional_Party__c" />
+                            </div>
+                        </div>
+                    </lightning:accordionSection>
+
+                    <!-- <lightning:accordionSection name="A" label="Information_OLD">
+                        
+                        <div class="slds-grid slds-wrap">
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <aura:if isTrue="{! and( !v.isLead, !v.isEdit)}">
+                                    <div class="customcss1"><lightning:inputField fieldName="Customer_name__c" required="true" value="{!v.accid}" /> </div>
+                                </aura:if>
+                                <aura:if isTrue="{! and(v.isLead , !v.isEdit) }">
+                                    <lightning:inputField fieldName="Lead__c" required="true" value="{!v.leadid}" />
+                                </aura:if>
+                                <aura:if isTrue="{! and(v.isLead , v.isEdit) }">
+                                    <lightning:outputField fieldName="Lead__c" required="true" />
+                                </aura:if>
+                                <aura:if isTrue="{! and( !v.isLead, v.isEdit) }">
+                                    <lightning:outputField fieldName="Customer_name__c" required="true" />
+                                </aura:if>
+                            </div>
+   
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:input type="text" label="Record Type" value="{!v.recordTypeName}" variant="label-inline" readonly="true"/>
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Date_of_Visit__c" showDatePicker="false" type="date" required="true"/>
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:input type="text" label="Status" value="1 - Open" variant="label-inline" readonly="true"/>
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Start_Visit_Time__c" />
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:outputField fieldName="OwnerId" aura:id="OwnerId" />
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="End_Visit_Time__c" />
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Categories__c" required="true"/>
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+
+                            </div>
+                            
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Rating__c"/>
+                            </div>
+                             <div class="slds-size_1-of-2 slds-max-small-size_1-of-1"></div> 
+
+
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Main_purpose__c" required="true"/>
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Sub_Purpose__c" required="true" />
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                
+                            </div>
+
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Next_Step__c"/>
+                            </div>
+                             <div class="slds-size_1-of-2 slds-max-small-size_1-of-1"> </div>
+
+
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                               <div class="customcss2"> <lightning:inputField fieldName="Customer_Counterparty__c" /></div>
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                
+                            </div>
+                            <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <label style="padding-left:5px;color:#3E3E3C;font-size:14px;">TMB Counterparty</label>
+                                
+                                <div class="TMBcounterParty">
+                                    <div class="counterParty">
+                                        <lightning:recordEditForm objectApiName="Visit_Plan_Invitee__c">
+                                            <aura:iteration items="{!v.invitee}" var="s">
+                                                <div style="display: flex;">
+                                                    <lightning:inputField fieldName="TMB_Person__c" variant="label-hidden" value="{!s.TMB_Person__c}" style="width: 100% !important;" /><br/>  
+                                                    <lightning:buttonIcon iconName="utility:close" variant="bare" size="small" onclick="{!c.removeInvitee}" value="{!s.SEQ__c}" />
+                                                </div>
+                                                <br/>
+                                            </aura:iteration>
+                                        </lightning:recordEditForm>
+                                    </div>
+                                    <div class="button-in-line">
+                                        <lightning:button label="Add" onclick="{! c.addInvitee }"/>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Additional_Party__c" />
+                            </div>
+                        </div>
+                        
+                    </lightning:accordionSection> -->
+                    
+                    <lightning:accordionSection name="B" label="Visit Result">
+                        
+                        <div class="slds-grid slds-wrap">  
+
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Complete_Date__c" readonly="true"/>
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Outcome__c" />
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Actual_Visit_Date__c" />
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Loss_Incomplete_reason__c" />
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Meeting_Place__c" />
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                
+                            </div>
+                            <div class="slds-size_1-of-2 slds-max-small-size_1-of-1">
+                                <lightning:inputField fieldName="Business_talk_and_opportunity__c" />
+                            </div>
+                            
+                        </div>
+                        
+                    </lightning:accordionSection>
+                </lightning:accordion>
+            </lightning:card>
+        </lightning:recordEditForm>
+    </ui:scrollerWrapper>
+</aura:component>

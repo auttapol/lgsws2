@@ -1,0 +1,125 @@
+<apex:page showHeader="false" sidebar="false" standardController="Account" extensions="AccountPDPAPageController" lightningStylesheets="true" >
+    <script type="text/javascript" src="/canvas/sdk/js/41.0/controller.js"/>
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}"  />
+    <apex:includeScript value="/support/console/48.0/integration.js"/>
+
+    <apex:slds />
+
+    <script>
+        $(document).ready(function(){
+            showCanvas();
+        });
+
+        function callBackCanvas(message){
+            // console.log(' visualforce got mesage from canvas : ' + message );
+            if(message == 'close'){
+                closeTab();
+            }
+        }
+        
+        function closeTab() {
+            var theme = '{!$User.UIThemeDisplayed}';
+            if (sforce.console.isInConsole()) {
+                sforce.console.getEnclosingPrimaryTabId(function refresh(result) {
+                    var PrimetabId = result.id;
+                    console.log('PrimaryTabId : ' + PrimetabId );
+                    console.log('theme: ' + theme);
+                    if(theme == 'Theme4u'){
+                        sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                            "componentDef": "c:workspaceAPIforVF",
+                            "attributes": {
+                                "action": 'closeAndRefresh',
+                                "recordId": '{!Account.Id}',
+                                "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                                    return v.toString(16);
+                                }),
+                            }
+                        })), true);
+                    }else{
+                        sforce.console.refreshPrimaryTabById(PrimetabId, false, function getSubtabId(){
+                            sforce.console.getEnclosingTabId(function closeSubtab(result) {
+                                var SubtabId = result.id;
+                                console.log('SubtabId : ' + SubtabId );
+                                sforce.console.closeTab(SubtabId, function name(result){
+                                });
+                            });
+                        });
+                    }
+                });
+            }
+            //Salesforce classic theme
+            else if (theme == 'Theme3') {
+                window.close();
+            }
+            // Lightning Experience theme
+            else if (theme == 'Theme4d'){
+                window.close();
+            }
+            //Salesforce1 mobile theme
+            else if (theme == 'Theme4t') {
+                // sforce.one.back(true);
+                sforce.one.navigateToURL('/' + '{!acct.id}');
+            }
+        }
+
+        //function showsize(){
+        //    var height = document.getElementById('content').clientHeight;
+        //    var width = document.getElementById('content').clientWidth;
+        //    console.log('size: ' + height + ' x ' + width);
+        //}
+
+        function ShowSpin(){
+            $('#spin').show();
+        }
+
+        function HideSpin(){
+            $('#spin').hide();          
+        }
+    </script>
+
+    <apex:form id="page">
+        <div class="slds">
+            <apex:actionStatus id="status" onstart="ShowSpin()" onstop="HideSpin()"> </apex:actionStatus>
+            <apex:actionFunction name="showCanvas" reRender="page" action="{!showCanvas}" status="status"/>
+
+            <apex:pageMessages />
+
+            <apex:outputPanel id="errorPanel" rendered="{!isError}">
+                <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom">
+                    <apex:outputText value="{!$Label.PDPA_Error_Response}"  styleClass="noRowsHeader" />
+                    <apex:commandLink onclick="showCanvas();return false"> Refresh</apex:commandLink>
+                </div>
+            </apex:outputPanel>
+            
+            <!-- <div id="content">
+                CONTENTTT!!!
+            </div> -->
+
+            <div id="spin" style="display:none;" class="slds-spinner_container">
+                <div class="slds-spinner--brand slds-spinner slds-spinner--large" aria-hidden="false" role="alert">
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div> 
+
+            <apex:outputPanel id="canvasPanel" rendered="{!isShowCanvase}">
+                <div style="text-align: center;">
+                    <apex:canvasApp canvasId="canvasId" applicationName="pdpaCanvas" parameters="{!canvasParams}" scrolling="false"/>
+                    <!-- <apex:commandLink onclick="closeTab(); return false;" >Close</apex:commandLink> -->
+                </div>
+                
+                <script>
+                    var namespacePrefix = 'F2F';
+                    var canvasTopic = 'canvasTopic';
+                </script>
+            
+                <script>
+                    Sfdc.canvas.controller.subscribe([
+                        {name : namespacePrefix + canvasTopic, onData : callBackCanvas }
+                    ]);
+                </script>
+            </apex:outputPanel>
+        </div>
+    </apex:form>
+</apex:page>

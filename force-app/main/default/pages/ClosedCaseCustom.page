@@ -1,0 +1,31 @@
+<apex:page standardController="Case" lightningStylesheets="true" sidebar="false" showHeader="false">
+    <apex:includeScript value="/support/console/47.0/integration.js" />
+    <script>
+        var Id;
+        var url = window.location.href;
+        /&id=([^&]+)/.exec(url) && (Id = /Id=([^&]+)/.exec(url)[1]);
+        //show create page, to edit a Record
+        var encodedURL = btoa(JSON.stringify({
+            "componentDef": "c:ClosedCase_CCPageLayout",
+            "attributes": {
+                recordId: '{!Case.Id}',
+                uniqueId: 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                }),
+            }
+        }));
+        if ({!$User.UIThemeDisplayed == 'Theme4t'}) {
+            // do your SF1 mobile button stuff
+            sforce.one.back(true);
+            sforce.one.showToast({
+                "message": "{!$Label.No_CloseCase_SF1}",
+                "type": "error"
+            });
+        }
+        else {
+            // do your desktop stuff
+            sforce.one.navigateToURL('/one/one.app#' + encodedURL, true);
+        }
+    </script>
+</apex:page>

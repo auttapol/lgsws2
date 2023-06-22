@@ -1,0 +1,194 @@
+<aura:component controller="UploadTaskController" implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId,lightning:isUrlAddressable"
+    access="global">
+    
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="init" value="{!this}" action="{!c.showLogfile}"/> 
+
+    <lightning:workspaceAPI aura:id="workspace"/>
+    <!-- <aura:handler name="init" value="{!this}" action="{!c.showLoadResultMessage}"/>  -->
+
+    <aura:attribute name="filetype" type="List" default="['.csv']" />
+    <aura:attribute name="multiple" type="Boolean" default="true" />
+    <aura:attribute name="disabled" type="Boolean" default="true" />
+    <aura:attribute name="FileUpsert" type="Object"/>
+    <aura:attribute name="FileDelete" type="Object"/>
+    <aura:attribute name="Message" type="Object"/>
+    <aura:attribute name="Message1" type="Object"/>
+    <aura:attribute name="Message2" type="Object"/>
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="CSVArray" type="String[]" />
+    <aura:attribute name="ErrorMessage" type="String[]" />
+    <aura:attribute name="colors1" type="String"/>
+    <aura:attribute name="colors2" type="String"/>
+    <aura:attribute name="displayName" type="String"/>
+    <aura:attribute name="CSVNameUpsert" type="String"/>
+    <aura:attribute name="CSVNameDelete" type="String"/>
+    <aura:attribute name="UpsertTask" type="Boolean" default="true"/>
+    <aura:attribute name="DeleteTask" type="Boolean" default="true"/>
+    <aura:attribute name="confirmUpsert" type="Boolean" default="false"/>
+    <aura:attribute name="confirmDelete" type="Boolean" default="false"/>
+    <aura:attribute name="uploadErrorUpsert" type="Boolean" default="false"/>
+    <aura:attribute name="uploadErrorDelete" type="Boolean" default="false"/>
+
+    <aura:attribute name="showlog" type="Boolean" default="false"/>
+    <aura:attribute name="logList" type="Load_Task_Log__c[]"/>
+    <aura:attribute name="mycolumns" type="List"/>
+
+    <aura:attribute name="showResult" type="Boolean" default="false"/>
+
+    <lightning:tabset selectedTabId="one">
+        <!-- UPSERT TASK -->
+        <lightning:tab label="Upload Task" id="one">
+
+        <!-- Show load result
+        <aura:if isTrue="{!v.showResult}">
+            <div class="slds-box slds-theme_shade" style="margin:20px">
+                <div style="{! 'color: '+ v.colors1 +';'}">
+                    <h2 class="slds-text-heading_small" style="color:green;font-weight: bold;">
+                        {! v.Message.Header }
+                    </h2>
+                    <div class="slds-text-body_regular">
+                        {! v.Message.TextMessageEN }
+                    </div>
+                    <div class="slds-text-body_regular">
+                        {! v.Message.TextMessageTH }
+                    </div>
+                </div>
+                <div style="margin-top: 10px;">                    
+                    <lightning:button variant="brand" type="button" label="Cancel" onclick="{!c.cancelUpsert}" />   
+                </div>
+            </div>
+        </aura:if>
+         End show load result-->
+
+            <aura:if isTrue="{!v.UpsertTask}">
+                <aura:if isTrue="{!v.uploadErrorUpsert}">
+                    <div class="slds-box slds-theme_shade" style="margin:20px">
+                        <div style="color:#3498DB;">
+                            <h2 class="slds-text-heading_small" style="font-weight: bold;">
+                                {! v.Message1.Header }
+                            </h2>
+                            <div class="slds-text-body_regular">
+                                {! v.Message1.TextMessage }
+                            </div>
+                            <div class="slds-text-body_regular">
+                                {! v.Message1.TextMessageTH }
+                            </div>
+                        </div>
+                    </div>
+                </aura:if>
+
+                <aura:if isTrue="{!v.confirmUpsert}">
+                    <div style="text-align: center;">
+                        <h2 class="slds-text-heading_small" style="color:blue;font-weight: bold;">
+                            {! v.Message1.Header }
+                        </h2>
+                        <div class="slds-text-body_regular" style="color: red;">
+                            {! v.Message1.TextMessage }
+                        </div>
+                        <div class="slds-text-body_regular" style="color: black;">
+                            {! 'File Upload : ' + v.CSVNameUpsert}
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <lightning:button variant="brand" type="button" label="Import CSV File" value="{!v.FileUpsert}" onclick="{!c.confirmUpsert}" />  
+                            <lightning:button variant="brand" type="button" label="Cancel" onclick="{!c.cancelUpsert}" />   
+                        </div>
+                    </div>
+                    <aura:set attribute="else">
+                        <div class="slds-text-body_regular" style="text-align: center;">
+                            <lightning:input aura:id="UploadTask" value="{!v.FileUpsert}" name="UploadTask" type="file" label="Upload file (CSV Only)" multiple="false" accept=".csv" onchange="{! c.showfiledata }"/>
+                        </div>
+                    </aura:set>
+                </aura:if>
+
+                <aura:set attribute="else">
+                    <div class="slds-box slds-theme_shade" style="margin:20px">
+                        <div style="color:#3498DB;">
+                            <h2 class="slds-text-heading_small" style="font-weight: bold;">
+                                {! v.Message1.Header }
+                            </h2>
+                            <div class="slds-text-body_regular">
+                                {! v.Message1.TextMessage }
+                            </div>
+                            <div class="slds-text-body_regular">
+                                {! v.Message1.TextMessageTH }
+                            </div>
+                        </div>
+                    </div>
+                </aura:set>
+            </aura:if>
+        </lightning:tab>
+        <!-- DELETE TASK -->
+        <lightning:tab label="Delete Task" id="two">
+            <aura:if isTrue="{!v.DeleteTask}">
+                <aura:if isTrue="{!v.uploadErrorDelete}">
+                    <div class="slds-box slds-theme_shade" style="margin:20px">
+                        <div style="color:blue;">
+                            <h2 class="slds-text-heading_small" style="font-weight: bold;">
+                                {! v.Message2.Header }
+                            </h2>
+                            <div class="slds-text-body_regular">
+                                {! v.Message2.TextMessage }
+                            </div>
+                            <div class="slds-text-body_regular">
+                                {! v.Message2.TextMessageTH }
+                            </div>
+                        </div>
+                    </div>
+                </aura:if>
+                <aura:if isTrue="{!v.confirmDelete}">
+                    <div style="text-align: center;">
+                        <h2 class="slds-text-heading_small" style="color:blue;font-weight: bold;">
+                            {! v.Message2.Header }
+                        </h2>
+                        <div class="slds-text-body_regular" style="color: red;">
+                            {! v.Message2.TextMessage }
+                        </div>
+                        <div class="slds-text-body_regular" style="color: black;">
+                            {! 'File Delete : ' + v.CSVNameDelete}
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <lightning:button variant="brand" type="button" label="Import CSV File" onclick="{!c.confirmDelete}" />
+                            <lightning:button type="button" label="Cancel" onclick="{!c.cancelDelete}" />
+                        </div>
+                    </div>
+                    <aura:set attribute="else">
+                        <div class="slds-text-body_regular" style="text-align: center;">
+                            <lightning:input aura:id="DeleteTask" value="{!v.FileDelete}" name="DeleteTask" type="file" label="Upload file (CSV Only)" multiple="false" accept=".csv" onchange="{! c.DeleteCSV }"/>
+                        </div>
+                    </aura:set>
+                </aura:if>
+                <aura:set attribute="else">
+                    <div class="slds-box slds-theme_shade" style="margin:20px">
+                       <!-- <div style="{! 'color: '+ v.colors1 +';'}"> -->
+
+                        <div style="color:blue;">
+                            <h2 class="slds-text-heading_small" style="font-weight: bold;">
+                                {! v.Message2.Header }
+                            </h2>
+                            <div class="slds-text-body_regular">
+                                {! v.Message2.TextMessage }
+                            </div>
+                            <div class="slds-text-body_regular">
+                                {! v.Message2.TextMessageTH }
+                            </div>
+                        </div>
+                        
+                    </div>
+                </aura:set>
+            </aura:if>
+        </lightning:tab>
+        <!-- LOG FILE -->
+        <lightning:tab label="Log File" id="three">
+            <aura:if isTrue="{!v.showlog}">   
+                <div class="left-align" align="left"> 
+                <lightning:datatable aura:id="logTable"
+                                    data="{! v.logList }"
+                                    columns="{! v.mycolumns }"
+                                    keyField="Id"
+                                    hideCheckboxColumn="true"/>
+                </div> 
+           </aura:if>
+        </lightning:tab>
+    </lightning:tabset>
+</aura:component>

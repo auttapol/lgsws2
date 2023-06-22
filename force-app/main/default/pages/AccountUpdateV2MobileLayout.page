@@ -1,0 +1,266 @@
+<apex:page standardController="Account" id="thePage" extensions="AccountDetailPageExtension" showHeader="false" standardStylesheets="true">   
+        <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+ 		<apex:actionstatus onstart="startLoading('Inserting ...');" id="InsertStatus" onstop="endLoading();" />
+ 		<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+            <apex:Form id="theForm">
+            	
+        <!-- fix for sf1 mobile font like native -->
+        <style type="text/css">
+            .red-label {
+            list-style: none;
+            color: #f00;
+            }
+            
+            @font-face {
+            font-family: 'ProximaNovaSoft-Regular';
+            font-weight: normal;
+            font-style: normal;
+            
+            src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}');
+            src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}?#iefix') format('embedded-opentype'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.woff')}') format('woff'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.ttf')}') format('truetype'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.svg')}#proxima_nova_softregular') format('svg');
+            }
+            @font-face {
+            font-family: 'ProximaNovaSoft-Medium';
+            font-weight: normal;
+            font-style: normal;
+            src: url('../fonts/proximanovasoft-regular.eot');
+            src: url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.eot')}?#iefix') format('embedded-opentype'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.woff')}') format('woff'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.ttf')}') format('truetype'), url('{!URLFOR($Resource.fonts, 'proximanovasoft-regular.svg')}#proxima_nova_softmedium') format('svg');
+            }
+            @font-face {
+            font-family: 'icomoon';        
+            src: url('{!URLFOR($Resource.fonts, 'icon-utility.eot')}');
+            }      
+            @font-face {
+            font-family: 'icomoon';
+            src: url("{!URLFOR($Resource.fonts, 'icon-utility.eot')}?#iefix") format("embedded-opentype"), url("{!URLFOR($Resource.fonts, 'icon-utility.woff')}") format("woff"), url("{!URLFOR($Resource.fonts, 'icon-utility.ttf')}") format("truetype"), url("{!URLFOR($Resource.fonts, 'icon-utility.svg')}#icomoon") format("svg");
+            font-weight: normal;
+            font-style: normal;
+            }
+            
+        </style>
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>  
+        <!-- Mobile fix -->
+        <style type="text/css">
+            @media (max-width: 500px) {
+            
+            .bootstrap-sf1 .form-horizontal .form-group {
+            margin-left: -10px;
+            margin-right: -10px;
+            }
+            .dateOnlyInput .dateFormat {
+            
+            top: 25px;
+            
+            }
+            input[type="checkbox"], input[type="radio"] {
+            
+            height: 30px;
+            width: 50px;
+            }
+            .bootstrap-sf1 .form-horizontal .checkbox{
+            margin-bottom: 5px;
+            }
+            .bootstrap-sf1 .radio label, .bootstrap-sf1 .checkbox label {
+            padding-left: 40px;
+            }
+            .bootstrap-sf1 .radio input[type="radio"], .bootstrap-sf1 .radio-inline input[type="radio"], .bootstrap-sf1 .checkbox input[type="checkbox"], .bootstrap-sf1 .checkbox-inline input[type="checkbox"] {
+            position: absolute;
+            margin-left: -45px;
+            top:-5px;
+            }
+            
+            .bootstrap-sf1{
+            overflow: hidden;
+            }
+            .bootstrap-sf1 .container{
+            padding-left :0px;
+            padding-right:0px;
+            }
+            .bootstrap-sf1 .page-header[class*="context-"] {
+            position: relative;
+            padding-top: 14px;
+            margin: -15px -15px 10px -15px;
+            }
+            
+            
+            }
+            .bootstrap-sf1{
+            background-color: #FFF;
+            
+            }
+            
+            /*<!-- for depend inputfield -->*/
+            .bootstrap-sf1  .inner-depend > span > select {
+            display: block;
+            width: 100%;
+            height: 34px;
+            padding: 6px 14px;
+            font-size: 14px;
+            line-height: 1.42857143;
+            color: #000000;
+            background-color: #ffffff;
+            background-image: none;
+            border: 1px solid #cfd0d2;
+            border-radius: 4px;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075);
+            -webkit-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
+            }
+            
+            .bootstrap-sf1 .inner-depend > span > select:focus {
+            border-color: #bfc0c2;
+            outline: 0;
+            background-color: #fff;
+            -webkit-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(191, 192, 194, 0.6);
+            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(191, 192, 194, 0.6);
+            }
+            
+            /*<!-- Loading style -->*/
+            
+            
+        </style>
+            <apex:actionFunction name="loadEditCustomerInformation" action="{!loadData}" rerender="HighRiskFlag" >
+        			<apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Other Information"/>
+        			<apex:param name="sectionName2" assignTo="{!sectionName2}" value="ComCust:Risk Information"/>
+        			<apex:param name="sectionName3" assignTo="{!sectionName3}" value="ComCust:Account Information"/>
+        			<apex:param name="sectionName4" assignTo="{!sectionName4}" value="Edit Customer Information"/>
+   				</apex:actionFunction>
+            <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+        <div class="loadingBox overlay"></div> 
+        <div class="bootstrap-sf1">   
+            <div class="container">              
+                <div class="page-header page-header-anchor context-account">
+                    <div class="container">
+                        <h1>Edit Existing Customer</h1>
+                    </div>
+                </div> 
+    
+                 
+                    <apex:pageMessages id="msgs"/>
+                            <apex:actionFunction name="doSave" action="{!save}" status="InsertStatus"  />
+                    <div class="text-center" style="margin-bottom:10px">
+                      <!--  <apex:commandButton onclick="save();return false;" rendered="{!$ObjectType.Account.Fields.Change_to_owner__c.Updateable}" value="Save" tabindex="370" styleclass="btn-lg btn-default" /> -->
+                        <apex:commandButton action="{!save}" value="Save" tabindex="370" styleclass="btn-lg btn-default" />
+                        &nbsp;
+                        <apex:commandButton action="{!cancel}" value="Cancel" tabindex="380" styleclass="btn-lg btn-default"/>
+                    </div>
+                    
+                    <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                        <div class="container panel-heading">
+                            <div class="navbar-header">
+                                <a data-toggle="collapse" aria-expanded="true"
+                                   href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                                    Edit Customer Information
+                                </a>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="card collapse in " id="collapse1">
+                        <div class="card-detail">
+                            <div class="row">
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Service class</label>
+                                     <!--   <apex:inputField label="Owner" value="{!account.OwnerId}" styleclass="form-control" />  -->
+                                        <apex:inputField label="Service_class" value="{!Account.Service_class__c}" styleclass="form-control" />
+                                    </div>
+                                </div>
+                                
+                      <!--          <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Customer Strategy</label>
+                                        <apex:inputField label="Customer_Strategy" value="{!Account.Customer_Strategy__c}" styleclass="form-control" />
+                                    </div>
+                                </div>  -->
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Visit Class</label>
+                                     <!--   <apex:inputField label="Owner" value="{!account.OwnerId}" styleclass="form-control" />  -->
+                                        <apex:inputField label="Visit_Class" value="{!Account.Visit_Class__c}" styleclass="form-control" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Industry</label>
+                                     <!--   <apex:inputField label="Owner" value="{!account.OwnerId}" styleclass="form-control" />  -->
+                                        <apex:inputField label="Industry" value="{!Account.Industry__c}" styleclass="form-control" />
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Customer Group</label>
+                                     <!--   <apex:inputField label="Owner" value="{!account.OwnerId}" styleclass="form-control" />  -->
+                                        <apex:inputField id="Group"  label="Customer_Group" value="{!Account.Group__c}" styleclass="form-control" />
+                                        <a href="javascript:void(0);" onclick="getElementByIdCS('thePage:theForm:Group_lkid').value='000000000000000';getElementByIdCS('thePage:theForm:Group_lkold').value='null';getElementByIdCS('thePage:theForm:Group_mod').value='0';getElementByIdCS('thePage:theForm:Group').value='';">Clear</a>       
+                                   <!-- <apex:inputField id="Group"  label="Customer_Group" value="{!Account.Customer_Group__c}" styleclass="form-control" />
+                                        -->
+									</div>
+                                </div>
+                                
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Parent Company Info</label>
+                                     <!--   <apex:inputField label="Owner" value="{!account.OwnerId}" styleclass="form-control" />  -->
+                                        <apex:inputField id="ParentId"  value="{!Account.ParentId}" styleclass="form-control" />
+                                        <a href="javascript:void(0);" onclick="getElementByIdCS('thePage:theForm:ParentId_lkid').value='000000000000000';getElementByIdCS('thePage:theForm:ParentId_lkold').value='null';getElementByIdCS('thePage:theForm:ParentId_mod').value='0';getElementByIdCS('thePage:theForm:ParentId').value='';">Clear</a>
+                                    </div>
+                                </div>
+                                
+                                <apex:outputPanel id="HighRiskFlag">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">High Risk Flag</label>
+                                     <!--   <apex:inputField label="Owner" value="{!account.OwnerId}" styleclass="form-control" />  -->
+                                        <apex:outputPanel rendered="{!isVisible_B}">
+                                        	<apex:inputField label="High_Risk_Flag" value="{!Account.High_Risk_Flag__c}" styleclass="form-control" />
+                                        </apex:outputPanel>
+                                        <apex:outputPanel rendered="{!!isVisible_B}">
+                                            <apex:outputText styleclass="form-control" style="background-color:#DCDCDC" value="{!hiddenText}" />
+                                        </apex:outputPanel>
+                                    </div>
+                                </div>
+                                </apex:outputPanel>
+                                  <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Account Plan Flag</label>
+                                     <!--   <apex:inputField label="Owner" value="{!account.OwnerId}" styleclass="form-control" />  -->
+                                        <apex:inputField label="Account_Plan_Flag" value="{!Account.Account_Plan_Flag__c}" styleclass="form-control" />
+                                    </div>
+                                </div>
+                    <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label class="control-label" for="focusedInput">Account Plan Form</label>
+                                     <!--   <apex:inputField label="Owner" value="{!account.OwnerId}" styleclass="form-control" />  -->
+                                        <apex:inputField label="Account_Plan_Form" value="{!Account.Account_Plan_Form__c}" styleclass="form-control" />
+                                    </div>
+                                </div>
+                                
+                            </div><!-- row -->
+                        </div>
+                    </div>
+                    <div class="text-center" style="margin-bottom:10px">
+                        <apex:commandButton action="{!save}" value="Save"  tabindex="370" styleclass="btn-lg btn-default"  />
+                        &nbsp;
+                        <apex:commandButton action="{!cancel}" value="Cancel" tabindex="380" styleclass="btn-lg btn-default"/>
+                    </div>
+            </div>
+           </div>   
+</apex:Form>      
+        
+         <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}"  />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+   <script type="text/javascript">
+    
+    $(document).ready(function () {
+ 				loadEditCustomerInformation();
+        });
+    
+    </script>
+</apex:page>

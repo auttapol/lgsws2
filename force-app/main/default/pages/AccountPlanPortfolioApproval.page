@@ -1,0 +1,133 @@
+<apex:page docType="html-5.0" showChat="false" 
+showHeader="false" sidebar="false" applyBodyTag="false" 
+applyHtmlTag="true"  standardStylesheets="true"
+standardController="AcctPlanPortfolio__c" extensions="AccountPlanPortfolioApproval"
+
+>
+<!-- Header -->
+<head>
+    <title></title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+        <style>pre code { background: transparent; }</style>
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+        
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->        
+        
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+        <apex:stylesheet value="{!$Resource.AccountPlanEditTable}" />
+        <style>
+        .pbHeader{
+          background-color: #ffffff !important;
+        }
+		
+    
+        </style>
+    </head>
+
+    <body>  
+             <apex:actionstatus id="status">
+                                                    <apex:facet name="start">
+                                                        <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                                                            &nbsp;
+                                                        </div>
+                                                        <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                                                            <img src="/img/loading32.gif" />
+                                                        </div>
+                                                    </apex:facet>
+                          </apex:actionstatus>
+                                                            
+        <div class="bootstrap-sf1" >
+            <div class="row" >
+                <div class="col-sm-12 col-md-12 col-lg-12">
+                    <apex:form id="approvalform">        
+ <apex:actionFunction name="process" action="{!ProcessResult}" status="status" />
+            
+                                                
+                            <apex:pageBlock rendered="{!isRequest}" >       
+                                <apex:pageMessages id="messages"/>  
+                            <div class="form-group">
+                    <div style="text-align: center;">
+                       <apex:pageBlockButtons location="top" >
+                <apex:commandButton value="Send to Approver" onclick="process();" oncomplete="callclose();return false;"   styleclass="btn btn-success"   />
+
+            </apex:pageBlockButtons>  
+                </div></div>
+                        <apex:panelGrid columns="2" id="theGrid" style="width:265px;margin:auto auto;margin-bottom:20px;" cellpadding="2px" >
+                        
+                         <apex:outputPanel style="float:left;"><apex:outputtext value="Approver" /></apex:outputPanel>
+                         <apex:outputPanel style="float:right;"> <apex:outputfield value="{!tempport.SalesOwner__c }"/></apex:outputPanel>
+                            </apex:panelGrid>
+                        </apex:pageBlock>
+                          <apex:outputPanel ><apex:outputText escape="false" value="{!Close }"   /> </apex:outputPanel>
+
+                        <apex:pageBlock rendered="{!isRequest==false}" >       
+                                <apex:pageMessages id="messages"/>  
+                            <div class="form-group">
+                    <div style="text-align: left;">
+                        <apex:pageBlockButtons location="top"  >
+                	<apex:actionFunction name="approveRecord" action="{!approveRecord}" status="status" />            
+                <apex:commandButton value="Approve" onclick="approveRecord();" styleclass="btn btn-success" oncomplete="callclose();return false;"  rendered="{!isRecall==false}"/>
+                
+                    <apex:actionFunction name="rejectRecord" action="{!rejectRecord}" status="status" />  
+                <apex:commandButton value="Reject" onclick="rejectRecord();" styleclass="btn btn-danger" oncomplete="callclose();return false;"  rendered="{!isRecall==false}" />
+                
+                    <apex:actionFunction name="recallrecord" action="{!recallrecord}" status="status" />
+                <apex:commandButton value="Recall Approval Request" onclick="recallrecord();" 
+                styleclass="btn btn-success" oncomplete="callclose();return false;"
+                 
+                status="status" rendered="{!isRecall}" />
+            </apex:pageBlockButtons>
+                    </div>
+                </div>
+                    <apex:panelGrid columns="2" id="theGrid" style="width:400px;margin:auto auto;" cellpadding="2px" >
+                        
+                         <apex:outputPanel style="float:left;width:250px;"><apex:outputtext value="Acccount Plan {!if(portfolioID!=null&&portfolioID!='','Portfolio Name','Company Profile Name')} " /></apex:outputPanel>
+                         <apex:outputPanel >
+                             <apex:outputLabel > 
+                             <apex:outputfield value="{!portfolio.Name}" rendered="{!portfolio !=null}"  />
+                             <apex:outputfield value="{!companyProfile.Name}" rendered="{!companyProfile !=null}"  />    
+                                 </apex:outputLabel>
+                         </apex:outputPanel>
+                         <apex:outputPanel style="float:left;width:200px;"><apex:outputtext value="Owner " /></apex:outputPanel>
+                         <apex:outputPanel >
+                             <apex:outputLabel > 
+                                 <apex:outputfield value="{!portfolio.OwnerID }" rendered="{!portfolio !=null}"   />
+                                  <apex:outputfield value="{!companyProfile.OwnerID }" rendered="{!companyProfile !=null}"   />  
+                                     </apex:outputLabel>
+                             </apex:outputPanel>
+                         <apex:outputPanel style="float:left;width:200px;"><apex:outputtext value="Comment " /></apex:outputPanel>
+                         <apex:outputPanel ><apex:inputTextarea value="{!Comment }" cols="3" style="width:250px;"  /> </apex:outputPanel>
+                       
+                            </apex:panelGrid>
+                        </apex:pageBlock>
+                    </apex:form>            
+                </div>              
+            </div>
+        </div>
+        <apex:includeScript value="{!$Resource.AccountPlan_JqueryScript}"/>
+         <script>
+ 					var $j = jQuery.noConflict();
+
+					function callclose(){
+                       
+                        parent.modalclose();
+                    }
+
+        </script>
+        
+    </body>    
+</apex:page>

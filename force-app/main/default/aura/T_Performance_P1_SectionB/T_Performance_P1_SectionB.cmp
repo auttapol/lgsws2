@@ -1,0 +1,125 @@
+<aura:component>
+    <aura:attribute name="asOfStr" type="String"/>
+    <aura:attribute name="salePerfObj" type="Sale_Performance__c"/>
+    <aura:attribute name="sumFiActPoint" type="Integer"/>
+    <aura:attribute name="sumFiTargPoint" type="Integer"/>
+    <aura:attribute name="dataAsOfMonth" type="Integer" />
+    <aura:attribute name="dataAsOfYear" type="String" />
+    <aura:attribute name="selectedYear" type="String"/>
+    <aura:attribute name="selectedMonth" type="String"/>
+    <aura:attribute name="selectedPeriod" type="String" default="year"/>
+    <aura:attribute name="isOpen" type="boolean" default="false"/>
+    <aura:attribute name="openModel" type="boolean" default="false"/>
+    <aura:attribute name="mycolumns" type="List"/>
+    <aura:attribute name="targetProductObj" type="Object"/>
+    <aura:handler name="init" value="{!this}" action="{!c.valueChange}" /> 
+    <aura:handler name="change" value="{!v.dataAsOfMonth}" action="{!c.valueChange}"/>
+    <aura:handler name="change" value="{!v.dataAsOfYear}" action="{!c.valueChange2}"/>
+    <!-- <aura:handler name="changeYear" value="{!v.dataAsOfYear}" action="{!c.valueChange2}"/> -->
+    <div class="slds-grid" style="flex-direction: column;">
+            <div class="section-row" style="font-size: larger; font-weight: 600;">
+                <h2 class="section-title">Yearly Performance Summary</h2>
+            </div>
+            <div class="section-row row-space">
+                <h3 class="section-title">({!v.asOfStr})</h3>
+            </div>
+        <!-- <div class="slds-col slds-size_1-of-3"> -->
+            <div class="section-row">
+                <span>Service Target <lightning:formattedNumber value="{!v.salePerfObj.Service_Target_Point__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></span>
+            </div>
+            <div class="section-row row-space">
+                <span>Service Actual <lightning:formattedNumber value="{!v.salePerfObj.Service_Actual_Point__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></span>
+            </div>
+            <div class="section-row row-space">
+                <table class="sum-tb">
+                    <tbody>
+                        <tr>
+                            <td class="{!v.salePerfObj.Customer_Point__c > 0 ? 'green-bg' : ''}">
+                                <div class="wrap-row">
+                                    <span>Customer</span>
+                                    <span><lightning:formattedNumber value="{!v.salePerfObj.Customer_Point__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></span>
+                                </div>
+                                
+                            </td>
+                            <td class="{!v.salePerfObj.People_Point__c > 0 ? 'green-bg' : ''}">
+                                <div class="wrap-row">
+                                    <span>People</span>
+                                    <span><lightning:formattedNumber value="{!v.salePerfObj.People_Point__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></span>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="{!v.salePerfObj.Operation_Point__c > 0 ? 'green-bg' : ''}">
+                                <div class="wrap-row">
+                                    <span>Oper Risk</span>
+                                    <span><lightning:formattedNumber value="{!v.salePerfObj.Operation_Point__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></span>
+                                </div>
+                            </td>
+                            <aura:if isTrue="{!not(empty(v.targetProductObj.productList))}">
+                                <td  class="{!(v.sumFiActPoint > 0 ? 'green-bg' : '')  + ' finance-block'}" onclick="{!c.openModel}" style = "cursor: pointer">
+                                    <div class = "wrap-row"> 
+                                        <a >Financial<br/>
+                                        <lightning:formattedNumber value="{!v.salePerfObj.Financial_Actual_Point__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></a>
+                                    </div>
+                                </td>
+                                <aura:set attribute="else">
+                                    <td  class="{!v.sumFiActPoint > 0 ? 'green-bg' : ''}">
+                                        <div class = "wrap-row"> 
+                                            <span  >Financial </span>
+                                            <span><lightning:formattedNumber value="{!v.salePerfObj.Financial_Actual_Point__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></span>
+                                        </div>
+                                    </td>
+                                </aura:set>
+                            </aura:if>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="section-row">
+                <span>Financial Target <lightning:formattedNumber value="{!v.salePerfObj.Financial_Target_Point__c}" minimumFractionDigits="2" maximumFractionDigits="2"/></span>
+            </div>
+            <!-- <div class="section-row">
+                <span class="f_title">Position:</span>
+                <span>Value</span>
+            </div>
+            <div class="section-row">
+                <span class="f_title">Approx. Incentive:</span>
+                <span>Value</span>
+            </div>
+            <div class="section-row">
+                <span class="f_title">BM Expected:</span>
+                <span>Value</span>
+            </div>
+        </div> -->
+    </div>
+    <aura:if isTrue="{!v.isOpen}">
+                            <lightning:card>
+                                        <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_medium">
+                                            <div class="slds-modal__container">
+                                                <header class="slds-modal__header">
+                                                    <lightning:buttonIcon iconName="utility:close"
+                                                                        onclick="{!c.closeModel }"
+                                                                        alternativeText="close"
+                                                                        variant="bare-inverse"
+                                                                        class="slds-modal__close"/>
+                                                    <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Target Product</h2>
+                                                </header>
+                                                
+                                                <div class="slds-modal__content slds-var-p-around_medium" >
+                                                    <div class="last-row-bold product-tb">
+                                                        <lightning:datatable class="target-tb" keyField="id" columns="{! v.mycolumns }" data="{!v.targetProductObj.productList }" hideCheckboxColumn="true" resizeColumnDisabled="true"
+                                                        minColumnWidth="150"/>
+                                                    </div>
+                                                 </div>
+                                                <footer class="slds-modal__footer">
+                                                    <lightning:button variant="neutral" 
+                                                                    label="Cancel"
+                                                                    title="Cancel"
+                                                                    onclick="{!c.closeModel }"/>
+                                                </footer>
+                                            </div>
+                                        </section>
+                                    <div class="slds-backdrop slds-backdrop_open"></div>
+                                </lightning:card>    
+                        </aura:if>
+</aura:component>

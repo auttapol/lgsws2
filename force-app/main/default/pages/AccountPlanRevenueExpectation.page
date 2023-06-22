@@ -1,0 +1,508 @@
+<apex:page standardController="AcctPlanProdStrategy__c" extensions="AccountPlanRevenueExpectationCtrl"
+    docType="html-5.0" showChat="false" showHeader="{! !isConsoleMode}" sidebar="false"
+    applyBodyTag="false" applyHtmlTag="true" standardStylesheets="true">
+    <head>
+<title>Revenue Expectation</title>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+<meta name="author" content="Keattisak Chinburarat" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        
+        
+
+<!-- Static Resource -->
+<!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+<!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->
+<apex:stylesheet value="{!URLFOR($Resource.AccountPlanMaster)}"/>
+<style>
+
+.ahide {
+                display: none;
+            }
+
+.btn-mandatory{
+    width: 250px; /*210*/
+    background-color: #aeaeae !important;
+    border: 1px solid #a0a0a0 !important;  
+}
+.btn-mandatory:hover{
+    background-color: #a0a0a0 !important;
+}
+.modal-dialog{
+    width: 700px !important;   
+}
+</style>
+    </head>
+
+    <body>
+    
+        <apex:actionstatus id="status">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+            </div>
+            <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                <img src="/img/loading32.gif" />
+             </div>
+            </apex:facet>        
+        </apex:actionstatus>
+    
+        <c:AccountPlanHeader activetab="6"
+            CompanyID="{!CompanyID}"
+            GroupID="{!GroupID}"
+            WalletID="{!WalletID}"
+             Percentage="{!Acctplancompletion.Account_Plan_Completion_Percentage__c }"
+            isMiniView="{!isMiniView}"
+             isHasProdStrategy="{!ishasProdStrategy}"
+            isHasActionPlan="{!isHasActionPlan}"
+            />
+        <div class="bootstrap-sf1">
+            <div id="responseErrors"></div>
+            <apex:form styleClass="form-horizontal">
+                              
+                <!-- /Section 1 -->
+                <header class="navbar navbar-default navbar-branded" role="banner">
+                    <div class="panel-heading">
+                        <div class="navbar-header">
+                            <a data-toggle="collapse" aria-expanded="true"
+                               href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                               Wallet sizing and Revenue expectation
+                            </a>
+                        </div>
+                    </div>
+                </header>                             
+                                                    
+                <div class="card collapse in panel-collapse" id="collapse1">            
+                    <div class="card-detail" >                     
+                    
+                        <apex:pageBlock id="pgBlock">
+                    
+                            <apex:actionFunction name="refreshbutton" action="{!Refreshfunction}" rerender="customerperformancetable" />
+                                             
+                              <!--  Section 1 -->
+                                <fieldset>     
+                                  
+                                    <div class="col-sm-8 col-md-6 col-lg-6">
+                                        <div class="form-group">
+                                            <apex:outputpanel id="targetPanel">
+                                            <div style="padding-top: 50px;">
+                                                <table class="table">
+                                                    <tbody>
+
+                                                        <tr>
+                                                            <td class="forceBackground" style="border: none;text-align:left;" width="30%">Year
+                                                            <c:II_Helptext SobjectName="AcctPlanCompanyProfile__c" FieldApiName="Year__c" /></td>
+                                                            <td style="border: none;">
+                                                                <span class="form-control text-center calculate">
+                                                                    <apex:outputfield value="{!companyprofile.Year__c}" />
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="forceBackground" style="border: none;text-align:left;">Customer Name
+                                                            <c:II_Helptext SobjectName="AcctPlanCompanyProfile__c" FieldApiName="AccountName__c" /></td>
+                                                            <td style="border: none;">
+                                                                <span class="form-control text-center calculate">
+                                                                    <apex:outputfield value="{!companyprofile.AccountName__c}" />
+                                                                </span>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                          </apex:outputpanel>
+                                        </div>
+                                    </div>
+                                    <br />
+
+                                    <div style="clear:both;">
+                                        <div style="float:left; clear:both;width:50%">  
+                                            <apex:outputpanel id="refreshButton">
+                                            <apex:outputpanel rendered="{!isHasPermission && if(companyProfile.OwnerID == $User.Id ,true,if(isAccountTeamReadWrite,true,false))}">
+                                                <apex:outputpanel rendered="{! !companyprofile.isPendingForApproval__c}">
+                                                    <apex:commandlink action="{!Refreshfunction}" reRender="customerperformancepageblock,refreshAsOf"
+                                                        styleclass="btn btn-primary glyphicon glyphicon-repeat" 
+                                                        immediate="true" id="refreshpanel" status="status"> Refresh </apex:commandlink>  
+                                                 </apex:outputpanel>  
+                                             </apex:outputpanel>  
+                                             Data as of<c:II_Helptext SobjectName="AcctPlanProdStrategy__c" FieldApiName="RefreshAsOf__c" IsCustom="true" Screen="RefreshButton" /> <label><apex:outputfield id="refreshAsOf" value="{!refreshProdStrategy.RefreshAsOf__c}" /></label>
+                                             </apex:outputpanel>            
+                                        </div>
+                                        <div style="float:right;">
+                                                <a href="/apex/ExportCustomerPerformanceToExcel?GroupID={!GroupID}&CompanyID={!CompanyID}&WalletID={!WalletID}" target="_blank" class="btn btn-primary glyphicon"> Print</a>
+                                        </div>
+                                    </div>
+                                    <br /><br />
+                                
+                                <div style="float:left;width:99%">
+                                    <h3 class="text-primary">Customer performance 
+                                        <apex:outputPanel rendered="{!isHasGroup}">
+                                            <a id="gotoRevenueExpectGroupPerformanceView" class="btn btn-success" style="text-decoration:none" 
+                                            onclick="gotoRevenueExpectGroupPerformanceView();">Show Group Performance</a>
+                                            </apex:outputPanel>  
+                                        <apex:outputPanel rendered="{!isHasPortfolio}">
+                                            <a id="gotoRevenueExpectPortfolioPerformanceView" class="btn btn-success" style="text-decoration:none" 
+                                            onclick="gotoRevenueExpectPortfolioPerformanceView();" >Show Portfolio Performance</a>
+                                            </apex:outputPanel>
+                                        </h3>
+                                </div> 
+                                <div style="clear:both;">   
+                                    
+                                    <apex:PageblockSection columns="1" id="customerperformancepageblock" >
+                                        <apex:outputPanel >   
+                                    
+                                            <table class="table table-striped table-hover" id="customerperformancetable">
+                                                <thead>
+                                                    <tr>
+                                                        <td class="text-left" style="border:none;">
+                                                            <label class="control-label">Unit: THB</label>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                            
+                                                        <th style="vertical-align:top;width:165px;">Type of Wallet
+                                                        <c:II_Helptext SobjectName="AcctPlanProdStrategy__c" FieldApiName="Name" IsCustom="true" Screen="AccountPlanProductStrategy" /></th>
+                                                        <th style="vertical-align:top">Wallet Sizing (Yearly)
+                                                        <c:II_Helptext SobjectName="AcctPlanProdStrategy__c" FieldApiName="WalletSizing__c" /></th>
+                                                        <th style="width:10%;vertical-align:top">Target by Customer
+                                                        <c:II_Helptext SobjectName="AcctPlanCompanyPort__c" FieldApiName="Target_NI_By_RM__c" IsCustom="true" Screen="AccountPlanRevenueExpectation" /></th>
+                                                        <th style="vertical-align:top">Actual NI <br />(12-mth Rolling)
+                                                        <c:II_Helptext SobjectName="AcctPlanProdStrategy__c" FieldApiName="AnnualizedPerformance__c" /></th>
+                                                        <th style="vertical-align:top">Adjusted NI <br />(12-mth Rolling)                                                        
+                                                        <c:II_Helptext SobjectName="AcctPlanProdStrategy__c" FieldApiName="Adjust_NI__c" IsCustom="true" Screen="AccountPlanGroupPerformance" /></th>
+                                                        <th style="vertical-align:top">% Existing SOW
+                                                        <c:II_Helptext SobjectName="AcctPlanProdStrategy__c" FieldApiName="ExistingSOW__c" /></th>
+                                                        <th style="vertical-align:top">Expected <br />Incremental NI <br />(Unit: THB)
+                                                        <c:II_Helptext SobjectName="AcctPlanProdStrategy__c" FieldApiName="ExpectedIncrementalNIFromStep5__c" /></th>
+                                                        <th style="vertical-align:top">Total Company NI
+                                                        <c:II_Helptext SobjectName="AcctPlanProdStrategy__c" FieldApiName="TotalCompanyNI__c" /></th>
+                                                        <th style="vertical-align:top">% Expected<br /> SOW
+                                                        <c:II_Helptext SobjectName="AcctPlanProdStrategy__c" FieldApiName="ExpectedSOWPercent__c" /></th>
+                                                        <th style="vertical-align:top">% Aspiration<br /> SOW
+                                                        <c:II_Helptext SobjectName="AcctPlanProdStrategy__c" FieldApiName="AspirationSOW__c" /></th>
+                                                        <th style="vertical-align:top">Compare %<br />Aspiration SOW<br/>and % Expected<br /> SOW
+                                                        <c:II_Helptext SobjectName="AcctPlanProdStrategy__c" FieldApiName="CompareSOW__c" /></th>                                                         
+                                                    </tr>
+                                                </thead>
+                                               <tbody>
+                                              <!-- Repeat Data Go Here -->
+                                             <apex:variable value="{!1}" var="count"/>
+                                                
+                                             <apex:repeat value="{!AcctPlanProdStrategyList}" var="pdsCom">
+                                             <tr>
+        
+                                                <td class="text-left" style="{!if(pdsCom.SEQ==4 || pdsCom.SEQ==10,'padding-left:25px', if(pdsCom.SEQ==1 || pdsCom.SEQ==2 || pdsCom.SEQ==3,'','padding-left:35px'))};"> 
+                                                    <label>{!pdsCom.Name} </label></td>
+                                                <td class="text-right" title="Value : {!pdsCom.WalletSizing}">
+                                                    <apex:outputText rendered="{!pdsCom.SEQ!=4 && pdsCom.SEQ!=10}" value="{0, number, ###,##0}" style="{!if(pdsCom.SEQ!=13 && pdsCom.SEQ!=14,'','display: none')};">
+                                                        <apex:param value="{!pdsCom.WalletSizing}" />
+                                                            </apex:outputText></td>
+                                                    
+                                                <td class="text-right"> </td>
+                                                
+                                                <td class="text-right" title="Value : {!pdsCom.AnnualizedPerformance}"> 
+                                                    <apex:outputText id="txtActualPerformance" rendered="{!pdsCom.SEQ!=4 && pdsCom.SEQ!=10}" value="{0, number, ###,##0}">
+                                                        <apex:param value="{!pdsCom.AnnualizedPerformance}" />
+                                                    </apex:outputText></td>
+                                                    
+                                                <td class="text-right" title="Value : {!pdsCom.AdjustNI}">
+                                                    <apex:outputText id="txtAdjustNI" rendered="{!pdsCom.SEQ!=4 && pdsCom.SEQ!=10}" value="{0, number, ###,##0}">
+                                                        <apex:param value="{!pdsCom.AdjustNI}" />
+                                                    </apex:outputText></td>
+                                                
+                                                <td class="text-right" title="Value : {!pdsCom.ExistingSOW}%">
+                                                    <apex:outputText id="txtExistingSOW" rendered="{!pdsCom.SEQ!=4 && pdsCom.SEQ!=10}" value="{0, number, ###,##0.00}%" style="{!if(pdsCom.SEQ!=9 && pdsCom.SEQ!=11 && pdsCom.SEQ!=12 && pdsCom.SEQ!=13 && pdsCom.SEQ!=14,'','display: none')};">
+                                                        <apex:param value="{!pdsCom.ExistingSOW}" />
+                                                    </apex:outputText></td>
+                                                <td class="text-right" title="Value : {!pdsCom.ExpectedIncrementalNIFromStep5}"> 
+                                                    <apex:outputText id="txtExpectedIncrementalNI" rendered="{!pdsCom.SEQ!=4 && pdsCom.SEQ!=10}" value="{0, number, ###,##0}">
+                                                        <apex:param value="{!pdsCom.ExpectedIncrementalNIFromStep5}" />
+                                                    </apex:outputText></td>
+                                                <td class="text-right" title="Value : {!pdsCom.TotalCompanyNI}"> 
+                                                    <apex:outputText id="txtTotalCompanyNI" rendered="{!pdsCom.SEQ!=4 && pdsCom.SEQ!=10}" value="{0, number, ###,##0}">
+                                                        <apex:param value="{!pdsCom.TotalCompanyNI}" />
+                                                    </apex:outputText></td>
+                                                <td class="text-right" title="Value : {!pdsCom.ExpectedSOWPercent}%"> 
+                                                    <apex:outputText id="txtExpectedSOWPercent" rendered="{!pdsCom.SEQ!=4 && pdsCom.SEQ!=10}" value="{0, number, ###,##0.00}%" style="{!if(pdsCom.SEQ!=3 && pdsCom.SEQ!=9,'','display: none')};">
+                                                        <apex:param value="{!pdsCom.ExpectedSOWPercent}" />
+                                                    </apex:outputText></td>
+                                                <td class="text-right" title="Value : {!pdsCom.AspirationSOW}%"> 
+                                                    <apex:outputText id="txtAspirationSOW" rendered="{!pdsCom.SEQ!=4 && pdsCom.SEQ!=10}" value="{0, number, ###,##0.00}%"  style="{!if(pdsCom.SEQ!=3 && pdsCom.SEQ!=9,'','display: none')};">
+                                                        <apex:param value="{!pdsCom.AspirationSOW}" />
+                                                    </apex:outputText></td>
+                                                <td class="text-right" title="Value : {!pdsCom.CompareSOW}%"> 
+                                                    <apex:outputText id="txtCompareSOW" rendered="{!pdsCom.SEQ!=4 && pdsCom.SEQ!=10}" value="{0, number, ###,##0.00}%"  style="{!if(pdsCom.SEQ!=3 && pdsCom.SEQ!=9,'','display: none')};">
+                                                        <apex:param value="{!pdsCom.CompareSOW}" />
+                                                    </apex:outputText></td>
+                                                
+                                                <apex:variable var="count" value="{!count+ 1}"/>
+        
+                                            </tr>                                       
+                                            </apex:repeat> 
+                                            <tr class="info endRow">
+        
+                                                <td class="text-left"><label>Total</label></td>
+                                                 <td class="text-right">
+                                                     <apex:outputText value="{0, number, ###,##0}">
+                                                         <apex:param value="{!sumWalletSizing}" />
+                                                             </apex:outputText>  
+                                                         </td>
+                                                <td class="text-right">
+                                                   
+                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                        <apex:param value="{!sumTargetNIByRm}" />
+                                                    </apex:outputText> 
+                                                
+                                                </td>
+                                                <td class="text-right">
+                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                        <apex:param value="{!sumActualNI}" />
+                                                    </apex:outputText>      
+                                                </td>
+                                                <td class="text-right">
+                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                        <apex:param value="{!sumAdjustNI}" />
+                                                    </apex:outputText>      
+                                                </td>
+                                                <td class="text-right">
+                                                    <apex:outputText value="{0, number, ###,##0.00}%">
+                                                        <apex:param value="{!sumExistingSOW}" />
+                                                    </apex:outputText>      
+                                                </td>
+                                                <td class="text-right">
+                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                        <apex:param value="{!sumExpectedNIFromStep5}" />
+                                                    </apex:outputText>
+                                                </td>
+                                                <td class="text-right">
+                                                    <apex:outputText value="{0, number, ###,##0}">
+                                                        <apex:param value="{!sumTotalCompanyNI}" />
+                                                    </apex:outputText>
+                                                </td>
+                                                <td class="text-right"></td>
+                                                <td class="text-right"></td>
+                                                <td class="text-right"></td>
+                                            </tr>
+                                           </tbody>
+                                        </table>                                    
+                                                                       
+                                    </apex:outputPanel>
+                                </apex:PageblockSection>
+                                         
+                            </div>     
+                        </fieldset>
+                                        
+                            <div class="row" style="margin:5px;">
+                                                <h3 class="text-primary">Approval History</h3>
+                                                <apex:commandlink id="apprefresh" value="ajaxsubmit" action="{!ApprovalExRemoteAction}" status="status"
+                                                                  styleclass="ahide" rerender="approvalouterpanel,refreshButton" immediate="true"></apex:commandlink>
+                                               
+                                                   <apex:outputpanel id="approvalouterpanel">
+                                                    <div class="center-block" style="text-align:center; width: 255px; padding-bottom: 5px; display:{!if(companyprofile.OwnerId == $User.Id ,'block','none')};">
+
+
+                                                    <apex:outputpanel style="display:{!if(isPending,'none','grid')}">
+                                                        <a href="#" class="btn btn-primary" id="submitapproval" onclick="onSubmitapproval(); return false;" 
+                                                            style="display:{!IF(Acctplancompletion.Account_Plan_Completion_Percentage__c == null,'none', IF(Acctplancompletion.Account_Plan_Completion_Percentage__c < 100,'none','grid'))};"> Submit for Approval</a>
+                                                        <a href="#" class="btn btn-primary btn-mandatory" id="gotoAccountPlanMandatory"  onclick="gotoAccountPlanMandatory()"
+                                                            style="display:{!IF(Acctplancompletion.Account_Plan_Completion_Percentage__c == null,'block', IF(Acctplancompletion.Account_Plan_Completion_Percentage__c < 100,'grid','none'))};">
+                                                                View Remaining Mandatory Fields</a>
+                                                    </apex:outputpanel>        
+                                                    <apex:outputpanel style="display:{!if(isPending && companyprofile.OwnerId == $User.Id ,'grid','none')}">
+                                                        <a href="#" class="btn btn-primary" id="recallapproval" onclick="onRecallapproval(); return false;"> Recall Approval Request</a>
+                                                    </apex:outputpanel>
+
+                                                </div>
+                                                    <apex:variable var="rowNum" value="{!1}" />                                                  
+                                                    <table class="table table-striped table-hover " id="approvaltable">
+                                                        <thead>
+                                                            <tr>
+                                                                <th width="80px">Action</th>
+                                                                <th width="150px">Date</th>
+                                                                <th width="100px">Status</th>
+                                                                <th width="150px">Assigned To</th>
+                                                                <th width="150px">Actual Approver</th>
+                                                                <th width="330px">Comments</th>
+                                                                <th width="140px">Overall Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+
+                                                            <apex:repeat value="{!ApprovalWrapList}" var="appr">
+                                                              <tr>
+                                                                  
+                                                                  <td colspan="2" class=" text-left" style="background-color:#4691CE;color:white;" >{!appr.Stepstatus}</td>
+                                                                  <td colspan="4" class=" text-left" style="background-color:#4691CE;color:white;" ></td>
+                                                                  <td  class=" text-left" style="vertical-align: middle;
+    text-align: center;background-color:#4691CE;color:white;" >
+                                                                    <apex:outputpanel styleclass="label-success" style="padding: 5px;" rendered="{!appr.status=='Approved'}" >
+                                                                        &nbsp;
+                                                                      <span class="glyphicon glyphicon-ok " >&nbsp;Approved
+                                                                      </span>
+                                                                        &nbsp;
+                                                                    </apex:outputpanel>
+                                                                    <apex:outputpanel styleclass="label-danger" style="padding: 5px;" rendered="{!appr.status=='Rejected'}" >
+                                                                        &nbsp;
+                                                                      <span class="glyphicon glyphicon-info-sign">&nbsp;Rejected</span>
+                                                                        &nbsp;
+                                                                    </apex:outputpanel>
+                                                                    <apex:outputpanel styleclass="label-warning" style="padding: 5px;" rendered="{!appr.overallStatus=='Pending'}" >
+                                                                        &nbsp;
+                                                                      <span class="glyphicon glyphicon-time">&nbsp;Pending</span>
+                                                                        &nbsp;
+                                                                    </apex:outputpanel>
+                                                                    <apex:outputpanel style="padding: 5px;background-color:#AAAAAA" rendered="{!appr.overallStatus=='Recalled'}" >
+                                                                        &nbsp;
+                                                                      <span class="glyphicon glyphicon-minus-sign">&nbsp;Recalled</span>
+                                                                        &nbsp;
+                                                                    </apex:outputpanel>
+                                                                  </td>   
+                                                                    
+                                                              </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <apex:outputpanel style="display:{!if(appr.status=='Pending' && appr.AssignedTo.id == $User.Id,'block','none')};">
+                                                                            <a href="#" class="btn btn-primary actionapproval"  onclick="onActionapproval(); return false;">Approve / Reject</a>
+                                                                        </apex:outputpanel>
+                                                                    </td>
+                                                                    <td>{!appr.submitdatetime}</td>
+                                                                    <td>{!appr.status}</td>
+                                                                    <td>{!appr.ActualApprover.Firstname} {!appr.ActualApprover.LastName}</td>
+                                                                    <td>{!appr.AssignedTo.Firstname} {!appr.AssignedTo.LastName}</td>
+                                                                    <td>{!appr.comments}</td>
+                                                                    <td>&nbsp;</td>
+
+                                                                </tr>
+                                                                <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                                            </apex:repeat>
+                                                        </tbody>
+                                                    </table>
+
+
+
+                                                </apex:outputpanel>
+                                            </div>            
+                                
+                    </apex:pageBlock>
+            </div>
+        </div>                          
+        <!-- /Section 1 -->
+                
+
+        </apex:form>
+    </div>
+        
+         <div class="bootstrap-sf1">
+            <!-- Modal -->
+            <div class="modal fade modal-fullscreen force-fullscreen" id="frmModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-bottom: 30px;margin-top: 45px;">
+                <div class="modal-dialog" style="width:700px;height:50px;">
+                    <div class="modal-content" style="width:95%;height:350px;">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="myModalLabel"> </h4>
+                        </div>
+                        <div class="modal-body">
+                            <iframe id="modalIframe" src="#" width="95%" height="200px" frameborder="0" allowtransparency="true"></iframe>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal" id="modalclosebutton">Close</button>
+                        </div>
+                    </div>
+                    <!-- /.modal-content -->
+                </div>  <!-- /.modal-dialog -->
+            </div>
+        </div>
+
+
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+        <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+        <apex:includeScript value="/support/console/22.0/integration.js"/>
+        <script>
+            // Prevent Config
+            var $j = jQuery.noConflict();
+            var groupId = '{!GroupID}';
+            var companyId = '{!CompanyID}';
+            var walletId = '{!WalletID}';
+
+            var comId = '{!companyprofile.id}';
+            // Ready Event
+            $j(document).ready(function () {
+                clearIframe();
+                $j("#frmModel").on('hidden.bs.modal', function () {
+                });
+                //end callback
+                
+                $j('[data-toggle="tooltip"]').tooltip(); 
+            });
+
+            function onSubmitapproval(){                
+                //event.preventDefault();
+                $j('#modalIframe').attr("src", '/apex/AccountPlanPortfolioApproval?ComId=' + comId + '&action=Request');                
+                $j('#frmModel').modal({ show: true });
+            }
+
+            function onRecallapproval(){                
+                //event.preventDefault();
+                $j('#modalIframe').attr("src", '/apex/AccountPlanPortfolioApproval?ComId=' + comId + '&action=recall');                
+                $j('#frmModel').modal({ show: true });
+            }
+
+            function onActionapproval() {
+                $j('#modalIframe').attr("src", '/apex/AccountPlanPortfolioApproval?ComId=' + comId + '&action=action');
+                $j('#frmModel').modal({ show: true });
+            }
+
+            $j("#frmModel").on('hidden.bs.modal', function () {
+                $j("[id$=apprefresh]").click();
+                clearIframe();
+            });
+
+            // Used to close model from child page
+            function modalclose() {
+                clearIframe();
+                $j('#frmModel').modal('hide');
+                //approvalprocess();
+            }
+
+            function gotoAccountPlanMandatory(){
+                 window.open('/apex/AccountPlanMandatory?CompanyID=' + comId, '_blank',"height=800,width=800,scrollbars =1");
+                 return false;
+            }
+            function gotoRevenueExpectGroupPerformanceView(){
+                window.open('/apex/AccountplanGroupPerformanceV3?GroupID=' + groupId + '&CompanyID=' + companyId + '&WalletID=' + walletId+'&step=6', '_blank','scrollbars=1,resizable=1,width=900,height=700,left=50,top=10');
+                return false;
+            }
+
+            function gotoRevenueExpectPortfolioPerformanceView(){
+                window.open('/apex/AccountPlanPortfolioPerformance?GroupID=' + groupId + '&CompanyID=' + companyId + '&WalletID=' + walletId+'&step=6', '_blank','scrollbars=1,resizable=1,width=900,height=700,left=50,top=10');
+                
+                return false;
+            }
+            function clearIframe(){
+                $j("#modalIframe").attr('src','');
+            }
+
+        //Sets the title of the current tab to "Case Transactions Detail"
+        window.onload = function setTitleConsole(){
+            setTitle();
+        }
+        //Sets the title of the current tab to "Case Transactions Detail"
+        function setTitle() {
+            sforce.console.setTabTitle('Wallet Sizing and Revenue Expectation');
+        }
+        </script>
+    </body>
+
+</apex:page>

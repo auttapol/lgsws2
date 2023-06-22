@@ -1,0 +1,675 @@
+<apex:page controller="TaskEventHomeController" lightningStylesheets="true">
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    <style>
+
+        .slds-vf-scope .list > tbody > tr > td {
+            white-space: unset !important;
+        }
+        h3 {
+            padding: 10px;
+            margin: 10px;
+        }
+
+        .apexp .detailList .list td {
+            padding: 2px 2px 2px 5px !important;
+        }
+
+        @media (max-width: 640px) {
+            span {
+                position: relative;
+                left: 500px;
+            }
+        }
+    </style>
+    <!-- 20170921 For Access MIS BI Report -->
+    <script>
+        var bireport = null;
+        function openBIReportPopup() {
+            if (bireport == null || bireport.closed) {
+                bireport = window.open('{!$Setup.BI_MIS_Report__c.endpoint_url__c }'
+                    , ''
+                    , 'width={!$Setup.BI_MIS_Report__c.width__c  },height={!$Setup.BI_MIS_Report__c.height__c },toolbar=0,menubar=0,location=0,status=1,scrollbars=1,resizable=1,left={!$Setup.BI_MIS_Report__c.left__c  },top={!$Setup.BI_MIS_Report__c.top__c}');
+            }
+        }
+    </script>
+    <!-- 20170921 For Access MIS BI Report -->
+
+    <!-- <apex:pageBlock mode="maindetail"> -->
+    <!-- <apex:PageBlockSection columns="1" collapsible="false" id="resultblock"> -->
+    <apex:form >
+        <apex:actionstatus id="status">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" />
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+
+        <apex:outputPanel id="tasklistPanel">
+            <div class="bMyCalendar" id="homeCalendarSection">
+                <div class="bPageBlock brandSecondaryBrd secondaryPalette">
+                    <div class="pbHeader">
+
+                        <table border="0" cellpadding="0" cellspacing="0" style="height:100%;">
+                            <!--<tr>
+                                <td class="pbTitle">
+                                    <h3>My Tasks and Events</h3>
+                                </td>
+
+                            </tr>-->
+                            <tr style="text-align: left;padding:10px;">
+                                <td>
+                                    <div class="bootstrap-sf1">
+                                        <div style="padding:10px;float:left;">
+
+                                        </div>
+
+                                        <div style="margin-left:30px;float:left;font-weight:bolder;">
+
+                                        </div>
+                                        <div style="float:left;padding-top:5px;padding:10px;">
+
+                                            <apex:outputPanel rendered="{!isShowReferral}">
+                                                <a href="#" onclick="NavigateTo('{!reportPageReferral}','Pending Referral');return false;" class="btn btn-default" style="padding-right:20px;">
+                                                    <span class="glyphicon glyphicon-calendar" style="margin-right:5px;"></span>Pending Referral
+                                                    <apex:outputPanel rendered="{!if(countNewReferral > 0,'true','false')}">
+                                                        <span class="badge" style="margin-left:5px;background-color:red;">{!countNewReferral}</span>
+                                                    </apex:outputPanel>
+                                                </a>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel rendered="{!isShowLead}">
+                                                <a href="#" onclick="NavigateTo('{!reportPageLead}','New Lead');return false;" class="btn btn-default" style="padding-right:20px;">
+                                                    <span class="glyphicon glyphicon-calendar" style="margin-right:5px;"></span>New Lead
+                                                    <apex:outputPanel rendered="{!if(countNewLead > 0,'true','false')}">
+                                                        <span class="badge" style="margin-left:5px;background-color:red;">{!countNewLead}</span>
+                                                    </apex:outputPanel>
+                                                </a>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel rendered="{!reportPageProductDue}">
+                                                <a href="#" onclick="NavigateTo('{!reportPageOverdue}','Overdue Activity');return false;" class="btn btn-default" style="padding-right:20px;">
+                                                    <span class="glyphicon glyphicon-calendar" style="margin-right:5px;"></span>Overdue Activity
+                                                    <apex:outputPanel rendered="{!if(countOverdue > 0,'true','false')}">
+                                                        <span class="badge" style="margin-left:5px;background-color:red;">{!countOverdue}</span>
+                                                    </apex:outputPanel>
+                                                </a>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel rendered="{!isShowAnnual}">
+                                                <a href="#" onclick="NavigateTo('{!reportPageAnnual}','Annual Review');return false;" class="btn btn-default" style="padding-right:20px;">
+                                                    <span class="glyphicon glyphicon-list-alt" style="margin-right:5px;"></span>Annual Review
+                                                    <apex:outputPanel rendered="{!if(countAcctAnnualReview > 0,'true','false')}">
+                                                        <span class="badge" style="margin-left:5px;background-color:red;">{!countAcctAnnualReview}</span>
+                                                    </apex:outputPanel>
+                                                </a>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel rendered="{!isShowPageProductDue}">
+                                                <a href="#" onclick="NavigateTo('{!reportPageProductDue}','Product Due Date');return false;" class="btn btn-default" style="padding-right:20px;">
+                                                    <span class="glyphicon glyphicon-exclamation-sign" style="margin-right:5px;"></span>Product Due Date
+                                                    <apex:outputPanel rendered="{!if(countProductDue > 0,'true','false')}">
+                                                        <span class="badge" style="margin-left:5px;background-color:red;">{!countProductDue}</span>
+                                                    </apex:outputPanel>
+                                                </a>
+                                            </apex:outputPanel>
+
+                                            <apex:outputPanel rendered="{!isShowDPD}">
+                                                <a href="#" onclick="NavigateTo('{!reportPageDPD}','DPD Alert');return false;" class="btn btn-default" style="padding-right:20px;">
+                                                    <span class="glyphicon glyphicon-warning-sign" style="margin-right:5px;"></span>DPD Alert
+                                                    <apex:outputPanel rendered="{!if(countDPD > 0,'true','false')}">
+                                                        <span class="badge" style="margin-left:5px;background-color:red;">{!countDPD}</span>
+                                                    </apex:outputPanel>
+                                                </a>
+                                            </apex:outputPanel>
+                                            <!-- a href="#" onclick="{!reportPageComplaint}" class="btn btn-default" style="padding-right:20px;" -->
+                                            <!-- <a href="#" onclick="NavigateTo('{!reportPageComplaint}','Customer Complaint');return false;" class="btn btn-default" style="padding-right:20px;">
+                                                              <span class="glyphicon glyphicon glyphicon-thumbs-down"
+                                                                   style="margin-right:5px;" ></span>Customer Complaint
+                                                               <apex:outputPanel rendered="{!if(countAcctComplaint > 0,'true','false')}">
+                                                                   <span class="badge" style="margin-left:5px;background-color:red;">{!countAcctComplaint}</span>
+                                                               </apex:outputPanel>
+                                                               </a> 
+                                                           -->
+                                            <!-- 20170921 For Access MIS BI Report -->
+                                            <a href="#" onclick="openBIReportPopup();" class="btn btn-default" style="padding-right:20px;">
+                                                <span class="glyphicon glyphicon-calendar" style="margin-right:5px;"></span>MIS BI Reporting
+                                            </a>
+
+                                            <!-- 20181120 show all open case-->
+                                            <apex:outputPanel rendered="{!isShowCase}">
+                                                <a href="#" onclick="NavigateTo('{!reportPageCase}','Open Case');return false;" class="btn btn-default" style="padding-right:20px;">
+                                                    <span class="glyphicon glyphicon-calendar" style="margin-right:5px;"></span>Open Case
+                                                    <apex:outputPanel rendered="{!if(countCaseNumber > 0,'true','false')}">
+                                                        <span class="badge" style="margin-left:5px;background-color:red;">{!countCaseNumber}</span>
+                                                    </apex:outputPanel>
+                                                </a>
+                                            </apex:outputPanel>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+                    <div class="pbBody" style="max-height:400px;">
+                        <table>
+
+                            <tr>
+
+                                <td id="tdTable" style="position:relative;width:1200px;padding-right:20px;">
+                                    <div class="miniTab secondaryPalette">
+                                        <ul class="miniTabList">
+                                            <li class="currentTab">
+                                                <div style="margin-top:5px;">
+                                                    This Week Activities</div>
+                                            </li>
+
+                                        </ul>
+
+                                    </div>
+                                    <div>
+                                        <apex:outputPanel id="activityTable">
+                                            <table class="list " border="0" cellpadding="0" cellspacing="0" style="margin:10px;width:98%;">
+                                                <tr class="headerRow">
+                                                    <th class="headerRow" style="width:27%"> Date </th>
+                                                    <th class="headerRow"> Subject </th>
+                                                    <th class="headerRow"> Type </th>
+                                                    <th class="headerRow"> Related to</th>
+                                                    <th class="headerRow"> Status </th>
+                                                </tr>
+                                                <tr>
+                                                    <td class="dataCell" colspan="5"></td>
+                                                </tr>
+
+                                                <apex:repeat value="{!DateSet}" var="datevalue">
+                                                    <tr class="dataRow">
+                                                        <td class="dataHeader" colspan="5">
+                                                            <b>
+                                                                <apex:outputText value="{!datevalue}">
+                                                                </apex:outputText>
+                                                            </b>
+                                                        </td>
+                                                    </tr>
+                                                    <apex:variable var="rowNum" value="{!1}" />
+                                                    <apex:repeat value="{!taskANDeventMap[datevalue]}" var="cld">
+                                                        <tr class="dataRow">
+                                                            <td class="dataCell" style="color:{!if(!cld.isTask,'#289AFF','black')};">
+                                                                <apex:outputText value="{0,date,d/MM/yyyy}" rendered="{! !cld.isTask}">
+                                                                    <apex:param value="{!cld.EventRecord.Visit_Plan_Report__r.Date_of_Visit__c}" />
+                                                                </apex:outputText>
+                                                                <apex:outputText value=" {!cld.EventRecord.Visit_Plan_Report__r.Start_Visit_Time__c }">
+                                                                </apex:outputText>
+                                                                <apex:outputText value=" - " rendered="{! !cld.isTask && cld.EventRecord.EndDateTime !=null && cld.EventRecord.StartDateTime !=null   }"
+                                                                />
+                                                                <apex:outputText value="{0,date,d/MM/yyyy }" rendered="{! !cld.isTask}">
+                                                                    <apex:param value="{!cld.EventRecord.Visit_Plan_Report__r.Date_of_Visit__c}" />
+                                                                </apex:outputText>
+                                                                <apex:outputText value=" {!cld.EventRecord.Visit_Plan_Report__r.End_Visit_Time__c  }"></apex:outputText>
+                                                            </td>
+                                                            <td class="dataCell">
+                                                                <div class="bootstrap-sf1" style="width:12px;height:12px;background-color:white;float:left;margin-right:5px;">
+                                                                    <span class="glyphicon glyphicon-star" aria-hidden="true" style="width:12px;height:12px;color:#EEB422;display:{!if(cld.isTask,'grid','none')};"></span>
+                                                                    <span class="glyphicon glyphicon-home" aria-hidden="true" style="width:12px;height:12px;color:#B0C4DE;display:{!if(!cld.isTask,'grid','none')};"></span>
+                                                                </div>
+                                                                <a href="#" onClick="NavigateToSelf('{!cld.TaskRecord.id}','{!cld.TaskRecord.Subject}');return false;" id="hover{!rowNum}"
+                                                                    position="relative" target="_blank" style="display: block;width: 300px;word-wrap: break-word;color:black;display:{!if(cld.isTask,'grid','none')};">
+                                                                    {!LEFT(cld.TaskRecord.Subject,80)}
+                                                                </a>
+
+                                                                <a href="#" onClick="NavigateToSelf('{!cld.EventRecord.Visit_Plan_Report__c}','{!cld.EventRecord.Subject}');return false;"
+                                                                    id="hover{!rowNum}" position="relative" target="_blank" style="display: block;width: 300px;word-wrap: break-word;color:#289AFF;display:{!if(!cld.isTask,'grid','none')};">
+                                                                    {!LEFT(cld.EventRecord.Subject,80)}
+
+                                                                </a>
+
+                                                            </td>
+                                                            <td class="dataCell" style="color:{!if(!cld.isTask,'#289AFF','black')};">
+                                                                <apex:outputText value="Task" rendered="{!cld.isTask}" />
+                                                                <apex:outputText value="Visit" rendered="{! !cld.isTask}" />
+                                                            </td>
+                                                            <td class="dataCell" style="color:{!if(!cld.isTask,'#289AFF','black')};">
+
+
+
+                                                                <a href="#" onClick="NavigateToSelf('{!cld.TaskRecord.WhatID}','{!cld.TaskRecord.What.Name}');return false;" id="hover{!rowNum}"
+                                                                    position="relative" target="_blank" style="color:black;display:{!if(cld.isTask,'grid','none')};">
+                                                                    {!LEFT(cld.TaskRecord.What.Name,80)}
+                                                                </a>
+                                                                <a href="#" onClick="NavigateToSelf('{!cld.EventRecord.Visit_Plan_Report__r.Customer_Name__c}','{!cld.EventRecord.Visit_Plan_Report__r.Customer_Name__r.Name}');return false;"
+                                                                    id="hover{!rowNum}" position="relative" target="_blank" style="color:#289AFF;display:{!if(!cld.isTask && cld.EventRecord.Visit_Plan_Report__r.Lead__c ==null,'grid','none')};">
+                                                                    {!LEFT(cld.EventRecord.Visit_Plan_Report__r.Customer_Name__r.Name,80)}
+                                                                </a>
+
+                                                                <a href="#" onClick="NavigateToSelf('{!cld.EventRecord.Visit_Plan_Report__r.Lead__c}','{!cld.EventRecord.Visit_Plan_Report__r.Lead__r.Company}');return false;"
+                                                                    id="hover{!rowNum}" position="relative" target="_blank" style="color:#289AFF;display:{!if(!cld.isTask && cld.EventRecord.Visit_Plan_Report__r.Lead__c !=null ,'grid','none')};">
+                                                                    {!LEFT(cld.EventRecord.Visit_Plan_Report__r.Lead__r.Company,80)}
+                                                                </a>
+
+                                                            </td>
+                                                            <td class="dataCell" style="color:{!if(!cld.isTask,'#289AFF','black')};">
+                                                                <apex:outputfield value="{!cld.TaskRecord.Status}" rendered="{!cld.isTask}" />
+                                                                <apex:outputfield value="{!cld.EventRecord.Visit_Status__c }" rendered="{! !cld.isTask}" />
+
+                                                            </td>
+                                                        </tr>
+                                                        <tr class="dataRow" style="display:{! if(cld.TaskRecord.Main_Task__c !=null ||  cld.EventRecord.Visit_Plan_Report__r.Main_purpose__c !=null,'grid','none')}">
+                                                            <!-- <td style="border-bottom:none;">&nbsp;</td> -->
+                                                            <td colspan="2" style="border-top:0px;border-bottom:none;color:{!if(!cld.isTask,'#289AFF','black')};word-wrap: break-word !important;">
+                                                                <!-- &nbsp;&nbsp; &nbsp;&nbsp; -->
+                                                                <apex:outputText value="Main Task :" style="font-weight:bolder;" rendered="{!cld.isTask && cld.TaskRecord.Main_Task__c !=null}"
+                                                                />
+                                                                <apex:outputText value="Main Purpose :" style="font-weight:bolder;" rendered="{! !cld.isTask && cld.EventRecord.Visit_Plan_Report__r.Main_purpose__c !=null}"
+                                                                /> 
+                                                                <!-- &nbsp;&nbsp; -->
+                                                                <apex:outputText value="{!cld.TaskRecord.Main_Task__c}" rendered="{!cld.isTask && cld.TaskRecord.Main_Task__c !=null}" />
+                                                                <apex:outputText value="{!cld.EventRecord.Visit_Plan_Report__r.Main_purpose__c}" rendered="{! !cld.isTask && cld.EventRecord.Visit_Plan_Report__r.Main_purpose__c !=null}"
+                                                                />
+                                                            </td>
+                                                            <td colspan="2" style="border-top:0px;border-bottom:none;color:{!if(!cld.isTask,'#289AFF','black')};word-wrap: break-word !important;">
+                                                                <!-- &nbsp;&nbsp; &nbsp;&nbsp; -->
+                                                                <apex:outputText value="Sub Task:" style="font-weight:bolder;" rendered="{!cld.isTask && cld.TaskRecord.Sub_Task__c!=null }"
+                                                                />
+                                                                <!-- <apex:outputText value="Sub Purpose:" style="font-weight:bolder;" rendered="{! !cld.isTask && cld.EventRecord.Visit_Plan_Report__r.Sub_purpose__c!=null}"  /> -->
+                                                                <!-- &nbsp;&nbsp; -->
+                                                                <apex:outputfield value="{!cld.TaskRecord.Sub_Task__c}" rendered="{!cld.isTask && cld.TaskRecord.Sub_Task__c!=null}" />
+                                                                <!-- <apex:outputfield value="{!cld.EventRecord.Visit_Plan_Report__r.Sub_purpose__c}" rendered="{! !cld.isTask && cld.EventRecord.Visit_Plan_Report__r.Sub_purpose__c!=null}" /> -->
+                                                            </td>
+                                                        </tr>
+                                                        <apex:variable var="rowNum" value="{!rowNum+1}" />
+                                                    </apex:repeat>
+                                                    <tr>
+                                                        <td class="dataCell" colspan="4" style="border:none;"></td>
+                                                    </tr>
+                                                </apex:repeat>
+
+
+
+                                            </table>
+                                        </apex:outputPanel>
+                                        <input value="New Task" target="_top" type="button" class="btn btn-default" style="margin-left:30px;text-decoration:none;"
+                                            onClick="NavigateToSelf('00T/e?','New Task');return false;" />
+                                        <apex:panelGrid columns="4" id="paginggrid" style="float:right;">
+
+                                            <apex:commandLink action="{!previous}" status="status" rendered="{!hasPrevious}" reRender="activityTable,paginggrid">Previous</apex:commandlink>
+                                            <apex:commandLink action="{!next}" status="status" rendered="{!hasNext}" reRender="activityTable,paginggrid">Next</apex:commandlink>
+                                            <apex:outputText rendered="{!if(MaxpageNumber>0,true,false)}" value="{!pageNumber+1} / {!MaxpageNumber}" /> &nbsp;&nbsp; &nbsp;&nbsp;
+
+                                        </apex:panelGrid>
+                                    </div>
+
+                                </td>
+
+                                <td id="tdCalendar" align="right" style="position:relative;padding: 10px;margin: 10px;">
+                                    <div class="mCalendar">
+
+                                        <div class="body">
+
+                                            <apex:outputpanel id="calPanel" style="border-radius: 10px;
+                                                  float:left;background-color:#FBFBFB;
+                                                  margin-bottom:15px;
+                                                  border: 1px solid #d6d6d6;">
+                                                <div id="cal-legend">
+                                                    <ul>
+                                                        <li style="margin-top:10px;" class="fc-fontstyle">
+                                                            <span class="calendar-event">
+                                                            </span>My Events
+                                                        </li>
+                                                        <li style="margin-top:10px;margin-right:5px;" class="fc-fontstyle">
+                                                            <span class="calendar-task">
+                                                            </span>My Tasks
+                                                        </li>
+                                                    </ul>
+                                                    <div style="clear:both;">
+                                                        <!--fix floats-->
+                                                    </div>
+                                                </div>
+                                                <div style="clear:both;">
+                                                    <!--fix floats-->
+                                                </div>
+                                                <div id="container">
+                                                    <div id="calendar"></div>
+                                                </div>
+
+
+                                            </apex:outputpanel>
+                                        </div>
+
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </table>
+                    </div>
+                    <div class="pbFooter secondaryPalette">
+                        <div class="bg"></div>
+                    </div>
+                </div>
+            </div>
+
+        </apex:outputPanel>
+
+
+    </apex:form>
+    <!-- </apex:PageBlockSection> -->
+
+
+    <style type="text/css">
+        #cal-options {
+            float: left;
+        }
+
+        #cal-legend {
+            float: right;
+        }
+
+        #cal-legend ul {
+            margin: 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        #cal-legend ul li {
+            margin: 0;
+            padding: 5px;
+            float: left;
+        }
+
+        #cal-legend ul li span {
+            display: block;
+            height: 16px;
+            width: 16px;
+            margin-right: 4px;
+            float: left;
+            border-radius: 4px;
+        }
+
+        #calendar {
+            margin-top: 20px;
+        }
+
+        #calendar a:hover {
+            color: #fff !important;
+        }
+
+        .fc-event-inner {
+            padding: 3px;
+        }
+
+        .fc-unthemed .fc-today {
+            background-color: #6495ED;
+        }
+
+        .fc-day-grid-container {
+            height: 240px !important;
+        }
+
+        .calendar-event {
+            background: #EEB422;
+            border-color: #EEB422;
+        }
+
+        .calendar-task {
+            background: #B0C4DE;
+            border-color: #B0C4DE;
+        }
+
+        .event {
+            margin-left: 15px;
+        }
+
+        .dataHeader {
+            border-bottom-color: black !important;
+        }
+
+        .dataCell {
+            border-bottom: none !important;
+        }
+
+        .fc-day-header {
+
+            background: #e0e3e5;
+            /* fallback for old browsers */
+            background: -webkit-linear-gradient(to bottom, #F2F3F3, #F2F3F4);
+            /* Chrome 10-25, Safari 5.1-6 */
+            background: linear-gradient(to bottom, #F2F3F3, #F2F3F4);
+            /* W3C, IE 10+/ Edge, Firefox 16+, Chrome 26+, Opera 12+, Safari 7+ */
+        }
+
+        li {
+            list-style-type: none;
+        }
+
+
+        #calendar {
+            width: 340px;
+            margin: 0 auto;
+            padding: 20px;
+            font-size: 10px;
+            margin-top: -42px;
+        }
+
+        .fc-header-title h2 {
+            font-size: .9em;
+            white-space: normal !important;
+        }
+
+        .fc-view-month .fc-event,
+        .fc-view-agendaWeek .fc-event {
+            font-size: 0;
+            overflow: hidden;
+            height: 2px;
+        }
+
+        .msgIcon {
+            background-image: url(/img/msg_icons/warning24.png);
+            background-position: 0 0;
+            width: 24px;
+            height: 24px;
+        }
+
+        .fc-bg {
+            border-bottom: 1px solid #ececec;
+        }
+
+        .fc-center {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #5c7995;
+            border: 0;
+            font-size: 14px;
+
+        }
+
+        .fc-fontstyle {
+            font-family: Arial, Helvetica, sans-serif;
+            color: #5c7995;
+            font-weight: 500;
+        }
+    </style>
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:includeScript value="{!$Resource.AccountPlan_Bootstrap}" />
+    <apex:includeScript value="{!$Resource.AccountPlan_Mustache}" />
+    <apex:includeScript value="{!$Resource.momentJS}" />
+    <apex:includeScript value="{!$Resource.SFScript}" />
+    <apex:stylesheet value="{!$Resource.fullCalendarCSS}" />
+    <apex:includeScript value="/support/console/34.0/integration.js" />
+    <apex:includeScript value="{!$Resource.fullCalendarMinJS}" />
+
+    <script type="text/javascript">
+        modifyposition();
+        var $j = jQuery.noConflict();
+
+
+        var events_array = [
+
+            //At run time, this APEX Repeat will reneder the array elements for the events array
+
+            <apex:repeat value="{!events}" var="e">
+
+                {
+
+                    title: "{!e.title}",
+
+                        start: '{!e.startString}',
+
+                        end: '{!e.endString}',
+
+                        url: '{!e.url}',
+
+                        allDay: {!e.allDay},
+
+                        className: '{!e.className}',
+                        isVisit: '{!e.isVisit}',
+                },
+                </apex:repeat>
+            ];
+
+
+        $j(document).ready(function () {
+
+            if (!window.location.hash) {
+                window.location = window.location + '#loaded';
+                window.location.reload();
+                //self.location.reload();
+                //location.reload(true);
+                //window.location.href='/apex/taskeventhomecomponent';
+                //history.go(0);
+            }
+
+            refreshcalendar();
+            $j(".fc-popover").hide();
+            $j(".fc-more-popover").hide();
+            $j(".fc-more").show();
+        });
+
+        function refreshcalendar() {
+            $j('#calendar').fullCalendar({
+                header: {
+                    left: 'prev',
+                    center: 'title',
+                    right: 'next'
+                },
+                editable: false,
+                timeFormat: ' ',
+                fixedWeekCount: false,
+                events: events_array,
+                theme: false,
+                eventLimit: true, // for all non-agenda views
+                views: {
+                    agenda: {
+                        eventLimit: 2 // adjust to 6 only for agendaWeek/agendaDay
+                    }
+                },
+
+                eventClick: function (event) {
+                    if (event.url) {
+                        var theme = '{!$User.UIThemeDisplayed}';
+                        if (theme == 'Theme4u') {
+                            navigateToUrl(event.url);
+                        }
+                        else if (sforce.console.isInConsole()) {
+                            navigateToUrl(event.url);
+                        }
+                        else {
+                            window.open(event.url, "_blank");
+                        }
+                        return false;
+                    }
+                }
+
+            });
+        }
+
+
+
+
+
+        var ObjId;
+        var Title;
+        function NavigateTo(ObjId, Title) {
+
+            this.ObjId = ObjId;
+            this.Title = Title;
+
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+
+                sforce.one.navigateToURL('/' + ObjId);
+
+            }
+            else if (sforce.console.isInConsole()) {
+                //First find the ID of the primary tab to put the new subtab in
+                sforce.console.openPrimaryTab(null, ObjId, true,
+                    Title, openSuccess, ObjId);
+
+
+            }
+            else if (Title != 'New Task') {
+                if (ObjId != '')
+                    window.open("/" + ObjId, "", "width=800, height=600, toolbar=no, scrollbars=yes, resizable=yes");
+            }
+
+            else {
+                //window.location.href = ObjId;
+                window.open('/' + ObjId, '_top');
+
+            }
+
+        }
+
+
+
+        function NavigateToSelf(ObjId, Title) {
+            this.ObjId = ObjId;
+            this.Title = Title;
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                sforce.one.navigateToURL('/' + ObjId);
+
+            }
+            else if (sforce.console.isInConsole()) {
+                //First find the ID of the primary tab to put the new subtab in
+                /* sforce.console.openPrimaryTab(null, ObjId, true,
+                Title, openSuccess, ObjId);*/
+
+                navigateToUrl('/' + ObjId);
+            }
+            else {
+                //window.location.href = ObjId;
+                window.open('/' + ObjId, '_top');
+
+            }
+
+        }
+
+        var openSuccess = function openSuccess(result) {
+            //Report whether opening the new tab was successful
+            if (result.success == true) {
+            } else {
+            }
+        };
+
+        function modifyposition(){
+            var clientHeight = document.getElementById('tdCalendar').clientHeight;
+            // console.log(clientHeight);
+            var clientHeight = document.getElementById('tdTable').clientHeight;
+            // console.log(clientHeight);
+
+            if((clientHeight-400)/2 < 0){
+                document.getElementById('tdTable').style.top = (clientHeight-400)/2 + 'px';
+            }
+            if((398-clientHeight)/2 < 0){
+                document.getElementById('tdCalendar').style.top = (398-clientHeight)/2 + 'px';
+            }
+            
+           
+            // console.log('task event component');    
+        }
+
+    </script>
+
+    <!-- </apex:pageBlock> -->
+
+</apex:page>

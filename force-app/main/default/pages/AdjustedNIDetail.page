@@ -1,0 +1,193 @@
+<apex:page ></apex:page>
+<!--<apex:page standardcontroller="AcctPlanProdStrategy__c" extensions="AdjustedNIDetailController" 
+           doctype="html-5.0" showchat="false" showheader="false" sidebar="false"
+           applybodytag="false" applyhtmltag="true" standardstylesheets="true" >
+    <head>
+        <title>Adjusted NI Detail</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" /> 
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+            /*modify byDA*/
+            .bootstrap-sf1 thead th {
+                text-align: center;
+            }
+
+            .outputText {
+                /*padding-top:7px;*/
+            }
+
+            .bootstrap-sf1 .table tbody tr.endRow {
+                border-bottom-width: 1px;
+                border-bottom-style: solid;
+            }
+
+            .bootstrap-sf1 .table tbody tr td.td25 {
+                width: 25px;
+                border: none;
+                background: none;
+            }
+
+            .bootstrap-sf1 .table-striped > tbody > tr:nth-child(odd) > th.th25 {
+                width: 25px;
+                border: none;
+                background: none;
+            }
+
+            .rowsubtableLeft {
+                border-left: 1px solid #DADEE2;
+            }
+
+            .rowsubtableRight {
+                border-right: 1px solid #DADEE2;
+            }
+
+            .rowsubtableBottom {
+                border-bottom: 1px solid #DADEE2;
+            }
+
+            .bootstrap-sf1 .table tbody tr td.forceBackgroundMaroon {
+                background-color: #993300;
+                color: white;
+            }
+
+            .bootstrap-sf1 .table tbody tr th.forceBackgroundMaroon {
+                background-color: #993300;
+                color: white;
+            }
+
+            .bootstrap-sf1 .table thead tr th.forceRemoveBackground {
+                background-color: white;
+                color: black;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+            /* Icon when the collapsible content is shown */
+            .a-collapse:after {
+                font-family: "Glyphicons Halflings";
+                content: "\e114";
+                float: left;
+                margin-right: 10px;
+            }
+            /* Icon when the collapsible content is hidden */
+            .a-collapse.collapsed:after {
+                content: "\e080";
+            }
+            
+        .bootstrap-sf1 thead th.alt {
+            background-color: #006DCC;
+            color: white;
+            text-align: center;
+            vertical-align: top !important;
+            position: relative;
+        } 
+.bootstrap-sf1 {
+    background: none;
+}
+.event-paging{
+    width: 50px;
+    display: inline-table;
+    margin: 10px 0px;
+}
+.index-paging{
+    color: #acacac;
+    font-size: 13px;
+}
+        </style>
+    </head>
+    <body>
+        <apex:actionstatus id="status">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" />
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+        
+        <div class="bootstrap-sf1">
+            <apex:form styleclass="form-horizontal">
+                <apex:outputpanel id="statusMessage">
+                    <apex:pagemessages ></apex:pagemessages>
+                </apex:outputpanel>
+                        <div style="font-size: 16px; background-color: #006DCC;color: #fff;padding: 5px;">
+                            <b>Adjusted NI Detail : Total 
+                                <apex:outputtext value="{0, number, ###,##0}">
+                                    <apex:param value="{!Total}"/>
+                                </apex:outputtext>
+                            </b>
+                            </div><br/>
+                                        <apex:outputpanel id="porttable">
+                                            <apex:panelGrid columns="5"  >
+                                                <apex:commandLink action="{!first}" rendered="{!hasPrevious}" status="status"  rerender="porttable" styleClass="event-paging" >First</apex:commandlink>
+                                                <apex:commandLink action="{!previous}" rendered="{!hasPrevious}" status="status" rerender="porttable" styleClass="event-paging" style="width:70px;">Previous</apex:commandlink>
+                                                <apex:commandLink action="{!next}" rendered="{!hasNext}" status="status" rerender="porttable,Subtotalpanel" styleClass="event-paging" >Next</apex:commandlink>
+                                                <apex:commandLink action="{!last}" rendered="{!hasNext}" status="status" rerender="porttable" styleClass="event-paging" >Last</apex:commandlink>
+                                                <apex:outputpanel rendered="{!hasNext || hasPrevious}" styleClass="index-paging">
+                                                    ({!(pageNumber * size)+1-size}-{!IF(((pageNumber * size)>noOfRecords), noOfRecords,(pageNumber * size))} of {!noOfRecords})
+                                                </apex:outputpanel>
+                                                </apex:panelGrid>
+                        <apex:repeat value="{!AdjustedWrapperList}" var="item">
+                          
+                           <apex:outputpanel rendered="{! !item.isAccountPlan}" style="clear:both; float:left;">
+                               <span class="glyphicon glyphicon-remove-circle" aria-hidden="true" style="color: red;"></span>
+                               <span><b>Company : </b>{!item.ProdStrategyPort.AccountId_PE__c} <span style="color: red;">Need to refresh</span></span><br/>
+                               <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value : 
+                                    <apex:outputtext value="{0, number, ###,##0}">
+                                        <apex:param value="{!item.ProdStrategyPort.Adjust_NI__c}"/>
+                                    </apex:outputtext>
+                               </span>
+                           </apex:outputpanel>
+                           <apex:outputpanel rendered="{!item.isAccountPlan}" style="clear:both; float:left;">
+                               <span class="glyphicon glyphicon-user" aria-hidden="true" style="color: #4ab471;clear:both;"></span>
+                               <span><b>Company : </b>{!item.ProdStrategy.AcctPlanCompanyProfileID__r.AccountName__c}</span><br/>
+                               <span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;value : 
+                                    <apex:outputtext value="{0, number, ###,##0}">
+                                        <apex:param value="{!item.ProdStrategy.Adjust_NI__c}"/>
+                                    </apex:outputtext>
+                               </span>
+                            </apex:outputpanel>
+                       </apex:repeat>                                
+                                        <apex:panelGrid columns="5"  style="clear:both;">
+                                            <apex:commandLink action="{!first}" rendered="{!hasPrevious}" status="status"  rerender="porttable" styleClass="event-paging" >First</apex:commandlink>
+                                            <apex:commandLink action="{!previous}" rendered="{!hasPrevious}" status="status" rerender="porttable" styleClass="event-paging" style="width:70px;">Previous</apex:commandlink>
+                                            <apex:commandLink action="{!next}" rendered="{!hasNext}" status="status" rerender="porttable,Subtotalpanel" styleClass="event-paging" >Next</apex:commandlink>
+                                            <apex:commandLink action="{!last}" rendered="{!hasNext}" status="status" rerender="porttable" styleClass="event-paging" >Last</apex:commandlink>
+                                            <apex:outputpanel rendered="{!hasNext || hasPrevious}" styleClass="index-paging">
+                                                ({!(pageNumber * size)+1-size}-{!IF(((pageNumber * size)>noOfRecords), noOfRecords,(pageNumber * size))} of {!noOfRecords})
+                                            </apex:outputpanel>
+                                            </apex:panelGrid>  
+                                            </apex:outputpanel> 
+            </apex:form>
+                
+        </div>
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Mustache}" />
+        <apex:includescript value="/support/console/22.0/integration.js" />
+        <!--
+        // Prevent Config
+//var $j = jQuery.noConflict();
+
+// $j(document).ready(function(){
+            
+// });
+
+ 
+            
+        </script>
+    </body>
+</apex:page>-->

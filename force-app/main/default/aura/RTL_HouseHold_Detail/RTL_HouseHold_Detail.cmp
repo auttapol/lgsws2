@@ -1,0 +1,232 @@
+<aura:component controller="RTL_HouseHoldUtils" implements="lightning:actionOverride,force:hasRecordId" access="global">
+    <lightning:workspaceAPI aura:id="workspace" />
+    <lightning:navigation aura:id="navService" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="tabId" type="String" />
+    <aura:attribute name="theme" type="String" default="{!$Browser.formFactor == 'PHONE' ? 'Theme4t' : 'Theme4u'}" />
+    <aura:attribute name="householdId" type="Id" default="{!v.recordId}" description="Record Id for view acction RTL_Household__c Object" />
+
+    <aura:attribute name="householdSectionInfoes" type="Map" default="{}" access="private" />
+    <aura:attribute name="householdButtonAccess" type="Map" default="{}" access="private" />
+    <aura:attribute name="userId" type="Id" default="{! $SObjectType.CurrentUser.Id }" access="private" />
+    <aura:attribute name="householdMemberId" type="Id" access="private" />
+    <aura:attribute name="accountId" type="Id" access="private" />
+
+    <!-- Detect handler -->
+    <aura:handler name="change" value="{!v.householdSectionInfoes.isHouseholdRecordLocked}" action="{!c.handleHouseholdRecordModify}" />
+    <aura:handler name="change" value="{!v.householdSectionInfoes.isHouseholdEditable}" action="{!c.handleHouseholdRecordModify}" />
+    <aura:handler name="change" value="{!v.householdSectionInfoes.RTL_Household_Information.householdStatus}" action="{!c.handleHouseholdRecordModify}" />
+
+    <aura:handler name="change" value="{!v.householdSectionInfoes.RTL_Household_Information.datas}" action="{!c.handleHouseholdInfo}" />
+    <aura:handler name="change" value="{!v.householdSectionInfoes.RTL_Household_Member.datas}" action="{!c.handleHouseholdMember}" />
+    <aura:handler name="change" value="{!v.householdSectionInfoes.RTL_Approval.datas}" action="{!c.handleHouseholdApproval}" />
+    <aura:handler name="change" value="{!v.householdSectionInfoes.RTL_History.datas}" action="{!c.handleHouseholdHistory}" />
+
+    <aura:attribute name="HistoryTyoMappingTranslate" type="Map" default="{}" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+    <aura:attribute name="deviceSize" type="Map" default="{
+        'size': '12',
+        'smallDeviceSize': '12',
+        'mediumDeviceSize': '6',
+        'largeDeviceSize': '6',
+    }" />
+
+    <ui:scrollerWrapper>
+        <div class="slds-is-relative">
+            <aura:if isTrue="{!v.showSpinnerLoading}">
+                <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+            </aura:if>
+
+            <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+                <lightning:layoutItem>
+                    <lightning:icon size="medium" iconName="custom:custom1" alternativeText="House hold" />
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="page-section page-header">
+                        <h1 class="slds-text-heading_label">
+                            {!$Label.c.RTL_Household}
+                        </h1>
+                        <h2 class="slds-text-heading_medium">
+                            {!v.householdSectionInfoes.title}
+                        </h2>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+
+            <lightning:card>
+                <aura:set attribute="title">
+                    {!$Label.c.RTL_Household_Information}
+                    <aura:if isTrue="{! v.householdSectionInfoes.RTL_Household_Information.isLoading }">
+                        <div class="slds-is-relative spinnerInline">
+                            <lightning:spinner alternativeText="Loading" size="small" variant="brand" />
+                        </div>
+                    </aura:if>
+                </aura:set>
+
+                <!-- Action -->
+                <aura:set attribute="actions">
+                    <aura:if isTrue="{!v.theme != 'Theme4t'}">
+                        <aura:if isTrue="{! v.householdButtonAccess.isModifyHousehold }">
+                            <lightning:button label="{!$Label.c.Edit}" onclick="{!c.handleHouseholdEdit}" />
+                        </aura:if>
+                        <aura:if isTrue="{! v.householdButtonAccess.isRequestDeleteHousehold }">
+                            <lightning:button label="{!$Label.c.RTL_Request_Delete}" onclick="{!c.handleHouseholdRequestDelete}" />
+                        </aura:if>
+                        <aura:if isTrue="{! v.householdButtonAccess.isSubmitForApproval }">
+                            <lightning:button label="{!$Label.c.RTL_Submit_for_Approval}" onclick="{!c.handleSubmitForApproval}" />
+                        </aura:if>
+                    </aura:if>
+                </aura:set>
+
+                <!-- Footer -->
+                <aura:set attribute="footer">
+                    <aura:if isTrue="{! v.householdButtonAccess.isModifyHousehold }">
+                        <lightning:button label="{!$Label.c.Edit}" onclick="{!c.handleHouseholdEdit}" />
+                    </aura:if>
+                    <aura:if isTrue="{! v.householdButtonAccess.isRequestDeleteHousehold }">
+                        <lightning:button label="{!$Label.c.RTL_Request_Delete}" onclick="{!c.handleHouseholdRequestDelete}" />
+                    </aura:if>
+                    <aura:if isTrue="{! v.householdButtonAccess.isSubmitForApproval }">
+                        <lightning:button label="{!$Label.c.RTL_Submit_for_Approval}" onclick="{!c.handleSubmitForApproval}" />
+                    </aura:if>
+                </aura:set>
+
+                <div class="slds-p-around_small">
+                    <c:FormElement_Horizontal type="form" items="{!v.householdSectionInfoes.RTL_Household_Information.items}" deviceSize="{!v.deviceSize}" />
+                </div>
+            </lightning:card>
+
+            <lightning:card>
+                <aura:set attribute="title">
+                    {!$Label.c.RTL_Household_Member}
+                    <aura:if isTrue="{! v.householdSectionInfoes.RTL_Household_Member.isLoading }">
+                        <div class="slds-is-relative spinnerInline">
+                            <lightning:spinner alternativeText="Loading" size="small" variant="brand" />
+                        </div>
+                    </aura:if>
+                </aura:set>
+
+                <aura:set attribute="actions">
+                    <aura:if isTrue="{! v.householdButtonAccess.isModifyHousehold }">
+                        <lightning:button label="{!$Label.c.RTL_New_Household_Member}" onclick="{!c.handleNewHouseholdMember}" />
+                    </aura:if>
+                </aura:set>
+
+                <aura:if isTrue="{! !v.householdSectionInfoes.RTL_Household_Member.isLoading }">
+                    <aura:if isTrue="{! v.householdSectionInfoes.RTL_Household_Member.items.length > 0 }">
+                        <div class="slds-p-around_small">
+                            <ui:scrollerWrapper>
+                                <c:dataTableLwcCustom columns="{!v.householdSectionInfoes.RTL_Household_Member.columns}"
+                                    items="{!v.householdSectionInfoes.RTL_Household_Member.items}" onedit="{!c.handleEditHouseholdMember}"
+                                    ondelete="{!c.handleDeleteHouseholdMember}" />
+                            </ui:scrollerWrapper>
+                        </div>
+                        <aura:set attribute="else">
+                            <div class="slds-p-around_small">
+                                <lightning:formattedText value="{!$Label.c.RTL_No_Record_Display}" />
+                            </div>
+                        </aura:set>
+                    </aura:if>
+                </aura:if>
+            </lightning:card>
+
+            <lightning:card>
+                <aura:set attribute="title">
+                    {!$Label.c.RTL_Approval}
+                    <aura:if isTrue="{! v.householdSectionInfoes.RTL_Approval.isLoading }">
+                        <div class="slds-is-relative spinnerInline">
+                            <lightning:spinner alternativeText="Loading" size="small" variant="brand" />
+                        </div>
+                    </aura:if>
+                </aura:set>
+
+                <aura:set attribute="actions">
+                    <aura:if isTrue="{! v.householdButtonAccess.isApproveAll }">
+                        <lightning:button label="{!$Label.c.RTL_Approve_All}" onclick="{!c.handleApproveAll}" />
+                    </aura:if>
+                    <aura:if isTrue="{! v.householdButtonAccess.isRejectAll }">
+                        <lightning:button label="{!$Label.c.RTL_Reject_All}" onclick="{!c.handleRejectAll}" />
+                    </aura:if>
+                </aura:set>
+                <aura:set attribute="footer">
+                    <aura:if isTrue="{! v.householdButtonAccess.isApproveAll }">
+                        <lightning:button label="{!$Label.c.RTL_Approve_All}" onclick="{!c.handleApproveAll}" />
+                    </aura:if>
+                    <aura:if isTrue="{! v.householdButtonAccess.isRejectAll }">
+                        <lightning:button label="{!$Label.c.RTL_Reject_All}" onclick="{!c.handleRejectAll}" />
+                    </aura:if>
+                </aura:set>
+
+                <aura:if isTrue="{! !v.householdSectionInfoes.RTL_Approval.isLoading }">
+                    <aura:if isTrue="{! v.householdSectionInfoes.RTL_Approval.items.length > 0 }">
+                        <div class="slds-p-around_small">
+                            <ui:scrollerWrapper>
+                                <c:dataTableLwcCustom columns="{!v.householdSectionInfoes.RTL_Approval.columns}"
+                                    items="{!v.householdSectionInfoes.RTL_Approval.items}" onedit="{!c.handleEditHouseholdApproval}"
+                                    ondelete="{!c.handleDeleteHouseholdApproval}" />
+                            </ui:scrollerWrapper>
+                        </div>
+
+                        <aura:set attribute="else">
+                            <div class="slds-p-around_small">
+                                <lightning:formattedText value="{!$Label.c.RTL_No_Record_Display}" />
+                            </div>
+                        </aura:set>
+                    </aura:if>
+                </aura:if>
+            </lightning:card>
+
+            <lightning:card>
+                <aura:set attribute="title">
+                    {!$Label.c.RTL_History}
+                    <aura:if isTrue="{! v.householdSectionInfoes.RTL_History.isLoading }">
+                        <div class="slds-is-relative spinnerInline">
+                            <lightning:spinner alternativeText="Loading" size="small" variant="brand" />
+                        </div>
+                    </aura:if>
+                </aura:set>
+
+                <aura:set attribute="actions">
+                    <aura:if isTrue="{! v.householdButtonAccess.isNotifyRequestor }">
+                        <lightning:button label="{!$Label.c.RTL_Send_Email}" onclick="{!c.handleSentEmail}" />
+                    </aura:if>
+                </aura:set>
+
+                <aura:if isTrue="{! !v.householdSectionInfoes.RTL_History.isLoading }">
+                    <aura:if isTrue="{! v.householdSectionInfoes.RTL_History.items.length > 0 }">
+                        <div class="slds-p-around_small">
+                            <ui:scrollerWrapper>
+                                <c:dataTableLwcCustom aura:id="historyTable" columns="{!v.householdSectionInfoes.RTL_History.columns}"
+                                    items="{!v.householdSectionInfoes.RTL_History.items}" offset="{!v.householdSectionInfoes.RTL_History.offset}" />
+                            </ui:scrollerWrapper>
+
+                            <div class="slds-p-top_small slds-clearfix">
+                                <div class="slds-float_right">
+                                    {!v.householdSectionInfoes.RTL_History.paginationLabel}
+                                </div>
+                            </div>
+
+                            <lightning:buttonGroup class="slds-p-top_small slds-align_absolute-center">
+                                <lightning:button label="{!$Label.c.RTL_First}" name="first" onclick="{!c.onPaginator}"
+                                    disabled="{!v.householdSectionInfoes.RTL_History.isDisabledPrevious}" />
+                                <lightning:button label="{!$Label.c.RTL_Previous}" name="previous" onclick="{!c.onPaginator}"
+                                    disabled="{!v.householdSectionInfoes.RTL_History.isDisabledPrevious}" />
+                                <lightning:button label="{!$Label.c.RTL_Next}" name="next" onclick="{!c.onPaginator}"
+                                    disabled="{!v.householdSectionInfoes.RTL_History.isDisabledNext}" />
+                                <lightning:button label="{!$Label.c.RTL_Last}" name="last" onclick="{!c.onPaginator}"
+                                    disabled="{!v.householdSectionInfoes.RTL_History.isDisabledNext}" />
+                            </lightning:buttonGroup>
+                        </div>
+
+                        <aura:set attribute="else">
+                            <div class="slds-p-around_small">
+                                <lightning:formattedText value="{!$Label.c.RTL_No_Record_Display}" />
+                            </div>
+                        </aura:set>
+                    </aura:if>
+                </aura:if>
+            </lightning:card>
+        </div>
+    </ui:scrollerWrapper>
+</aura:component>

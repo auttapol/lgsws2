@@ -1,0 +1,95 @@
+<aura:component controller="CustomerWealthGetProductSummary" 
+                implements="flexipage:availableForAllPageTypes,force:hasRecordId,lightning:isUrlAddressable" 
+                access="global">
+                    
+    <aura:handler name="init" value="{!this}" action="{!c.recordSelected}"/>
+    <aura:handler event="force:refreshView" action="{!c.refreshed}" />
+    <!-- <aura:handler name="render" value="{!this}" action="{!c.rerender}"/> -->
+
+    <!-- <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/> -->
+    
+    <ltng:require styles="{!$Resource.C3_Chart + '/c3_chart/bootstrap.css'}" />
+    <!-- <ltng:require styles="{!$Resource.C3_Chart + '/c3_chart/bootcards-desktop.css'}" /> -->
+    <ltng:require styles="{!$Resource.C3_Chart + '/c3_chart/c3.css'}" />
+    <ltng:require scripts="{!$Resource.C3_Chart + '/c3_chart/d3.js'}" />
+    <ltng:require scripts="{!$Resource.C3_Chart + '/c3_chart/c3.js'}" />
+    <ltng:require scripts="{!$Resource.ApexCharts + '/apexchart_resource/apexcharts.js'}" />
+    <!-- <ltng:require scripts="/resource/libraries/libraries/app/common.js" /> -->
+    
+    <aura:attribute name="title" type="String" default="Asset" />
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="lastUpdate" type="String" />
+    <aura:attribute name="graphType" type="String" default="Donut" />
+    <aura:attribute name="Spinner" type="boolean" default="false"/>
+    <aura:attribute name="error" type="boolean" default="false"/>
+    <aura:attribute name="errorMessage" type="String" default=""/>
+
+    <lightning:workspaceAPI aura:id="workspace" />
+    <!-- <aura:handler name="change" value="{!v.lastUpdate}" action="{!c.recordSelected}"/> -->
+
+    <div class="slds-panel slds-size_full slds-panel-default" aura:id="main">
+        <aura:if isTrue="{!v.error}">
+            <ui:message title="Error" severity="error" closable="true">
+                <ui:outputText value="{!v.errorMessage}"/>
+            </ui:message>
+        </aura:if>
+        <div class="slds-float--right">
+            <lightning:button label="More Detail" iconPosition="right" onclick="{!c.openProductHolding}" />
+        </div>
+        <div class="slds-float--right">
+            <lightning:button label="Refresh" iconName="utility:refresh" iconPosition="right" onclick="{!c.refreshOsc17}" />
+        </div>
+        <div class="slds-panel slds-size_2-of-2 slds-panel-default bootcards-chart">
+            <div class="slds-grid slds-gutters">
+                <div class="slds-col slds-size_1-of-2">
+                    <span>
+                        <div class="container">
+                            <div class="panel panel-default bootcards-chart">
+                                <!-- <div class="panel-heading"> -->
+                                    <h3 class="panel-title">Credit Limit</h3>
+                                <!-- </div> -->
+                                <div class="chart-canvas1"></div>
+                            </div>
+                        </div>
+                    </span>
+                </div>
+
+                <!--loading spinner start... style=Brand Medium (blue dots)-->
+                <aura:if isTrue="{!v.Spinner}">
+                    <div class="slds-align_absolute-center" style="height:8rem">
+                        <div role="status" class="slds-spinner slds-spinner_medium slds-spinner_inline">
+                            <span class="slds-assistive-text">Loading</span>
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div>
+                </aura:if>
+                <!-- Loading spinner end-->
+
+                <div class="slds-col slds-size_1-of-2">
+                    <span>
+                        <div class="container">
+                            <div class="slds-panel slds-size_2-of-2 slds-panel-default bootcards-chart">
+                                <!-- <div class="panel-heading"> -->
+                                    <h3 class="panel-title">{!v.title }</h3>
+                                <!-- </div> -->
+                                <div class="chart-canvas"></div>
+                            </div>
+                        </div>
+                    </span>
+                </div>
+            </div>
+        </div>
+        <div class="slds-form-element slds-form-element_readonly slds-form_stacked slds-hint-parent">
+            <span class="slds-form-element__label">Last Update</span>
+            <div class="slds-form-element__control">
+                <div class="slds-form-element__static">
+                    <a href="javascript:void(0);">{!v.lastUpdate}</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- <lightning:button label="Open Report URL" onclick="{!c.openReportTab}" /> -->
+</aura:component>

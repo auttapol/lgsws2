@@ -1,0 +1,8 @@
+({
+    handleRefreshfield : function(component, event, helper) {
+        var recordId = event.getParam('recordId');
+        var fieldUpdate = event.getParam('fieldUpdate');
+        var cockpitCSVCustomerInfo = component.find('cockpitCSVCustomerInfo');
+        cockpitCSVCustomerInfo.refreshPage(fieldUpdate);
+    }
+})

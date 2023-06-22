@@ -1,0 +1,119 @@
+<apex:page standardController="Case" extensions="ClosedCaseLayoutExtension" standardStylesheets="true" lightningStylesheets="true"
+doctype="html-5.0">
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+    <apex:includeScript value="/support/console/47.0/integration.js"/>
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    <apex:sectionHeader title="Close Case"/>
+    
+    <style>
+        .sub-cat {
+            text-indent: 20px;
+        }
+        .sub-cat2 {
+            text-indent: 40px;
+        }
+
+        @media screen and (min-width: 800px) {
+            .onDesktop{
+                padding-left:10%;
+            }
+        }
+
+        @media only screen and (min-device-width : 375px) and (max-device-width : 667px) {
+            .onIPhone{
+                 width:375px;
+            }
+        }
+
+        html,html body{
+            overflow: auto;
+            -webkit-overflow-scrolling:touch;
+        }
+        body{
+            position:absolute;
+            left:0;
+            right:0;
+            top:0;
+            bottom:0;
+        }
+
+        select {
+            max-width: {! IF($User.UITheme == 'Theme3', '', '20rem !important') };
+        }
+
+    </style>
+
+    <div class="onIPhone">
+    <apex:form >
+        <div id="spin" style="display:none;" >
+            <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                   &nbsp;
+            </div>
+            <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                <img src="/img/loading32.gif" />
+            </div>
+        </div>
+        <apex:outputPanel id="statusMessage" rendered="{!!isAllowedEdit}" >
+                <apex:pageMessages />
+            </apex:outputPanel>
+        <apex:pageBlock title="Case Edit" mode="edit" rendered="{!isAllowedEdit}" id="main">
+            <apex:pageMessages />
+
+        <apex:actionFunction name="cancelCase" action="{!cancel}"/> 
+            <apex:pageBlockButtons >
+                <apex:commandButton action="{!validateCase}" value="{!$Label.Save}"/>
+                <apex:commandButton onclick="{closeCase();return false;}" value="{!$Label.Cancel}"/>
+            </apex:pageBlockButtons>
+            <apex:pageBlockSection id="someArea">
+            <apex:pageBlockSectionItem >
+               <apex:outputLabel value="Status"/>
+                 <apex:outputPanel layout="block" styleClass="requiredInput">
+                     <apex:outputpanel layout="block" styleClass="requiredBlock"/>
+                     <apex:selectlist size="1" value="{!Case.Status}" multiselect="false">
+                    <apex:selectOptions value="{!statusPicklist}" />
+                </apex:selectlist>
+                </apex:outputPanel>
+                </apex:pageBlockSectionItem>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection columns="2">
+                <apex:inputField required="true" value="{!Case.Root_Cause_List__c}"/>
+                <apex:inputField required="true" value="{!Case.Resolution_LIst__c}"/>
+                <apex:inputField style="width:100%" value="{!Case.Root_Cause__c}"/>
+                <apex:inputField style="width:100%" value="{!Case.Resolution__c}"/>
+            </apex:pageBlockSection>
+            <apex:pageBlockSection title="Service Request Details" columns="1">
+                <apex:inputField html-disabled="true" style="width:60%" value="{!Case.AccountId}"/>
+                <apex:inputField html-disabled="true" style="width:60%" value="{!Case.Subject}"/>
+                <apex:inputField html-disabled="true" style="width:60%" value="{!Case.PTA_Segment__c}"/>
+                <apex:inputField html-disabled="true" style="width:60%" value="{!Case.Category__c}"/>
+                <apex:inputField html-disabled="true" style="width:60%" value="{!Case.Sub_Category__c}"/>
+                <apex:inputField html-disabled="true" style="width:60%" value="{!Case.Product_Category__c}"/>
+                <apex:inputField html-disabled="true" style="width:60%" value="{!Case.Issue__c}"/>
+                <apex:inputField html-disabled="true" style="width:60%;height:50px" value="{!Case.Description}"/>
+            </apex:pageBlockSection>
+        </apex:pageBlock>
+    </apex:form>
+    </div>
+
+    <script type="text/javascript">
+        function closeCase() {
+        var caseObjId = '{!caseObj.id}';
+        var retURL = '/'+caseObjId;
+        var primaryTabId;
+        console.log('retURL: ',retURL);
+        if(sforce.console.isInConsole()) {
+            // window.location = retURL;
+            // sforce.console.getEnclosingTabId(function(result) {
+            //     sforce.console.closeTab(result.id, function() {
+            //         sforce.one.navigateToURL(retURL);
+            //     });
+            // });
+            cancelCase();
+        }
+        else {
+            console.log(sforce.console.isInConsole());
+            window.location = retURL;
+        }
+    }
+    </script>
+</apex:page>

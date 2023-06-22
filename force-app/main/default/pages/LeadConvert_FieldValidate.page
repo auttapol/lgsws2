@@ -1,0 +1,51 @@
+<apex:page standardcontroller="Lead" extensions="LeadActionValidateController" standardstylesheets="true" lightningStylesheets="true" tabstyle="Lead"
+    action="{!StatusQualifiedValidation}">
+    <apex:includeScript value="/support/console/48.0/integration.js"/>    
+    <apex:form >
+        <apex:actionFunction name="cancelLead" action="{!cancel}" />
+        <apex:pageblock title="{!$Label.Convert_Lead_Title}" mode="validate" id="page">
+            <apex:outputpanel id="statusMessage">
+                <apex:pagemessages escape="false"></apex:pagemessages>
+            </apex:outputpanel>
+            <apex:pageblockbuttons >
+                <apex:commandbutton onclick="toLeadPage();return false;" value="{!$Label.Cancel}" />
+                <script>
+                    function toLeadPage() {
+                        if (typeof sforce !== "undefined" && sforce !== null && (sforce.one)) {
+                            // Salesforce1 navigation
+                            var leadID = '{!lead.id}';
+                            var retURL = '/00Q/o';
+                            if (leadID != null && leadID != '') {
+                                retURL = '/' + leadID;
+                            }
+                            if(sforce.console.isInConsole()) {
+                                sforce.console.getEnclosingTabId(function(result) {
+                                    sforce.one.navigateToURL(retURL);
+                                    sforce.console.closeTab(result.id, function() {
+                                    });
+                                });
+                            } else {
+                                sforce.one.navigateToURL(retURL);
+                            }
+
+                        } else {
+                            // Desktop navigation 
+                            cancelLead();
+                        }
+                    }
+                </script>
+            </apex:pageblockbuttons>
+
+            <!-- <apex:pageblocksection title="{!$Label.Lead_Information}" columns="{!displayS1}"> -->
+            	<!-- Existing Customer -->	
+                <apex:inputHidden value="{!Lead.Customer__c}" />
+            
+                <apex:inputHidden value="{!Lead.RTL_ID_Type__c}" />
+                <apex:inputHidden value="{!Lead.RTL_Citizen_Id__c}" />
+                <apex:inputHidden value="{!Lead.Status }" />
+                <apex:inputHidden value="{!Lead.RTL_Mobile_Number__c}" />
+                <apex:inputHidden value="{!Lead.RTL_Count_InterestedProducts_Primary__c}" />
+            <!-- </apex:pageblocksection> -->
+        </apex:pageblock>
+    </apex:form>
+</apex:page>

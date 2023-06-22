@@ -1,0 +1,1041 @@
+<apex:page standardController="Account" sidebar="false" standardstylesheets="true" extensions="AccountConsoleExtension" action="{!getOnHand}">
+    <apex:includeScript value="/support/console/34.0/integration.js" />
+    <apex:includeScript value="{!$Resource.SFScript}" />
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+
+    <style>
+        .article {
+            float: left;
+            margin-top: 5px;
+        }
+
+        .perf {
+            /* <!--margin-top: 30px;
+            --> */
+        }
+
+        .image {
+            float: left;
+        }
+
+        .data {
+            float: left;
+            margin: 10px;
+            padding: 10px;
+        }
+
+        .article1 {
+            margin-top: 10px;
+        }
+
+        .data1 {
+            margin: 5px;
+            padding: 5px;
+        }
+
+        .customHead {
+            font-size: 1.2em;
+            margin-left: 0;
+        }
+
+        .divTable{
+            display: table;
+            width: 100%;
+        }
+
+        .divTableRow {
+            display: table-row;
+        }
+
+        .divTableCell {
+            display: table-cell;
+        }
+
+        @media (max-width: 1024px) {
+            .article1 {
+                margin-top: 10px;
+                margin-bottom: 30px;
+                width: 25%;
+                float: left;
+                position: relative;
+            }
+            .article2 {
+                margin-top: 5px;
+                margin-bottom: 30px;
+                width: 25%;
+                float: left;
+                max-height: 70px;
+                position: relative;
+                text-align: left;
+                font-size: 90%;
+            }
+            .image {
+                margin: 5px;
+                padding: 5px;
+            }
+        }
+
+        /* @media (max-width: 670px) { */
+        @media (max-width: 800px) {
+            .article1 {
+                margin-top: 5px;
+                margin-bottom: 30px;
+                width: 20%;
+                float: left;
+                max-height: 70px;
+                position: relative;
+                text-align: left;
+                font-size: 75%;
+            }
+            .article2 {
+                margin-top: 5px;
+                margin-bottom: 30px;
+                width: 20%;
+                float: left;
+                max-height: 70px;
+                position: relative;
+                text-align: left;
+                font-size: 85%;
+            }
+            .image {
+                margin: 5px;
+                padding: 5px;
+            }
+        } 
+
+        @media (max-width: 500px) {
+            .article1 {
+                margin-top: 5px;
+                margin-bottom: 50px;
+                width: 25%;
+                float: left;
+                max-height: 70px;
+                position: relative;
+                text-align: left;
+                font-size: 50%;
+            }
+            .article2 {
+                margin-top: 5px;
+                margin-bottom: 30px;
+                width: 35%;
+                float: left;
+                max-height: 70px;
+                position: relative;
+                text-align: left;
+                font-size: 50%;
+            }
+            .image {
+                margin: 5px;
+                padding: 5px;
+            }
+        }
+    </style>
+
+
+
+
+    <script type="text/javascript">
+
+        var $j = jQuery.noConflict();
+
+        function checkIsSalesforceOne() {
+            var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")
+        };
+        var theme = '{!$User.UIThemeDisplayed}';
+        if (theme == 'Theme4u' && isLightningMode) {
+            $j("#main-wrapper").css('display', 'block');
+            loadData();
+        }
+        else if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+
+            $j("#mobile-wrapper").css('display', 'block');
+            loadDataMobile();
+        }
+        else {
+            $j("#main-wrapper").css('display', 'block');
+            loadData();
+        }
+        }
+
+
+        $j(document).ready(function () {
+
+            // Use to redirect if user used salesforce in salesforce1 application 
+            //alert("Ready");  
+            checkIsSalesforceOne();
+
+
+            // buttonClickTransBank('Transactional Banking','Product On Hand');
+            //console.log('xxxxxxxxxxx');
+        });
+
+    </script>
+    <!--
+    <div style="font-weight:bold">
+    Product On Hand
+    </div>
+    -->
+
+    <script type="text/javascript">
+        function passParamToNavigate(link_url, link_name) {
+            var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+            var theme = '{!$User.UIThemeDisplayed}';
+            // console.log(theme);
+            // console.log(link_url);
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                if (theme == 'Theme4u' && isLightningMode) {
+                    sforce.one.navigateToURL(link_url);
+                }
+                else {
+                    NavigateTo(link_url, link_name);
+                }
+            }
+            else if (sforce.console.isInConsole()) {
+                NavigateTo(link_url, link_name);
+            }
+            else {
+                window.open(link_url, '_blank');
+            }
+    }
+    </script>
+
+    <apex:form >
+
+        <apex:actionFunction action="{!logButtonEvent}" name="buttonClickTransBank" rerender="showstate">
+            <apex:param name="buttonNameParam" value="Transactional Banking" />
+            <apex:param name="sectionNameParam" value="ComCust:Product On Hand (Partition)" />
+
+
+        </apex:actionFunction>
+
+        <apex:actionFunction action="{!logButtonEvent}" name="buttonClickDepInvest" rerender="showstate">
+            <apex:param name="buttonNameParam" value="Deposit & Investment" />
+            <apex:param name="sectionNameParam" value="ComCust:Product On Hand (Partition)" />
+        </apex:actionFunction>
+
+        <apex:actionFunction action="{!logButtonEvent}" name="buttonClickFundBorrow" rerender="showstate">
+            <apex:param name="buttonNameParam" value="Funding & Borrowing" />
+            <apex:param name="sectionNameParam" value="ComCust:Product On Hand (Partition)" />
+        </apex:actionFunction>
+
+        <apex:actionFunction action="{!logButtonEvent}" name="buttonClickRisk" rerender="showstate">
+            <apex:param name="buttonNameParam" value="Risk Protection" />
+            <apex:param name="sectionNameParam" value="ComCust:Product On Hand (Partition)" />
+        </apex:actionFunction>
+
+
+
+        <div id="main-wrapper" style='display:none;'>
+            <div class="table-responsive" style="padding-top:1px;">
+                <!--
+                <tr>
+                -->
+                <apex:actionFunction action="{!TransBankReport}" name="actionTransBank" reRender="panelTransBank" />
+                <apex:outputPanel id="panelTransBank">
+                    <apex:outputPanel rendered="{!isClickTransBank}">
+                        <script type="text/javascript">
+                            passParamToNavigate('{!pageTransBank}', 'Transactional Banking Report');
+                        </script>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+
+                <apex:actionFunction action="{!DepInvestReport}" name="actionDepInvest" reRender="panelDepInvest" />
+                <apex:outputPanel id="panelDepInvest">
+                    <apex:outputPanel rendered="{!isClickDepInvest}">
+                        <script type="text/javascript">
+                            passParamToNavigate('{!pageDepInvest}', 'Deposit & Investment Report');
+                        </script>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+
+                <apex:actionFunction action="{!FundBorrowReport}" name="actionFundBorrow" reRender="panelFundBorrow" />
+                <apex:outputPanel id="panelFundBorrow">
+                    <apex:outputPanel rendered="{!isClickFundBorrow}">
+                        <script type="text/javascript">
+                            passParamToNavigate('{!pageFundBorrow}', 'Funding & Borrowing Report');
+                        </script>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+
+                <apex:actionFunction action="{!RiskProtectReport}" name="actionRiskProtect" reRender="panelRiskProtect" />
+                <apex:outputPanel id="panelRiskProtect">
+                    <apex:outputPanel rendered="{!isClickRiskProtect}">
+                        <script type="text/javascript">
+                            passParamToNavigate('{!pageRiskProtect}', 'Risk Protection Report');
+                        </script>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+
+                <apex:actionFunction name="loadData" action="{!loadData}" rerender="displayTransBank">
+                    <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Product On Hand" />
+                    <!-- split section in controller -->
+                    <apex:param name="sectionName2" assignTo="{!sectionName2}" value="ComCust:Product On Hand (Partition)" />
+                </apex:actionFunction>
+
+                <!--<apex:outputPanel id="preloadSectionMobile" rendered="{!isLoading}">
+                <apex:pageBlock mode="loading" >
+                <apex:pageBlockSection columns="1">
+                <apex:pageBlockSectionItem >   
+                Loading.............
+                </apex:pageBlockSectionItem>   
+                </apex:pageBlockSection>
+                </apex:pageBlock>
+                </apex:outputPanel>-->
+
+                <apex:outputPanel id="displayTransBank">
+
+                    <table width="100%">
+                        <!--<div class="article">-->
+                        <tr>
+
+                            <td width="5%" style="cursor:pointer" onclick="buttonClickTransBank();actionTransBank();return false;">
+                                <!-- apex:commandlink action="{!TransBankReport}" target="_blank" -->
+                                <!-- <A HREF="#" onClick="NavigateTo('{!TransBankReportId}?pv1={!LEFT(acct.id,15)}','Transactional Banking Report');return false;">  -->
+                                <div class="image">
+                                    <apex:image url="{!$Resource.Wallet3ex}" width="80" height="80" />
+                                </div>
+                                <!-- /apex:commandlink -->
+                            </td>
+                            <td width="20%" style="cursor:pointer" onclick="buttonClickTransBank();actionTransBank();return false;">
+
+                                <!-- apex:commandlink action="{!TransBankReport}" target="_blank" -->
+                                <!--  <A HREF="#" onClick="NavigateTo('{!TransBankReportId}?pv1={!LEFT(acct.id,15)}','Transactional Banking Report');return false;">  -->
+                                <div class="data">
+                                    <table bgcolor="#D9F1F1" style="text-align:left;font-size:100%;border-radius: 10px;">
+                                        <tr style="font-weight: bold;padding-top:1%">
+                                            <td>
+                                                Transactional Banking
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Limit:
+                                                <apex:outputText value="{0, number, ###,##0.00}" rendered="{!isVisible_total}">
+                                                    ฿
+                                                    <apex:param value="{!TotalLimitTransBank}" />
+                                                </apex:outputText>
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_total}" />
+
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>Total Amt:
+                                                <apex:outputText value="{0, number, ###,##0.00}" rendered="{!isVisible_total}">
+                                                    ฿
+                                                    <apex:param value="{!TotalTransBank}" />
+                                                </apex:outputText>
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_total}" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td># Product:
+                                                <apex:outputText value="{0, number, ###,##0}" rendered="{!isVisible_product}">
+                                                    <apex:param value="{!SumTransBank}" />
+                                                </apex:outputText>
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                            </td>
+                                        </tr>
+                                        <!-- CR036 comment by Fah <tr> 
+                                        <td># Account: {!SumActTransBank}</td>
+                                        </tr> -->
+                                    </table>
+                                </div>
+                                <!-- /apex:commandlink -->
+                            </td>
+                            <!--</div>-->
+
+
+                            <td width="5%" style="cursor:pointer" onclick="buttonClickDepInvest();actionDepInvest();">
+                                <!-- apex:commandlink action="{!DepInvestReport}" target="_blank" -->
+                                <!--<A HREF="#" onClick="NavigateTo('{!DepInvestReportId}?pv1={!LEFT(acct.id,15)}','Deposit & Investment Report');return false;"> -->
+                                <div class="image">
+                                    <apex:image url="{!$Resource.Wallet2ex}" width="80" height="80" />
+                                </div>
+                                <!-- </A> -->
+                                <!-- /apex:commandlink -->
+                            </td>
+                            <td width="20%" style="cursor:pointer" onclick="buttonClickDepInvest();actionDepInvest();">
+                                <!-- apex:commandlink action="{!DepInvestReport}" target="_blank" -->
+                                <!--<A HREF="#" onClick="NavigateTo('{!DepInvestReportId}?pv1={!LEFT(acct.id,15)}','Deposit & Investment Report');return false;"> -->
+                                <div class="data">
+                                    <table bgcolor="#D9F1F1" style="text-align:left;font-size:100%;border-radius: 10px;">
+                                        
+                                        <tr style="font-weight: bold;padding-top:1%">
+                                            <td>
+                                                Deposit &amp; Investment
+                                            </td>
+                                        </tr>
+
+                                        <tr>
+                                            <td>Total Amt:
+                                                <apex:outputText value="{0, number, ###,##0.00}" rendered="{!isVisible_total}">
+                                                    ฿
+                                                    <apex:param value="{!TotalDepInvest}" />
+                                                </apex:outputText>
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_total}" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td># Product:
+                                                <apex:outputText value="{0, number, ###,##0}" rendered="{!isVisible_product}">
+                                                    <apex:param value="{!SumDepInvest}" />
+                                                </apex:outputText>
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td># Account:
+                                                <apex:outputText value="{0, number, ###,##0}" rendered="{!isVisible_product}">
+                                                    <apex:param value="{!SumActDepInvest}" />
+                                                </apex:outputText>
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <!--</A> -->
+                                <!-- /apex:commandlink -->
+
+                            </td>
+
+                            <!--
+                            </tr>
+                            <tr>
+                            -->
+                            <td width="5%" style="cursor:pointer" onclick="buttonClickFundBorrow();actionFundBorrow();">
+                                <!-- apex:commandlink action="{!FundBorrowReport}" target="_blank" -->
+                                <!-- <A HREF="#" onClick="NavigateTo('{!FundBorrowReportId}?pv1={!LEFT(acct.id,15)}','Funding & Borrowing Report');return false;"> -->
+                                <div class="image">
+                                    <apex:image url="{!$Resource.Wallet1ex}" width="80" height="80" />
+                                </div>
+
+                                <!--</A> -->
+                                <!-- /apex:commandlink -->
+                            </td>
+                            <td width="20%" style="cursor:pointer" onclick="buttonClickFundBorrow();actionFundBorrow();">
+                                <!-- apex:commandlink action="{!FundBorrowReport}" target="_blank" -->
+                                <!-- <A HREF="#" onClick="NavigateTo('{!FundBorrowReportId}?pv1={!LEFT(acct.id,15)}','Funding & Borrowing Report');return false;"> -->
+                                <div class="data">
+                                    <table bgcolor="#F8E6E0" style="text-align:left;font-size:100%;border-radius: 10px;">
+                                        <tr style="font-weight: bold;padding-top:1%">
+                                            <td>
+                                                Funding &amp; Borrowing
+                                            </td>
+                                        </tr>
+                                        
+                                        <tr>
+                                            <td>Total Limit:
+                                                <apex:outputText value="{0, number, ###,##0.00}" rendered="{!isVisible_total}">
+                                                    ฿
+                                                    <apex:param value="{!TotalFundBorrow}" />
+                                                </apex:outputText>
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_total}" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td># Product:
+                                                <apex:outputText value="{0, number, ###,##0}" rendered="{!isVisible_product}">
+                                                    <apex:param value="{!SumFundBorrow}" />
+                                                </apex:outputText>
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                            </td>
+                                        </tr>
+                                        <!--CR036 Comment by Fah <tr>
+                                        <td># Account: {!SumActFundBorrow}</td>
+                                        </tr>-->
+                                    </table>
+                                </div>
+                                <!-- </A> -->
+                                <!-- /apex:commandlink -->
+                            </td>
+
+
+                            <!-- <div  class="article">-->
+                            <td width="5%" style="cursor:pointer" onclick="buttonClickRisk();actionRiskProtect();">
+                                <!-- apex:commandlink action="{!RiskProtectReport}" target="_blank" -->
+                                <!-- <A HREF="#" onClick="NavigateTo('{!RiskProtectReportId}?pv1={!LEFT(acct.id,15)}','Risk Protection Report');return false;"> -->
+                                <div class="image">
+                                    <apex:image url="{!$Resource.Wallet4ex}" width="80" height="80" />
+                                </div>
+                                <!-- </A>-->
+                                <!-- /apex:commandlink -->
+                            </td>
+                            <td width="20%" style="cursor:pointer" onclick="buttonClickRisk();actionRiskProtect();">
+                                <!-- apex:commandlink action="{!RiskProtectReport}" target="_blank" -->
+                                <!-- <A HREF="#" onClick="NavigateTo('{!RiskProtectReportId}?pv1={!LEFT(acct.id,15)}','Risk Protection Report');return false;"> -->
+                                <div class="data">
+                                    <table bgcolor="#F8E6E0" style="text-align:left;font-size:100%;border-radius: 10px;">
+                                        <tr style="font-weight: bold;padding-top:1%">
+                                            <td>
+                                                Risk Protection
+                                                <!-- Total Amt: ฿<apex:outputText value="{0, number, ###,##0.00}">
+                                            <apex:param value="{!TotalRiskProtect}"/>
+                                            </apex:outputText> -->
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td>
+                                                Total Limit:
+                                                <apex:outputText value="{0, number, ###,##0.00}" rendered="{!isVisible_total}">
+                                                    ฿
+                                                    <apex:param value="{!TotalLimitRiskProtect}" />
+                                                </apex:outputText>
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_total}" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td># Product:
+                                                <apex:outputText value="{0, number, ###,##0}" rendered="{!isVisible_product}">
+                                                    <apex:param value="{!SumRiskProtect}" />
+                                                </apex:outputText>
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                            </td>
+                                        </tr>
+                                        <!--CR036 comment by Fah<tr>
+                                        <td># Account: {!SumActRiskProtect}</td>
+                                        </tr>-->
+                                    </table>
+                                </div>
+                            </td>   
+
+                            <!-- add Icon Auto Loan -->
+                            <td width="5%" style="cursor:pointer" onclick="commercialAutoLoanProductHoldingTab();">
+                                <!-- apex:commandlink action="{!RiskProtectReport}" target="_blank" -->
+                                <!-- <A HREF="#" onClick="NavigateTo('{!RiskProtectReportId}?pv1={!LEFT(acct.id,15)}','Risk Protection Report');return false;"> -->
+                                <div class="image">
+                                    <apex:image url="{!$Resource.Wallet5ex}" width="80" height="80" />
+                                </div>
+                                <!-- </A>-->
+                                <!-- /apex:commandlink -->
+                            </td>
+                            <td width="20%" style="cursor:pointer">
+                                <!-- apex:commandlink action="{!RiskProtectReport}" target="_blank" -->
+                                <!-- <A HREF="#" onClick="NavigateTo('{!RiskProtectReportId}?pv1={!LEFT(acct.id,15)}','Risk Protection Report');return false;"> -->
+                                <div class="data" onclick="commercialAutoLoanProductHoldingTab();">
+                                    <table bgcolor="#F8E6E0" style="text-align:left;font-size:100%;border-radius: 10px;">
+                                        <tr style="font-weight: bold;padding-top:1%; white-space: nowrap;">
+                                            <td>
+                                                Auto Loan
+                                                <!-- Total Amt: ฿<apex:outputText value="{0, number, ###,##0.00}">
+                                            <apex:param value="{!TotalRiskProtect}"/>
+                                            </apex:outputText> -->
+                                            </td>
+                                        </tr>
+                                        <!-- <tr>
+                                            <td>
+                                                Total Limit:
+                                                <apex:outputText value="{0, number, ###,##0.00}" rendered="{!isVisible_total}">
+                                                    ฿
+                                                    <apex:param value="{!TotalLimitRiskProtect}" />
+                                                </apex:outputText>
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_total}" />
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td># Product:
+                                                <apex:outputText value="{0, number, ###,##0}" rendered="{!isVisible_product}">
+                                                    <apex:param value="{!SumRiskProtect}" />
+                                                </apex:outputText>
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                            </td>
+                                        </tr> -->
+                                        <!--CR036 comment by Fah<tr>
+                                        <td># Account: {!SumActRiskProtect}</td>
+                                        </tr>-->
+                                    </table>
+                                </div>                    
+                            </td> 
+                        </tr>
+                    </table>
+                    <!-- CR e-Onboarding Phase 2 -->
+                    <table width="50%">
+                        <hr width="100%" style="color: #8a9ebe; margin-bottom: 1%; margin-top: 0%" />
+                        <tr>
+                            <!-- Biz Touch -->
+                            <td width="10%">
+
+                                <div class="image">
+                                    <apex:outputLabel style="font-weight:bold;font-size: 91%;color: #4a4a56;" value="{!$ObjectType.Account.Fields.BIZ_TOUCH_CB__c.label}"
+                                        rendered="{!isVisible_product}"></apex:outputLabel>
+                                    <apex:outputText style="font-weight:bold;font-size: 91%;color: #4a4a56;" value="{!$ObjectType.Account.Fields.BIZ_TOUCH_CB__c.label}"
+                                        rendered="{!!isVisible_product}" />
+                                </div>
+                            </td>
+                            <td width="24%">
+
+                                <div style="margin-left: 10px;">
+                                    <table style="text-align:left;font-size:90%;">
+                                        <tr>
+                                            <td>
+                                                <apex:outputPanel rendered="{!isVisible_product}">
+                                                    <img src="/img/checkbox_{!IF(Account.BIZ_TOUCH_CB__c, '', 'un')}checked.gif" title="{!IF(Account.BIZ_TOUCH_CB__c, 'Checked', 'Not Checked')}"
+                                                    />
+                                                </apex:outputPanel>
+                                                <!-- <apex:inputCheckbox value="{!Account.BIZ_TOUCH_CB__c}" rendered="{!isVisible_product}" disabled="true"/> -->
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+
+                            <!-- Business Click -->
+                            <td width="15%">
+                                <div class="image">
+                                    <apex:outputLabel style="font-weight:bold;font-size: 91%;color: #4a4a56;" value="{!$ObjectType.Account.Fields.Business_CLICK_CB__c.label}"
+                                        rendered="{!isVisible_product}"></apex:outputLabel>
+                                    <apex:outputText style="font-weight:bold;font-size: 91%;color: #4a4a56;;" value="{!$ObjectType.Account.Fields.Business_CLICK_CB__c.label}"
+                                        rendered="{!!isVisible_product}" />
+                                </div>
+                            </td>
+                            <td width="25%">
+                                <div>
+                                    <table style="text-align:left;font-size:90%;">
+                                        <tr>
+                                            <td>
+                                                <apex:outputPanel rendered="{!isVisible_product}">
+                                                    <img src="/img/checkbox_{!IF(Account.Business_CLICK_CB__c, '', 'un')}checked.gif" title="{!IF(Account.Business_CLICK_CB__c, 'Checked', 'Not Checked')}"
+                                                    />
+                                                </apex:outputPanel>
+                                                <!-- <apex:inputCheckbox value="{!Account.Business_CLICK_CB__c}" rendered="{!isVisible_product}" disabled="true"/> -->
+                                                <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                            </td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                    <!-- CR e-Onboarding Phase 2 -->
+                </apex:outputPanel>
+            </div>
+            <!-- Table Responsive-->
+        </div>
+        <!-- Main Wrapper -->
+    </apex:form>
+
+    <!-- Mobile -->
+
+    <apex:form >
+        <div id="mobile-wrapper" style="display:none; width:100%">
+            <!--<apex:actionFunction action="{!TransBankReportMobile}" name="actionTransBankMobile" reRender="panelTransBankReportMobile" />
+			<apex:outputPanel id="panelTransBankReportMobile">
+            <script type="text/javascript">
+            passParamToNavigate('{!pageTransBankReportMobile}','Risk Protection Report');
+            </script>
+            </apex:outputPanel>-->
+
+            <apex:actionFunction action="{!TransBankReport}" name="actionTransBankMoBile" reRender="panelTransBankMobile" />
+            <apex:outputPanel id="panelTransBankMobile">
+                <apex:outputPanel rendered="{!isClickTransBank}">
+                    <script type="text/javascript">
+                        var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+                        var theme = '{!$User.UIThemeDisplayed}';
+                        if (theme == 'Theme4u' && isLightningMode) {
+                            passParamToNavigate('{!pageTransBank}', 'Transactional Banking Report');
+                        }
+                        else {
+                            passParamToNavigate('{!pageTransBankMobile}', 'Transactional Banking Report');
+                        }
+                    </script>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:actionFunction action="{!DepInvestReport}" name="actionDepInvestMobile" reRender="panelDepInvestMobile" />
+            <apex:outputPanel id="panelDepInvestMobile">
+                <apex:outputPanel rendered="{!isClickDepInvest}">
+                    <script type="text/javascript">
+                        var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+                        var theme = '{!$User.UIThemeDisplayed}';
+                        if (theme == 'Theme4u' && isLightningMode) {
+                            passParamToNavigate('{!pageDepInvest}', 'Deposit & Investment Report');
+                        }
+                        else {
+                            passParamToNavigate('{!pageDepInvestMobile}', 'Deposit & Investment Report');
+                        }
+                    </script>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:actionFunction action="{!FundBorrowReport}" name="actionFundBorrowMobile" reRender="panelFundBorrowMobile" />
+            <apex:outputPanel id="panelFundBorrowMobile">
+                <apex:outputPanel rendered="{!isClickFundBorrow}">
+                    <script type="text/javascript">
+                        var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+                        var theme = '{!$User.UIThemeDisplayed}';
+                        if (theme == 'Theme4u' && isLightningMode) {
+                            passParamToNavigate('{!pageFundBorrow}', 'Funding & Borrowing Report');
+                        }
+                        else {
+                            passParamToNavigate('{!pageFundBorrowMobile}', 'Funding & Borrowing Report');
+                        }
+
+                    </script>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:actionFunction action="{!RiskProtectReport}" name="actionRiskProtectMobile" reRender="panelRiskProtectMobile" />
+            <apex:outputPanel id="panelRiskProtectMobile">
+                <apex:outputPanel rendered="{!isClickRiskProtect}">
+                    <script type="text/javascript">
+                        var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+                        var theme = '{!$User.UIThemeDisplayed}';
+                        if (theme == 'Theme4u' && isLightningMode) {
+                            passParamToNavigate('{!pageRiskProtect}', 'Risk Protection Report');
+                        }
+                        else {
+                            passParamToNavigate('{!pageRiskProtectMobile}', 'Risk Protection Report');
+                        }
+                    </script>
+                </apex:outputPanel>
+            </apex:outputPanel>
+
+            <apex:actionFunction name="loadDataMobile" action="{!loadData}" rerender="displayMobile">
+                <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Product On Hand" />
+                <apex:param name="sectionName2" assignTo="{!sectionName2}" value="ComCust:Product On Hand (Partition)" />
+            </apex:actionFunction>
+
+            <apex:outputPanel id="displayMobile" style="width:100%">
+                <div class="divTable">
+                    <!-- <div class="divTableRow">TEST 6</div> -->
+                    <div class="divTableRow">
+                        <div class="article1 divTableCell" onclick="actionTransBankMoBile();buttonClickTransBank();return false;">
+                            <!--<apex:commandlink action="{!TransBankReportMobile}">-->
+                            <!--<A HREF="#" onClick="passParamToNavigate('apex/ProductInfo_Domain1_Mobile?id={!acct.id}','Transactional Banking Report');return false;">-->
+                            <div class="image">
+                                <apex:image url="{!$Resource.Wallet3ex}" width="35" height="35" />
+                            </div>
+
+                            <div class="data1">
+                                <table bgcolor="#D9F1F1" style="border-radius: 10px;">
+                                    <tr style="font-weight: bold;padding-top:1%">
+                                        <td>
+                                            Transactional Banking
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+                                        <td>Total Limit:
+                                            <apex:outputText value="{0, number, ###,##0.00}" rendered="{!isVisible_total}">
+                                                ฿
+                                                <apex:param value="{!TotalLimitTransBank}" />
+                                            </apex:outputText>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_total}" />
+
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                        <td>Total Amt:
+                                            <apex:outputText value="{0, number, ###,##0.00}" rendered="{!isVisible_total}">
+                                                ฿
+                                                <apex:param value="{!TotalTransBank}" />
+                                            </apex:outputText>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_total}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                        <td># Product:
+                                            <apex:outputText value="{0, number, ###,##0}" rendered="{!isVisible_product}">
+                                                <apex:param value="{!SumTransBank}" />
+                                            </apex:outputText>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                        </td>
+                                    </tr>
+                                    <!-- CR036 comment by Fah <tr> 
+                                    <td># Account: {!SumActTransBank}</td>
+                                    </tr> -->
+                                </table>
+                            </div>
+                            <!--</A>-->
+                            <!--</apex:commandlink>-->
+                        </div>
+
+                        <div class="article1 divTableCell" onclick="actionDepInvestMobile();buttonClickDepInvest();return false;">
+                            <!--<apex:commandlink action="{!DepInvestReportMobile}">
+                            <A HREF="#" onClick="NavigateTo('apex/ProductInfo_Domain2_Mobile?id={!acct.id}','Deposit & Investment Report');return false;">-->
+                            <div class="image">
+                                <apex:image url="{!$Resource.Wallet2ex}" width="35" height="35"/>
+                            </div>
+
+                            <div class="data1">
+                                <table bgcolor="#D9F1F1" style="border-radius: 10px;">
+                                    <tr style="font-weight: bold;padding-top:1%">
+                                        <td>
+                                            Deposit &amp; Investment
+                                        </td>
+                                    </tr>
+
+                                    <tr>
+
+                                        <td>Total Amt:
+                                            <apex:outputText value="{0, number, ###,##0.00}" rendered="{!isVisible_total}">
+                                                ฿
+                                                <apex:param value="{!TotalDepInvest}" />
+                                            </apex:outputText>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_total}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                        <td># Product:
+                                            <apex:outputText value="{0, number, ###,##0}" rendered="{!isVisible_product}">
+                                                <apex:param value="{!SumDepInvest}" />
+                                            </apex:outputText>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+
+                                        <td># Account:
+                                            <apex:outputText value="{0, number, ###,##0}" rendered="{!isVisible_product}">
+                                                <apex:param value="{!SumActDepInvest}" />
+                                            </apex:outputText>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <!-- </A>
+                            </apex:commandlink>-->
+                        </div>
+
+                        <div class="article1 divTableCell" onclick="actionFundBorrowMobile();buttonClickFundBorrow();">
+                            <!--<A HREF="#" onClick="NavigateTo('apex/ProductInfo_Domain3_Mobile?id={!acct.id}','Funding & Borrowing Report');return false;">
+                            <apex:commandlink action="{!FundBorrowReportMobile}" style ="white-space: nowrap;" >-->
+                            <div class="image">
+                                <apex:image url="{!$Resource.Wallet1ex}" width="35" height="35"/>
+                            </div>
+
+                            <div class="data1">
+                                <table bgcolor="#F8E6E0" style="border-radius: 10px;">
+                                    <tr style="font-weight: bold;padding-top:1%">
+                                        <td>
+                                            Funding &amp; Borrowing
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>Total Limit:
+                                            <apex:outputText value="{0, number, ###,##0.00}" rendered="{!isVisible_total}">
+                                                ฿
+                                                <apex:param value="{!TotalFundBorrow}" />
+                                            </apex:outputText>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_total}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td># Product:
+                                            <apex:outputText value="{0, number, ###,##0}" rendered="{!isVisible_product}">
+                                                <apex:param value="{!SumFundBorrow}" />
+                                            </apex:outputText>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                        </td>
+                                    </tr>
+                                    <!--CR036 Comment by Fah <tr>
+                                    <td># Account: {!SumActFundBorrow}</td>
+                                    </tr>-->
+                                </table>
+                            </div>
+                            <!-- </apex:commandlink> </A> -->
+                        </div>
+
+                        <div class="article1 divTableCell" onclick="actionRiskProtectMobile();buttonClickRisk();">
+                            <div class="image">
+                                <apex:image url="{!$Resource.Wallet4ex}" width="35" height="35"/>
+                            </div>
+
+                            <div class="data1">
+                                <table bgcolor="#F8E6E0" style="border-radius: 10px;">
+                                    <tr style="font-weight: bold;padding-top:1%">
+                                        <td>
+                                            RiskProtection
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td>
+                                            Total Limit:
+                                            <apex:outputText value="{0, number, ###,##0.00}" rendered="{!isVisible_total}">
+                                                ฿
+                                                <apex:param value="{!TotalLimitRiskProtect}" />
+                                            </apex:outputText>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_total}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td># Product:
+                                            <apex:outputText value="{0, number, ###,##0}" rendered="{!isVisible_product}">
+                                                <apex:param value="{!SumRiskProtect}" />
+                                            </apex:outputText>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                        </td>
+                                    </tr>
+                                    <!--CR036 comment by Fah<tr>
+                                    <td># Account: {!SumActRiskProtect}</td>
+                                    </tr>-->
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Add Icon Auto loan in CSV -->
+                        <div class="article1 divTableCell" onclick="commercialAutoLoanProductHoldingTab();">
+                            <div class="image">
+                                <apex:image url="{!$Resource.Wallet5ex}" width="35" height="35"/>
+                            </div>
+
+                            <div class="data1" onclick="commercialAutoLoanProductHoldingTab();">
+                                <table bgcolor="#F8E6E0" style="border-radius: 10px;">
+                                    <tr style="font-weight: bold;padding-top:1%">
+                                        <td>
+                                            Auto Loan
+                                        </td>
+                                    </tr>
+                                    <!-- <tr>
+                                        <td>
+                                            Total Limit:
+                                            <apex:outputText value="{0, number, ###,##0.00}" rendered="{!isVisible_total}">
+                                                ฿
+                                                <apex:param value="{!TotalLimitRiskProtect}" />
+                                            </apex:outputText>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_total}" />
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td># Product:
+                                            <apex:outputText value="{0, number, ###,##0}" rendered="{!isVisible_product}">
+                                                <apex:param value="{!SumRiskProtect}" />
+                                            </apex:outputText>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                        </td>
+                                    </tr> -->
+                                    <!--CR036 comment by Fah<tr>
+                                    <td># Account: {!SumActRiskProtect}</td>
+                                    </tr>-->
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- CR e-Onboarding Phase 2 -->
+                    <hr width="100%" style="color: #8a9ebe; margin-bottom: 2%; margin-top: 2%;" />
+
+                    <div class="divTableRow">
+                        <!-- Biz Touch -->
+                        <div class="article2 divTableCell">
+                            <div class="image" style="margin-top: 6px;margin-left: 10px;">
+                                <apex:outputLabel style="margin-right: 10px;" value="{!$ObjectType.Account.Fields.BIZ_TOUCH_CB__c.label}" rendered="{!isVisible_product}"></apex:outputLabel>
+                                <apex:outputText style="margin-right: 10px;" value="{!$ObjectType.Account.Fields.BIZ_TOUCH_CB__c.label}" rendered="{!!isVisible_product}"
+                                />
+                            </div>
+
+                            <div>
+                                <table style="text-align:left;font-size:90%;">
+                                    <tr>
+                                        <td>
+                                            <apex:outputPanel rendered="{!isVisible_product}">
+                                                <!-- <img src="/img/checkbox_{!IF(Account.BIZ_TOUCH_CB__c, '', 'un')}checked.gif" title="{!IF(Account.BIZ_TOUCH_CB__c, 'Checked', 'Not Checked')}"/> -->
+                                                <img src="/auraFW/resources/aura/images/smallcheck{!IF(Account.BIZ_TOUCH_CB__c, '-checked', '')}.png" alt="False" />
+                                            </apex:outputPanel>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- Business Click -->
+                        <div class="article2 divTableCell">
+                            <div class="image" style="margin-top: 6px;margin-left: 10px;">
+                                <apex:outputLabel style="margin-right: 10px;" value="{!$ObjectType.Account.Fields.Business_CLICK_CB__c.label}" rendered="{!isVisible_product}"></apex:outputLabel>
+                                <apex:outputText style="margin-right: 10px;" value="{!$ObjectType.Account.Fields.Business_CLICK_CB__c.label}" rendered="{!!isVisible_product}"
+                                />
+                            </div>
+
+                            <div>
+                                <table style="text-align:left;font-size:90%;">
+                                    <tr>
+                                        <td>
+                                            <apex:outputPanel rendered="{!isVisible_product}">
+                                                <!-- <img src="/img/checkbox_{!IF(Account.Business_CLICK_CB__c, '', 'un')}checked.gif" title="{!IF(Account.Business_CLICK_CB__c, 'Checked', 'Not Checked')}"/> -->
+                                                <img src="/auraFW/resources/aura/images/smallcheck{!IF(Account.Business_CLICK_CB__c, '-checked', '')}.png" alt="False" />
+                                            </apex:outputPanel>
+                                            <apex:outputText value="{!hiddenText}" rendered="{!!isVisible_product}" />
+                                        </td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        
+                    </div>
+                    <!-- CR e-Onboarding Phase 2 --> 
+                </div>
+                
+            </apex:outputPanel>
+        </div>
+        <!-- div Mobile wrapper -->
+        <br/>
+    </apex:form>
+    <!--
+    <div class="article1" style="font-weight:bold">
+    <br/><br/>  Product Performance  <br/><br/>
+    <A HREF="#" onClick="perf();return false">
+    <apex:image url="{!$Resource.Performance_report}" width="230" height="64"/>
+    </A>
+    </div>  
+    -->
+
+    <script>
+
+        // when click icon auto loan in csv and open subtab auracomponent
+        function commercialAutoLoanProductHoldingTab() {
+            sforce.one.navigateToURL(`/one/one.app#${btoa(JSON.stringify({
+                "componentDef": "c:CommercialAutoLoan_ProductHolding",
+                "attributes": {
+                    "recordId": '{!Account.id}',
+                    "tmbCustId": '{!Account.TMB_Customer_ID_PE__c}',
+                    "uuid": `{!$User.UIThemeDisplayed}`.includes('Theme4t') ? 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    }) : '',
+                }
+            }))}`, false);
+        }
+
+        function perf() {
+            //alert("Performance");
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                //alert("Sf1");
+                NavigateTo('apex/Performance_ReportMobile2?id={!acct.id}', 'Performance Report');
+
+            } else {
+                //window.location.href = ObjId;
+                //alert("{!acct.id}".slice(0, - 3));
+                NavigateTo('apex/Performance_Report2?id={!acct.id}', 'Performance Report');
+
+            }
+        }
+
+        function reportclick1() {
+            //alert("Performance");
+            var acctid = '{!acct.id}'.slice(0, - 3);
+            NavigateTo('{!CreditPipeReportId}?pc3=ACCOUNT_ID&pn3=eq&pv3=' + acctid, 'Credit Pipeline Report');
+        }
+
+        function reportclick2() {
+            //alert("Performance");
+            var acctid = '{!acct.id}'.slice(0, - 3);
+            NavigateTo('{!CreditPipeReportId}?pc3=ACCOUNT_ID&pn3=eq&pv3=' + acctid, 'Credit Pipeline Report');
+        }
+
+        function reportclick3() {
+            //alert("Performance");
+            var acctid = '{!acct.id}'.slice(0, - 3);
+            NavigateTo('{!CreditPipeReportId}?pc3=ACCOUNT_ID&pn3=eq&pv3=' + acctid, 'Credit Pipeline Report');
+        }
+
+        function reportclick4() {
+            //alert("Performance");
+            var acctid = '{!acct.id}'.slice(0, - 3);
+            NavigateTo('{!CreditPipeReportId}?pc3=ACCOUNT_ID&pn3=eq&pv3=' + acctid, 'Credit Pipeline Report');
+        }
+
+    </script>
+
+</apex:page>

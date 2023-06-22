@@ -1,0 +1,78 @@
+<aura:component controller="RecordTypeLightningUtil"
+    implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId,lightning:isUrlAddressable,lightning:hasPageReference" access="global">
+    <lightning:workspaceAPI aura:id="workspace" />
+    <lightning:navigation aura:id="navService" />
+    <lightning:pageReferenceUtils aura:id="pageReferenceUtils" />
+
+    <aura:attribute name="pageReference" type="Object" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler name="change" value="{!v.pageReference}" action="{!c.onPageReferenceChange}" />
+
+    <aura:attribute name="theme" type="String" default="{!$Browser.formFactor == 'PHONE' ? 'Theme4t' : 'Theme4u'}" />
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="sObjectName" type="String" default="" />
+    <aura:attribute name="recordTypeId" type="Id" />
+    <aura:attribute name="recordTypes" type="List" default="[]" />
+    <aura:attribute name="labelDisplay" type="Map" default="{}" />
+    <aura:attribute name="defaultValue" type="Map" />
+
+    <!-- for visualforce page only -->
+    <aura:attribute name="url" type="String" />
+    <aura:attribute name="isCustom" type="Boolean" default="false" />
+
+    <!-- Android redirect back previous page -->
+    <aura:attribute name="isAndroidRedirect" type="Boolean" default="false" />
+    <div class="slds-template__container slds-align_absolute-center">
+        <aura:renderIf isTrue="{!v.recordTypes.length > 1}">
+            <article class="slds-card">
+                <ui:scrollerWrapper>
+                    <div class="slds-card__header slds-grid">
+                        <header
+                            class="slds-media slds-media_center slds-has-flexi-truncate slds-p-top_large slds-p-horizontal_medium slds-p-bottom_medium slds-text-heading_medium  slds-form-element_readonly">
+                            {!v.labelDisplay.header}
+                        </header>
+                    </div>
+
+                    <div class="slds-card__body slds-card__body_inner">
+                        <lightning:layout class="slds-is-relative slds-p-bottom_xxx-large" multipleRows="true">
+                            <aura:if isTrue="{!v.labelDisplay.detail}">
+                                <lightning:layoutItem flexibility="auto" size="12"
+                                    class="slds-p-left_large slds-p-top_small slds-p-right_small slds-p-bottom_x-small">
+                                    <lightning:formattedText class="slds-p-left_small" value="{!v.labelDisplay.detail}" />
+                                </lightning:layoutItem>
+                            </aura:if>
+                            <aura:iteration items="{!v.recordTypes}" var="recordtype">
+                                <lightning:layoutItem flexibility="auto" size="12" class="slds-p-left_x-large slds-p-right_small slds-p-bottom_x-small">
+                                    <lightning:input type="radio" label="{!recordtype.Name}" name="RecordType" value="{!recordtype.Id}"
+                                        onchange="{! c.onChangeRadioRecordType }" checked="{!recordtype.isDefault}" />
+                                    <div class="description">
+                                        <aura:if isTrue="{!recordtype.Description}">
+                                            <lightning:formattedText value="{!recordtype.Description}" />
+                                        </aura:if>
+                                    </div>
+                                </lightning:layoutItem>
+                            </aura:iteration>
+                            <aura:if isTrue="{!v.theme == 'Theme4t'}">
+                                <div class="slds-card__footer">
+                                    <lightning:button class="slds-text-body_small" label="{!$Label.c.Cancel}" title="{!$Label.c.Cancel}"
+                                        onclick="{! c.closeTab }" />
+                                    <lightning:button class="slds-text-body_small" variant="brand" label="{!$Label.c.RTL_Next}" title="{!$Label.c.RTL_Next}"
+                                        onclick="{! c.onFireCreateRecord }" />
+                                </div>
+                            </aura:if>
+                        </lightning:layout>
+                    </div>
+                </ui:scrollerWrapper>
+                <aura:if isTrue="{!v.theme == 'Theme4u'}">
+                    <footer class="slds-card__footer button_desktop">
+                        <div class="footer">
+                            <lightning:button class="slds-text-body_small" label="{!$Label.c.Cancel}" title="{!$Label.c.Cancel}" onclick="{! c.closeTab }" />
+                            <lightning:button class="slds-text-body_small" variant="brand" label="{!$Label.c.RTL_Next}" title="{!$Label.c.RTL_Next}"
+                                onclick="{! c.onFireCreateRecord }" />
+                        </div>
+                    </footer>
+                </aura:if>
+            </article>
+        </aura:renderIf>
+    </div>
+</aura:component>

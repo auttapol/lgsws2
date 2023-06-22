@@ -1,0 +1,1024 @@
+<apex:page standardController="AcctPlanGroupProfile__c" extensions="GroupCompanyExControllerV2"  docType="html"  showChat="false" sidebar="false" applyBodyTag="false" showHeader="{! !isConsoleMode}">
+<head>
+        <title>Group Customer</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+        
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->        
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+        
+        .Custom16Tab .secondaryPalette, .individualPalette .Custom16Block .secondaryPalette {
+            border:none;
+        }
+        #CustomerProfileMessage{
+            text-align:left !important;
+        }
+
+        .bootstrap-sf1 .year-form{
+            width:120px;
+            height:70px;
+        }
+        .event-paging{
+                width: 50px;
+                display: inline-table;
+            }
+            .index-paging{
+                color: #acacac;
+                font-size: 13px;
+            }
+        </style>  
+    </head>
+
+    <body>
+            
+            <apex:actionstatus id="status">
+                                                    <apex:facet name="start">
+                                                        <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                                                            &nbsp;
+                                                        </div>
+                                                        <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                                                            <img src="/img/loading32.gif" />
+                                                        </div>
+                                                    </apex:facet>
+                          </apex:actionstatus>
+                                                            
+                                                            
+       <!-- <c:AccountPlanHeader activetab="1" activesubtab="1"/> -->
+        <div class="bootstrap-sf1">
+                 <div id="responseErrors"> 
+                 </div>
+                 <apex:form styleClass="form-horizontal">
+                    <apex:pageBlock id="pgBlock">
+                        <apex:outputPanel id="statusMessage">
+            <apex:pageMessages ></apex:pageMessages>
+        </apex:outputPanel>
+                    <fieldset> 
+                        <legend>Group Customer</legend></fieldset> 
+                    
+                     <div class="form-group">
+                                <div style="text-align: center;">
+                                 
+                         <apex:pageBlockButtons location="both" style="float:left;margin-left:150px;" rendered="{! !isDisabled&&isHasPermission}" >
+                            <apex:commandButton value="Save" action="{!dosave}" 
+                            rendered="{! !isDisabled && isHasPermission && isHasAuthorized}"
+                            styleclass="btn btn-success" 
+                            rerender="statusMessage" 
+                            status="status" />
+                           <apex:commandButton value="Cancel" action="{!cancel}" styleclass="btn btn-success" 
+                           onclick="if(!confirm('Are you sure you want to exit this screen without saving?')) return false;" />    
+                        </apex:pageBlockButtons>
+                                </div>
+                            </div> 
+                        
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner">
+                            <div class="panel-heading" style="float:left; clear:both; width:100%;">
+                                <div class="navbar-header " style="float:left;">                    
+                                    <a data-toggle="collapse" aria-expanded="true"  href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                                        Group of customer Profile
+                                    </a>
+                                </div>                    
+                            </div>
+                        </header>
+                    
+                        <div class="card collapse in panel-collapse" id="collapse1" >            
+                            <div class="card-detail" >
+                            
+                                <!--  Section 1 -->
+                                                                                         
+                                <fieldset>                  
+                                    
+   
+                                    <div class="row">
+                                        
+                                            <apex:PageBlock mode="edit" id="groupprofileblock">   
+                                             
+                        <apex:PageBlockSection columns="2"  id="theSection">
+                            <!-- <apex:inputField value="{!groupprofile.Year__c }" required="{!Isnew}" rendered="{!isNew}" onchange="checkIshasValue(this);" styleClass="{!IF(groupprofile.Year__c == null,'danger','')} form-control"  />
+                                 -->
+                                   <apex:selectList value="{!groupprofile.Year__c}" 
+                                 multiselect="false" size="1"
+                                        styleClass="form-control year-form {!if(groupprofile.Year__c ==null,'danger','')} " 
+                             rendered="{!isNew}" 
+                             onchange="checkIshasValue(this);"
+                             
+                                 >
+                                                    <apex:selectOptions value="{!fiscalYear}" />
+                                                 </apex:selectList>
+                             <apex:PageBlockSectionItem rendered="{!isNew}"  ></apex:PageBlockSectionItem>
+                            <apex:inputfield value="{!groupprofile.GroupName__c }" onchange="checkIshasValue(this);" styleClass="{!IF(groupprofile.GroupName__c == null,'danger','')}  form-control"  />
+                              <apex:PageBlockSectionItem ></apex:PageBlockSectionItem> 
+                                
+                            <apex:inputField value="{!groupprofile.Group_Industry_Info__c }" onchange="checkIshasValue(this);" styleClass="{!IF(groupprofile.Group_Industry_Info__c == null,'danger','')} lookup form-control"  /> 
+                                 <apex:PageBlockSectionItem ></apex:PageBlockSectionItem>
+                            <apex:inputField value="{!groupprofile.Parent_Company__c }" styleClass="lookup form-control"  /> 
+                                 <apex:PageBlockSectionItem ></apex:PageBlockSectionItem>
+                            <apex:inputField value="{!groupprofile.Parent_Industry_Info__c }" styleClass="lookup form-control" /> 
+                                <apex:PageBlockSectionItem ></apex:PageBlockSectionItem>
+                                <!--<p id="contributeNotify" class="bg-danger" style="display:{!IF(groupprofile.ShareholdingStructure__c != null,'none','block')}; padding: 5px;border: 1px solid #E28888;margin-left: 50px;">
+                                                 There must be value
+                                             </p>-->
+                            </apex:PageBlockSection>
+                                <apex:PageBlockSection columns="1"  id="shareholding">
+                                     <apex:PageBlockSectionItem rendered="{!groupprofile.ShareholdingStructure__c==null}" >
+                                <div class="text-center">
+                                <p id='CreditfacilityDomesticNotify' class='bg-danger text-center' style='float:left;padding: 8px;border: 1px solid #E28888;margin-left: 18.2%;'>
+                                    <!--Shareholding Structre is mandatory-->
+                                    {!msgShareholding}
+                                </p>
+                                   </div>
+                                </apex:PageBlockSectionItem> 
+                                    
+                              <apex:inputField value="{!groupprofile.ShareholdingStructure__c  }" id="shareholdingTxtArea" onchange="checkIshasValue(this);" styleClass="form-control"   /> 
+                         </apex:PageBlockSection>
+
+
+                         <apex:PageBlockSection columns="2"  id="grouprevenue">
+                             <apex:inputField value="{!groupprofile.GroupRevenue__c   }" onchange="checkIshasValue(this);" styleClass="{!IF(groupprofile.GroupRevenue__c == null,'danger','')} form-control"   /> 
+                                 <!--<div style="margin-top:10px;margin-left:10px;"> <span >Unit: THB </span></div>-->
+                             </apex:PageBlockSection>
+                              
+                        </apex:PageBlock>
+                                        
+                                                                        
+                                    </div> 
+                                                                    
+                                </fieldset>
+                            </div>
+                        </div>
+                        <!-- /Section 1 -->                         
+                        
+                        <!-- Section 2 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner">
+                            <div class="panel-heading" style="float:left; clear:both; width:100%;">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false"
+                                       href="#collapse2" class="navbar-brand navbar-foundation-logo collapsed">
+                                       Group Transactional Flow/  Inter-company flow / Business Flow 
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+                                    
+                        <div class="card collapse " id="collapse2">            
+                            <div class="card-detail" >
+                            
+                                <fieldset>
+                                                                    
+                                    <div class="row">
+                                   
+                            <apex:PageBlock mode="edit" id="businessflowblock">                           
+                          
+                                <apex:PageBlockSection columns="1"  id="businessflow">
+                                     <apex:PageBlockSectionItem rendered="{!groupprofile.BusinessFlow__c ==null}" >
+                                <div class="text-center" >
+                                <p id='CreditfacilityDomesticNotify' class='bg-danger text-center' style='float:left;width:550px;padding: 8px;border: 1px solid #E28888;    margin-left: 18.2%;'>
+                                  <!--Group Transactional Flow/  Inter-company flow / Business Flow is mandatory-->
+                                   {!msgTransactional}
+                                   </p>
+                                   </div>
+                                </apex:PageBlockSectionItem> 
+                              <apex:inputField value="{!groupprofile.BusinessFlow__c  }" styleClass="form-control"   /> 
+                         </apex:PageBlockSection>
+                           </apex:PageBlock>                          
+                                                    
+                                    </div>
+                                    
+                                </fieldset>
+                            
+                            </div>
+                        </div>  
+                        <!-- /Section 2 -->     
+
+                        <!-- Section 3 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner">
+                            <div class="panel-heading" style="float:left; clear:both; width:100%;">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false"
+                                       href="#collapse3" class="navbar-brand navbar-foundation-logo collapsed">
+                                     Group's Consolidated Revenue Contribution / EBITDA Contribution
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+                                    
+                        <div class="card collapse " id="collapse3">            
+                            <div class="card-detail" >
+                                 <fieldset>
+                                    <div class="row" style="padding-bottom: 3px;"> 
+                                        <div class="col-sm-12 col-md-8 col-lg-8">      
+                                              <a href="#" 
+                                              class="btn  btn-success" 
+                                              data-toggle="collapse" 
+                                              aria-expanded="true" id="contributeUI"
+                                              style="display:{!if(isNew,'none','grid')};float:left;">Add / Edit</a>  
+                                             <div id="mandatoryedittable" style="margin-right:50px;">
+                                            
+                                            </div>
+                                        </div>                                       
+                                    </div>
+                                    <!-- related List Of  -->
+                                    <div>
+                                    <table class="table table-striped table-hover " id ="contributetable">
+                                              <thead>
+                                                <tr>
+                                                
+                                                  <th customAttribute="product">Revenue Contribution Type
+                                                   <span class="glyphicon glyphicon-question-sign"
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanContribution__c .Fields.RevenueContributionType__c.inlineHelpText}" />       
+                                        
+                                                  </th>
+                                                  <th>Item Name
+                                                   <span class="glyphicon glyphicon-question-sign" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="Item of Business Unit" />
+                                                  </th>
+                                                  <th>Revenue Contribution (%) 
+                                                  <span class="glyphicon glyphicon-question-sign" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanContribution__c .Fields.RevenueContributionPercent__c.inlineHelpText}" />       
+                                                 
+                                                  </th>
+                                                  <th>EBITDA Contribution (%)
+                                                  <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanContribution__c.Fields.EBITDAContributionPercent__c.inlineHelpText}" />       
+                                                                    
+                                                       
+                                                  </th>
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                            <!--   <apex:repeat value="{!contributionSet}" var="key" >
+                                                        <apex:variable value="{!1}" var="rowNum"/>
+                                                        <apex:variable value="{!0}" var="RevenueTotal"/>
+                                                        <apex:variable value="{!0}" var="EBITDATotal"/>    
+                                                   <apex:repeat value="{!ContributionMap[key]}" var="ctb" >
+                                                   <tr>
+                                                       <td><label style="font-weight: normal;display:{!if(rowNum ==1,'grid','none')}">{!key}</label></td>
+                                                   <td>{!ctb.Name}</td>
+                                                   <td>{!ctb.RevenueContributionPercent__c}%</td>
+                                                   <td>{!ctb.EBITDAContributionPercent__c}%</td>
+                                               </tr> 
+                                                       <apex:variable var="RevenueTotal" value="{!RevenueTotal + ctb.RevenueContributionPercent__c}" />
+                                                       <apex:variable var="EBITDATotal" value="{!EBITDATotal + if(ctb.EBITDAContributionPercent__c!=null,ctb.EBITDAContributionPercent__c,0)}" />    
+                                                       <apex:variable var="rowNum" value="{!rowNum + 1}" />   
+                                                    </apex:repeat>  
+                                                       <tr class="info endRow" style="border-bottom:none;display:{!if(RevenueTotal>0&&EBITDATotal>0,'block','none')};">
+                                                        <td class="text-center" style="vertical-align: middle;"></td>
+                                                        <td class="text-center" style="vertical-align: middle;">Total</td>
+                                                        <td class="text-center" style="vertical-align: middle;">{!RevenueTotal}</td>
+                                                        <td class="text-center" style="vertical-align: middle;">{!EBITDATotal}</td>
+                                                        </tr>
+                                                   </apex:repeat>    -->
+                                              </tbody>
+                                        </table>
+                                                       
+                                    </div>                 
+                                    
+                                 </fieldset>                                
+                            </div>
+                        </div>  
+                        <!-- /Section 3 --> 
+                        
+                        <!-- /Section 4 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner">
+                            <div class="panel-heading" style="float:left; clear:both; width:100%;">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false"
+                                       href="#collapse4" class="navbar-brand navbar-foundation-logo collapsed">
+                                       Group Strategy (Optional)
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+                                    
+                        <div class="card collapse " id="collapse4">            
+                            <div class="card-detail" >
+                            
+                                <fieldset>
+                                     <apex:PageBlock mode="edit" id="groupstrategyblock">                           
+                          
+                                <apex:PageBlockSection columns="1"  id="groupstrategy">
+                              <apex:inputField value="{!groupprofile.GroupStrategy__c  }" styleClass="form-control"   /> 
+                         </apex:PageBlockSection>
+                           </apex:PageBlock>                                   
+                                     
+                                    
+                                </fieldset>
+                                
+                            </div>
+                        </div>                      
+                        <!-- /Section 4 -->
+                        
+                        <!-- /Section 5 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner">
+                            <div class="panel-heading" style="float:left; clear:both; width:100%;">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false"
+                                       href="#collapse5" class="navbar-brand navbar-foundation-logo collapsed">
+                                       Group 5 Forces Model
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+                                    
+                        <div class="card collapse " id="collapse5">            
+                            <div class="card-detail" >
+                            
+                                <fieldset>  
+                                
+                                
+                          <apex:PageBlock mode="edit" id="forcesModelblock">                           
+                          
+                                <apex:PageBlockSection columns="1"  id="forcesModel">
+                              <apex:inputField value="{!groupprofile.BargainingPowerOfSupplier__c}" style="width:300px;" onchange="checkIshasValue(this);" styleClass="{!IF(groupprofile.BargainingPowerOfSupplier__c == null,'danger','')} form-control"/> 
+                              <apex:inputField value="{!groupprofile.BargainingPowerOfSupplierDescription__c}" styleClass="form-control"   /> 
+                              <apex:inputField value="{!groupprofile.BargainingPowerOfBuyer__c}" style="width:300px;" onchange="checkIshasValue(this);" styleClass="{!IF(groupprofile.BargainingPowerOfBuyer__c == null,'danger','')} form-control"   /> 
+                              <apex:inputField value="{!groupprofile.BargainingPowerOfBuyerDescription__c}" styleClass="form-control"   /> 
+                              <apex:inputField value="{!groupprofile.BarrierOfNewEntrant__c}" style="width:300px;" onchange="checkIshasValue(this);" styleClass="{!IF(groupprofile.BarrierOfNewEntrant__c == null,'danger','')} form-control"   /> 
+                              <apex:inputField value="{!groupprofile.BarrierOfNewEntrantDescription__c}" styleClass="form-control"   />
+                               <apex:inputField value="{!groupprofile.ThreatOfSubstituteProduct__c}" style="width:300px;" onchange="checkIshasValue(this);" styleClass="{!IF(groupprofile.ThreatOfSubstituteProduct__c == null,'danger','')} form-control"   /> 
+                              <apex:inputField value="{!groupprofile.ThreatOfSubstituteProductDescription__c}" styleClass="form-control"   />   
+                               <apex:inputField value="{!groupprofile.IndustryCompetition__c }" style="width:300px;" onchange="checkIshasValue(this);" styleClass="{!IF(groupprofile.IndustryCompetition__c == null,'danger','')} form-control"   /> 
+                              <apex:inputField value="{!groupprofile.IndustryCompetitionDescription__c }" styleClass="form-control"   />      
+                         </apex:PageBlockSection>
+                           </apex:PageBlock>                                   
+                                
+                                
+                                
+                              
+                                </fieldset>
+                                
+                            </div>
+                        </div>                      
+                        <!-- /Section 5 -->
+                        
+                        <!-- /Section 6 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner">
+                            <div class="panel-heading" style="float:left; clear:both; width:100%;">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false"
+                                       href="#collapse6" class="navbar-brand navbar-foundation-logo collapsed">
+                                       Group Key Success Factors / Competitive Advantages
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+                                    
+                        <div class="card collapse " id="collapse6">            
+                            <div class="card-detail">
+                            
+                                <fieldset> 
+                                 <apex:PageBlock mode="edit" id="groupkeysuccessblock">                           
+                          
+                                <apex:PageBlockSection columns="1"  id="groupkeysuccess">
+                              <apex:inputField value="{!groupprofile.FactorType1__c }" style="width:300px;" onchange="checkIshasValue(this);" styleClass="{!IF(groupprofile.FactorType1__c == null || groupprofile.FactorType1__c == '','danger','')} form-control"   /> 
+                              <apex:inputField value="{!groupprofile.FactorType1Description__c }" styleClass="form-control"   /> 
+                              <apex:inputField value="{!groupprofile.FactorType2__c }" style="width:300px;" styleClass="form-control"   /> 
+                              <apex:inputField value="{!groupprofile.FactorType2Description__c }" styleClass="form-control"   /> 
+                              <apex:inputField value="{!groupprofile.FactorType3__c }" style="width:300px;" styleClass="form-control"   /> 
+                              <apex:inputField value="{!groupprofile.FactorType3Description__c }" styleClass="form-control"   />
+                              <apex:inputField value="{!groupprofile.FactorType4__c }" style="width:300px;" styleClass="form-control"   /> 
+                              <apex:inputField value="{!groupprofile.FactorType4Description__c }" styleClass="form-control"   />   
+                              <apex:inputField value="{!groupprofile.FactorType5__c  }" style="width:300px;" styleClass="form-control"   /> 
+                              <apex:inputField value="{!groupprofile.FactorType5Description__c  }" styleClass="form-control"   />      
+                         </apex:PageBlockSection>
+                           </apex:PageBlock>               
+                                    
+                                   
+                                                                        
+                                </fieldset>
+                                
+                            </div>
+                        </div>                      
+                        <!-- /Section 6 -->
+                        
+                        <!-- /Section 7 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner">
+                            <div class="panel-heading" style="float:left; clear:both; width:100%;">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false"
+                                       href="#collapse7" class="navbar-brand navbar-foundation-logo collapsed">
+                                       Financial Highlight (Consol.) - Optional
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+                                    
+                        <div class="card collapse " id="collapse7">            
+                            <div class="card-detail" >
+                            
+                                <fieldset>
+                                    <apex:PageBlock mode="edit" id="financialhighlightblock">                           
+                          
+                                <apex:PageBlockSection columns="1"  id="financialhighlight">
+                              <apex:inputField value="{!groupprofile.FinancialHighlight__c  }" styleClass="form-control"   />
+                                  <br />
+                                 <apex:inputfield value="{!groupprofile.FinancialHighlightByMajor__c}"  styleClass="form-control"  />
+                         </apex:PageBlockSection>
+                           </apex:PageBlock>             
+                                </fieldset>
+                                
+                            </div>
+                        </div>      
+                                    
+                        
+                        <!-- /Section 7 -->
+                       
+                        <!-- /Section 8 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner">
+                            <div class="panel-heading" style="float:left; clear:both; width:100%;">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false"
+                                       href="#collapse8" class="navbar-brand navbar-foundation-logo collapsed">
+                                       Customer Profiles
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+                                    
+                        <div class="card collapse " id="collapse8">            
+                            <div class="card-detail" >
+                                    
+                                <fieldset>
+                                                                    
+                                    <div class="row">                                         
+                                    </div>  
+                                    
+                                    <div>   
+                                        <apex:outputpanel id="porttable">
+                                                        <apex:panelGrid columns="5"  style="margin: 10px 0;">
+                                                            <apex:commandLink action="{!first}" rendered="{!hasPrevious}" status="status"  rerender="porttable" styleClass="event-paging" >First</apex:commandlink>
+                                                            <apex:commandLink action="{!previous}" rendered="{!hasPrevious}" status="status" rerender="porttable" styleClass="event-paging" style="width:70px;">Previous</apex:commandlink>
+                                                            <apex:commandLink action="{!next}" rendered="{!hasNext}" status="status" rerender="porttable" styleClass="event-paging" >Next</apex:commandlink>
+                                                            <apex:commandLink action="{!last}" rendered="{!hasNext}" status="status" rerender="porttable" styleClass="event-paging" >Last</apex:commandlink>
+                                                            <apex:outputpanel rendered="{!hasNext || hasPrevious}" styleClass="index-paging">
+                                                                 ({!(pageNumber * size)+1-size}-{!IF(((pageNumber * size)>noOfRecords), noOfRecords,(pageNumber * size))} of {!noOfRecords})
+                                                            </apex:outputpanel>
+                                                         </apex:panelGrid>
+                                        <table class="table table-striped table-hover">
+                                              <thead>
+                                               <div class="alert alert-info text-left" role="alert">
+                                                  <span class="glyphicon glyphicon-exclamation-sign" aria-hidden="true"></span>
+                                                  <span class="sr-only">info:</span>
+                                                  {!CustomerProfilesMessage[0]}<br/> &nbsp;&nbsp;&nbsp;&nbsp;
+                                                  {!CustomerProfilesMessage[1]}
+                                                </div>     
+                                                    
+                                                <tr>                                               
+                                                  <th>Name</th>
+                                                  <th>Group Company</th>
+                                                  <th>Customer's Industry</th>
+                                                  <th>Customer's Owner</th>
+                                                  <th>Last Modified By</th>
+                                                  <th>Last Modified Date</th>
+                                                  <th>Account Plan Status</th>
+                                                </tr>
+                                              </thead>
+                                              <tbody >
+                                              
+                                                 <apex:repeat value="{!AcctWrapperList}" var="al" >
+                                                        
+                                                  
+                                              <tr>
+                                                    
+                                                   <!--<td>
+                                                     <apex:outputPanel rendered="{! !isNew}">
+                                                                <div style="display:{!if(al.ComProfile==null,'block','none')};">
+                                                                <!--{!al.Acct.First_name__c} {!al.Acct.Last_name__c}
+                                                                    {!al.Acct.Name}
+                                                                </div>
+                                                                <a href="/apex/CompanyprofileView?CompanyID={!al.ComProfile}&GroupID={!groupprofile}" style="display:{!if(al.ComProfile!=null,'block','none')};">
+                                                                <!--{!al.Acct.First_name__c} {!al.Acct.Last_name__c}
+                                                                    {!al.Acct.Name}
+                                                                </a>
+                                                                </apex:outputPanel>
+                                                                <apex:outputPanel rendered="{!isNew}">
+                                                                    <a href="/{!al.Acct.id}">{!al.Acct.Name}</a>
+                                                                </apex:outputPanel>
+                                                  </td>
+                                                               
+                                                   <td>  
+                                                                    <apex:outputfield value="{!al.Acct.Group__r.Name}" />
+                                                                        
+                                                            </td>
+                                                   <td>
+                                                                        <apex:outputPanel rendered="{! !isNew}">
+                                                                    <apex:outputfield value="{!al.Acct.Industry}" />
+                                                                        </apex:outputPanel>
+                                                                        <apex:outputPanel rendered="{!isNew}">
+                                                                        {!al.Acct.Group__r.GroupIndustry__c}
+                                                                        </apex:outputPanel>
+                                                                        </td>
+                                                     <td><apex:outputfield value="{!al.Acct.Owner.Name}" /></td>                
+                                                   <td>
+                                                            <apex:outputpanel rendered="{!if(al.ComProfile !=null && isNew,true,false)}" >
+                                                                <apex:outputfield value="{!al.ComProfile.LastModifiedBy.Name}" />
+                                                            </apex:outputpanel>
+                                                            </td>
+                                                   <td><apex:outputpanel rendered="{!if(al.ComProfile !=null && isNew,true,false)}" >
+                                                       <apex:outputfield value="{!al.ComProfile.LastModifiedDate}" />
+                                                            </apex:outputpanel></td>
+                                                   <td>
+                                                                <apex:outputpanel rendered="{!if(al.ComProfile !=null && isNew,true,false)}" >
+                                                                <apex:outputfield value="{!al.ComProfile.Status__c}" />
+                                                            </apex:outputpanel>
+                                                                
+                                                                </td>-->
+
+                                                <td>
+                                                     <apex:outputPanel >
+                                                                <div style="display:{!if(al.ComProfile==null,'block','none')};">
+                                                                    {!al.Acct.Name}
+                                                                </div>
+                                                                <a href="/apex/CompanyprofileView?CompanyID={!al.ComProfile}&GroupID={!groupprofile}" style="display:{!if(al.ComProfile!=null,'block','none')};">
+                                                                    {!al.Acct.Name}
+                                                                </a>
+                                                                </apex:outputPanel>
+                                                                <apex:outputPanel rendered="{!isNew}">
+                                                                    <a href="/{!al.Acct.id}">{!al.Acct.Name}</a>
+                                                                </apex:outputPanel>
+                                                  </td>
+                                                               
+                                                   <td>  
+                                                                    <apex:outputfield value="{!al.Acct.Group__r.Name}" />
+                                                                        
+                                                            </td>
+                                                   <td>
+                                                                        <apex:outputPanel rendered="{!al.ComProfile==null}" >
+                                                                    <apex:outputfield value="{!al.Acct.Industry__c}" />
+                                                                        </apex:outputPanel>
+                                                                        <apex:outputPanel rendered="{!al.ComProfile!=null}" >
+                                                                    <apex:outputfield value="{!al.ComProfile.Company_Industry_Info__c}" />
+                                                                        </apex:outputPanel>
+                                                                        
+                                                                        </td>
+                                                     <td><apex:outputfield value="{!al.Acct.Owner.Name}" /></td>                
+                                                   <td>
+                                                            <apex:outputpanel rendered="{!if(al.ComProfile !=null ,true,false)}" >
+                                                                <apex:outputfield value="{!al.ComProfile.LastModifiedBy.Name}" />
+                                                            </apex:outputpanel>
+                                                            </td>
+                                                   <td><apex:outputpanel rendered="{!if(al.ComProfile !=null ,true,false)}" >
+                                                       <apex:outputfield value="{!al.ComProfile.LastModifiedDate}" />
+                                                            </apex:outputpanel></td>
+                                                   <td>
+                                                                <apex:outputpanel rendered="{!if(al.ComProfile !=null ,true,false)}" >
+                                                                <apex:outputfield value="{!al.ComProfile.Status__c}" />
+                                                            </apex:outputpanel>
+                                                                </td>
+                                               </tr> 
+                                                      
+                                                    </apex:repeat>
+                                               
+                                                   
+                                              </tbody>
+                                        </table> 
+                                        <apex:panelGrid columns="5"  style="margin: 10px 0;">
+                                                            <apex:commandLink action="{!first}" rendered="{!hasPrevious}" status="status"  rerender="porttable" styleClass="event-paging" >First</apex:commandlink>
+                                                            <apex:commandLink action="{!previous}" rendered="{!hasPrevious}" status="status" rerender="porttable" styleClass="event-paging" style="width:70px;">Previous</apex:commandlink>
+                                                            <apex:commandLink action="{!next}" rendered="{!hasNext}" status="status" rerender="porttable" styleClass="event-paging" >Next</apex:commandlink>
+                                                            <apex:commandLink action="{!last}" rendered="{!hasNext}" status="status" rerender="porttable" styleClass="event-paging" >Last</apex:commandlink>
+                                                            <apex:outputpanel rendered="{!hasNext || hasPrevious}" styleClass="index-paging">
+                                                                 ({!(pageNumber * size)+1-size}-{!IF(((pageNumber * size)>noOfRecords), noOfRecords,(pageNumber * size))} of {!noOfRecords})
+                                                            </apex:outputpanel>
+                                                         </apex:panelGrid>                        
+                                        </apex:outputpanel>                          
+                                    </div>
+                                    
+                                </fieldset>
+                                
+                            </div>
+                        </div>                      
+                        <!-- /Section 8 -->
+                        
+                        <!-- /Section 9 -->
+                        <header class="navbar navbar-default navbar-branded clear-both" role="banner">
+                            <div class="panel-heading" style="float:left; clear:both; width:100%;">
+                                <div class="navbar-header" style="float:left;">
+                                    <a data-toggle="collapse" aria-expanded="false"
+                                        href="#collapse9" class="navbar-brand navbar-foundation-logo collapsed">Top Opportunities
+                                    </a>
+                                </div>
+                            </div>
+                        </header>
+            
+                        <div class="card collapse " id="collapse9">
+                            <div class="card-detail">
+            
+                                <fieldset>
+            
+                                    <div class="row">
+                                    </div>
+            
+                                    <div>
+                                        <table class="table table-striped table-hover">
+                                            <thead>
+                                                <tr>
+                                                   <th>Opportunity Detail</th>
+                                                    <th>Opportunity Type</th>
+                                                    <th>Expected Complete Date</th>
+                                                    <th>Stage</th>
+                                                    <th>Application Status</th>
+                                                    <th>Requested Vol.</th>
+                                                    <th>Created By</th>
+                                                    <th>Opportunity Owner</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                               <apex:repeat value="{!OpptyList}" var="oppty">
+                                                   <tr>
+                                                  <td><a href="/{!oppty.id}"><apex:outputfield value="{!oppty.Name}" /> </a></td>
+                                                     <td><apex:outputfield value="{!oppty.RecordTypeID}" /></td>
+                                                     <td><apex:outputfield value="{!oppty.Actual_Complete_Date__c }" /></td>
+                                                     <td><apex:outputfield value="{!oppty.StageName}" /></td>
+                                                     <td><apex:outputfield value="{!oppty.Application_Status__c}" /></td>
+                                                     <td><apex:outputfield value="{!oppty.Amount}" /></td>
+                                                     <td><apex:outputfield value="{!oppty.CreatedBy.Name}" /></td>
+                                                     <td><apex:outputfield value="{!oppty.OwnerID}" /></td>
+                                                  </tr>
+                                                  </apex:repeat>
+                                            </tbody>
+                                        </table>
+                                    </div>
+            
+                                </fieldset>
+            
+                            </div>
+                        </div>
+                        <!-- /Section 9 -->
+                        </apex:pageBlock>
+                 </apex:form>
+             </div>
+                        
+                     <div class="bootstrap-sf1">                                  
+          <!-- Modal -->
+                <div  class="modal fade modal-fullscreen force-fullscreen"  id="frmModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-bottom: 30px;margin-top: 45px;">
+                  <div class="modal-dialog" style="width:100%;height:95%;" >
+                    <div class="modal-content" style="width:100%;height:95%;" >
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel"> Contribution / EBITDA Contribution </h4>
+                      </div>
+                      <div class="modal-body">
+                          <iframe id="modalIframe" src="#" width="100%" height="380px" frameborder="0" allowtransparency="true"></iframe>  
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>                       
+                      </div>
+                    </div>
+                    <!-- /.modal-content -->
+                  </div>  <!-- /.modal-dialog -->
+                </div>
+              </div>                              
+   
+                        
+                        
+                        
+                        
+                                   
+                        
+          <apex:remoteObjects jsNamespace="JSObjects"> 
+            <apex:remoteObjectModel name="AcctPlanContribution__c" fields="Id" jsShorthand="contribute">
+                  <apex:remoteObjectField name="Account_Plan_Company_Profile__c" jsShorthand="companyprofile" />
+                <apex:remoteObjectField name="Name" jsShorthand="name" /> 
+                <apex:remoteObjectField name="AccountPlanGroupProfile__c" jsShorthand="groupprofile" />  
+                <apex:remoteObjectField name="BusinessUnit__c" jsShorthand="businessunit" />  
+                 <apex:remoteObjectField name="EBITDAContributionPercent__c" jsShorthand="ebitda" />
+                 <apex:remoteObjectField name="Regional__c" jsShorthand="regional" />
+                <apex:remoteObjectField name="RevenueContributionPercent__c" jsShorthand="revenuepercent" />
+                  <apex:remoteObjectField name="RevenueContributionType__c" jsShorthand="revenuetype" />   
+            </apex:remoteObjectModel>
+              
+
+        </apex:remoteObjects> 
+         
+           <apex:includeScript value="{!$Resource.AccountPlan_JqueryScript}"/>
+            
+            <apex:includeScript value="{!$Resource.AccountPlan_Bootstrap}"/>
+            
+            <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+            
+            <apex:includeScript value="/support/console/22.0/integration.js"/>
+               <script type="text/javascript">
+                   
+                // Prevent Config
+                var $j = jQuery.noConflict();          
+                var contributeobj = new JSObjects.contribute(); 
+                var groupprofile = '{!GroupId}';
+                var companyprofile = '';
+                
+                Number.prototype.formatMoney = function(c, d, t){
+                    var n = this, 
+                        c = isNaN(c = Math.abs(c)) ? 2 : c, 
+                        d = d == undefined ? "." : d, 
+                        t = t == undefined ? "," : t, 
+                        s = n < 0 ? "-" : "", 
+                        i = parseInt(n = Math.abs(+n || 0).toFixed(c)) + "", 
+                        j = (j = i.length) > 3 ? j % 3 : 0;
+                    return s + (j ? i.substr(0, j) + t : "") + i.substr(j).replace(/(\d{3})(?=\d)/g, "$1" + t) + (c ? d + Math.abs(n - i).toFixed(c).slice(2) : "");
+                };      
+                //query contribution event
+                
+                contributeobj.getData = function(callback){
+                    contributeobj.retrieve({
+                        
+                         where: {
+                            and: {
+                              AccountPlanGroupProfile__c: { eq: groupprofile },
+                              Account_Plan_Company_Profile__c: {eq: ''}
+                            }
+                          },
+                        
+                        orderby: [ {RevenueContributionPercent__c: "DESC"},{Name: "ASC"} ]                   
+                    }
+                    , function(err, records){
+                            if(err) alert(err.message);
+                            else {
+                                 
+                                                  
+                                callback(records);
+                            };
+                        });
+                }
+                
+                
+                
+            
+                
+                
+                 
+                
+                
+                var contributeCallback =  function(result){
+                    
+                    
+                    var contributetableTrTemplate = "<tr>" +
+                                    "   <td data-id='{{Id}}'>{{revenuetype}}</td>"+
+                                    "   <td>{{{name}}}</td>"+
+                                    "   <td>{{revenuepercent}}%</td>"+
+                                    "   <td>{{ebitda}}%</td>"+
+                                    "</tr>";
+                    var contributetableTrTotalTemplate = "<tr class='info endRow' style='border-bottom:none;'>" +
+                                    "<td></td>"+
+                                    "   <td data-id='{{Id}}'class='text-center' style='text-align: center; vertical-align: middle;'>Total</td>"+
+                                    "   <td class='text-center' style='vertical-align: middle;'>{{revenuepercenttotal}}%</td>"+
+                                    "   <td class='text-center' style='vertical-align: middle;'>{{ebitdatotal}}%</td>"+
+                                    "</tr>"; 
+                    var mandatoryDiv = "<p id='contributeNotify' class='bg-danger text-center' style=' float: left;padding: 8px;border: 1px solid #E28888;margin-left:10px;'>"+
+                                                 "{!msgTableMandatory}"+
+                                             "</p>";
+                    var contributetable = $j('#contributetable tbody'); 
+                    var mandatoryblock = $j('#mandatoryedittable');
+                    var servicproductList= new Array();
+                    var regionalList= new Array();
+                    var businessunitList= new Array();
+                        if(result.length ==0 ){
+                                mandatoryblock.append(mandatoryDiv); 
+                                
+                           }
+                         for (index = 0; index < result.length; ++index) {
+                            var record = result[index];
+                                 
+                                     var obj  = {
+                                            Id : record.get("Id"),
+                                            name : record.get("name"),
+                                            companyprofile : record.get("companyprofile"),
+                                            groupprofile : record.get("groupprofile"),
+                                            businessunit : record.get("businessunit"),
+                                            ebitda : record.get("ebitda"),
+                                            regional : record.get("regional"),
+                                           revenuepercent : record.get("revenuepercent"),
+                                          
+                                        };
+                                        
+                             var replacename= record.get("revenuetype");
+                             obj.revenuetype = replacename.replace("amp;", "");
+                            
+                             if(obj.revenuetype == 'Contribution by business unit'){
+                                 businessunitList.push(obj); 
+                             }else if (obj.revenuetype =='Contribution by regional'){
+                                 regionalList.push(obj);
+                             }else if (obj.revenuetype =='Contribution by service & product'){
+                                 servicproductList.push(obj);
+                             }
+                            
+                                                           
+                      } 
+                
+                     var serviceproductTotal ={
+                                        Id : 'capitalloanserviceproduct-total',
+                                        revenuepercenttotal :0,
+                                        ebitdatotal : 0
+                                };
+                    var businessunitTotal ={
+                                        Id : 'businessunit-total',
+                                        revenuepercenttotal :0,
+                                        ebitdatotal : 0
+                                };
+                    var regionalTotal ={
+                                        Id : 'regional-total',
+                                        revenuepercenttotal :0,
+                                        ebitdatotal : 0
+                                };
+                    
+                    //Service Product
+                             for (index = 0; index < servicproductList.length; ++index) {
+                                    var record = servicproductList[index];
+                                 if(index!=0){
+                                    record.revenuetype ='';
+                                     }
+                                
+                                 
+                                 serviceproductTotal.revenuepercenttotal += record.revenuepercent;
+                                 record.revenuepercent = parseFloat(Math.round(record.revenuepercent * 100) / 100).toFixed(2);
+                                 if(record.ebitda >0 || record.ebitda !=null){
+                                      serviceproductTotal.ebitdatotal += record.ebitda;
+                                      record.ebitda = parseFloat(Math.round(record.ebitda * 100) / 100).toFixed(2);
+                                     
+                                     }else{
+                                         
+                                         record.ebitda =parseFloat(Math.round(0* 100) / 100).toFixed(2);
+                                  }
+                                
+                                 
+                                 contributetable.append(Mustache.render(contributetableTrTemplate, record)); 
+                                 } 
+                    
+             
+                                if(servicproductList.length >0){
+                                     var ebidtatotal =  parseFloat(Math.round( serviceproductTotal.ebitdatotal * 100) / 100).toFixed(2);
+                                    serviceproductTotal.ebitdatotal = ebidtatotal;
+                                    
+                                     var revenuetotal =   parseFloat(Math.round(serviceproductTotal.revenuepercenttotal  * 100) / 100).toFixed(2);
+                                    serviceproductTotal.revenuepercenttotal = revenuetotal;
+                                    
+                                    if(serviceproductTotal.ebitdatotal =='NaN' || serviceproductTotal.ebitdatotal ==null){
+                                        serviceproductTotal.ebitdatotal = parseFloat(Math.round(0* 100) / 100).toFixed(2);
+                                        }
+                                        
+                                    contributetable.append(Mustache.render(contributetableTrTotalTemplate, serviceproductTotal)); 
+                                    }
+                    
+                    //business unit
+                                    for (index = 0; index < businessunitList.length; ++index) {
+                                    var record = businessunitList[index];
+                                  if(index!=0){
+                                    record.revenuetype ='';
+                                     }
+                                 businessunitTotal.revenuepercenttotal += record.revenuepercent;
+                                 record.revenuepercent = parseFloat(Math.round(record.revenuepercent * 100) / 100).toFixed(2);
+                                        
+                                 if(record.ebitda >0 || record.ebitda !=null){
+                                      businessunitTotal.ebitdatotal += record.ebitda;
+                                      record.ebitda =parseFloat(Math.round(record.ebitda* 100) / 100).toFixed(2);
+                                     }else{
+                                         record.ebitda =parseFloat(Math.round(0* 100) / 100).toFixed(2);
+                                  }
+                                        
+                                 contributetable.append(Mustache.render(contributetableTrTemplate, record));   
+                                 }
+                    
+                     if(businessunitList.length >0){
+                        var ebidtatotal =  parseFloat(Math.round(businessunitTotal.ebitdatotal * 100) / 100).toFixed(2);
+                        businessunitTotal.ebitdatotal = ebidtatotal;
+                         var revenuetotal =  parseFloat(Math.round(businessunitTotal.revenuepercenttotal * 100) / 100).toFixed(2);
+                        businessunitTotal.revenuepercenttotal = revenuetotal;
+                         
+                          if(businessunitTotal.ebitdatotal  =='NaN' || businessunitTotal.ebitdatotal ==null){
+                                        businessunitTotal.ebitdatotal = parseFloat(Math.round(0* 100) / 100).toFixed(2);
+                          }
+                        contributetable.append(Mustache.render(contributetableTrTotalTemplate, businessunitTotal)); 
+                    }       
+                    
+                    
+                             for (index = 0; index < regionalList.length; ++index) {
+                                    var record = regionalList[index];
+                                  if(index!=0){
+                                    record.revenuetype ='';
+                                     }
+                                 regionalTotal.revenuepercenttotal += record.revenuepercent;
+                                 record.revenuepercent = parseFloat(Math.round(record.revenuepercent * 100) / 100).toFixed(2);
+                                  
+                                 if(record.ebitda >0 || record.ebitda !=null){
+                                      regionalTotal.ebitdatotal += record.ebitda;
+                                     record.ebitda = parseFloat(Math.round(record.ebitda * 100) / 100).toFixed(2);
+                                  
+                                     }else{
+                                         record.ebitda = parseFloat(Math.round(0* 100) / 100).toFixed(2);
+                                  }
+                                 contributetable.append(Mustache.render(contributetableTrTemplate, record));   
+                                 } 
+                    if(regionalList.length >0){
+                          var ebidtatotal =  parseFloat(Math.round(regionalTotal.ebitdatotal * 100) / 100).toFixed(2);
+                        regionalTotal.ebitdatotal = ebidtatotal;
+                         var revenuetotal =  parseFloat(Math.round(regionalTotal.revenuepercenttotal * 100) / 100).toFixed(2);
+                        regionalTotal.revenuepercenttotal = revenuetotal;
+                        
+                         if(regionalTotal.ebitdatotal =='NaN' ||regionalTotal.ebitdatotal ==null){
+                                        regionalTotal.ebitdatotal = parseFloat(Math.round(0* 100) / 100).toFixed(2);
+                                        }
+                     contributetable.append(Mustache.render(contributetableTrTotalTemplate, regionalTotal)); 
+                   }
+                    }
+                  
+                
+                
+                
+                // Ready Event  
+                $j(document).ready( function () {
+                    clearIframe(); 
+                   $j('[data-toggle="tooltip"]').tooltip();  
+                      setTitle();          
+                     //domestic callback;
+                    if(groupprofile !=null && groupprofile !=''){
+                        contributeobj.getData(contributeCallback);
+                    }
+                    $j("#contributeUI").on('click',function(event){
+                        
+                        //event.preventDefault();
+                        var mandatoryblock = $j('#mandatoryedittable');
+                        mandatoryblock.empty();
+                        $j('#modalIframe').attr("src",'/apex/RevenueContributionEditable?groupid='+groupprofile+'&companyid='+companyprofile);                 
+                        
+                        $j('#frmModel').modal({show:true});
+                    }); 
+                    
+                    $j('#frmModel').on('show.bs.modal', function () {
+                        $j(this).find('.modal-body').css({                        
+                            // 'max-height':'800px'
+                        });
+                    });
+                    
+                    $j('#frmModel').on('hidden.bs.modal', function (e) {
+                        // do something...
+                        var contributetable = $j('#contributetable tbody'); 
+                        clearIframe(); 
+                        contributetable.hide();
+                        contributetable.empty();
+                        
+                        contributeobj.getData(contributeCallback);                        
+                        contributetable.show();
+                        
+                        
+                    });
+            
+            //end callback
+                                     
+                });                 
+                function checkIshasValue(item) {
+                    var msg = item.value;                  
+                    $j(item).removeClass('info');
+                    $j(item).removeClass('danger');
+                    //$j(item).removeClass('success');
+                    if(msg !='' && msg != null && msg !='0' && msg !=0){
+                        //$j(item).addClass('success');
+                    }else{
+                        $j(item).addClass('danger'); 
+                    }                   
+                }  
+                function clearIframe(){ 
+                    $j("#modalIframe").attr('src','');
+                }
+                
+                
+//Sets the title of the current tab to "Case Transactions Detail"
+/*window.onload = function setTitleConsole(){
+            setTitle();
+        }*/
+        //Sets the title of the current tab to "Case Transactions Detail"
+        function setTitle() {
+            sforce.console.setTabTitle('Group Customer');
+        }
+        </script>     
+    </body>
+
+</apex:page>

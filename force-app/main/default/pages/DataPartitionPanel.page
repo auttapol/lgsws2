@@ -1,0 +1,367 @@
+<apex:page standardController="Account" showHeader="false" sidebar="false" standardstylesheets="true" extensions="AccountConsoleExtension">
+    <apex:includeScript value="/support/console/34.0/integration.js" />
+    <apex:includeScript value="{!$Resource.SFScript}" />
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="atk" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <!-- Static Resource -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->
+
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+
+        <style>
+            .panelbutton {
+                background-color: #ebecf0 !important;
+                color: #494C4D !important;
+                font-size: 13px !important;
+                font-weight: bold !important;
+                margin-right: 10px !important;
+                word-break: break-all !important;
+                margin-top: 9px !important;
+                width: 135vw;
+                height: 40px; 
+                padding-top:3px;
+            }
+
+            a:hover {
+                text-decoration: none !important;
+            }
+			.btn.btn-default.blockshadow.panelbutton{
+                width:100%;
+                max-width: 135px;
+                
+               }
+            .blockshadow {
+                -webkit-box-shadow: 3px 3px 4px -2px rgba(0, 0, 0, 0.75);
+                -moz-box-shadow: 3px 3px 4px -2px rgba(0, 0, 0, 0.75);
+                box-shadow: 4px 4px 5px -3px rgba(100, 100, 100, 1);
+            }
+
+            .displaySection {
+                /*float: right;*/
+                padding-top: 8px;
+                text-align: center;
+                
+            }
+            .customLabel{
+                    display: inline;
+                    padding-top: 3px
+                }
+
+            @media (max-width: 1280px) {
+                .displaySection {
+                    padding-top: 5px;
+                    text-align: center;
+                    width: 100%;
+                }
+                .btn.btn-default.blockshadow.panelbutton{
+                    width:100%;
+                    max-width: 120px;
+                }
+                .panelbutton {
+                    font-size: 12px !important;
+                    word-break: break-all !important;
+                }
+            }
+
+            @media (max-width: 800px) {
+               
+                .displaySection {
+                    padding-top: 0px;
+                    text-align: center;
+                }
+                .panelbutton {
+                    font-size: 7.5px !important;
+                    width: 63px !important; /*8 80*/
+                    height: 65px;
+                    word-break: break-all !important;
+                }
+                /*.panelbutton img{
+                    width: 15px;
+                    height: 15px;
+                }*/
+                .textbtn {
+                    display: block;
+                    clear: both;
+                    width: 50px;
+                    word-wrap: break-word;
+                }
+                /* .displaySection {
+                    float: none;
+                    width: 95%;
+                    margin: 0 auto;
+                    padding: 0 auto;
+                } */
+                .errorMsg {
+                    color: red;
+                    background-color: #ccc;
+                    margin-bottom: 10px;
+                    padding: 5px;
+                }
+                .customLabel{
+                    display: block;
+                    text-align: center;
+                    padding-right: 3px;
+                }
+               
+                
+            }
+        </style>
+    </head>
+
+    <apex:form >
+
+        <!--<p><apex:outputText value="Clicked?" id="showstate" /></p>-->
+
+        <apex:actionFunction action="{!logButtonEvent}" name="buttonClickEvent" rerender="showstate">
+            <apex:param name="buttonNameParam" value="" />
+            <apex:param name="sectionNameParam" value="" />
+        </apex:actionFunction>
+
+        <body id="body" style="background-color:white;">
+
+            <div class="bootstrap-sf1" style="background-color:white !important;">
+
+                <div class="displaySection">
+
+                    <div class="btn-group" style="width:100%" role="group" aria-label="Basic example">
+                        <a onClick="buttonClickEvent('incomeEstimation','ComCust:Income Estimation');incomeestimation();return false;">
+                            <button type="submit" class="btn btn-default blockshadow panelbutton" >
+                                <apex:image url="{!$Resource.Customer_IncomeEstimationex}" width="25" height="25" />
+                                <div class="customLabel">Income Est.</div> </button>
+                        </a>
+                        <a onClick="buttonClickEvent('wallet','ComCust:Wallet');walletret();return false;">
+                            <button type="submit" class="btn btn-default blockshadow panelbutton">
+                                <apex:image url="{!$Resource.Customer_walletex}" width="25" height="25" />
+                                <div class="customLabel">Wallet</div></button>
+                        </a>
+                        <a HREF="#" onClick="buttonClickEvent('Performance','ComCust:Performance');perf();return false">
+                            <button type="submit" class="btn btn-default blockshadow panelbutton" >
+                                <apex:image url="{!$Resource.Performance_reportex}" width="25" height="25" />
+                                <div class="customLabel">Performance</div></button>
+                        </a>
+                        <a HREF="#" onClick="buttonClickEvent('Pipeline','ComCust:Pipeline');actsumret();return false">
+                            <button type="submit" class="btn btn-default blockshadow panelbutton">
+                                <apex:image url="{!$Resource.Activity_pipelineex}" width="25" height="25" />
+                                <div class="customLabel">Pipeline</div></button>
+                        </a>
+                        <a HREF="#" onClick="buttonClickEvent('Collateral','ComCust:Collateral');collateral();return false">
+                            <button type="submit" class="btn btn-default blockshadow panelbutton">
+                                <apex:image url="{!$Resource.collateralex}" width="25" height="25" />
+                                <div class="customLabel">Collateral</div></button>
+                        </a>
+                        <a HREF="#" onClick="buttonClickEvent('Risk','ComCust:Risk Information');risk();return false">
+                            <button type="submit" class="btn btn-default blockshadow panelbutton">
+                                <apex:image url="{!$Resource.Riskex}" width="25" height="25" />
+                                <div class="customLabel">Risk</div></button>
+                        </a>
+                        <a HREF="#" onClick="buttonClickEvent('address','ComCust:Address Information');buttonClickEvent('Contact','ComCust:Contact Information');address();return false">
+                            <button type="submit" class="btn btn-default blockshadow panelbutton">
+                                <apex:image url="{!$Resource.blueMarkerex}" width="25" height="25" />
+                                <div class="customLabel">Address</div></button>
+                        </a>
+                        <a HREF="#" onClick="buttonClickEvent('Payroll','ComCust:Payroll Information');payroll();return false">
+                            <button type="submit" class="btn btn-default blockshadow panelbutton">
+                                <apex:image url="{!$Resource.Customer_Payroll}" width="25" height="25" />
+                                <div class="customLabel">Payroll</div></button>
+                        </a>
+                    </div>
+
+                    <!-- CR Income Estimation -->
+                    <!-- <a onClick="buttonClickEvent('incomeEstimation','ComCust:Income Estimation');incomeestimation();return false;">
+                        <button class="btn btn-default blockshadow panelbutton" type="submit" style="width:140px;">
+                            <apex:image url="{!$Resource.Customer_IncomeEstimation}" width="25" height="25" /> -->
+                    <!-- <span class="textbtn">Customer</span> -->
+                    <!-- <span class="textbtn">Income Est.</span>
+                        </button>
+                    </a> -->
+
+                    <!-- CR Income Estimation -->
+                    <!-- <a onClick="buttonClickEvent('wallet','ComCust:Wallet');walletret();return false;">
+                        <button class="btn btn-default blockshadow panelbutton" type="submit">
+                            <apex:image url="{!$Resource.Customer_wallet}" width="25" height="25" /> -->
+                    <!-- <span class="textbtn">Customer</span> -->
+                    <!-- <span class="textbtn">wallet</span>
+                        </button>
+                    </a> -->
+
+
+                    <!-- <a HREF="#" onClick="buttonClickEvent('Performance','ComCust:Performance');perf();return false">
+                        <button class="btn btn-default blockshadow panelbutton" type="submit" style="width:140px;">
+                            <apex:image url="{!$Resource.Performance_report}" width="25" height="25" />
+                            <span class="textbtn">Performance</span> -->
+                    <!-- <span class="textbtn">report</span> -->
+                    <!-- </button>
+                    </a> -->
+
+                    <!-- <a HREF="#" onClick="buttonClickEvent('Pipeline','ComCust:Pipeline');actsumret();return false">
+                        <button class="btn btn-default blockshadow panelbutton" type="submit">
+                            <apex:image url="{!$Resource.Activity_pipeline}" width="20" height="25" /> -->
+
+                    <!-- <span class="textbtn">Activity/</span> -->
+                    <!-- <span class="textbtn">Pipeline</span>
+                        </button>
+                    </a> -->
+
+                    <!-- <a HREF="#" onClick="buttonClickEvent('Collateral','ComCust:Collateral');collateral();return false">
+                        <button class="btn btn-default blockshadow panelbutton" type="submit">
+                            <apex:image url="{!$Resource.collateral }" width="20" height="25" />
+                            <span class="textbtn">Collateral</span>
+                        </button>
+                    </a> -->
+
+                    <!-- <a HREF="#" onClick="buttonClickEvent('Risk','ComCust:Risk Information');risk();return false">
+                        <button class="btn btn-default blockshadow panelbutton" type="submit">
+                            <apex:image url="{!$Resource.Risk}" width="20" height="25" />
+                            <span class="textbtn">Risk</span>
+                        </button>
+                    </a> -->
+
+                    <!-- <a HREF="#" onClick="buttonClickEvent('address','ComCust:Address Information');buttonClickEvent('Contact','ComCust:Contact Information');address();return false">
+                        <button class="btn btn-default blockshadow panelbutton" type="submit" style="width:140px;">
+                            <apex:image url="{!$Resource.blueMarker}" width="24" height="24" />
+                            <span class="textbtn">Address</span> -->
+                    <!-- <span class="textbtn">report</span> -->
+                    <!-- </button>
+                    </a> -->
+                </div>
+            </div>
+        </body>
+    </apex:form>
+
+    <script>
+        $(document).ready(function () {
+            //$('.mask').css("pointer-events","none");     
+        });
+
+        function perf() {
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                // console.log("perf1");
+                //NavigateTo('apex/Performance_ReportMobile2?id={!acct.id}&sfredirect=true','Performance Report');
+                NavigateTo('apex/PerformanceProxyCtrl?acctId={!acct.id}&sfredirect=true', 'Performance Report');
+            } else {
+                // console.log("perf2");
+                //NavigateTo('apex/Performance_Report2?id={!acct.id}','Performance Report');
+                NavigateTo('apex/PerformanceProxyCtrl?acctId={!acct.id}&sfredirect=true', 'Performance Report');
+            }
+        }
+
+        // CR Income Estimation --START--
+        function incomeestimation() {
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                NavigateTo('apex/DataPartitionDetail?id={!acct.id}&type=10&sfredirect=true', 'Income Estimation');
+                // NavigateTo('apex/PerformanceProxyCtrl?acctId={!acct.id}','Collateral Report');
+            } else {
+                NavigateTo('apex/DataPartitionDetail?id={!acct.id}&type=10', 'Income Estimation');
+                //NavigateTo('apex/PerformanceProxyCtrl?acctId={!acct.id}','Collateral Report');
+            }
+        }
+        // CR Income Estimation --END--
+
+        function walletret() {
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                NavigateTo('apex/DataPartitionDetail?id={!acct.id}&type=1&sfredirect=true', 'Customer Wallet');
+                // NavigateTo('apex/PerformanceProxyCtrl?acctId={!acct.id}','Collateral Report');
+            } else {
+                NavigateTo('apex/DataPartitionDetail?id={!acct.id}&type=1', 'Customer Wallet');
+                //NavigateTo('apex/PerformanceProxyCtrl?acctId={!acct.id}','Collateral Report');
+            }
+        }
+
+        function actsumret() {
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                NavigateTo('apex/DataPartitionDetail?id={!acct.id}&type=2&sfredirect=true', 'Activity/ Pipeline');
+
+            } else {
+                NavigateTo('apex/DataPartitionDetail?id={!acct.id}&type=2', 'Activity/ Pipeline');
+            }
+        }
+
+        function risk() {
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                NavigateTo('apex/DataPartitionDetail?id={!acct.id}&type=3&sfredirect=true', 'Risk Information');
+            } else {
+                NavigateTo('apex/DataPartitionDetail?id={!acct.id}&type=3', 'Risk Information');
+            }
+        }
+
+        function collateral() {
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                //NavigateTo('apex/Collateral_Report_Mobile?id={!acct.id}&sfredirect=true','Risk Information');
+                NavigateTo('apex/CollateralProxyCtrl?acctId={!acct.id}&collateral={!CollateralReportId}', 'Collateral');
+            } else {
+                //NavigateTo('../{!CollateralReportId}?pv0={!acct.id}','Collateral Report');
+                NavigateTo('apex/CollateralProxyCtrl?acctId={!acct.id}&collateral={!CollateralReportId}', 'Collateral');
+            }
+        }
+
+        function address() {
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                NavigateTo('apex/DataPartitionAddress?id={!acct.id}&type=3&sfredirect=true', 'Address');
+            } else {
+                NavigateTo('apex/DataPartitionAddress?id={!acct.id}&type=3', 'Address');
+            }
+        }
+
+        function payroll() {
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                NavigateTo('apex/DataPartitionDetail?id={!acct.id}&type=11&sfredirect=true', 'Payroll Information');
+            } else {
+                NavigateTo('apex/DataPartitionDetail?id={!acct.id}&type=11', 'Payroll Information');
+            }
+        }
+
+        var ObjId;
+        var Title;
+
+        function NavigateTo(ObjId, Title) {
+            this.ObjId = ObjId;
+            this.Title = Title;
+            var theme = '{!$User.UIThemeDisplayed}';
+            // console.log(theme);
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                sforce.one.navigateToURL('/' + ObjId);
+            }
+            else if (sforce.console.isInConsole()) {
+                //First find the ID of the primary tab to put the new subtab in
+                sforce.console.getEnclosingPrimaryTabId(openSubtab);
+
+            }
+            else {
+                //window.location.href = ObjId;
+                window.open('/' + ObjId);
+
+            }
+
+        }
+
+        var openSubtab = function openSubtab(result) {
+            var primaryTabId = result.id;
+            sforce.console.openSubtab(primaryTabId, '/' + ObjId, true, Title, null, null, 'salesforceSubtab');
+        };
+
+        /*
+        DataPartitionDetail
+        DataPartitionAddress
+        Performance_Report2
+        CollateralProxyCtrl (apex)
+        ProductOnHandV2
+        AccountConsoleExtension (apex)
+        */
+    </script>
+</apex:page>

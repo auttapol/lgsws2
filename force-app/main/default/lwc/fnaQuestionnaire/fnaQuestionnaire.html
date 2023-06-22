@@ -1,0 +1,248 @@
+<template>
+    <span class={loadingDisplay}>
+        <div id="spinnerDiv" class="demo-only demo--inverse" >
+            <div class="slds-spinner_container">
+                <div role="status" class="slds-spinner slds-spinner_medium">
+                    <span class="slds-assistive-text">Loading</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </div>
+    </span>
+    <div class={loadingQuestion}>
+        <header>
+            <div class="topbar" style="z-index: 9000;">
+                <a href="javascript:void(0)" onclick={exitPage} name="exit" class="float-right cta hvr-fade" id="exit" style="opacity: 1;"><h2>Exit</h2></a>
+                <img src={imageResource.logo} class="logo" />
+                <a href="javascript:void(0)" onclick={backPage} name="back" class="float-left cta hvr-fade" id="previous" style="opacity: 1;"><h2>Back</h2></a>
+            </div>
+            <div class="unsupported">
+                <img src={imageResource.notSupport} /><br>
+                <h2>
+                    Your device is not supported, please upgrade your device if you want to take this journey with us!
+                </h2>
+            </div>
+            <div class="orientation">
+                <img src={imageResource.orientation} />
+                <h2>
+                    Sorry! The page can't be displayed on your monitor or device.<br>Please try rotating your device to portrait mode, or enlarge your browser window to continue.
+                </h2>
+            </div>
+        </header>
+
+        <main>
+            <!-- Section Not Support -->
+            <section class="too-small">
+                <div class="container">
+                    <div class="row">
+                        <div class="col">
+                            <hr>
+                        </div>
+                        <div class="col-8">
+                            <div class="frown text-center">
+                                <img src={imageResource.hurt} class="img-fluid" />
+                            </div>
+                            <div class="dizzy text-center">
+                                <img src={imageResource.dead} class="img-fluid" />
+                            </div>
+                            <div class="box">
+                                <h1>
+                                    Your device is not supported, please upgrade your device if you want to take this journey with us!
+                                    <br/>
+                                        <i class="fas fa-mobile-alt">
+                                    </i>
+                                </h1>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <hr>
+                        </div>
+                    </div>
+                </div>
+            </section>
+            <section class="questions" tabindex="0" style="overflow-y: scroll;">
+                <div class="pb-3" data-id="headerTop"> </div>
+                <div class="secQuestion">
+                    <h1 class={headerInput}>{temp.question.Question__c}</h1> 
+                    <!-- <h1>{testDevice}</h1> -->
+                </div>
+
+                <!-- template 1 single input -->
+                <template if:true={questionTemplate.template1}> 
+                    <div class={classInput} data-progress="10">
+                        <div class={imgInputAvatarName}>
+                            <template for:each={choice} for:item='item'>
+                                <img src={item.urlImage} key={item.id} />
+                            </template>
+                        </div>
+                        
+                        <div class="form form-inline">
+                            <div class="col-md-3"></div>
+                            <div class="col-md-4">
+                                <input type="text" class="form-control form-control-lg avatarName" name="inputName" value={answer} onfocus={handleCheckFocus} onblur={handleCheckUnFocus} onkeyup={handleChange} maxlength="20" placeholder={temp.question.Question__c}>
+                            </div>
+                            <div class="col-md-2">
+                                <button onclick={nextPage} title="ต่อ" class="btn-lg cta hvr-grow" name="nextStep" data-field="name" data-value="singleValue">ต่อ</button>
+                            </div>
+                            <div class="col-md-3"></div>
+                        </div>
+                        <p class={err}>กรุณาตั้งชื่อให้กับ Avatar ของคุณ</p>
+                    </div>
+                </template> 
+
+                <!-- template 2 full row-->
+                <template if:true={questionTemplate.template2}>
+                    <div class="mgmt pb-question">
+                        <template for:each={choice} for:item='item'>
+                            <div class="row" key={item.id}>
+                                <div class="col-md-3">
+                                </div>
+                                <div class="col-md-6">
+                                    <a href="javascript:void(0)" onclick={nextPage} name={item.id} class={item.btnClass} data-value={item.choice}>
+                                        <h2>{item.choice}</h2>
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                    
+                <!-- template 3 LR inline-->
+                <template if:true={questionTemplate.template3}>
+                    <div class="sex" data-progress="0">
+                        <div class="row pb-question">
+                            <div class="col-md-3">
+                            </div>
+                            <template for:each={choice} for:item='item'>
+                                <div class="col-md-3" key={item.id}>
+                                    <a href="javascript:void(0)" onclick={nextPage} class={item.btnClass} data-field="sex" data-item={item.id} name={item.id} data-value={item.choice}>
+                                        <img src={item.urlImage} class={item.imageClass} />
+                                        <h2>{item.choice}</h2>
+                                    </a>
+                                </div>
+                            </template>
+                            <div class="col-md-3">
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- template 4 LR row-->
+                <template if:true={questionTemplate.template4}>
+                    <div class="job" data-progress="40">
+                        <div class="row pb-question">
+                            <template for:each={choice} for:item='item'>
+                                <div class="col-lg-3" if:false:={item.bootstrap} key={item.id}>
+                                </div>
+                                <div class="col-lg-3" if:false:={item.bootstrap} key={item.id}>
+                                    <a href="javascript:void(0)" class={item.btnClass} onclick={nextPage} name={item.id} title={item.choice} data-value={item.choice}>
+                                        <img src={item.urlImage} class={item.imageClass} />
+                                        <h2>{item.choice}</h2>
+                                    </a>
+                                </div>
+                                <div class="col-lg-3" if:true:={item.bootstrap} key={item.id}>
+                                    <a href="javascript:void(0)" class={item.btnClass} onclick={nextPage} name={item.id} title={item.choice} data-value={item.choice}>
+                                        <img src={item.urlImage} class={item.imageClass} />
+                                        <h2>{item.choice}</h2>
+                                    </a>
+                                </div>
+                                <div class="col-lg-3" if:true:={item.bootstrap} key={item.id}>
+                                </div>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- template 5 Multi-->
+                <template if:true={questionTemplate.template5}>
+                    <div class="concentrate" data-progress="90">
+                        <div class="btn-group btn-group-toggle" data-toggle="buttons">
+                            <div class="row" >
+                                <template for:each={choice} for:item='item'>
+                                    <div class="col-lg-3" if:false:={item.bootstrap} key={item.id}>
+                                    </div>
+                                        <div class="col-lg-3" onclick={chooseMuti} if:false:={item.bootstrap} key={item.id}>
+                                            <div class={item.btnClass} data-item={item.id} onclick={addAnswer} title={item.choice} data-name={item.id} data-value={item.choice}>
+                                                <p>{item.choice}</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-lg-3" onclick={chooseMuti} if:true:={item.bootstrap} key={item.id}>
+                                            <div class={item.btnClass} data-item={item.id} onclick={addAnswer} title={item.choice} data-name={item.id} data-value={item.choice}>
+                                                <p>{item.choice}</p>
+                                            </div>
+                                        </div>
+                                    <div class="col-lg-3" if:true:={item.bootstrap} key={item.id}>
+                                    </div>
+                                </template>
+                            </div>
+                        </div>
+                        <div class="row pb-question">
+                            <div class="col-md-3">
+                            </div>
+                            <div class="col-md-6">
+                                <button onclick={nextPage} type="submit" name="submit" class="btn-lg cta hvr-grow show-persona" data-field="focus" data-value="multipleChoice">ต่อ</button>
+                                <p class={err}>กรุณาเลือกคำตอบอย่างน้อย 1 ข้อ</p>
+                            </div>
+                            <div class="col-md-3">
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <!-- template 6 Scroll-->
+                <!-- <template if:true={questionTemplate.template6}>
+                    <c-fna-scroll-list onvaluechanged={handleEventChangeYear} age-property={ageValue}></c-fna-scroll-list>
+                    <div class="age">
+                        <button onclick={nextPage} title="Next" data-value="singleValue" class="col btn-lg cta hvr-grow">ต่อ</button>    
+                    </div> -->
+                    <!-- <div class="age" data-progress="20">
+
+                        <div class="js-inline-picker">1992</div>
+                        <button type="submit" class="col btn-lg cta hvr-grow" data-next-stage="children" data-field="year_of_birth" data-value="yearOfBirth()">ต่อ</button>
+                    </div> -->
+                <!-- </template> -->
+
+                <!-- template 7 LR inline Class info-->
+                <template if:true={questionTemplate.template7}>
+                    <div class="info" data-progress="0">
+                        <div class="row pb-question">
+                            <div class="col-md-3">
+                            </div>
+                            <template for:each={choice} for:item='item'>
+                                <div class="col-md-3" key={item.id}>
+                                    <a href="javascript:void(0)" onclick={nextPage} class={item.btnClass} name={item.id} data-field="info" data-item={item.id} data-value={item.choice}>
+                                        <img src={item.urlImage} class={item.imageClass} />
+                                        <h2>{item.choice}</h2>
+                                    </a>
+                                </div>
+                            </template>
+                            <div class="col-md-3">
+                            </div>
+                        </div>
+                    </div>
+                </template>
+
+                <div class="animation" style={progress}>
+                    <img src={imageResource.wheel} class="leftwheel spin" />
+                    <img src={imageResource.biker} class="biker" />
+                    <img src={imageResource.wheel} class="rightwheel spin"/>
+                </div>
+            </section>
+            <section class="parallax">
+                <div class="horizon scroll" style={progressBG}>
+                    <img src={imageResource.horizon} alt="" style="max-width: unset;"/>
+                </div>
+                <!-- style={progressBG} -->
+                <div class={move} >
+                    <img src={imageResource.middle} alt="" style="max-width: unset;" />
+                </div>
+                <div class="front scroll" style={progressBGs}>
+                    <img src={imageResource.front} alt="" style="max-width: unset;"/>
+                </div>
+            </section>
+        </main>
+    </div>
+</template>

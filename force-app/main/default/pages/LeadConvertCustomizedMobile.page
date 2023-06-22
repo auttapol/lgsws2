@@ -1,0 +1,562 @@
+<apex:page standardcontroller="Lead" id="thePage" extensions="LeadActionController" applyBodyTag="false" showHeader="false"
+    standardstylesheets="true" lightningStylesheets="true" doctype="html-5.0">
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+
+    <apex:includeScript value="/support/console/33.0/integration.js" />
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+    <!--Include stylesheets for the mobile look and feel -->
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    <apex:actionStatus onstart="startLoading();" onstop="endLoading();" id="loadStatus" />
+
+    <style>
+        tr.dataRow {
+            background-color: white;
+        }
+
+        tr.dataRow:hover {
+            background-color: #e3f3ff;
+        }
+
+        .buttommargin {
+            margin-bottom: 10px;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+
+        input,
+        select {
+            width: auto !important;
+            height: auto !important;
+            padding: 3px !important;
+            font-size: auto !important;
+        }
+
+        input[type=text],
+        select {
+            border: 1px solid #ccc !important;
+            width: 140px !important;
+            padding-top: 8px;
+        }
+
+        input[type=checkbox],
+        input[type=radio] {
+            width: auto !important;
+            height: auto !important;
+            margin: 0 !important;
+            padding: 0 !important;
+        }
+
+        .sf1List {
+            margin: 0;
+            display: list-item;
+            padding: 14px;
+            border-bottom: solid 1px #cfd4d9;
+            list-style: none;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            color: rgb(60, 61, 62);
+        }
+
+        .sf1List:first-child {
+            border-radius: 4px 4px 0px 0px;
+        }
+
+        .sf1List:last-child {
+            border-radius: 0px 0px 4px 4px;
+            border-bottom: none;
+        }
+
+        .sf1List a {
+            display: block;
+            width: 100%;
+            height: 100%;
+            text-decoration: none;
+            color: rgb(60, 61, 62);
+        }
+    </style>
+    <style type="text/css">
+        @media (max-width: 500px) {
+            .bootstrap-sf1 .form-horizontal .form-group {
+                margin-left: -10px;
+                margin-right: -10px;
+            }
+            .dateOnlyInput .dateFormat {
+                top: 25px;
+            }
+            input[type="checkbox"],
+            input[type="radio"] {
+                height: 30px;
+                width: 50px;
+            }
+            .bootstrap-sf1 .form-horizontal .checkbox {
+                margin-bottom: 5px;
+            }
+            .bootstrap-sf1 .radio label,
+            .bootstrap-sf1 .checkbox label {
+                padding-left: 40px;
+            }
+            .bootstrap-sf1 .radio input[type="radio"],
+            .bootstrap-sf1 .radio-inline input[type="radio"],
+            .bootstrap-sf1 .checkbox input[type="checkbox"],
+            .bootstrap-sf1 .checkbox-inline input[type="checkbox"] {
+                position: absolute;
+                margin-left: -45px;
+                top: -5px;
+            }
+            .bootstrap-sf1 {
+                overflow: hidden;
+            }
+            .bootstrap-sf1 .container {
+                padding-left: 0px;
+                padding-right: 0px;
+            }
+            .bootstrap-sf1 .page-header[class*="context-"] {
+                position: relative;
+                padding-top: 14px;
+                margin: -15px -15px 10px -15px;
+            }
+        }
+
+        .bootstrap-sf1 {
+            background-color: #FFF;
+        }
+    </style>
+
+    <!-- svg loader style -->
+    <style>
+        .Indicator {
+            /*position : relative;*/
+        }
+
+        .Indicator.hidden {
+            display: none;
+        }
+
+        .Indicator .modal-glass {
+            background-color: #000000;
+            bottom: 0;
+            display: block;
+            left: 0;
+            margin-left: 0px;
+            opacity: 0.3;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100%;
+            z-index: 1999;
+        }
+
+        .Indicator .hideEl {
+            display: none;
+        }
+
+        .Indicator .indicatorContainer {
+            background: none repeat scroll 0 0 #354452;
+            border-radius: 5px;
+            color: #FFFFFF;
+            display: block;
+            height: 82px;
+            left: 0;
+            margin: -65px auto;
+            opacity: 0.9;
+            padding-top: 22px;
+            position: fixed;
+            right: 0;
+            text-align: center;
+            top: 250px;
+            width: 110px;
+            z-index: 2000;
+        }
+
+        /*Set the color of the icon*/
+
+        svg path,
+        svg rect {
+            fill: #2A94D6;
+        }
+
+        .text-blue-color {
+            color: #2a94d6;
+        }
+
+        .bootstrap-sf1 label {
+            margin-top: 5px;
+        }
+    </style>
+    <style>
+        /*Custom Style*/
+
+        #interestedSection label {
+            width: 140px;
+        }
+
+        #createOpptySection1 label {
+            width: 150px;
+            margin: 5px 0;
+            padding: 0;
+        }
+
+        .actionButton {
+            width: 100px;
+            text-align: center !important;
+        }
+
+        #createOpptySection1 .data2Col {
+            padding: 2px 0px 2px 0 !important;
+        }
+
+        #createOpptySection1 .labelCol {
+            padding: 2px 10px 2px 0 !important;
+        }
+
+        .message ol,
+        .message ul {
+            list-style: initial !important;
+        }
+
+        .datePicker {
+            left: 0 !important;
+            right: 0 !important;
+            width: 230px !important;
+            margin: 0 auto !important;
+        }
+
+        #calMonthPicker {
+            width: 90px !important;
+        }
+
+        #calYearPicker {
+            width: 70px !important;
+        }
+
+        .data2Col li {
+            list-style: none !important;
+        }
+
+        .data2Col ul {
+            padding-left: 15px;
+        }
+
+        #createOpptySection1 a {
+            font-size: 12px !important;
+            color: #2a94d6 !important;
+        }
+    </style>
+
+    <div id="SF1" class="bootstrap-sf1" style="display:none">
+        <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+        <div class="loadingBox overlay"></div>
+        <!-- noenter : used to auto click button dave -->
+        <apex:form onkeypress="return noenter(event)" style="padding:5px;">
+            <apex:actionstatus id="status">
+                <apex:facet name="start">
+                    <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                        &nbsp;
+                    </div>
+                    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                        <img src="/img/loading32.gif" />
+                    </div>
+                </apex:facet>
+            </apex:actionstatus>
+
+            <div class="bootstrap-sf1 ">
+                <div class="container" style="margin-top:15px;">
+                    <!-- Account -->
+                    <div class="page-header page-header-anchor context-opportunity">
+                        <div class="container">
+                            <h1>Convert Lead</h1>
+                            <h3>{!leadobj.Name}</h3>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="bootstrap-sf1">
+                <div class="container">
+                    <apex:outputPanel id="PageMessagesPanel">
+                        <div style="color:#CC0000 !important;margin-left:20px !important;">
+                            <b>
+                                <apex:outputText value="{!convertLeadWarning}" rendered="{! !(isRequiredOpp && IsAllowToConvert)}" />
+                                <apex:outputText value="{!convertOppornuityMessage}" rendered="{!isRequiredOpp && IsAllowToConvert}" />
+                            </b>
+                        </div>
+                        <br />
+                        <br />
+
+                    </apex:outputPanel>
+                    <apex:pageblock mode="Edit" id="pageblock">
+                        <apex:outputpanel id="statusMessage">
+                            <apex:pagemessages ></apex:pagemessages>
+                        </apex:outputpanel>
+
+                        <apex:outputPanel rendered="{!launchNextPage}" id="launchPanel">
+                            <script>sforce.one.navigateToSObject('{!leadObj.Id}');</script>
+                        </apex:outputPanel>
+
+
+
+                        <div style="margin:15px auto; text-align:center;">
+                            <apex:commandbutton action="{!confirmContacted}" value="Confirm" rendered="{! IsAllowToConvert && !isRequiredOpp && isNeedtoConfirmContacted }"
+                                status="loadStatus" rerender="pageblock,convertsection,opptySection,opptySectionInput,statusMessage,PageMessagesPanel,launchPanel"
+                                id="confirmButton" styleClass="btn btn-default actionButton" />
+
+                            <apex:commandbutton action="{!convertLead}" value="Save" rendered="{!IsAllowToConvert && !isRequiredOpp && !isNeedtoConfirmContacted }"
+                                status="loadStatus" rerender="pageblock,convertsection,opptySection,opptySectionInput,statusMessage,PageMessagesPanel,launchPanel"
+                                id="convertButton" styleClass="btn btn-default actionButton" />
+                            <apex:commandbutton action="{!ConvertAction}" value="Create Opportunity" rendered="{!IsAllowToConvert && isRequiredOpp}"
+                                status="loadStatus" rerender="pageblock,convertsection,opptySection,opptySectionInput,statusMessage,PageMessagesPanel,launchPanel"
+                                id="actionButton" styleClass="btn btn-default " style="width: 150px;" />
+
+                            <apex:commandbutton onclick="navigateTo('{!leadobj.Id}');" value="Cancel" rerender="pageblock" styleClass="btn btn-default actionButton"
+                            />
+                        </div>
+                        <apex:actionFunction immediate="true" name="resultChange" action="{!interestAction}" status="status" rerender="convertsection,statusMessage">
+                            <!-- //Fixed: 2018Jan -->
+                            <apex:param value="" name="inpInterestResult" />
+                        </apex:actionFunction>
+
+                        <!-- Detail 1 -->
+                        <div id="interestedSection" style="margin:0 auto; width: 350px;">
+                            <apex:pageblocksection columns="1" id="convertsection" rendered="{! !isRequiredOpp && IsAllowToConvert && !isNeedtoConfirmContacted }">
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel styleClass="labelCustom">Convert to Opportunity</apex:outputLabel>
+                                    <apex:inputfield value="{!leadobj.Interest_result__c}" required="true" onchange="InterestResultChange(this)" />
+                                </apex:pageBlockSectionItem>
+
+
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel styleClass="labelCustom" rendered="{!if(leadobj.Interest_result__c=='No',true,false)}" id="UninterestedReason1">Unqualified Reason</apex:outputLabel>
+                                    <apex:inputfield value="{!leadobj.Unqualified_Reasons__c}" rendered="{!if(leadobj.Interest_result__c=='No',true,false)}"
+                                        id="UninterestedReason2" required="true" />
+                                </apex:pageBlockSectionItem>
+                                <!-- #### 
+                            Edit By: Danudath
+                            Date: 27-02-2017
+                            CR: Modify ‘Reason List’ in Lead Management
+                            -->
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel styleClass="labelCustom" rendered="{!if(leadobj.Interest_result__c=='No',true,false)}" id="UninterestedReason3">Sub Unqualified Reason</apex:outputLabel>
+                                    <apex:inputfield value="{!leadobj.Sub_Unqualified_Reason__c}" rendered="{!if(leadobj.Interest_result__c=='No',true,false)}"
+                                        id="UninterestedReason4" required="true" />
+                                </apex:pageBlockSectionItem>
+                                <!-- ### Edn edit by Danudath -->
+
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel styleClass="labelCustom">Other Reason </apex:outputLabel>
+                                    <apex:inputfield value="{!leadobj.other_Reason__c }" />
+                                </apex:pageBlockSectionItem>
+
+
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel styleClass="labelCustom" style="display:none;" id="UninterestedAction1">Uninterested Action</apex:outputLabel>
+                                    <apex:inputfield value="{!leadobj.Unqualified_Action__c}" style="display:none;" id="UninterestedAction2" />
+                                </apex:pageBlockSectionItem>
+
+
+
+                            </apex:pageblocksection>
+                            <br />
+                        </div>
+
+                        <div id="createOpptySection1" style="margin:0 auto; width: 350px;">
+                            <apex:pageblocksection columns="1" id="opptySectionInput" rendered="{! isRequiredOpp && IsAllowToConvert}">
+                                <apex:inputfield type="date" value="{!oppty.Expected_submit_date__c}" required="true" style="width: 90px !important;" />
+                                <apex:inputfield type="date" value="{!oppty.CloseDate}" required="true" style="width: 90px !important;" />
+                                <apex:pageBlockSectionItem rendered="{!leadobj.Account__c!=null}">
+                                    <apex:outputLabel value="Link to Customer" />
+                                    <apex:outputLink onclick="navigateTo('{!leadobj.Account__c}');" id="CustLink">
+                                        {!leadobj.Account__r.Name}
+                                    </apex:outputLink>
+                                    <!--<a href="#" id="CustLink"  style="color: #2a94d6;" onclick="navigateTo('{!leadobj.Account__c}');">
+                                   {!leadobj.Account__r.Name}
+                               </a>-->
+                                </apex:pageBlockSectionItem>
+                                <br />
+                            </apex:pageblocksection>
+                        </div>
+                        <div id="createOpptySection2" style="margin:0 auto; width: 350px;">
+                            <apex:pageblocksection columns="1" id="opptySection" rendered="{! isRequiredOpp && IsAllowToConvert}">
+                                <apex:outputPanel id="result" rendered="{!ProductWrapperList.size>0}">
+                                    <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                        <!--<tr class="headerRow">
+                                        <th class="headerRow" style="width:50px;"> Selection </th>
+                                        <th class="headerRow"> Product Name </th>
+                                        <th class="headerRow"> Opportunity Type </th>
+                                        <th class="headerRow"> Link to Opportunity </th>
+                                    </tr> -->
+                                        <apex:repeat value="{!ProductWrapperList}" var="prod">
+                                            <!--<tr class="dataRow">
+                                            <td class="dataCell lb-center"> 
+                                               <apex:inputCheckbox value="{!prod.Isselected}"/>
+                                            </td>
+                                            <td class="dataCell">
+                                          <apex:pageBlockSectionItem  > 
+                                            <apex:outputLabel value="ProductName"   />
+                                               <apex:outputLink 
+                                               onclick="navigateTo('{!prod.ProductIN.Product__c }');" 
+                                               id="ProductLink" >
+                                                  {!prod.ProductIN.Product__c}
+                                                  </apex:outputLink>
+                                          </apex:pageBlockSectionItem>
+                                               
+                                               
+                                               </td>
+                                            <td class="dataCell"><apex:outputfield value="{!prod.ProductIN.Opportunity_Type__c}" /></td>
+                                            <td class="dataCell"> <apex:inputfield value="{!prod.ProductIN.Opportunity__c  }" rendered="{!prod.ProductIN.Opportunity_Type__c !='No Opp'}" style="width:94%"/></td>
+                                        </tr>-->
+                                            <tr class="dataRow">
+                                                <td>
+                                                    <apex:inputCheckbox value="{!prod.Isselected}" />
+                                                </td>
+                                                <td>
+                                                    <div class="card-heading">
+                                                        <!--  <span><b>Product Name :&nbsp;</b></span>
+                                                    <b><apex:outputfield value="{!prod.ProductIN.Product__c}"/></b> -->
+
+                                                        <apex:pageBlockSectionItem >
+                                                            <apex:outputLabel value="Product Name" />
+                                                            <apex:outputLink onclick="navigateToURL('{!prod.ProductIN.Product__c }');" id="ProductLink">
+                                                                {!prod.ProductIN.Product__r.Name}
+                                                            </apex:outputLink>
+                                                            <!--<a href="#" id="ProductLink"  style="color: #2a94d6;" onclick="navigateToURL('{!prod.ProductIN.Product__c }');">
+                                                           {!prod.ProductIN.Product__r.Name}
+                                                           </a>-->
+                                                        </apex:pageBlockSectionItem>
+                                                    </div>
+                                                    <ul class="card-detail">
+                                                        <li>Opportunity Type :&nbsp;
+                                                            <apex:outputfield value="{!prod.ProductIN.Opportunity_Type__c}" />
+                                                        </li>
+                                                        <li>Link to Opportunity :&nbsp;
+                                                            <apex:inputfield value="{!prod.ProductIN.Opportunity__c  }" rendered="{!prod.ProductIN.Opportunity_Type__c !='No Opp' && !isCommercialLead}"
+                                                            />
+                                                        </li>
+                                                    </ul>
+                                                </td>
+                                            </tr>
+                                        </apex:repeat>
+                                    </table>
+                                    <br/>
+                                    <!-- <apex:panelGrid columns="4"  >
+                                    <apex:commandLink action="{!first}" rendered="{!hasPrevious}" reRender="resultblock" status="loadStatus" >First</apex:commandlink>
+                                    <apex:commandLink action="{!previous}" rendered="{!hasPrevious}" reRender="resultblock" status="loadStatus" >Previous</apex:commandlink>
+                                    <apex:commandLink action="{!next}" rendered="{!hasNext}" reRender="resultblock" status="loadStatus" >Next</apex:commandlink>
+                                    <apex:commandLink action="{!last}" rendered="{!hasNext}" reRender="resultblock" status="loadStatus" >Last</apex:commandlink>
+                                    </apex:panelGrid> -->
+                                </apex:outputPanel>
+                            </apex:pageblocksection>
+                        </div>
+                    </apex:pageblock>
+                </div>
+            </div>
+            <!-- /Loadding ajax -->
+            <div id="loadingImage" class="Indicator">
+                <div class="modal-glass">&nbsp;</div>
+                <div class="indicatorContainer" role="alert">
+                    <div class="loader" title="0">
+                        <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                            width="40px" height="40px" viewBox="0 0 40 40" enable-background="new 0 0 40 40" xml:space="preserve">
+                            <path opacity="0.2" fill="#000" d="M20.201,5.169c-8.254,0-14.946,6.692-14.946,14.946c0,8.255,6.692,14.946,14.946,14.946
+                                                           s14.946-6.691,14.946-14.946C35.146,11.861,28.455,5.169,20.201,5.169z M20.201,31.749c-6.425,0-11.634-5.208-11.634-11.634
+                                                           c0-6.425,5.209-11.634,11.634-11.634c6.425,0,11.633,5.209,11.633,11.634C31.834,26.541,26.626,31.749,20.201,31.749z">
+                            </path>
+                            <path fill="#000" d="M26.013,10.047l1.654-2.866c-2.198-1.272-4.743-2.012-7.466-2.012h0v3.312h0
+                                             C22.32,8.481,24.301,9.057,26.013,10.047z">
+                                <animateTransform attributeType="xml" attributeName="transform" type="rotate" from="0 20 20" to="360 20 20" dur="0.5s" repeatCount="indefinite">
+                                </animateTransform>
+                            </path>
+                        </svg>
+                    </div>
+                    <div id="Indicator-message">Loading ...</div>
+                </div>
+            </div>
+            <!-- Loading ajax -->
+        </apex:form>
+    </div>
+    <script type="text/javascript">
+        var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+        var theme = '{!$User.UIThemeDisplayed}';
+        if ((theme == 'Theme4u' || theme == 'Theme4t') && isLightningMode) {
+            sforce.one.navigateToURL('/apex/LeadConvertCutomized?core.apexpages.request.devconsole=1&id={!Lead.Id}', true);
+        } else {
+            $('#SF1').show();
+        }
+        $(document).ready(function () {
+            //startLoading();
+            setTimeout(function () { sfView.onComplete(); }, 1000);
+        });
+        var sfView = (function () {
+            var indicator = $("#loadingImage");
+            var msg = $("#Indicator-message");
+            // All functions now have direct access to each other
+            var onProcess = function (strmessage) {
+                msg.text(strmessage);
+                indicator.removeClass('hidden');
+            };
+            var onComplete = function () {
+                indicator.addClass('hidden');
+            };
+            // Return the object that is assigned to Module
+            return {
+                onProcess: onProcess,
+                onComplete: onComplete
+            };
+        }());
+
+
+        function startLoading() {
+            sfView.onProcess('Loading ...');
+        }
+
+        function endLoading() {
+            sfView.onComplete();
+        }
+
+        function InterestResultChange(e) {
+            var InterestResult = $(e).val();
+            //Fixed: 2018Jan
+            resultChange(InterestResult);
+
+            document.getElementById("{!$Component.statusMessage}").hidden = true;
+
+            /*if(InterestResult == 'No'){
+                // $('[id$=UninterestedReason1]').show();
+                // $('[id$=UninterestedReason2]').show();
+                resultChange();
+            }else{
+                // $('[id$=UninterestedReason1]').hide();
+                // $('[id$=UninterestedReason2]').hide();
+                resultChange();
+            }*/
+        }
+
+
+        function navigateToURL(sObjectId) {
+            if ((typeof sforce != 'undefined') && sforce && (!!sforce.one)) {
+                // Salesforce1 navigation                 
+                sforce.one.navigateToURL(sObjectId);
+            } else {
+                // Set the window's URL using a Visualforce expression
+                window.location.href = '{!$Site.Prefix}' + '/' + sObjectId;
+                // site prefix helps when navigation in community
+            }
+        }
+
+
+
+        function navigateTo(sObjectId) {
+            if ((typeof sforce != 'undefined') && sforce && (!!sforce.one)) {
+                // Salesforce1 navigation                 
+                sforce.one.navigateToSObject(sObjectId, 'detail');
+            } else {
+                // Set the window's URL using a Visualforce expression
+                window.location.href = '{!$Site.Prefix}' + '/' + sObjectId;
+                // site prefix helps when navigation in community
+            }
+        }    
+    </script>
+
+</apex:page>

@@ -1,0 +1,697 @@
+<apex:page standardcontroller="AcctPlanProdStrategy__c" extensions="AccountPlanProductStrategyEx" action="{!InitData}"
+           doctype="html-5.0" showchat="false" showheader="{! !isConsoleMode}" sidebar="false"
+           applybodytag="false" applyhtmltag="true" standardstylesheets="true" title="Product Strategy">
+    <head>
+        <title>Product Strategy</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+                  <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+                  <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+                <![endif]-->
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+            /*modify byDA*/
+            .bootstrap-sf1 thead th {
+                text-align: center;
+            }
+
+            .outputText {
+                /*padding-top:7px;*/
+            }
+
+            .bootstrap-sf1 .table tbody tr.endRow {
+                border-bottom-width: 1px;
+                border-bottom-style: solid;
+            }
+
+            .bootstrap-sf1 .table tbody tr td.td25 {
+                width: 25px;
+                border: none;
+                background: none;
+            }
+
+            .bootstrap-sf1 .table-striped > tbody > tr:nth-child(odd) > th.th25 {
+                width: 25px;
+                border: none;
+                background: none;
+            }
+
+            .rowsubtableLeft {
+                border-left: 1px solid #DADEE2;
+            }
+
+            .rowsubtableRight {
+                border-right: 1px solid #DADEE2;
+            }
+
+            .rowsubtableBottom {
+                border-bottom: 1px solid #DADEE2;
+            }
+
+            .bootstrap-sf1 .table tbody tr td.forceBackgroundMaroon {
+                background-color: #993300;
+                color: white;
+            }
+
+            .bootstrap-sf1 .table tbody tr th.forceBackgroundMaroon {
+                background-color: #993300;
+                color: white;
+            }
+
+            .bootstrap-sf1 .table thead tr th.forceRemoveBackground {
+                background-color: white;
+                color: black;
+            }
+
+            .table-responsive {
+                overflow-x: auto;
+            }
+            /* Icon when the collapsible content is shown */
+            .a-collapse:after {
+                font-family: "Glyphicons Halflings";
+                content: "\e114";
+                float: left;
+                margin-right: 10px;
+            }
+            /* Icon when the collapsible content is hidden */
+            .a-collapse.collapsed:after {
+                content: "\e080";
+            }
+            .messageText {
+                  text-align:left !important;
+                  }
+        </style>
+    </head>
+    <body>
+        <apex:actionstatus id="status">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" />
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+        <c:AccountPlanHeader activetab="4"
+                             groupid="{!ViewState.GroupID}"
+                             companyid="{!ViewState.CompanyID}"
+                             walletid="{!ViewState.WalletID}"
+                             percentage="{!Acctplancompletion.Account_Plan_Completion_Percentage__c }"
+                             isminiview="{!isMiniView}"
+                             ishasprodstrategy="{!ishasProdStrategy}"
+                             ishasactionplan="{!isHasActionPlan}" />
+        <div class="bootstrap-sf1">
+            <div id="responseErrors"></div>
+            <apex:form styleclass="form-horizontal">
+                <apex:outputpanel id="statusMessage">
+                    <apex:pagemessages ></apex:pagemessages>
+                </apex:outputpanel>
+                <apex:pageblock >
+                    <fieldset>
+                        <legend>
+                            Product Strategy
+                            <apex:variable var="percent" value="{!Acctplancompletion.Step_4_Percentage__c}" />
+                            <div class="alert {!
+                        if(percent ==null || percent <50,'alert-danger',
+                        if(percent<76,'alert-warning',
+                        if(percent<100,'alert-info','alert-success')))}"
+                                 style="float:right;font-size: 16px;margin-top: -5px;padding:5px;">
+                                COMPLETION:
+                                {!if( percent!=null,percent,0) }%
+                            </div>
+                        </legend>
+                    </fieldset>
+                    <div style="text-align: center; margin-bottom:10px;">
+                        <apex:pageblockbuttons location="both" style="float:left;margin-left:250px;" rendered="{!
+                         isHasPermission
+                         && if(companyProfile.OwnerID == $User.id 
+                               || isSystemAdmin 
+                               || companyProfile.Account__r.OwnerID == $User.id
+                               ,true,
+                               if(isAccountTeamReadWrite,true,false)
+                         )}">
+                            <apex:commandbutton value="Edit" action="{!editpage}" styleclass="btn btn-success" rendered="{! !companyprofile.isPendingForApproval__c}" />
+                            <span class="btn btn-default glyphicon glyphicon-lock"
+                                  rel="tooltip"
+                                  title="This record has been locked while pending Approval Process"
+                                  style="display:{!if(companyprofile.isPendingForApproval__c,'grid','none')};">Edit</span>
+                        </apex:pageblockbuttons>
+                    </div>
+                    <div>
+                        <table class="table">
+                            <tbody>
+                                <tr>
+                                    <td class="forceBackground" style="border: none;text-align:left;" width="180px">
+                                        Year
+                                        <c:II_Helptext sobjectname="AcctPlanCompanyProfile__c" fieldapiname="Year__c" />
+                                    </td>
+                                    <td style="border: none;">
+                                        <span class="form-control text-center calculate" style="width:400px;">
+                                            <apex:outputfield value="{!companyprofile.Year__c}" />
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="forceBackground" style="border: none;text-align:left;">
+                                        Customer Name
+                                        <c:II_Helptext sobjectname="AcctPlanCompanyProfile__c" fieldapiname="AccountName__c" />
+                                    </td>
+                                    <td style="border: none;">
+                                        <span class="form-control text-center calculate" style="width:400px;">
+                                            <apex:outputfield value="{!companyprofile.AccountName__c}" />
+                                        </span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- /Section 1 -->
+                    <header class="navbar navbar-default navbar-branded" role="banner">
+                        <div class="panel-heading">
+                            <div class="navbar-header">
+                                <a data-toggle="collapse" aria-expanded="true"
+                                   href="#collapse1" class="navbar-brand navbar-foundation-logo">
+                                    Product Strategy
+                                </a>
+                            </div>
+                        </div>
+                    </header>
+                    <div class="card collapse in panel-collapse" id="collapse1">
+                        <div class="card-detail">
+                            <!--  Section 1 -->
+                            <fieldset style="text=align:center">
+                                <apex:outputpanel id="outputrefresh" >
+                                    <apex:outputpanel >
+                                        <div class="row" style="margin-bottom:5px;">
+                                            <div class='col-lg-12 col-md-12'>
+                                                <apex:commandlink action="{!refresh}"
+                                                                  styleclass="btn btn-primary glyphicon glyphicon-repeat"
+                                                                  id="refreshpanel" rerender="mainTable,rplevel1,rplevel2,outputrefresh"
+                                                                  status="status" rendered="{!
+                                isHasPermission
+                                && if(companyProfile.OwnerID == $User.id || isSystemAdmin ,true,
+                                      if(isAccountTeamReadWrite,true,false)
+                                ) && !companyprofile.isPendingForApproval__c}">&nbsp;Refresh</apex:commandlink><!--  rerender="mainTable,rplevel1,rplevel2"-->
+                                                Data as of<c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="RefreshAsOf__c" iscustom="true" screen="RefreshButton" /> <label> <apex:outputfield value="{!ViewState.CustomerUnderstanding.RefreshAsOf__c} " /> </label>
+                                                <apex:outputPanel >
+                                                <div style="float:right;">
+                                                    <a href="/apex/AccountPlanProductStrategyToExcel?GroupID={!ViewState.GroupID}&CompanyID={!ViewState.CompanyID}&WalletID={!ViewState.WalletID}" target="_blank" class="btn btn-primary glyphicon"> Print</a>
+                                                </div>
+                                                </apex:outputPanel>
+                                            </div>
+                                        </div>
+                                    </apex:outputpanel>
+                                </apex:outputpanel>
+                                <!--- Start Table  -->
+                                <div class="table-responsive" style="overflow-x:auto;">
+                                    <apex:outputpanel id="mainTable">
+                                        <table class="table  table-hover" id="toggletable,groupwallet">
+                                            <tbody>
+                                                <!-- Header Section  -->
+                                                <tr>
+                                                    <th colspan="5">
+                                                        <label class="control-label">Customer's wallet&nbsp;&nbsp;</label>
+                                                        <apex:outputtext escape="false" value="{!btnGroupWallet}"></apex:outputtext>
+                                                        <a id="gotoAdditionalBusinessOpportunity" class="btn btn-success btn-sm" style="text-decoration:none" 
+                                                            onclick="popupNewWindow('/apex/AdditionalBusinessOpportunity?WalletID={!ViewState.WalletID}', '_blank', 'scrollbars=1,resizable=1,width=800,height=580,left=50,top=50');">Additional business opportunity</a>
+                                                        <!-- <a href="/apex/AdditionalBusinessOpportunity?WalletID={!ViewState.WalletID}" class="btn btn-success btn-sm" style="text-decoration:none"
+                                                           onclick="window.open(this.href, '_blank', 'scrollbars=1,resizable=1,width=800,height=580,left=50,top=50')">Additional business opportunity</a> -->
+                                                        <a href="#" id="collapeall" onclick="collapeall(); return false;" class="btn btn-info btn-sm" style="display:none;">Collapse All</a>
+                                                        <a href="#" id="expandall" onclick="expandall();  return false;" class="btn btn-warning btn-sm">Expand All</a>
+                                                    </th>
+                                                    <th>&nbsp;</th>
+                                                    <th>&nbsp;</th>
+                                                    <th>&nbsp;</th>
+                                                    <th>&nbsp;</th>
+                                                    <th>&nbsp;</th>
+                                                    <th></th>
+                                                </tr>
+                                                <tr>
+                                                    <th colspan="2" class="forceBackground text-center">
+                                                        Type of Wallet
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="Name" iscustom="true" screen="AccountPlanProductStrategy" />
+                                                    </th>
+                                                    <th class="forceBackground text-center" style="width:20%">Product</th>
+                                                    <th class="forceBackground text-center" style="width:200px">
+                                                        Wallet Sizing <br />(Yearly)
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="WalletSizing__c" />
+                                                    </th>
+                                                    <th class="forceBackground text-center" style="width:150px">
+                                                        Actual NI <br />(12-mth Rolling)
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="AnnualizedPerformance__c" />
+                                                    </th>
+                                                    <th class="forceBackground text-center" style="width:150px">
+                                                        Adjusted NI <br />(12-mth Rolling)
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="Adjust_NI__c" />
+                                                    </th>
+                                                    <th class="forceBackground text-center" style="width:100px">
+                                                        % Existing <br />SOW
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="ExistingSOW__c" />
+                                                    </th>
+                                                    <th class="forceBackground text-center" style="width:100px">
+                                                        % Aspiration <br />SOW
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="AspirationSOW__c" />
+                                                    </th>
+                                                    <th class="forceBackground text-center" style="width:150px">
+                                                        Expected <br />Incremental NI <br />(Unit: THB)
+                                                        <c:II_Helptext sobjectname="AcctPlanProdStrategy__c" fieldapiname="ExpectedIncrementalNI__c" />
+                                                    </th>
+                                                </tr>
+                                                <!-- End Header Section  -->
+                                                <!-- Total Calculate -->
+                                                <apex:repeat id="rplevel1" var="pro" value="{!ViewState.PlanProdStrategies}">
+                                                    <tr>
+                                                        <td colspan="3" class="text-left">
+                                                            <label style="{!IF(
+                                                            pro.SEQ__c==5  ||
+                                                            pro.SEQ__c==6  ||
+                                                            pro.SEQ__c==7  ||
+                                                            pro.SEQ__c==8  ||
+                                                            pro.SEQ__c==9  ||
+                                                            pro.SEQ__c==11 ||
+                                                            pro.SEQ__c==12 ||
+                                                            pro.SEQ__c==13 ||
+                                                            pro.SEQ__c==14,'padding-left:20px;','')}">
+                                                                <a onclick="{!ViewState.ToggleId[pro.SEQ__c][0]}();"
+                                                                   data-target="#{!ViewState.ToggleId[pro.SEQ__c][0]}" id="{!ViewState.ToggleId[pro.SEQ__c][1]}" class="a-collapse collapsed  ahref" data-toggle="collapse"
+                                                                   style="{!IF(pro.SEQ__c!=3 && pro.SEQ__c!=4 && pro.SEQ__c!=10,'','display:none;')} color:#000000;text-decoration:none;cursor: pointer;
+                                                            ">
+                                                                    <!-- Type of Wallet  -->
+                                                                    {!pro.Name}
+                                                                </a>
+                                                                <span style="color:#000000; {!IF(pro.SEQ__c!=3 && pro.SEQ__c!=4&& pro.SEQ__c!=10,'display:none;','')} padding-left:10px;">  {!pro.Name} </span>
+                                                            </label>
+                                                            <!--    Data -->
+                                                        </td>
+                                                        <td class="text-right" title="Value : {!pro.WalletSizing__c} ">
+                                                            <!-- Wallet Sizing (Yearly)  -->
+                                                            <apex:outputtext rendered="{!pro.SEQ__c!=4&& pro.SEQ__c!=10 && pro.SEQ__c!=13 && pro.SEQ__c!=14}" value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.WalletSizing__c}" />
+                                                            </apex:outputtext>
+                                                        </td>
+                                                        <td class="text-right" title="Value : {!pro.AnnualizedPerformance__c} ">
+                                                            <!-- Actual NI (12-mth Rolling) -->
+                                                            <apex:outputtext rendered="{!pro.SEQ__c!=4 && pro.SEQ__c!=10}" value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.AnnualizedPerformance__c}" />
+                                                            </apex:outputtext>
+                                                        </td>
+
+
+
+                                                        <td class="text-right" title="Value : {!IF(pro.SEQ__c!=4 && pro.SEQ__c!=10  && pro.SEQ__c!=3,pro.Adjust_NI__c, ViewState.TotalFeeAdjustedNI)} ">
+                                                            <!-- Adjusted NI (12-mth Rolling)   % Existing  -->
+                                                            <apex:outputtext rendered="{! pro.SEQ__c!=4 && pro.SEQ__c!=10  && pro.SEQ__c!=3  }" value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.Adjust_NI__c}" />
+                                                            </apex:outputtext>
+                                                            <apex:outputtext rendered="{! pro.SEQ__c==3}" value="{0, number, ###,##0}">
+                                                                <apex:param value="{!ViewState.TotalFeeAdjustedNI}" />
+                                                            </apex:outputtext>
+
+
+                                                        </td>
+                                                        <td class="text-right" title="Value : {!IF( pro.SEQ__c==3,IF(pro.WalletSizing__c==null || pro.WalletSizing__c== 0,0,   ROUND((( ViewState.TotalFeeAdjustedNI /  pro.WalletSizing__c) * 100),4)),pro.ExistingSOW__c)}%">
+                                                            <!--   % Existing SOW   -->
+                                                            <apex:outputtext rendered="{! pro.SEQ__c!=4 && pro.SEQ__c!=10 && pro.SEQ__c!=3   && pro.SEQ__c!=13 && pro.SEQ__c!=14}" value="{0, number, #0.00}%">
+                                                                <apex:param value="{!pro.ExistingSOW__c}" />
+                                                            </apex:outputtext>
+
+                                                            <apex:outputtext rendered="{! pro.SEQ__c==3}" value="{0, number, #0.00}%">
+                                                                <apex:param value="{! IF(pro.WalletSizing__c==null || pro.WalletSizing__c== 0,0,   ROUND((( ViewState.TotalFeeAdjustedNI /  pro.WalletSizing__c) * 100),4))}" />
+                                                            </apex:outputtext>
+
+                                                        </td>
+                                                        <td class="text-right"  title="Value : {!pro.AspirationSOW__c}%">
+                                                            <!-- % Aspiration SOW  -->
+                                                            <apex:outputtext rendered="{! pro.SEQ__c!=3 && pro.SEQ__c!=4&& pro.SEQ__c!=9 && pro.SEQ__c!=10 && pro.SEQ__c!=13 && pro.SEQ__c!=14 }" value="{0, number, #0.00}%" style="display:{!IF(pro.AspirationSOW__c != null,'block','none')}">
+                                                                <apex:param value="{!pro.AspirationSOW__c}" />
+                                                            </apex:outputtext>
+                                                        </td>
+                                                        <td class="text-right" title="Value : {!pro.ExpectedIncrementalNI__c}">
+                                                            <!-- Expected Incremental NI (Unit: THB) -->
+                                                            <apex:outputtext rendered="{!pro.SEQ__c!=3 &&pro.SEQ__c!=4 && pro.SEQ__c!=10}" value="{0, number, ###,##0}">
+                                                                <apex:param value="{!pro.ExpectedIncrementalNI__c}" />
+                                                            </apex:outputtext>
+                                                        </td>
+
+                                                    </tr>
+                                                    <apex:repeat id="rplevel2" var="walletSet" value="{!ViewState.WalletByDomains[pro.SEQ__c]}" rendered="{!ViewState.WalletByDomains[pro.SEQ__c].Size > 0}">
+                                                        <!-- start >>  -->
+                                                        <tr id="{!ViewState.ToggleId[pro.SEQ__c][0]}" class="pnldetail panel-collapse collapse" style="border:none;background:none;">
+                                                            <td colspan="9" style="border:none;background:none;"></td>
+                                                        </tr>
+                                                        <tr id="{!ViewState.ToggleId[pro.SEQ__c][0]}" class="pnldetail panel-collapse collapse">
+                                                            <th class="th25" style="border:none;background:none;"></th>
+                                                            <th colspan="2" class="forceBackgroundMaroon text-left">
+                                                                {!walletSet.TypeOfNI  }
+                                                                <c:II_Helptext sobjectname="AcctPlanWalletByDomain__c" fieldapiname="TypeOfNI__c" iscustom="true" screen="AccountPlanProductStrategy" />
+                                                            </th>
+                                                            <th class="forceBackgroundMaroon text-center" style="width: 70px;">
+                                                                Adjusted wallet <br />(Unit : THB)
+                                                                <c:II_Helptext sobjectname="AcctPlanWalletByDomain__c" fieldapiname="AdjWalletUnit__c" />
+                                                            </th>
+                                                            <th class="forceBackgroundMaroon text-center" style="width: 70px;">
+                                                                Priority
+                                                                <c:II_Helptext sobjectname="AcctPlanWalletByDomain__c" fieldapiname="Priority__c" iscustom="true" screen="AccountPlanProductStrategy" />
+                                                            </th>
+                                                            <th class="forceBackgroundMaroon text-center" style="width: 70px;">
+                                                                Reason
+                                                                <c:II_Helptext sobjectname="AcctPlanWalletByDomain__c" fieldapiname="Reason__c" />
+                                                            </th>
+                                                            <th class="evenrow" style="border:none;"></th>
+                                                            <th class="evenrow" style="border:none;"></th>
+                                                            <th class="evenrow" style="border:none;"></th>
+                                                        </tr>
+                                                        <apex:variable var="i" value="{!1}" />
+                                                        <apex:repeat var="item" value="{!walletSet.Record}">
+                                                            <tr id="{!ViewState.ToggleId[pro.SEQ__c][0]}" class="pnldetail panel-collapse collapse">
+                                                                <td class="evenrow" style="border:none;"></td>
+                                                                <td class="text-left rowsubtableBottom rowsubtableLeft"><span style="{!IF(i==1 ,'','display:none;')}">{!item.Domain__c}</span></td>
+                                                                <td class="text-left rowsubtableBottom">{!item.SubDomain__c}</td>
+                                                                <td class="text-right rowsubtableBottom">
+                                                                    <apex:outputtext value="{0, number, ###,##0}">
+                                                                        <apex:param value="{!item.AdjWalletUnit__c}" />
+                                                                    </apex:outputtext>
+                                                                </td>
+                                                                <td class="text-right rowsubtableBottom"> <apex:outputtext value="{!item.Priority__c}" /></td>
+                                                                <td class="text-right rowsubtableBottom rowsubtableRight"> <apex:outputtext value="{!item.Reason__c}" /> </td>
+                                                                <td class="evenrow" style="border:none;"></td>
+                                                                <td class="evenrow" style="border:none;"></td>
+                                                                <td class="evenrow" style="border:none;"></td>
+                                                                <apex:variable var="i" value="{!1+i}" />
+                                                            </tr>
+                                                        </apex:repeat>
+                                                        <tr id="{!ViewState.ToggleId[pro.SEQ__c][0]}" class="pnldetail spanel-collapse collapse" style="border:none;background:none;">
+                                                            <td colspan="9" style="border:none;background:none;"></td>
+                                                        </tr>
+                                                        <!-- end >> -->
+                                                    </apex:repeat>
+                                                </apex:repeat>
+                                                <tr class="info endRow">
+                                                    <td colspan="2" class="forceBackground text-left">Total </td>
+                                                    <td colspan="2" class=" text-right">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.TotalWallet}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <td class=" text-right">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.TotalAnnual}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <td class=" text-right">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.TotalAdjustedNI}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <td class=" text-right">
+                                                        <apex:outputtext value="{0, number, #0.00}%">
+                                                            <apex:param value="{! IF(ViewState.TotalWallet==null || ViewState.TotalWallet== 0,0,   ROUND((( ViewState.TotalAdjustedNI /  ViewState.TotalWallet) * 100),4))}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <td class=" text-right"></td>
+                                                    <td class=" text-right">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.TotalExpextedincrementalNI}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <th class="forceBackground text-center" colspan="2">
+                                                        <div style="min-width:170px !important;">
+                                                        Outstanding
+                                                        <c:II_Helptext sobjectname="AcctPlanCusUnderstanding__c" fieldapiname="Name" iscustom="true" screen="AccountPlanProductStrategy_Outstanding" />
+                                                        </div>
+                                                        </th>
+                                                    <th class="forceBackground text-center">
+                                                        <div style="min-width:170px !important;">
+                                                        Actual Performance (YTD)
+                                                        <c:II_Helptext sobjectname="AcctPlanCusUnderstanding__c" fieldapiname="Average_loan_outstanding__c" iscustom="true" screen="AccountPlanProductStrategy_ActualPerformanceYTD" />
+                                                        </div>
+                                                    </th>
+                                                    <th class="forceBackground text-center"></th>
+                                                    <th class="forceBackground text-center"></th>
+                                                    <th class="forceBackground text-center"></th>
+                                                    <th class="forceBackground text-center"></th>
+                                                    <th class="forceBackground text-center"></th>
+                                                    <th class="forceBackground text-center"></th>
+                                                </tr>
+                                                <tr>
+                                                    <td class=" text-left" colspan="2">1) Average loan outstanding</td>
+                                                    <td class=" text-right">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.CustomerUnderstanding.Average_loan_outstanding__c}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=" text-left" colspan="2">2) Ending loan outstanding</td>
+                                                    <td class=" text-right">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.CustomerUnderstanding.Ending_loan_outstanding__c}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=" text-left" colspan="2">3) Average CASA</td>
+                                                    <td class=" text-right">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.CustomerUnderstanding.Average_CASA__c}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=" text-left" colspan="2">4) Ending CASA</td>
+                                                    <td class=" text-right">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.CustomerUnderstanding.Ending_CASA__c}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=" text-left" colspan="2">5) TF Volume</td>
+                                                    <td class=" text-right">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.CustomerUnderstanding.TF_Volume__c}" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <td class=" text-left"></td> 
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                </tr>
+                                                <tr>
+                                                    <td class=" text-left" colspan="2">6) FX volume</td>
+                                                    <td class=" text-right">
+                                                        <apex:outputtext value="{0, number, ###,##0}">
+                                                            <apex:param value="{!ViewState.CustomerUnderstanding.FX_volume__c }" />
+                                                        </apex:outputtext>
+                                                    </td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                    <td class=" text-left"></td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </apex:outputpanel>
+                                </div>
+                                <!-- End Table -->
+                            </fieldset>
+                            <!-- /Section 1 -->
+                        </div>
+                    </div>
+                    <!-- /Section 1 -->
+                </apex:pageblock>
+            </apex:form>
+        </div>
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Mustache}" />
+        <apex:includescript value="/support/console/22.0/integration.js" />
+        <script>
+
+                // Prevent Config
+                var $j = jQuery.noConflict();
+                // Ready Event
+                $j(document).ready( function () {
+
+                    $j('[data-toggle="tooltip"]').tooltip();
+                    $j("[rel=tooltip]").tooltip({ placement: 'right'});
+
+
+                       $j("#groupwallet").on('click',function(event){
+                          event.preventDefault();
+                        $j('[id$="grouptoggle"]').toggle();
+                        $j('[id$="grouptoggle2"]').toggle();
+                        });
+
+                         $j("#collapeall").hide();
+
+
+                     /*   $j("#toggleNIIc").click(function() {
+                        $j('[id$="collapseNIIc"]').toggle();
+                        });
+
+                        $j("#toggleNIId").click(function() {
+                        $j('[id$="collapseNIId"]').toggle();
+                        });
+
+                        $j("#toggleTFFee").click(function() {
+                        $j('[id$="collapseTFFee"]').toggle();
+                        });
+
+                        $j("#toggleFXFee").click(function() {
+                        $j('[id$="collapseFXFee"]').toggle();
+                        });
+
+                        $j("#toggleLGFee").click(function() {
+                        $j('[id$="collapseLGFee"]').toggle();
+                        });
+
+                        $j("#toggleCashFee").click(function() {
+                        $j('[id$="collapseCashFee"]').toggle();
+                        });
+
+                        $j("#toggleCreditFee").click(function() {
+                        $j('[id$="collapseCreditFee"]').toggle();
+                        });
+
+                        $j("#toggleBAFee").click(function() {
+                        $j('[id$="collapseBAFee"]').toggle();
+                        });
+
+                        $j("#toggleDerivativeFee").click(function() {
+                        $j('[id$="collapseDerivativeFee"]').toggle();
+                        });
+
+                        $j("#toggleIBFee").click(function() {
+                        $j('[id$="collapseIBFee"]').toggle();
+                        });*/
+
+                });
+             function collapseNIIc(){
+               $j('[id$="collapseNIIc"]').toggle();
+             }
+             function collapseNIId(){
+               $j('[id$="collapseNIId"]').toggle();
+             }
+             function collapseTFFee(){
+               $j('[id$="collapseTFFee"]').toggle();
+             }
+             function collapseFXFee(){
+               $j('[id$="collapseFXFee"]').toggle();
+             }
+             function collapseLGFee(){
+               $j('[id$="collapseLGFee"]').toggle();
+             }
+             function collapseCashFee(){
+               $j('[id$="collapseCashFee"]').toggle();
+             }
+             function collapseCreditFee(){
+               $j('[id$="collapseCreditFee"]').toggle();
+             }
+             function collapseBAFee(){
+               $j('[id$="collapseBAFee"]').toggle();
+             }
+             function collapseDerivativeFee(){
+               $j('[id$="collapseDerivativeFee"]').toggle();
+             }
+             function collapseIBFee(){
+               $j('[id$="collapseIBFee"]').toggle();
+             }
+                          function collapseASFee(){
+               $j('[id$="collapseASFee"]').toggle();
+             }
+
+            function popupNewWindow(url, target, style){
+                window.open( url, target, style);
+                return false;
+            }
+
+             function collapeall(){
+                 $j("#collapeall").hide();
+                 $j("#expandall").show();
+                /* $j('[id$="collapseNIIc"]').toggle('hide');
+                 $j('[id$="collapseNIId"]').toggle('hide');
+                 $j('[id$="collapseTFFee"]').toggle('hide');
+                 $j('[id$="collapseFXFee"]').toggle('hide');
+                 $j('[id$="collapseLGFee"]').toggle('hide');
+                 $j('[id$="collapseCashFee"]').toggle('hide');
+                 $j('[id$="collapseCreditFee"]').toggle('hide');
+                 $j('[id$="collapseBAFee"]').toggle('hide');
+                 $j('[id$="collapseDerivativeFee"]').toggle('hide');
+                 $j('[id$="collapseIBFee"]').toggle('hide');*/
+                 $j("a.ahref").addClass("collapsed");
+                 $j(".pnldetail").hide();
+
+
+
+             }
+             function expandall(){
+                 $j("#collapeall").show();
+                 $j("#expandall").hide();
+                /* $j('[id$="collapseNIIc"]').toggle('show');
+                 $j('[id$="collapseNIId"]').toggle('show');
+                 $j('[id$="collapseTFFee"]').toggle('show');
+                 $j('[id$="collapseFXFee"]').toggle('show');
+                 $j('[id$="collapseLGFee"]').toggle('show');
+                 $j('[id$="collapseCashFee"]').toggle('show');
+                 $j('[id$="collapseCreditFee"]').toggle('show');
+                 $j('[id$="collapseBAFee"]').toggle('show');
+                 $j('[id$="collapseDerivativeFee"]').toggle('show');
+                 $j('[id$="collapseIBFee"]').toggle('show');*/
+                 $j("a.ahref").removeClass("collapsed");
+                 $j(".pnldetail").show();
+             }
+
+        //Sets the title of the current tab to "Case Transactions Detail"
+        window.onload = function setTitleConsole(){
+            setTitle();
+        }
+        //Sets the title of the current tab to "Case Transactions Detail"
+        function setTitle() {
+            sforce.console.setTabTitle('Product Strategy');
+        }
+        </script>
+    </body>
+</apex:page>

@@ -1,0 +1,143 @@
+<aura:component controller="AdvisoryPlanningEditAllocationServices">
+    <aura:attribute name="advisoryId" type="String" required="true"/>
+    <aura:attribute name="currentBondHolding" type="List"/>
+	<aura:attribute name="toDeleteItemList" type="List"/>
+
+    <aura:attribute name="bondColumn" type="Object" />
+    <aura:attribute name="columns" type="List" />
+	<aura:attribute name="editBondItem" type="Object"/>
+	<aura:attribute name="isNewBondItem" type="Boolean"/>
+	<aura:attribute name="editIndex" type="Integer"/>
+
+	<aura:attribute name="displayAddBondAction" type="Boolean" default="false"/>
+    
+    <!-- Action & Event -->
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}"/>
+	<aura:handler name="close_add_bond_evt" event="c:AdvisoryPlanning_Event" action="{!c.handleCloseAddBondModal}"/>
+	<aura:handler name="save_add_bond_evt" event="c:AdvisoryPlanning_Event" action="{!c.handleSaveBondItem}"/>
+	
+	<aura:registerEvent name="close_bond_evt" type="c:AdvisoryPlanning_Event" />
+	<aura:registerEvent name="save_bond_evt" type="c:AdvisoryPlanning_Event" />
+    <div class="slds-no-print">
+		<section role="dialog" tabindex="-1" aria-label="Add Bonds" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_large">
+			<div class="slds-modal__container">
+				<header class="slds-modal__header">
+					<div id="modal-heading-01" class="slds-modal__title slds-hyphenate text-bold">
+                        <div class="slds-grid slds-gutters">
+							<div class="slds-col slds-size_1-of-3">
+                            </div>
+                            <div class="slds-col slds-size_1-of-3 text-center">
+                                Add Bond Holdings
+                            </div>
+                            <div class="slds-col slds-size_1-of-3 text-right">
+                                <lightning:button label="Add Bond" variant="neutral" onclick="{!c.addBond}"/>
+                            </div>
+                        </div>
+                    </div>
+					<button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick="{!c.closeModal}">
+                        <lightning:icon iconName="utility:close" size="small" variant="neutral"/>
+                        <span class="slds-assistive-text">Close</span>
+					</button>
+				</header>
+				<div class="slds-modal__content slds-p-around_medium alignLeft" id="modal-content-id-1">
+					<div  aura:id="loadingSpinner" class="spinner-div">
+						<lightning:spinner   variant="brand" size="large"/>
+					</div>
+					<div aura:id="bond-list" class="slds-hide">
+						<div class="slds-grid slds-gutters">
+							<div class="slds-col slds-size_1-of-1">
+                                <table class="slds-table slds-table_bordered slds-table_col-bordered" aria-label="Allocated Table">
+									<thead>
+									  <tr class="slds-line-height_reset">
+										<th class="" scope="col">
+										  <span class="slds-truncate" title="No">No</span>
+										</th>
+										<th class="" scope="col">
+										  <span class="slds-truncate" title="{!v.bondColumn.Product_Group__c}">{!v.bondColumn.Product_Group__c}</span>
+										</th>
+										<th class="" scope="col">
+										  <span class="slds-truncate" title="{!v.bondColumn.Product_Sub_Group_Asset_Class__c}">{!v.bondColumn.Product_Sub_Group_Asset_Class__c}</span>
+										</th>
+										<th class="" scope="col">
+										  <span class="slds-truncate" title="{!v.bondColumn.Product_Name__c}">{!v.bondColumn.Product_Name__c}</span>
+										</th>
+										<th class="" scope="col">
+											<span class="slds-truncate" title="{!v.bondColumn.Product_Holding_Code__c}">{!v.bondColumn.Product_Holding_Code__c}</span>
+										  </th>
+										<th class="" scope="col">
+											<span class="slds-truncate" title="{!v.bondColumn.Baseline_Amount__c}">{!v.bondColumn.Baseline_Amount__c}</span>
+										</th>
+										<!-- <th class="" scope="col">
+											<span class="slds-truncate" title="{!v.bondColumn.Target_Amount__c}">{!v.bondColumn.Target_Amount__c}</span>
+										</th> -->
+										<th></th>
+									  </tr>
+									</thead>
+									<tbody>
+										<aura:iteration  indexVar="rowIndex" items="{!v.currentBondHolding}" var="item">
+											<tr class="slds-hint-parent">
+												<th data-label="No" scope="row">
+													<span>{!rowIndex+1}</span>
+												</th>
+												<td data-label="Product Group">
+													<p>{!item.Product_Group__c}</p>
+												</td>
+												<td data-label="Product Sub Group">
+													<p>{!item.Product_Sub_Group_Asset_Class__c}</p>
+												</td>
+												<td data-label="Product Name">
+													<p>{!item.Product_Name__c}</p>
+												</td>
+												<td data-label="Product Code">
+													<p>{!item.Product_Holding_Code__c}</p>
+												</td>
+												<td data-label="Baseline Amount" class="text-right">
+                                                    <p><lightning:formattedNumber value="{!item.Baseline_Amount__c}" style="currency" currencyCode="THB" minimumFractionDigits="2" maximumFractionDigits="2"/></p>
+												</td>
+												<!-- <td data-label="Target Amount" class="text-right">
+                                                    <p><lightning:formattedNumber value="{!item.Target_Amount__c}" style="currency" currencyCode="THB" minimumFractionDigits="2" maximumFractionDigits="2"/></p>
+												</td> -->
+												<td data-label="Action">
+													<a onclick="{!c.handleEditItem}" data-value="{!rowIndex}">
+														<lightning:icon iconName="utility:edit" alternativeText="edit" title="edit" size="x-small"/>
+													</a>
+													<aura:if isTrue="{!item.Is_Product_Holding__c == false}">
+														<a onclick="{!c.handleDeleteItem}" data-value="{!rowIndex}" class="slds-m-left_x-small">
+															<lightning:icon iconName="utility:delete" alternativeText="delete" title="delete"  variant="error" size="x-small"/>
+														</a>
+													</aura:if>
+												</td>
+											</tr>
+										</aura:iteration>
+									  
+									</tbody>
+								</table>
+							</div>
+						</div>
+					</div>
+
+					
+				</div>
+				<footer class="slds-modal__footer">
+					<div class="slds-grid slds-gutters">
+						<div class="slds-col slds-size_1-of-2 text-left">
+							<lightning:button label="Close" variant="neutral" onclick="{!c.closeModal}"/>
+						</div>
+						<div class="slds-col slds-size_1-of-2">
+							<lightning:button label="Done"  variant="brand" onclick="{!c.handleDoneAddBondList}"/>
+						</div>
+					</div>
+				</footer>
+			</div>
+		</section>
+		<div class="slds-backdrop slds-backdrop_open" ></div>
+	</div>
+
+	<div>
+		<!--modal popup for the cancel button-->
+		<aura:if isTrue="{!v.displayAddBondAction}">
+			<c:AdvisoryPlanningAddBond advisoryId="{!v.recordId}" bondItem="{!v.editBondItem}" isNew="{!v.isNewBondItem}" editIndex="{!v.editIndex}"/>
+		</aura:if>
+	</div>
+	
+</aura:component>

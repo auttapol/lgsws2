@@ -1,0 +1,768 @@
+<apex:page standardController="Search__c" extensions="SearchControllerExV5" lightningStylesheets="true" tabStyle="Quick_CA__tab"
+    title="Search Customer" doctype="html-5.0">
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}"  />
+    <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+    
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.AccountPlanEditTable)}"/>
+    <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+    <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+    <apex:includeScript value="/support/console/22.0/integration.js"/>
+    <apex:stylesheet value="{!URLFOR($Resource.SLOS)}"/>
+    <!-- <apex:slds /> -->
+    <!-- <apex:actionStatus onstart="startLoading();" onstop="endLoading();" id="loadStatus" /> -->
+    <apex:actionstatus id="loadStatus">
+        <apex:facet name="start">
+            <div class="slds" >
+                <!-- spin -->
+                <div id="spin" class="slds-spinner_container">
+                    <div class="slds-spinner slds-spinner--medium" aria-hidden="false" role="alert">
+                        <div class="slds-spinner__dot-a"></div>
+                        <div class="slds-spinner__dot-b"></div>
+                    </div>
+                </div>
+            </div>
+        </apex:facet>
+    </apex:actionstatus>
+    
+    
+    
+    <head>
+        <style>
+            
+           /* .panal-grid{
+               padding-left: 20%;
+               padding-right: 20%;
+           } */
+            div.messageText {
+                right: 100px;
+                position: relative;
+            }
+            .pageTitleIcon {
+                background-position: initial;
+                display: block !important;
+                background-image: url(/apexpages/slds/latest/assets/icons/custom/custom15.svg);
+                /* background-image: "{!URLFOR($Asset.SLDS, '/assets/icons/custom-sprite/svg/symbols.svg#custom15')}"; */
+                background-color: #f77e75;
+                background-size: contain;
+                background-position: 0 0;
+            }
+
+            body .bPageBlock .pbBody .red .pbSubheader {
+                background-color: #E39321;
+            }
+
+
+            background-color:white;
+            }
+
+            tr.dataRow:hover {
+                background-color: #e3f3ff;
+            }
+
+            .overlay {
+                display: none;
+                height: 100%;
+                left: 0;
+                position: fixed;
+                top: 0;
+                opacity: 0.3;
+                -moz-opacity: 0.3;
+                width: 100%;
+                -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+                filter: alpha(opacity=30);
+                background: #000;
+                -khtml-opacity: 0.3;
+                z-index: 1000;
+            }
+
+            .loader {
+                background: url('/img/loading32.gif') scroll no-repeat 0 0;
+                width: 32px;
+                height: 32px;
+                position: absolute;
+                left: 50%;
+            }
+
+            .buttommargin {
+                margin-bottom: 10px;
+            }
+
+            .red-label {
+                list-style: none;
+                color: #f00;
+            }
+            body.vf-body, body.sfdcBody, .slds-vf-scope.vf-body, .slds-vf-scope.sfdcBody{
+                top: -2rem;
+                position: relative;
+            }
+
+        </style>
+
+    </head>
+
+    <body>
+        <div id="main-wrapper" style="display:none;">
+            <!-- Ajax waiting panel -->
+            <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+            <div class="loadingBox overlay"> </div>
+            <!--<apex:sectionHeader title="Customer" subtitle="Search Customer" />-->
+
+            <apex:pageblock title="Account Detail" rendered="{!searchCustomer}">
+                <apex:outputpanel id="statusMessage">
+                    <apex:outputText >You are not authorized!</apex:outputText>
+
+                </apex:outputpanel>
+
+            </apex:pageblock>
+
+            <apex:Form onkeypress="return noenter(event);" id="theForm" rendered="{!!searchCustomer}">
+                <apex:actionFunction name="doSearch" action="{!search}" reRender="result,resultblock,Leadresultblock,buttons2" status="loadStatus"
+                />
+                <apex:actionFunction name="resetNext" action="{!resetNextButton}" reRender="buttons2,result,resultblock,Leadresultblock"
+                />
+
+                <apex:PageBlock mode="edit" id="theBlock">
+
+                    <!-- PageBlockButtons -->
+                    <apex:PageBlockButtons location="bottom">
+                        <apex:commandButton value="Search" onclick="search();return false;" reRender="result,resultbutton,resultblock,Leadresultblock,buttons2"
+                            status="loadStatus" />
+                        <apex:commandButton value="Cancel" action="{!cancel}" />
+                        <apex:commandButton value="Next" id="buttons2" disabled="{!isButtonDisabled}" action="{!nextbutton}" Rerender="buttons2"
+                        />
+                        <!-- <apex:outputPanel id="buttons2">
+                            
+                        </apex:outputPanel> -->
+                    </apex:PageBlockButtons>
+
+                    <!-- PageBlockSection -->
+
+        
+                    <apex:PageBlockSection columns="1" id="result">
+                        <apex:pageMessages />
+                    </apex:PageBlockSection>
+
+                    <!-- Panel -->
+                        <apex:panelGrid columns="7" id="theGrid" style="margin:auto;margin-top:0px:padding:-5px" cellpadding="7px">
+                            <!--endfirst row-->
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:outputLabel value="Customer Type " styleClass="buttommargin">
+                                <span class="red-label">*</span>
+                            </apex:outputLabel>
+                            <select id="custType" name="custType" style='width:100%;'>
+                                <option value='--None--'>--None--</option>
+                                <option value='Individual'>Individual</option>
+                                <option value='Juristic'>Juristic</option>
+                            </select>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <!--endfirst row-->
+                            <!--second row-->
+                            <apex:inputCheckbox id="inputbutton" value="{!isInformation}" onclick="inputtype('info');" />
+                            <apex:outputLabel value="Customer Name " styleClass="labStyle" id="companyName">
+                            </apex:outputLabel>
+                            <apex:inputField value="{!account.First_name__c}" onkeyup="WebresetNext();" id="firstName" />
+                            <apex:outputLabel value="Mobile No. " styleClass="labStyle" />
+                            <apex:inputField value="{!account.Mobile_Number_Temp__c}" onchange="resetNext();" id="mobileNum" />
+                            <apex:outputLabel value="Office No. " styleClass="labStyle" />
+                            <apex:inputField value="{!account.Office_Number_Temp__c}" onchange="resetNext();" id="officeNum" />
+                            <!--endsecond row-->
+                            <!--third row-->
+                            <apex:outputPanel ></apex:outputPanel>                         
+                            <apex:outputLabel value="ID Type " styleClass="labStyle " />
+                            <select id="idType" name="idType" style='width:100%;position:relative;margin-top:-10px;'>
+                                <option value='--None--'>--None--</option>
+                            </select>
+                            <apex:outputLabel value="ID Number " styleClass="labStyle" />
+                            <apex:inputField value="{!account.ID_Number_Temp__c}" onchange="resetNext();" styleClass="buttommargin" id="idNum" />
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <!--endthird row-->
+                            <!--fourth row-->
+                            <apex:inputCheckbox id="cusbutton" value="{!isCusOnly}" onclick="inputtype('cust');" />
+                            <apex:outputLabel value="TMB Customer ID " styleClass="labStyle" id="CusID">
+                                <span class="red-label" id="custreddot">*</span>
+                            </apex:outputLabel>
+                            <apex:inputField value="{!account.TMB_Customer_ID_Temp__c}" id="tmbCust" style="position:relative;margin-top:-10px;"/>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <!--endfourth row-->
+                            <!--fifth row-->
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:inputHidden value="{!isIDValid}" id="isIDValid" />
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <apex:outputPanel ></apex:outputPanel>
+                            <!--endfifth row-->
+                            <!--sixth row-->
+    
+                            <!-- Server Hidden Field -->
+    
+                            <apex:inputHidden value="{!hdCusType}" id="hdCusType" />
+                            <apex:inputHidden value="{!hdIdType}" id="hdIdType" />
+                            <apex:inputHidden value="{!hdCheckBoxMode}" id="hdCheckBoxMode" />
+                            <apex:inputHidden value="{!isButtonDisabled}" id="isButtonDisabled" />
+    
+                        </apex:panelGrid>
+                </apex:PageBlock>
+
+                <apex:PageBlock mode="edit">
+
+                    <apex:PageBlockSection title="Customer Information " columns="1" collapsible="false" id="resultblock">
+                        <apex:outputpanel rendered="{!accounts.size==0 && searchActive}">
+                            <apex:outputText >Customer​ information not found.</apex:outputText>
+
+                        </apex:outputpanel>
+                        <apex:outputPanel id="result" rendered="{!accounts.size>0}">
+                            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                <tr class="headerRow">
+                                    <th class="headerRow"> TMB Customer ID </th>
+                                    <th class="headerRow"> Customer Name </th>
+                                    <th class="headerRow"> ID Type </th>
+                                    <th class="headerRow"> ID Number </th>
+                                    <th class="headerRow"> Account Type </th>
+                                    <th class="headerRow"> Segment </th>
+                                    <th class="headerRow"> Account Owner Name </th>
+                                    <th class="headerRow"> Account Owner Team </th>
+                                </tr>
+                                <apex:repeat value="{!accounts}" var="acc">
+                                    <tr class="dataRow">
+
+                                        <!--<td class="dataCell">{!acc.Owner.MobilePhone}</td>-->
+                                        <td class="dataCell">{!acc.TMB_Customer_ID_PE__c}</td>
+                                        <td class="dataCell">
+
+                                            <apex:outputPanel onclick="return IsOnConsoleWay('{!acc.Id}');" style="cursor:pointer;text-decoration:underline;">
+                                                <apex:outputText >{!acc.Name}</apex:outputText>
+                                            </apex:outputPanel>
+
+                                            <!-- <apex:commandLink value="{!acc.Name}" action="{!viewProspect}" onclick="return IsOnConsoleWay('{!acc.Id}');">
+                                                <apex:param name="acctId" value="{!acc.Id}" assignTo="{!acctID}" />
+                                            </apex:commandLink> -->
+
+                                        </td>
+                                        <td class="dataCell lb-center">{!acc.ID_Type_PE__c}</td>
+                                        <td class="dataCell">{!acc.NID__c}</td>
+                                        <td class="dataCell lb-center">{!acc.Account_Type__c}</td>
+                                        <td class="dataCell lb-center">{!acc.Core_Banking_Suggested_Segment__c}</td>
+                                        <!--<td class="dataCell">{!acc.Primary_Address_Line_1_PE__c }</td> 
+                                    <td class="dataCell">{!acc.Primary_Address_Line_2_PE__c }</td> 
+                                    <td class="dataCell">{!acc.Primary_Address_Line_3_PE__c }</td> 
+                                    <td class="dataCell">{!acc.Province_Primary_PE__c}</td>
+                                    <td class="dataCell lb-center">{!acc.Zip_Code_Primary_PE__c }</td> -->
+                                        <td class="dataCell">
+                                            <apex:outputPanel onclick="return IsOnConsoleWay('{!acc.OwnerId}');" style="cursor:pointer;text-decoration:underline;">
+                                                <apex:outputText >{!acc.Owner.Name}</apex:outputText>
+                                            </apex:outputPanel>
+
+                                            <!-- <apex:commandLink value="{!acc.Owner.Name}" action="{!viewOwner}" onclick="return IsOnConsoleWay('{!acc.OwnerId}');">
+                                                <apex:param name="ownerId" value="{!acc.OwnerId}" assignTo="{!ownerId}" />
+                                            </apex:commandLink> -->
+
+                                        </td>
+                                        <td class="dataCell lb-center">{!acc.Sub_Segment2__c }</td>
+
+                                    </tr>
+                                </apex:repeat>
+                            </table>
+                            <apex:panelGrid columns="4">
+                                <apex:commandLink action="{!first}" rendered="{!hasPrevious}" reRender="resultblock" status="loadStatus">First</apex:commandlink>
+                                <apex:commandLink action="{!previous}" rendered="{!hasPrevious}" reRender="resultblock" status="loadStatus">Previous</apex:commandlink>
+                                <apex:commandLink action="{!next}" rendered="{!hasNext}" reRender="resultblock" status="loadStatus">Next</apex:commandlink>
+                                <apex:commandLink action="{!last}" rendered="{!hasNext}" reRender="resultblock" status="loadStatus">Last</apex:commandlink>
+                            </apex:panelGrid>
+                        </apex:outputPanel>
+                    </apex:PageBlockSection>
+
+                </apex:PageBlock>
+
+
+
+                <apex:PageBlock mode="edit" id="leadeditblock">
+
+                    <apex:PageBlockSection title="Lead Information " columns="1" collapsible="false" id="Leadresultblock">
+                        <apex:outputpanel rendered="{!leads.size==0 && searchActive}">
+                            <apex:outputText >Lead​ information not found.</apex:outputText>
+
+                        </apex:outputpanel>
+                        <apex:outputPanel id="result" rendered="{!leads.size>0}">
+                            <table class="list " border="0" cellpadding="0" cellspacing="0">
+                                <tr class="headerRow">
+                                    <th class="headerRow"> TMB Customer ID </th>
+                                    <!--<th class="headerRow"> RM phone number </th>-->
+                                    <th class="headerRow"> Customer Name </th>
+                                    <th class="headerRow"> ID Type </th>
+                                    <th class="headerRow"> ID Number </th>
+                                    <!--<th class="headerRow"> Lead Type </th>
+                                <th class="headerRow"> Segment </th>
+                                <th class="headerRow"> Address 1 </th>
+                                <th class="headerRow"> Address 2 </th>
+                                <th class="headerRow"> Address 3 </th>
+                                <th class="headerRow"> Province </th>
+                                <th class="headerRow"> Zip code </th>-->
+                                    <th class="headerRow"> Lead Owner Name </th>
+                                    <th class="headerRow"> Lead Owner Team </th>
+                                </tr>
+
+                                <apex:repeat value="{!Leads}" var="ld">
+
+                                    <tr class="dataRow">
+
+                                        <td class="dataCell"></td>
+                                        <!-- <td class="dataCell">{!ld.Owner.Phone}</td>-->
+                                        <td class="dataCell">
+                                            
+                                            <apex:outputPanel onclick="return IsOnConsoleWay('{!ld.Id}');" style="cursor:pointer;text-decoration:underline;">
+                                                <apex:outputText >{!ld.Company}</apex:outputText>
+                                            </apex:outputPanel>
+
+                                            <!-- <apex:commandLink value="{!ld.Company}" action="{!viewLead}" onclick="return IsOnConsoleWay('{!ld.Id}');">
+                                                <apex:param name="acctId" value="{!ld.Id}" assignTo="{!acctID}" />
+                                            </apex:commandLink> -->
+
+                                        </td>
+
+                                        <td class="dataCell lb-center">{!ld.ID_Type__c }</td>
+                                        <!-- <td class="dataCell">{!ld.ID_REGEX__c }</td> -->
+
+                                        <td class="dataCell">
+                                            <apex:outputPanel rendered="{! IF(LEN( ld.ID_REGEX__c ) == 5 , true,false ) }">
+                                                <apex:outputText style="font-style:italic" value="{0}{!maskedLabel}{1}">
+                                                    <apex:param value="{! LEFT(ld.ID_REGEX__c,1) }" />
+                                                    <apex:param value="{! RIGHT(ld.ID_REGEX__c,4) }" />
+                                                </apex:outputText>
+                                            </apex:outputPanel>
+                                        </td>
+
+                                        <!--<td class="dataCell lb-center">{!ld.Customer_Type__c }</td>
+                                    <td class="dataCell lb-center">{!ld.Owner_Segment__c }</td>
+                                    <!--
+                                    <td class="dataCell">{!ld.Address_Line_1__c  }</td> 
+                                    <td class="dataCell">{!ld.Address_Line_2__c  }</td> 
+                                    <td class="dataCell">{!ld.Address_Line_3__c  }</td> 
+                                    <td class="dataCell">{!ld.Province__c }</td>
+                                    <td class="dataCell lb-center">{!ld.Zipcode__c  }</td> -->
+                                        <td class="dataCell">
+                                            
+                                            <apex:outputPanel onclick="return IsOnConsoleWay('{!ld.OwnerId}');" style="cursor:pointer;text-decoration:underline;">
+                                                <apex:outputText >{!ld.Owner.Name}</apex:outputText>
+                                            </apex:outputPanel>
+
+                                            <!-- <apex:commandLink value="{!ld.Owner.Name}" action="{!viewOwner}" onclick="return IsOnConsoleWay('{!ld.OwnerId}');">
+                                                <apex:param name="ownerId" value="{!ld.OwnerId}" assignTo="{!ownerId}" />
+                                            </apex:commandLink> -->
+                                        </td>
+                                        <td class="dataCell">{!ld.Owner_Team_Zone__c }</td>
+
+                                    </tr>
+                                </apex:repeat>
+                            </table>
+                            <apex:panelGrid columns="4">
+                                <apex:commandLink action="{!Leadfirst}" rendered="{!LeadhasPrevious}" reRender="Leadresultblock" status="loadStatus">First</apex:commandlink>
+                                <apex:commandLink action="{!Leadprevious}" rendered="{!LeadhasPrevious}" reRender="Leadresultblock" status="loadStatus">Previous</apex:commandlink>
+                                <apex:commandLink action="{!Leadnext}" rendered="{!LeadhasNext}" reRender="Leadresultblock" status="loadStatus">Next</apex:commandlink>
+                                <apex:commandLink action="{!Leadlast}" rendered="{!LeadhasNext}" reRender="Leadresultblock" status="loadStatus">Last</apex:commandlink>
+                            </apex:panelGrid>
+                        </apex:outputPanel>
+                    </apex:PageBlockSection>
+
+                </apex:PageBlock>
+
+
+            </apex:Form>
+
+        </div>
+
+
+        <script type="text/javascript">
+            // Globle variable
+            var firstName;
+            var lastName;
+            var mobileNum;
+            var officeNum;
+            var idNum;
+            var tmbCust;
+            var idType;
+            var isButtonDisabled;
+            var hdCheckBoxMode;
+            var hdCusType;
+            var hdIdType;
+            var btnNext;
+            var individualOptions = {
+                '': '--None--',
+                'Citizen ID': 'Citizen ID',
+                'Passport ID': 'Passport ID',
+                'Work Permit ID': 'Work Permit ID',
+                'Alien ID': 'Alien ID'
+            };
+            var juristicOptions = {
+                '': '--None--',
+                'BRN ID': 'BRN ID'
+            };
+
+
+            function startLoading() {
+                $('#load_scrl').css('top', $(document).scrollTop() + 200);
+                $('.loadingBox').show();
+            }
+
+            function endLoading() {
+                $('.loadingBox').hide();
+            }
+
+            function noenter(ev) {
+                if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+                    doSearch();
+                    // console.log('enter');
+                    return false;
+                }
+                else {
+                    return true;
+                }
+            }
+
+            function search() {
+
+                checkID();
+
+                doSearch();
+            }
+            // inputtype
+            function inputtype(checked) {
+                var cusbutton = $('[id$=cusbutton]');
+                var inputbutton = $('[id$=inputbutton]');
+                var custType = $('[id$=custType]');
+                var namedot = $('[id$=namedot]');
+                var custdot = $('[id$=custdot]');
+
+                if (checked == 'info') {
+                    cusbutton.attr('checked', false);
+                    inputbutton.attr('checked', true);
+                }
+                else if (checked == 'cust') {
+                    inputbutton.attr('checked', false);
+                    cusbutton.attr('checked', true);
+                }
+                if (checked == 'info') {
+                    hdCheckBoxMode.val('info');
+                    cusbutton.attr('checked', false);
+                    tmbCust.attr('disabled', 'disabled');
+                    tmbCust.val('');
+                    custType.attr('disabled', false);
+                    firstName.attr('disabled', false);
+                    lastName.attr('disabled', false);
+                    mobileNum.attr('disabled', false);
+                    officeNum.attr('disabled', false);
+                    idType.attr('disabled', false);
+                    idNum.attr('disabled', false);
+
+                    lastName.removeAttr('disabled');
+                    if (hdCusType.val() == 'Juristic') {
+                        lastName.attr('disabled', 'disabled');
+                    }
+                }
+                else {
+
+                    hdIdType.val('');
+                    hdCheckBoxMode.val('cust');
+                    // console.log(' hdIdType value is '+  hdIdType.val()); 
+                    inputbutton.attr('checked', false);
+                    firstName.attr('disabled', 'disabled');
+                    firstName.val('');
+                    lastName.attr('disabled', 'disabled');
+                    lastName.val('');
+                    mobileNum.attr('disabled', 'disabled');
+                    mobileNum.val('');
+                    officeNum.attr('disabled', 'disabled');
+                    officeNum.val('');
+                    idType.attr('disabled', 'disabled');
+                    idType.val('');
+                    idNum.attr('disabled', 'disabled');
+                    idNum.val('');
+                    tmbCust.attr('disabled', false);
+                }
+
+                LogFormValue();
+                WebresetNext();
+            }
+            // end inputtype
+
+            // citizen id check
+            function checkID() {
+                var isValid = $("[id$=isIDValid]");
+                var id = $("[id$=idNum]").val();
+                if (id.length != 13) {
+                    isValid.val(false);
+                    return false;
+                }
+                for (i = 0, sum = 0; i < 12; i++) {
+                    sum += parseFloat(id.charAt(i)) * (13 - i);
+                }
+
+                if ((11 - sum % 11) % 10 != parseFloat(id.charAt(12))) {
+                    isValid.val(false);
+                    return false;
+                }
+                isValid.val(true);
+                return true;
+            }
+            // end citizen id check
+
+            // runs after everything has finished loading. image
+            window.onload = function () {
+                $('[id$=inputbutton]').attr('checked', 'disabled');
+                $('[id$=tmbCust]').attr('disabled', 'disabled');
+                $('[id$=idType]').attr('disabled', 'disabled');
+                endLoading();
+            }
+
+            // Disable function
+            jQuery.fn.extend({
+                disable: function (state) {
+                    return this.each(function () {
+                        this.disabled = state;
+                    });
+                }
+            });
+
+            // Run when html loaded
+            $(document).ready(function () {
+                checkIsSalesforceOne();
+                // get dom
+                firstName = $('[id$=firstName]');
+                lastName = $('[id$=lastName]');
+                mobileNum = $('[id$=mobileNum]');
+                officeNum = $('[id$=officeNum]');
+                idNum = $('[id$=idNum]');
+                tmbCust = $('[id$=tmbCust]');
+                idType = $('[id$=idType]');
+                hdCusType = $('[id$=hdCusType]');
+                hdIdType = $('[id$=hdIdType]');
+                hdCheckBoxMode = $('[id$=hdCheckBoxMode]');
+                isButtonDisabled = $('[id$=isButtonDisabled]');
+                btnNext = $('[id$=btnNext]');
+                startLoading();
+                $('#custType').on('change', CustomerTypeOptionChange);
+                $('#idType').on('change', IdTypeOptionChange);
+                $('[id$=tmbCust]').focusout(function () {
+
+                    var el = $(this);
+                    var oldValue = el.val();
+                    if (oldValue.length <= 26) {
+                        //console.log("Less Than 26");                
+                        var newValue = '0011' + pad(oldValue, 26, '0', 1);
+                        //console.log(newValue);
+                        el.val(newValue);
+                    }
+                    WebresetNext();
+
+                });
+
+
+
+                hdCheckBoxMode.val('info');
+                LogFormValue();
+            });
+            function WebresetNext() {
+                isButtonDisabled = 'true';
+                $('[id$=btnNext]').disable(true);
+                $('[id$=btnNext]').addClass('btnDisabled');
+                $('[id$=result] .message').hide();
+            }
+            function CustomerTypeOptionChange() {
+
+                startLoading();
+                var el = $(this);
+                idType.find('option').remove().end();
+                if (hdCheckBoxMode.val() == 'info') {
+                    clearForm();
+                    hdCusType.val(el.val());
+                    if (el.val() == 'Juristic') {
+                        lastName.attr('disabled', 'disabled');
+                        idType.removeAttr('disabled');
+                        $.each(juristicOptions, function (val, text) {
+                            idType.append(
+                                $('<option></option>').val(val).html(text)
+                            );
+                        });
+                    }
+                    else if (el.val() == 'Individual') {
+                        idType.removeAttr('disabled');
+                        $.each(individualOptions, function (val, text) {
+                            idType.append(
+                                $('<option></option>').val(val).html(text)
+                            );
+                        });
+                    }
+                    else {
+                        idType.append($('<option></option>').val('--None--').html('--None--'));
+                    }
+                    if (hdCusType.val() == 'Juristic') {
+                        lastName.attr('disabled', 'disabled');
+                    }
+                    else {
+                        lastName.removeAttr('disabled');
+                    }
+                }
+                else {
+                    clearForm();
+                    hdCusType.val(el.val());
+                    if (el.val() == 'Juristic') {
+                        $.each(juristicOptions, function (val, text) {
+                            idType.append(
+                                $('<option></option>').val(val).html(text)
+                            );
+                        });
+                    }
+                    else if (el.val() == 'Individual') {
+
+                        $.each(individualOptions, function (val, text) {
+                            idType.append(
+                                $('<option></option>').val(val).html(text)
+                            );
+                        });
+
+                    }
+                    else {
+                        idType.append($('<option></option>').val('--None--').html('--None--'));
+                    }
+                }
+
+                hdIdType.val('');
+                endLoading();
+                LogFormValue();
+                // resetNext();
+                WebresetNext();
+            }
+            function IdTypeOptionChange() {
+
+                startLoading();
+                hdIdType.val('');
+                var select = $(this);
+                var newVal = select.val();
+                hdIdType.val(newVal);
+                endLoading();
+                LogFormValue();
+
+            }
+            function clearForm() {
+                //firstName.val('');               
+                lastName.val('');
+                mobileNum.val('');
+                officeNum.val('');
+                idNum.val('');
+                tmbCust.val('');
+                hdCusType.val('');
+            }
+            function WebCustTypeSelected() {
+                console.debug('WebCustTypeSelected Pre Process');
+
+                CustTypeSelected();
+                console.debug('WebCustTypeSelected Post Process');
+                var el = $('[id$=custType]');
+                resetNext();
+                var lastName = $('[id$=lastName]');
+                if ($(el).val() == 'Juristic') {
+                    lastName.value = '';
+                    lastName.attr('disabled', 'disabled');
+
+                } else {
+                    lastName.attr('disabled', 'disabled');
+                }
+                console.debug('WebCustTypeSelected Done Process');
+
+            }
+            function LogFormValue() {
+                /*  console.log('============================================'); 
+                console.log('1. Customer Type :'+  hdCusType.val()); 
+                console.log('2. First Name/Company Name :'+  firstName.val()); 
+                console.log('3. Last Name :'+  lastName.val()); 
+                console.log('4. Mobile Number :'+  mobileNum.val()); 
+                console.log('5. Office Number :'+  officeNum.val()); 
+                console.log('6. ID Type :'+  hdIdType.val()); 
+                console.log('7. ID Number :'+  idNum.val());
+                console.log('8. TMB Customer ID :'+  tmbCust.val());
+                console.log('9. Mode :'+  hdCheckBoxMode.val()); */
+            }
+
+
+            // javascript pad string
+            var STR_PAD_LEFT = 1;
+            var STR_PAD_RIGHT = 2;
+            var STR_PAD_BOTH = 3;
+            function pad(str, len, pad, dir) {
+
+                if (typeof (len) == "undefined") { var len = 0; }
+                if (typeof (pad) == "undefined") { var pad = ' '; }
+                if (typeof (dir) == "undefined") { var dir = STR_PAD_RIGHT; }
+
+                if (len + 1 >= str.length) {
+
+                    switch (dir) {
+
+                        case STR_PAD_LEFT:
+                            str = Array(len + 1 - str.length).join(pad) + str;
+                            break;
+
+                        case STR_PAD_BOTH:
+                            var right = Math.ceil((padlen = len - str.length) / 2);
+                            var left = padlen - right;
+                            str = Array(left + 1).join(pad) + str + Array(right + 1).join(pad);
+                            break;
+
+                        default:
+                            str = str + Array(len + 1 - str.length).join(pad);
+                            break;
+
+                    } // switch
+
+                }
+
+                return str;
+
+            }
+        </script>
+
+        <script>
+            function IsOnConsoleWay(id) {
+                console.log("sforce.console.isInConsole()",sforce.console.isInConsole());
+                if (sforce.console.isInConsole()) {
+                    srcUp('/' + id + '?isdtp=vw');
+                    //return false for break request  from call apex controller
+                    return false;
+                } else {
+                    //return true to post break to apex controller
+                    sforce.one.navigateToURL('/'+id);
+                    return true;
+                }
+            }
+            function checkIsSalesforceOne() {
+                var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")
+            };
+            var theme = '{!$User.UIThemeDisplayed}';
+            // console.log(isLightningMode);
+            // console.log(theme);
+            if (theme == 'Theme4u' && isLightningMode) {
+                $("#main-wrapper").css('display', 'block');
+            }
+            else if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                sforce.one.navigateToURL('/apex/searchProspectMobileV5',true);
+            } else {
+                $("#main-wrapper").css('display', 'block');
+            }
+            } 
+        </script>
+
+
+
+    </body>
+</apex:page>

@@ -1,0 +1,269 @@
+<aura:component controller="QCA_OpportunityInformationController"
+    implements="force:appHostable,flexipage:availableForAllPageTypes" access="global">
+    <aura:registerEvent name="varSimplifiedOpportunityProcessStatus" type="c:SimplifiedOpportunityProcessStatus" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+
+    <aura:attribute name="opptyId" type="Id" />
+    <aura:attribute name="accId" type="Id" />
+    <aura:attribute name="opptyObj" type="Opportunity" />
+    <aura:attribute name="opptyRecordTypeId" type="Id" />
+
+    <aura:attribute name="onInitValidInputField" type="Boolean" default="false" />
+    <aura:attribute name="isValidInputFieldName" type="Boolean" default="false" />
+    <aura:attribute name="isDisabledFeild" type="Boolean" default="false" />
+    <aura:attribute name="showOnloading" type="Boolean" default="false" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+
+    <aura:attribute name="showErrorMessage" type="Boolean" default="false" />
+    <aura:attribute name="errorMessageList" type="List" default="" />
+
+    <lightning:recordEditForm aura:id="opptyForm" onload="{!c.onLoad}" onsubmit="{!c.onSubmit}"
+        onsuccess="{!c.onSuccess}" onerror="{!c.onError}" recordId="{!v.opptyId ? v.opptyId : '' }"
+        recordTypeId="{!v.opptyRecordTypeId}" objectApiName="Opportunity">
+        <!-- <lightning:messages /> -->
+        <aura:if isTrue="{! v.showSpinnerLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" />
+        </aura:if>
+
+        <!-- <aura:renderIf isTrue="{! v.showErrorMessage }">
+            <div class="slds-notify_container slds-is-relative">
+                <div role="alert" class="slds-notify slds-notify_toast slds-theme_error">
+                    <div class="slds-notify__content">
+                        <aura:iteration items="{! v.errorMessageList }" var="e">
+                            <h2 class="slds-text-heading_small">
+                                {! e.errorHeader }
+                            </h2>
+                            <div class="slds-text-body_regular">
+                                {! e.errorMessage }
+                            </div>
+                        </aura:iteration>
+                    </div>
+                </div>
+            </div>
+        </aura:renderIf> -->
+
+        <!-- the messages component is for error messages -->
+        <!-- <h3 class="slds-section-title_divider">Opportunity Infomation</h3> -->
+        <!-- row 1 -->
+        <lightning:tabset class="tabset" selectedTabId="Oppty_info">
+            <lightning:tab label="Opportunity Information" id="Oppty_info">
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small">
+                    <div class="slds-form_stacked slds-m-bottom_x-small">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:outputField fieldName="RecordTypeId" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6" >
+                                <lightning:outputField fieldName="OwnerId" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <!-- row 2 -->
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <!-- <lightning:inputField aura:id="opptyInputForm" value="001N000001QDH9RIAX" fieldName="AccountId" /> -->
+                                <!-- <lightning:outputField fieldName="AccountId" /> -->
+                                <aura:renderIf isTrue="{! v.showOnloading }">
+                                    <c:strike_lookup label="Customer Name / Company (TH)" object="Account" searchField="Name"
+                                        iconName="standard:lead" aura:id="varAccountId" value="{! v.accId }"
+                                        disabled="true" />
+                                </aura:renderIf>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <hr />
+                        <!-- row 3 -->
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div aura:id="Name">
+                                    <lightning:inputField aura:id="opptyInputForm" fieldName="Name" onchange="{! c.onChangeRemoveValidateField }" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6"
+                                mediumDeviceSize="6" largeDeviceSize="6">
+                                <div aura:id="StageName">
+                                    <lightning:inputField aura:id="opptyInputForm" fieldName="StageName" onchange="{! c.onChangeRemoveValidateField }" />
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <!-- row 4 -->
+
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div aura:id="Expected_submit_date__c" class="customRequiredField">
+                                    <lightning:inputField aura:id="opptyInputForm" fieldName="Expected_submit_date__c"
+                                        onchange="{! c.onChangeExpectedSubmitDate }" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div aura:id="CloseDate" >
+                                    <lightning:inputField aura:id="opptyInputForm" fieldName="CloseDate" />
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <!-- row -->
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Probability" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Application_Status__c" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <!-- row 5 -->
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <aura:renderIf isTrue="{! v.showOnloading }">
+                                    <c:strike_lookup label="Preferred Branch" object="Branch_and_Zone__c"
+                                        searchField="Name" iconName="standard:lead" aura:id="varBranch"
+                                        value="{!v.opptyObj.Main_Branch__c}" />
+                                </aura:renderIf>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Reason_of_Lost__c" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <!-- row 6 -->
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Host_System__c"
+                                    disabled="true" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Host_Product_Group__c"
+                                    disabled="true" />
+                            </lightning:layoutItem>
+
+                        </lightning:layout>
+                        <!-- row 7 -->
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Details_of_Status__c" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Remark__c" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <!-- row 8 -->
+
+                    </div>
+                </div>
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small secondary-wrapping">
+                    <div class="slds-form_stacked slds-m-bottom_x-small">
+                        <div class="slds-var-p-horizontal_xx-small slds-text-title_caps slds-var-p-vertical_small">REVENUE</div>
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Amount" disabled="true" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </div>
+                </div>
+            </lightning:tab>
+            <lightning:tab label="Opportunity Source" id="Oppty_source">
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small">
+                    <div class="slds-form_stacked slds-m-bottom_x-small">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <aura:renderIf isTrue="{! v.showOnloading }">
+                                    <c:strike_lookup label="Primary Campaign Source" object="Campaign"
+                                        searchField="Name" iconName="standard:campaign" aura:id="varCampaignId"
+                                        value="{! v.opptyObj.CampaignId}" />
+                                </aura:renderIf>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="LeadSource" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Converted_Lead_ID__c" />
+                            </lightning:layoutItem>
+                            <hr />
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Other_Source__c" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <hr />
+                        <lightning:layout multipleRows="true">
+                            <aura:renderIf isTrue="{! v.showOnloading }">
+                                <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                    largeDeviceSize="6">
+                                    <c:strike_lookup label="Branch Referred" object="Branch_Referred__c"
+                                        searchField="Name" iconName="standard:campaign" aura:id="varBranchReferred" />
+                                </lightning:layoutItem>
+                                <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                    largeDeviceSize="6">
+                                    <c:strike_lookup label="Commercial NBO Name" object="product_campaign_recommend__c"
+                                        searchField="Name" iconName="standard:campaign" aura:id="varCommercialNBO"
+                                        value="{!v.opptyObj.product_campaign_recommend__c}" />
+                                </lightning:layoutItem>
+                            </aura:renderIf>
+                        </lightning:layout>
+                        <hr />
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Referral_Staff_ID__c" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Referral_Staff_Name__c" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <aura:renderIf isTrue="{! v.showOnloading }">
+                                    <c:strike_lookup label="Referral" object="RTL_Referral__c" searchField="Name"
+                                        iconName="standard:campaign" aura:id="varReferralId"
+                                        value="{!v.opptyObj.RTL_Referral__c}" />
+                                </aura:renderIf>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <hr />
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="opptyInputForm" fieldName="Supply_Chain_Flag__c" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+
+                    </div>
+                </div>
+
+            </lightning:tab>
+        </lightning:tabset>
+
+
+        <div class="slds-p-horizontal_large slds-p-vertical_x-small btn-next">
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                    <!-- <lightning:button variant="brand" type="submit" name="save" label="Next" /> -->
+                </lightning:layoutItem>
+                <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                    <lightning:button class="slds-float_right" variant="brand" type="submit" name="save" label="Next" onclick="{! c.onSubmitValidateOpportunity }"/>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </div>
+
+
+    </lightning:recordEditForm>
+
+</aura:component>

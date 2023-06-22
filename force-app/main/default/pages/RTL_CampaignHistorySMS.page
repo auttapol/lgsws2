@@ -1,0 +1,275 @@
+<apex:page standardController="Account" extensions="RTL_CampaignHistoryExtension" showHeader="false" sidebar="false">
+<style>
+.error_text{
+    color:red;
+}
+</style>
+<div class="slds-tabs_scoped">
+    <ul class="slds-tabs_scoped__nav sub_tab" role="tablist">
+      <li class="slds-tabs_scoped__item slds-is-active" title="Item Two" role="presentation">
+        <a class="slds-tabs_scoped__link mainview" href="javascript:void(0);" role="tab" tabindex="0" aria-selected="true" aria-controls="tab-sub-2">
+        {!$label.RTL_Campaign_History_TabSMS}</a>
+    </li>
+
+</ul>
+
+<div id="tab-sub-2" class="slds-tabs_scoped__content slds-show" role="tabpanel" aria-labelledby="tab-sub-2__item">
+    <apex:form >
+    <apex:actionFunction action="{!requestInt07}" name="requestDataSMS" reRender="SMSData" status="loadRequestStatusSMS" />
+    <apex:actionFunction action="{!requestInt07}" name="navigateSMS" reRender="SMSData" status="loadRequestStatusSMS">
+        <apex:param name="pageNo" assignTo="{!smsCampaignPage}" value=""/>
+    </apex:actionFunction> 
+<apex:actionStatus id="loadRequestStatusSMS" onstart="showLoadingSMS()" onstop="showResultSMS()" />
+</apex:form>
+
+<apex:form >
+
+
+
+
+<apex:outputPanel id="SMSData" >
+<div class="slds-form-element slds-m-around_small"  id="responsive" >
+
+    <div id="loadingPanelSMS" style="display:none;">
+     <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom">
+         <apex:outputText value="{!$Label.RTL_Campaign_History_Loading}"  styleClass="noRowsHeader" />
+     </div>
+ </div>
+
+
+ <div id="ResultPanelSMS">
+    <apex:outputPanel rendered="{! smsCalloutSuccess && (ISNULL(smsWrapperList) || smsWrapperList.size == 0)}" >
+    <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom">
+        <apex:outputText value="{!$Label.RTL_No_Record_Display}"  styleClass="noRowsHeader" />
+    </div>
+</apex:outputPanel>
+
+<apex:outputPanel rendered="{! !smsCalloutSuccess }" >
+<div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom error_text">
+    <!-- <apex:outputText value="{!exclusiveCalloutError} : {!exclusiveCalloutErrorDesc}"  styleClass="noRowsHeader" /> -->
+    {!$Label.RTL_Campaign_History_ErrorMessage1}<br />
+    {!$Label.RTL_Campaign_History_ErrorMessage2}&nbsp;
+    <apex:commandLink action="{!requestInt07}" value="{!$Label.RTL_Campaign_History_ErrorMessage3}" reRender="SMSData" status="loadRequestStatusSMS" /> 
+    {!$Label.RTL_Campaign_History_ErrorMessage4}
+</div>
+</apex:outputPanel>
+
+
+
+<apex:outputPanel id="excTableSMS" rendered="{! (!ISNULL(smsWrapperList) && smsWrapperList.size > 0)}" >
+<div class="slds-m-top_xxx-small">
+    <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal slds-table_fixed-layout" style="text-align: center;font-size: 12px; width: 100%;">
+        <thead>
+            <tr class="slds-text-title--caps slds-section-title--divider">
+                <th class="slds-size_2-of-12" scope="col"> 
+                    <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_SMSCampaign_RegisHeader}">
+                        {!$Label.RTL_Campaign_History_SMSCampaign_RegisHeader}
+                    </div>
+                </th>
+                <th class="slds-size_1-of-12" scope="col"> 
+                    <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_SMSCampaign_CampCodeHeader}">
+                        {!$Label.RTL_Campaign_History_SMSCampaign_CampCodeHeader}
+                    </div>
+                </th>
+                <th class="slds-size_2-of-12" scope="col"> 
+                    <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_SMSCampaign_CampNameHeader}">
+                        {!$Label.RTL_Campaign_History_SMSCampaign_CampNameHeader}
+                    </div>
+                </th>
+                <th class="slds-size_1-of-12" scope="col"> 
+                    <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_SMSCampaign_MoblieHeader}">
+                        {!$Label.RTL_Campaign_History_SMSCampaign_MoblieHeader}
+                    </div>
+                </th>
+                <th class="slds-size_2-of-12" scope="col"> 
+                    <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_SMSCampaign_MsgHeader}">
+                        {!$Label.RTL_Campaign_History_SMSCampaign_MsgHeader}
+                    </div>
+                </th>
+                <th class="slds-size_3-of-12" scope="col"> 
+                    <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_SMSCampaign_ContentHeader}">
+                        {!$Label.RTL_Campaign_History_SMSCampaign_ContentHeader}
+                    </div>
+                </th>
+                <th class="slds-size_1-of-12" scope="col"> 
+                    <div class="slds-cell-wrap" title="{!$Label.RTL_Campaign_History_SMSCampaign_ApplyChannelHeader }">
+                        {!$Label.RTL_Campaign_History_SMSCampaign_ApplyChannelHeader    }
+                    </div>
+                </th>
+
+            </tr>
+        </thead>
+        <tbody>
+            <apex:variable value="{!1}" var="countCampaign"/>
+            <apex:repeat value="{!smsCampData}" var="smsW" >
+
+            <tr class="dataRow">
+
+                <td data-label="{!$label.RTL_Campaign_History_SMSCampaign_RegisHeader}" > 
+                    <div class="slds-cell-wrap" title="{!smsW.smsCamMemObj.RegisterDate}">
+                        <!-- <apex:outputtext value="{0,date,d/M/yyy h:mm a}" >
+                            <apex:param value="{!smsW.smsCamMemObj.RegisterDate}" /> 
+                        </apex:outputText> -->
+                        <apex:outputtext value="{!smsW.smsCamMemObj.RegisterDateFormatted}" />
+                    </div>
+                </td>
+
+                <td data-label="{!$label.RTL_Campaign_History_SMSCampaign_CampCodeHeader}" > 
+                    <div class="slds-cell-wrap" title="{!smsW.smsCamMemObj.CampaignCode}">
+                        <apex:outputText value="{!smsW.smsCamMemObj.CampaignCode}"/>
+                    </div>
+                </td>
+
+                <td data-label="{!$label.RTL_Campaign_History_CampaignMemberLinkHeader}" > 
+                    <div class="slds-cell-wrap" title="{!smsW.camObj.Name}">
+                        <!--apex:outputField value="{!smsW.cam.CampaignId}" /-->
+                        <a href="#"
+                            id="lookup{!smsW.cam.CampaignId}Campaign{!countCampaign}"
+                            onmouseover="LookupHoverDetail.getHover(this.id, '/{!smsW.cam.CampaignId}/m?retURL=/{!smsW.cam.CampaignId}&isAjaxRequest=1&isdtp=vw').show();"
+                            onfocus="LookupHoverDetail.getHover(this.id, '/{!smsW.cam.CampaignId}/m?retURL=/{!smsW.cam.CampaignId}&isAjaxRequest=1&isdtp=vw').show();"
+                            onmouseout="LookupHoverDetail.getHover(this.id).hide();"
+                            onblur="LookupHoverDetail.getHover(this.id).hide();"
+
+                            target="_parent"
+                            onClick="openTab('{!smsW.cam.CampaignId}','/','{!smsW.camObj.Name}');return false">
+                                {!smsW.camObj.Name} 
+                        </a> 
+                    </div>
+                </td>
+
+                <td data-label="{!$label.RTL_Campaign_History_SMSCampaign_MoblieHeader}" > 
+                    <div class="slds-cell-wrap" title="{!smsW.smsCamMemObj.MobilePhoneNumber}">
+                        <apex:outputText value="{!smsW.smsCamMemObj.MobilePhoneNumber}"/>
+                    </div>
+                </td>
+
+                <td data-label="{!$label.RTL_Campaign_History_SMSCampaign_MsgHeader}" > 
+                    <div class="slds-cell-wrap" title="{!smsW.smsCamMemObj.Message}">
+                        <apex:outputText value="{!smsW.smsCamMemObj.Message}"/>
+                    </div>
+                </td>
+
+                <td data-label="{!$label.RTL_Campaign_History_SMSCampaign_ContentHeader}" > 
+                    <div class="slds-cell-wrap" title="{!smsW.smsCamMemObj.Content}">
+                    <apex:outputText value="{!smsW.smsCamMemObj.Content}" />  
+                </div>
+            </td>
+            <td data-label="{!$label.RTL_Campaign_History_SMSCampaign_ApplyChannelHeader}" > 
+                <div class="slds-cell-wrap" title="{!smsW.smsCamMemObj.ApplyChannel}">
+                    <apex:outputText value="{!smsW.smsCamMemObj.ApplyChannel}"/>
+                </div>
+            </td>
+            
+        </tr>
+    <!-- <apex:variable var="rowNum" value="{!rowNum + 1}" /> -->
+    <apex:variable var="countCampaign" value="{!countCampaign+ 1}"/>
+</apex:repeat>
+</tbody>
+</table>
+</div>
+<div class="slds-m-top_small">
+ <div class="slds-grid">
+     <div class="slds-align_absolute-center">
+         <div class="slds-grid slds-grid_vertical-align-start">
+             <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-box slds-box_xx-small">
+                 <apex:commandLink action="{!previousSMS}" rendered="{! !disablePreviousSMS}" value="{!$Label.RTL_Campaign_History_Previous}" status="loadRequestStatusSMS" reRender="excTableSMS" /> 
+                 <apex:outputText value="{!$Label.RTL_Campaign_History_Previous}" rendered="{! disablePreviousSMS}" />  
+             </div>
+
+             <!-- <apex:repeat value="{!smsPageList}" var="page">
+             <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-box slds-box_xx-small">
+                 <apex:commandLink action="{!requestInt06}" rendered="{! If(page!=smsCampaignPage ,true,false) }"
+                 value="{!page}" reRender="excTableSMS" 
+                 onclick="navigateSMS({!page});return false;"/> 
+                 <apex:outputText value="{!page}" rendered="{! If(page!=smsCampaignPage ,false,true) }" />
+             </div>
+            </apex:repeat> -->
+             <apex:repeat value="{!smsPagination}" var="page">
+                 <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-box slds-box_xx-small">
+                     <apex:commandLink action="{!requestInt06}" rendered="{! If(page!=smsCampaignPage ,true,false) }"
+                     value="{!If(page==-1,'',page)}" reRender="excTableSMS" 
+                     onclick="navigateSMS({!page});return false;"/> 
+                     <apex:outputText value="{!page}" rendered="{! If(page!=smsCampaignPage ,false,true) }" />
+                     <apex:outputText value="{!If(page==-1,'...',page)}" rendered="{! If(page!=-1,false,true) }" />  
+                 </div>
+             </apex:repeat>
+
+         <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-box slds-box_xx-small">
+             <apex:commandLink action="{!nextSMS}" rendered="{! !disableNextSMS}" value="{!$Label.RTL_Campaign_History_Next}" status="loadRequestStatusSMS" reRender="excTableSMS"  />
+             <apex:outputText value="{!$Label.RTL_Campaign_History_Next}" rendered="{! disableNextSMS}" />   
+         </div>
+
+
+     </div>
+
+
+ </div>
+ <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-col_bump-left">
+     {!$Label.RTL_Campaign_History_Page} {!smsCampaignPage} {!$Label.RTL_Campaign_History_Of} {!smsExCampaignTotalPage}
+ </div>
+</div>
+</div>
+</apex:outputPanel>
+</div>
+</div> 
+
+
+
+</apex:outputPanel>
+
+
+
+</apex:form>   
+
+</div>
+
+
+ <!--            <div id="tab-sub-2" class="slds-tabs_scoped__content slds-hide" role="tabpanel" aria-labelledby="tab-sub-2__item">
+            Pending
+        </div> -->
+    </div>
+
+
+
+    <!-- JAVASCRIPT -->
+    <script type="text/javascript">
+
+    $( document ).ready(function() {
+    //         //init call out after page load completed
+    //         showResultSMS();
+    //     //requestDataSMS();
+        });
+
+    function showLoadingSMS()
+    {
+        $('#ResultPanelSMS').hide();
+        $('#loadingPanelSMS').show();
+        
+            // console.log('startx');
+        }
+
+        function showResultSMS()
+        {
+            $('#loadingPanelSMS').hide();
+            $('#ResultPanelSMS').show();
+            
+            // console.log('stopx');
+        }
+
+        $('.slds-tabs_scoped ul.sub_tab li a').on('click',function(){
+            setActiveCampaignTab($(this));
+        });
+
+        function setActiveCampaignTab(tabElement)
+        {
+            $('ul.sub_tab .slds-tabs_scoped__item').removeClass('slds-is-active');
+            tabElement.parent().addClass('slds-is-active');
+            
+        }
+
+        
+        
+    </script>
+    <!-- / JAVASCRIPT -->
+
+</apex:page>

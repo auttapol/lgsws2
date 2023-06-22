@@ -1,0 +1,44 @@
+<aura:component controller="RTL_ReferralChangeOwner"
+    implements="lightning:actionOverride,force:lightningQuickActionWithoutHeader,lightning:isUrlAddressable,force:hasRecordId" access="global">
+    <aura:html tag="style">
+        .modal-container.slds-modal__container{
+        background: transparent;
+        box-shadow: none !important;
+        }
+        .modal-container.slds-modal__container .modal-header.slds-modal__header{
+        display:none;
+        }
+        .modal-container.slds-modal__container .modal-body{
+        background: transparent;
+        box-shadow: none !important;;
+        }
+        .modal-container.slds-modal__container .modal-footer.slds-modal__footer{
+        display:none;
+        }
+        .slds-button.slds-modal__close{
+        display:none;
+        }
+    </aura:html>
+
+    <lightning:navigation aura:id="navService" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="theme" type="String" default="{!$Browser.formFactor == 'PHONE' ? 'Theme4t' : 'Theme4u'}" />
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="isReletedList" type="Boolean" default="false" />
+    <aura:attribute name="isOnce" type="Boolean" default="true" />
+
+    <aura:attribute name="leads" type="List" />
+    <aura:handler name="change" value="{!v.leads}" action="{!c.handlerObj}" />
+
+    <aura:attribute name="referralObj" type="Object" />
+    <aura:handler name="change" value="{!v.referralObj}" action="{!c.handlerObj}" />
+
+    <force:recordData aura:id="recordLoader" recordId="{!v.recordId ? v.recordId : v.pageReference.state.c__recordId}"
+        fields="Name,RTL_Is_Owner__c,RTL_Stage__c,RTL_Type__c,RTL_Account_Name__c" targetFields="{!v.referralObj}" />
+
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+    <aura:if isTrue="{! v.isLoading }">
+        <lightning:spinner style="background-color: unset;" alternativeText="Loading" size="medium" variant="{!v.theme == 'Theme4t' ? 'base':'inverse'}" />
+    </aura:if>
+</aura:component>

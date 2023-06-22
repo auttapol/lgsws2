@@ -1,0 +1,154 @@
+<aura:component implements="force:hasRecordId,force:lightningQuickActionWithoutHeader" access="global"
+    controller="RequestToRemoveSLLGroupController">
+
+    <aura:attribute name="groupMemRec" type="Object" />
+    <aura:attribute name="onInit" type="boolean" default="true" />
+    <aura:attribute name="isLoading" type="boolean" default="true" />
+    <aura:attribute name="hasApprover" type="boolean" default="false" />
+    <aura:attribute name="approver1" type="Object" />
+    <!-- <aura:attribute name="approver2" type="Object" /> -->
+    <aura:attribute name="errMsg" type="String" default="" />
+    <aura:attribute name="errHeaderMsg" type="String" default="" />
+    <aura:attribute name="isError" type="boolean" />
+    <aura:attribute name="isGroupInActive" type="boolean" default="false" />
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <aura:html tag="style">
+        .slds-modal__container{
+        width: 55%;
+        max-width: 60rem;
+        }
+        .modal-body{
+        height : 600px !important;
+        max-height: 600px !important;
+        }
+    </aura:html>
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+
+    <aura:if isTrue="{! v.isLoading }">
+        <div class="slds-is-relative">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+
+    <aura:if isTrue="{!not(v.onInit)}">
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+            <lightning:layoutItem>
+                <div class="slds-is-relative">
+                    <lightning:icon size="large" iconName="standard:custom" alternativeText="Group Member" />
+                </div>
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 class="slds-text-heading_label">
+                        Request to remove SLL Group member
+                    </h1>
+                    <h2 class="slds-text-heading_medium">
+                        {!v.groupMemRec.Name}
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+    </aura:if>
+    <lightning:card>
+        <div class="{! !v.isError ? 'slds-hide' : 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error' }"
+            role="alert">
+            <span class="slds-assistive-text">error</span>
+            <span class="slds-icon_container slds-icon-utility-error slds-m-right_x-small">
+                <lightning:icon iconName="utility:error" variant="inverse" size="x-small" />
+            </span>
+            <h2>{!v.errHeaderMsg}</h2>
+        </div>
+        <aura:if isTrue="{!not(v.onInit)}">
+            <div style="margin: 10px 10%;">
+                <lightning:input name="SLL Group" readonly="true" value="{!v.groupMemRec.SLL_Group__r.Name}"
+                    label="SLL Group Name" />
+            </div>
+            <div style="margin: 10px 10%;">
+                <lightning:input name="Customer" readonly="true" value="{!v.groupMemRec.Customer_Name__r.Name}"
+                    label="Customer" />
+            </div>
+
+        </aura:if>
+        <div class="slds-form-element" style="min-height: 130px; margin-top:35px">
+            <table
+                class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_fixed-layout slds-table_striped slds-table_resizable-cols">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <th class="" scope="col" style="width:20%">
+                            <div class="slds-truncate slds-text-align_center" title="APPROVER">APPROVER</div>
+                        </th>
+                        <th class="" scope="col" style="width:20%">
+                            <div class="slds-truncate slds-text-align_center" title="Name">Name</div>
+                        </th>
+                        <th class="" scope="col" style="width:20%">
+                            <div class="slds-truncate slds-text-align_center" title="Surname">Surname</div>
+                        </th>
+                        <th class="" scope="col" style="width:40%;">
+                            <div class="slds-truncate slds-text-align_center" title="TITLE">Title</div>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <aura:if isTrue="{!v.hasApprover}">
+                        <tr class="slds-hint-parent">
+                            <th data-label="Approver No" scope="row">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approver1.No}">
+                                    {!v.approver1.No}
+                                </div>
+                            </th>
+                            <td data-label="Approver FName">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approver1.FirstName}">
+                                    {!v.approver1.FirstName}</div>
+                            </td>
+                            <td data-label="Approver LName">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approver1.LastName}">
+                                    {!v.approver1.LastName}</div>
+                            </td>
+                            <td data-label="Title">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approver1.Title}">
+                                    {!v.approver1.Title}</div>
+                            </td>
+                        </tr>
+                        <!-- <tr class="slds-hint-parent">
+                            <th data-label="Approver No" scope="row">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approver2.No}">
+                                    {!v.approver2.No}
+                                </div>
+                            </th>
+                            <td data-label="Approver FName">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approver2.FirstName}">
+                                    {!v.approver2.FirstName}</div>
+                            </td>
+                            <td data-label="Approver LName">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approver2.LastName}">
+                                    {!v.approver2.LastName}</div>
+                            </td>
+                            <td data-label="Title">
+                                <div class="slds-cell-wrap slds-text-align_center" title="{!v.approver2.Title}">
+                                    {!v.approver2.Title}</div>
+                            </td>
+                        </tr> -->
+                        <aura:set attribute="else">
+                            <td class="" scope="col" colspan="4">
+                                <aura:if isTrue="{!not(empty(!v.errMsg))}">
+                                    <div class="slds-text-align_center slds-m-around_medium slds-text-color_inverse-weak"
+                                        style="font-size: 14px; ">
+                                        <lightning:formattedText value="{!v.errMsg}" />
+                                    </div>
+                                </aura:if>
+                            </td>
+                        </aura:set>
+                    </aura:if>
+                </tbody>
+            </table>
+        </div>
+        <!-- </aura:if> -->
+
+        <div class="slds-form-element" style="text-align:center;margin: 15px;">
+            <lightning:button label="Confirm" onclick="{!c.handleConfirm}" disabled="{!v.isGroupInActive}" />
+            <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.handleCancel}" />
+        </div>
+    </lightning:card>
+</aura:component>

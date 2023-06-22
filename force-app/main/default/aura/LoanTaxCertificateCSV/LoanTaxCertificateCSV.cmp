@@ -1,0 +1,149 @@
+<aura:component controller="CSV_RDTaxConsentController" implements="lightning:isUrlAddressable,force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="taxList" type="List" />
+    <aura:attribute name="isError" type="Boolean" default="false" />
+    <aura:attribute name="is01Timeout" type="Boolean" default="false" />
+    <aura:attribute name="hasPermission" type="Boolean" default="true" />
+    <aura:attribute name="loading" type="Boolean" default="false" />
+
+    <aura:attribute name="accIdParameter" type="String" />
+
+    <!-- Water Mark -->
+    <aura:attribute name="waterMarkImage" type="String" />
+
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <aura:if isTrue="{!v.loading}">
+        <lightning:spinner alternativeText="Loading" size="medium" />
+    </aura:if>
+
+    <aura:if isTrue="{!!v.hasPermission}">
+        <div class="{!v.loading == true ? 'slds-hide' : ''}">
+            <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom slds-theme_shade slds-theme_alert-texture">
+                {!$Label.c.Data_Condition_NotAuthorizedMsg}
+            </div>
+        </div>
+        <aura:set attribute="else">
+            <aura:if isTrue="{!v.isError}">
+                <lightning:layout>
+                    <lightning:layoutItem size="12" class="slds-is-relative slds-p-top_small">
+                        <lightning:card class="slds-theme_shade slds-theme_alert-texture">
+                            <aura:set attribute="title">
+                                <div class="slds-text-heading_medium slds-text-color_destructive">
+                                    <aura:unescapedHtml value="Warning" />
+                                </div>
+                            </aura:set>
+                            <lightning:layoutItem class="slds-p-around_small">
+                                <div style="white-space: pre-wrap;">
+                                    {!$Label.c.ERR001_ProductHolding}
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:card>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+            <aura:if isTrue="{!v.is01Timeout}">
+                <lightning:layout>
+                    <lightning:layoutItem size="12" class="slds-is-relative slds-p-top_small">
+                        <lightning:card class="slds-theme_shade slds-theme_alert-texture">
+                            <aura:set attribute="title">
+                                <div class="slds-text-heading_medium slds-text-color_destructive">
+                                    <aura:unescapedHtml value="Warning" />
+                                </div>
+                            </aura:set>
+                            <lightning:layoutItem class="slds-p-around_small">
+                                <div style="white-space: pre-wrap;">
+                                    {!$Label.c.Auto_Loan_Product_holding_Request_Timeout}
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:card>
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </aura:if>
+
+            <!-- Water Mark -->
+            <div class="slds-no-print" style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                <article class="slds-card">
+                    <div class="slds-card__header slds-grid">
+                        <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                            <div class="slds-media__figure">
+                                <lightning:icon iconName="standard:case" alternativeText="case" title="case" size="small" />
+                            </div>
+                            <div class="slds-media__body">
+                                <h2 class="slds-card__header-title">
+                                    <span>{!$Label.c.Tax_Title_Name} ({!v.taxList.length != null ? v.taxList.length : '0'})</span>
+                                </h2>
+                            </div>
+                        </header>
+                    </div>
+                    <div class="slds-card__body">
+                        <table class="slds-table slds-table_cell-buffer slds-no-row-hover slds-table_bordered slds-table_fixed-layout" role="grid" style="{! 'background-image: ' + v.waterMarkImage + ';width:100%;height:100%;'}">
+                            <thead>
+                                <tr class="slds-line-height_reset">
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Action">{!$Label.c.Action}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Account Number">{!$Label.c.Account_Number}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Sub Product">{!$Label.c.Product_Sub_Group}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Product">{!$Label.c.Product_Name}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Status">{!$Label.c.Status}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Contract End Date">{!$Label.c.Contract_End_Date}</div>
+                                    </th>
+                                    <th class="" scope="col">
+                                        <div class="slds-truncate" title="Co-Borrower">{!$Label.c.Has_Co_borrower}</div>
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <aura:iteration items="{!v.taxList}" var="field" indexVar="index">
+                                    <tr class="slds-hint-parent">
+                                        <th data-label="Action" scope="row">
+                                            <!-- <div class="{! 'slds-truncate ' + (field.taxConsentBtnPermission == true ? '' : 'slds-hide') }" title="Action"> -->
+                                            <div class="slds-truncate" title="Action">
+                                                <aura:if isTrue="{! and(field.taxConsentBtnPermission, field.statusDesc04 != 'ERROR')}">
+                                                    <a href="#" id="{!index}" onclick="{!c.openTaxCertificate}">{!$Label.c.Tax_Table_ViewEdit}</a>
+                                                </aura:if>
+                                                <aura:if isTrue="{!field.statusDesc04 == 'ERROR'}">
+                                                    <span style="color:red;"> {!$Label.c.ERR008} </span>
+                                                </aura:if>
+                                            </div>
+                                        </th>
+                                        <td data-label="Account Number">
+                                            <div class="slds-truncate" title="Account Number">{!field.maskAccountNumber}</div>
+                                        </td>
+                                        <td data-label="Close Date">
+                                            <div class="slds-truncate" title="Sub Product">{!field.prodSubFamily}</div>
+                                        </td>
+                                        <td data-label="Prospecting">
+                                            <div class="slds-truncate" title="Product">{!field.prodName}</div>
+                                        </td>
+                                        <td data-label="Confidence">
+                                            <div class="slds-truncate" title="Status">{!field.accountStatus}</div>
+                                        </td>
+                                        <td data-label="Amount">
+                                            <div class="slds-truncate" style="{! field.statusDesc04 == 'ERROR' ? 'color:red;' : ''}" title="Contract Expiry Date">{!field.contractEndDate}</div>
+                                        </td>
+                                        <td data-label="Contact">
+                                            <div class="slds-truncate" title="Co-Borrower">{!field.hasCoborrower}</div>
+                                        </td>
+                                    </tr>
+                                </aura:iteration>
+                            </tbody>
+                        </table>
+                    </div>
+                </article>
+            </div>
+        </aura:set>
+    </aura:if>
+
+</aura:component>

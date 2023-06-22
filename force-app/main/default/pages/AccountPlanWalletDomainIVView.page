@@ -1,0 +1,1209 @@
+<apex:page controller="AccountPlanWalletDomainIVViewCtrl" action="{!updateSumOfWalletFXFeePerYear}"
+    docType="html-5.0" showChat="false" showHeader="{! !isConsoleMode}" sidebar="false"
+    applyBodyTag="false" applyHtmlTag="true" standardStylesheets="true">
+    <head>
+<title>Wallet Information</title>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+<meta name="author" content="Keattisak Chinburarat" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+<!-- Static Resource -->
+<!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+<!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->
+
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+        
+        .outputText {
+            /*padding-top:7px;*/
+            
+        }
+        
+        </style>
+    </head>
+
+    <body>
+        <c:AccountPlanHeader activetab="3" activesubtab="4"
+        Groupid="{!GroupID}"
+        CompanyID="{!CompanyID}"
+        WalletID="{!WalletID}"
+        Percentage="{!Acctplancompletion.Account_Plan_Completion_Percentage__c }"
+        WalletPercentage="{!Acctplancompletion.Step_3_Percentage__c }"
+        isMiniView="{!isMiniView}"
+        
+            isHasProdStrategy="{!ishasProdStrategy}"
+            isHasActionPlan="{!isHasActionPlan}"
+        />
+        <div class="bootstrap-sf1">
+            <div id="responseErrors"></div>
+            <apex:form styleClass="form-horizontal">
+                 <apex:pageBlock id="pgBlock">
+                                <div class="form-group">
+                 <!--   <div style="text-align: center;">
+                    <a href="/apex/AccountPlanWalletDomainIVEdit?CompanyID={!CompanyID}&GroupID={!GroupID}&WalletID={!WalletID}"
+                        class="btn  btn-success">Edit</a>
+                        
+                </div> -->
+                        
+                        <div style="text-align: center; margin-bottom:10px;">
+                        <apex:pageBlockButtons location="both" style="float:left;margin-left:250px;" rendered="{! 
+                         isHasPermission
+                         && if(companyProfile.OwnerID == $User.id 
+                               || isSystemAdmin 
+                               
+                               || companyProfile.Account__r.OwnerID == $User.id,true,
+                               if(isAccountTeamReadWrite,true,false) 
+                         )}">
+                                <apex:commandButton value="Edit" action="{!EditPage}" styleclass="btn btn-success" rendered="{! !companyprofile.isPendingForApproval__c}" />
+                                                         
+                            <span class="btn btn-default glyphicon glyphicon-lock"  
+                            rel="tooltip" 
+                            title="This record has been locked while pending Approval Process"
+                            style="display:{!if(companyprofile.isPendingForApproval__c,'grid','none')};"
+                            > Edit</span>    
+                        </apex:pageBlockButtons>
+                </div>
+                
+                        
+                        
+                        
+                        <div style="margin-left:15px;">
+                                <table class="table">
+                                    <tbody>
+                                    
+                                    <tr>
+                                    <td class="forceBackground" style="border: none;text-align:left;" width="180px">
+                                        Year
+                                        <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanCompanyProfile__c.Fields.Year__c.inlineHelpText}" />       
+                                       
+                                    </td>
+                                    <td style="border: none;">
+                                        <span class="form-control text-center calculate" style="width:400px;">
+                                            <apex:outputfield value="{!companyprofile.Year__c}" />
+                                                </span>
+                                            </td>
+                                            </tr>
+                                            <tr>
+                                                <td class="forceBackground" style="border: none;text-align:left;">
+                                                    Customer Name
+                                                    <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanCompanyProfile__c.Fields.AccountName__c.inlineHelpText}" />       
+                                                     
+                                                </td>
+                                                <td style="border: none;">
+                                                    <span class="form-control text-center calculate" style="width:400px;">
+                                                        <apex:outputfield value="{!companyprofile.AccountName__c}" />
+                                                    </span>
+                                                 </td>
+                                            </tr>
+                                      </tbody>
+                                   </table>
+                                </div>
+                </div>
+                <header class="navbar navbar-default navbar-branded" role="banner">
+                    <div class="panel-heading">
+                        <div class="navbar-header ">
+                            <a data-toggle="collapse" aria-expanded="true" href="#collapse1"
+                                class="navbar-brand navbar-foundation-logo"> 1) Normal Business transaction </a>
+                        </div>
+                    </div>
+                </header>
+         <apex:actionFunction name="rerenderforeign" action="{!loadforeign}" reRender="foreigntrans"   />
+         <apex:actionFunction name="rerenderQuestion" action="{!loadquestionnaire}" reRender="fxbehaviorblock,expblock,riskblock,expenditureblock"   />                                
+                <div class="card collapse in panel-collapse" id="collapse1">
+                    <div class="card-detail">
+
+                        <!--  Section 1 -->
+                        <fieldset>
+                            <h3 class="text-primary">1.1 Trade transaction</h3>                     
+
+                            <div style="float:left;width:45%;margin: 0 20px 0 0;">
+                                 
+                               <table class="table table-striped table-hover"
+                                    >
+                                    <thead>
+                                        <tr>
+                                            <td class="text-left" style="border: none;"><label
+                                                        class="control-label">Unit: THB</label>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <th>
+                                                Collection Currency
+                                                <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanCollectionOrPaymentCurrency__c.Fields.CCY__c.inlineHelpText}" />
+                             
+                                            </th>
+                                            <th>
+                                                Portion (%)
+                                                <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanCollectionOrPaymentCurrency__c.Fields.CollectionPortion__c.inlineHelpText}" />
+                                                                  
+                                            </th>
+                                            <th>
+                                                Amount per year (THB)
+                                                <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanCollectionOrPaymentCurrency__c.Fields.CollectionAmtPerYear__c.inlineHelpText}" />
+                                                          
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                          <apex:repeat value="{!CollectionList}" var="cl" >      
+                                            <tr >
+                                              <td class="text-center"><apex:outputfield value="{!cl.CCY__r.ShortName__c}" /></td>
+                                            <td class="text-center"><apex:outputfield value="{!cl.CollectionPortion__c}" /></td>
+                                            <td class="text-right"><apex:outputfield value="{!cl.CollectionAmtPerYear__c}" /></td>
+                                        </tr> 
+                                                 </apex:repeat>        
+                                                
+                                     </tbody>            
+                                      
+                                </table>
+                                        
+                                            
+                                            
+
+                            </div>
+                                            
+                            <div style="float:right;width:45%;margin: 42px 20px 0 0;">
+
+                              <table class="table table-striped table-hover"
+                                    >
+                                    <thead>
+                                        <tr>
+                                            <th>
+                                              Payment Currency
+                                              <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanCollectionOrPaymentCurrency__c.Fields.CCY__c.inlineHelpText}" />
+                                            
+                                            </th>
+                                            <th>
+                                                Portion (%)
+                                                         <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanCollectionOrPaymentCurrency__c.Fields.PaymentPortion__c.inlineHelpText}" />
+                                                         
+                                            </th>
+                                            <th>
+                                              Amount per year (THB)
+                                              <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanCollectionOrPaymentCurrency__c.Fields.PaymentAmtPerYear__c.inlineHelpText}" />
+                                                            
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                          <apex:repeat value="{!PaymentList}" var="pl" >      
+                                            <tr >
+                                              <td class="text-center"><apex:outputfield value="{!pl.CCY__r.ShortName__c}" /></td>
+                                            <td class="text-center"><apex:outputfield value="{!pl.PaymentPortion__c}" /></td>
+                                            <td class="text-right"><apex:outputfield value="{!pl.PaymentAmtPerYear__c}" /></td>
+                                        </tr> 
+                                            </apex:repeat>        
+                                                
+                                     </tbody>  
+                                </table>
+
+                            </div>                
+
+                        </fieldset>
+                        <!-- /Section 1 -->
+
+                        <!-- /Section 2 -->
+                        <fieldset>
+                            <br />
+                            <br />
+                           
+                            <div>
+
+                             
+                            <apex:outputpanel id="foreigntrans">
+                                <table class="table table-striped table-hover">
+                                   
+                                    <tbody>
+                                        <tr style="border:none;">
+
+                                            <th colspan="2" style="border:none;"><label
+                                                        class="control-label" >Total Foreign Transaction</label></th>
+                                            <th style="border:none;">&nbsp;</th>
+                                            <th style="border:none;">&nbsp;</th>
+                                            <th style="border:none;">&nbsp;</th>
+                                            <th style="border:none;">&nbsp;</th>
+                                            <th style="border:none;">&nbsp;</th>
+                                            <th style="border:none;">&nbsp;</th>
+                                            <th style="border:none;">&nbsp;</th>
+                                             
+                                        </tr>
+                                        <tr>
+
+                                            <th class="forceBackground">
+                                                Currency
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanForeignTrans__c.Fields.CCY__c.inlineHelpText}" />     
+                                                
+                                            </th>
+                                            <th class="forceBackground text-right">
+                                                Amount per year (THB)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanForeignTrans__c.Fields.AmtPerYear__c.inlineHelpText}" />     
+                                             </th>
+                                            <th class="forceBackground">
+                                                Hedging policy
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanForeignTrans__c.Fields.HedgingPolicy__c.inlineHelpText}" />     
+                                             </th>
+                                            <th class="forceBackground text-center">
+                                                Hedging ratio (%) :<br />Actual or to be
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanForeignTrans__c.Fields.HedgingRatio__c.inlineHelpText}" />     
+                                             </th>
+                                            <th class="forceBackground text-right" >
+                                                 Prospect hedged amount
+                                                 <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanForeignTrans__c.Fields.PropsectHedgedAmount__c.inlineHelpText}" />     
+                                             </th>              
+                                            <th class="forceBackground">
+                                                FX margin (THB)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanForeignTrans__c.Fields.FXMarginStg__c.inlineHelpText}" />     
+                                             </th>
+                                            <th class="forceBackground text-center">
+                                                Wallet FX fee <br />(Per year)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanForeignTrans__c.Fields.WalletFXFeePerYear__c.inlineHelpText}" />     
+                                             </th>
+                                            <th class="forceBackground">
+                                                Currency
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanForeignTrans__c.Fields.CCY__c.inlineHelpText}" />     
+                                             </th>
+                                            <th class="forceBackground text-center">
+                                                Exchange rate of THB/<br /> 1 FCY
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanForeignTrans__c.Fields.ExchangeRateOfTHB__c.inlineHelpText}" />     
+                                             </th>
+                                        </tr>
+                                        <tr>
+
+                                          
+                                        </tr> 
+                                            
+                                            <apex:repeat value="{!ForeignTransList}" var="ftl" >               
+                                         <tr>
+                                                <td ><apex:outputfield value="{!ftl.CCY__r.ShortName__c}"   /></td>
+                                            <td class="text-right"><apex:outputfield value="{!ftl.AmtPerYear__c   }" /> </td>
+                                                <td><apex:outputfield value="{!ftl.HedgingPolicy__c  }"  /> </td>
+                                                <td class="text-right"><apex:outputfield value="{!ftl.HedgingRatio__c  }"   /></td>
+                                                <td class="text-right"><apex:outputfield value="{!ftl.PropsectHedgedAmount__c }"  /> </td>
+                                                <td class="text-right"><apex:outputfield value="{!ftl.FXMarginStg__c  }"  /> </td>
+                                                <td class="text-right"><apex:outputfield value="{!ftl.WalletFXFeePerYear__c  }"  /> </td>
+                                                <td ><apex:outputfield value="{!ftl.CCY__r.ShortName__c}"   /></td>
+                                                <td class="text-right">
+                                                    <apex:outputtext value="{0, number, ###,##0.0000}" style="border: none;" >
+                                                       <apex:param value="{!ftl.ExchangeRateOfTHB__c}" />
+                                                    </apex:outputtext>
+                                                </td>
+                                        </tr>
+                                        </apex:repeat>     
+                                            
+                                            
+                                           <tr class='info endRow'>
+                                       <td  class='forceBackground' >Total  </td>
+                                       <td class='forceBackground text-right' >   </td> 
+                                       <td class='forceBackground text-right' colspan="2" > &nbsp; </td>
+                                       <td class='forceBackground text-right' >  <apex:outputtext value="{0, number,###,##0}" rendered="{!if(SumOfHedgedAmount==0 || SumOfHedgedAmount==1,'false','true')}">
+                                                                            <apex:param value="{!SumOfHedgedAmount}" />
+                                                                        </apex:outputtext>  </td> 
+                                       <td class='forceBackground text-right' > <apex:outputtext value="{0, number,###,##0.0000}" rendered="{!if(SumFxMargin==0.0000,'false','true')}" >
+                                                                            <apex:param value="{!SumFxMargin}" />
+                                                                        </apex:outputtext>  </td>
+                                       <td class='forceBackground text-right' ><apex:outputtext value="{0, number,###,##0}" rendered="{!if(SumWalletFX==0,'false','true')}" >
+                                                                            <apex:param value="{!SumWalletFX}" />
+                                                                        </apex:outputtext>  </td> 
+                                       <td class='forceBackground text-right' colspan="2" > &nbsp; </td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                                       </apex:outputpanel>
+                            </div>
+                        </fieldset>
+                        <!-- /Section 2 -->
+
+                         <fieldset>
+                           
+                            <div>
+
+                                <div class="col-sm-12 col-md-6 col-lg-6">
+                                    <div class="form-group">
+
+                                            <div>
+                                         
+                                                <table class="table" style="width: 550px;">
+                                                    
+                                                                                      
+                                                   <tr> 
+                                                         <td style="border:none; text-align: left;">
+                                                         </td>
+                                                         <td style="border:none; text-align: left;width:240px;">
+                                                            <apex:inputCheckbox disabled="true" value="{!wallet.FI_Customer_FX__c}" label="FI Customer"/> 
+                                                            <span>&nbsp;FI Customer</span>
+                                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.FICustomerFlag__c.inlineHelpText}" />
+                                                    
+                                                        </td>   
+                                                </tr>
+                                                <tr> 
+                                                         <td style="border:none; text-align: left;">
+                                                         <label class="control-label">FX Volume per Year (THB equivalent)</label>
+
+                                                         </td>
+                                                         <td style="border:none;">
+                                                           
+                                                             <span class="form-control text-right calculate" 
+                                                             style="width:200px;float:left; ">
+                                                                <apex:outputField value="{!wallet.FX_Volume_per_Year_THB__c}" />
+                                                            </span>
+
+
+
+                                                             <span style="margin-top:10px;margin-left: 5px;" 
+                                                             class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.FX_Volume_per_Year_THB__c.inlineHelpText}" />
+                                                            
+                                                        </td>   
+                                                </tr>
+                                                <tr> 
+                                                         <td style="border:none; text-align: left;">
+                                                         <label class="control-label">Spread (%)</label>
+
+                                                         </td>
+                                                         <td style="border:none;">
+                                                           
+                                                             <span class="form-control text-right calculate" 
+                                                             style="width:200px;float:left; ">
+                                                                <apex:outputField value="{!wallet.Spread__c}" />
+                                                            </span>
+
+
+
+                                                             <span style="margin-top:10px;margin-left: 5px;" 
+                                                             class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.Spread__c.inlineHelpText}" />
+                                                            
+                                                        </td>   
+                                                </tr>
+                                                <tr> 
+                                                         <td style="border:none; text-align: left;">
+                                                         <label class="control-label">Wallet FX Fee (Yearly: THB)</label>
+
+                                                         </td>
+                                                         <td style="border:none;">
+                                                         <span class="form-control text-right calculate" 
+                                                             style="width:200px;float:left; ">
+                                                            <apex:outputfield value="{!wallet.Wallet_FX_Fee_Yearly_THB__c}"
+                                                            rendered="{!wallet.Wallet_FX_Fee_Yearly_THB__c >0}"
+                                                         />
+                                                             
+                                                             </span>
+                                                             <span  style="margin-top:10px;margin-left: 5px;" 
+                                                             class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                                    data-animation="false" data-placement="bottom" 
+                                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.Wallet_FX_Fee_Yearly_THB__c.inlineHelpText}" />
+                                                            
+                                                        </td>   
+                                                </tr>
+                                                   
+                                           </table> 
+                                                          
+                                            </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                              
+                            
+                        </fieldset>
+                       
+
+
+
+                        <!--  Section 4 -->
+                        <fieldset>
+                            <div>
+                           
+                                              <apex:outputpanel id="fxbehaviorblock">
+                                <table class="table" style="width: 32%">
+                                    <thead>
+                                        <tr style="background-color:white;border:none;">
+                                            <th colspan="2" style="border-top-width:0px;background-color:white;color:black;" class="text-left">FX Hedging Behavior</th>
+                                        </tr>
+                                        <tr>
+                                            <td class="forceBackground">&nbsp;</td>
+                                            <td class="forceBackground">Hedging Behavior</td>
+                                        </tr>
+                                    </thead>        
+                                       <tbody>   
+                                        <apex:variable var="fxbehavior" value="FX Hedging Behavior" />     
+                                             <apex:repeat value="{!QuestionnaireMap[fxbehavior]}" var="qm" >                                                
+                                        <tr >
+                                             <td class="outputQuestionnaireText" style="width:100px;">
+                                                <apex:outputfield value="{!qm.Answer__c}" styleClass="form-control"
+                                                 /></td>   
+                                                <td class="text-left"><apex:outputfield value="{!qm.Question__c}" /></td>
+                                            
+                                                
+                                                
+                                        </tr>
+                                            </apex:repeat>
+                                    </tbody>
+                                </table>
+                                                </apex:outputpanel>
+                            </div>
+
+
+
+
+
+                            <div>
+                                <br /> <br />
+                                 
+                                   <apex:outputpanel id="expblock">           
+                                <table class="table" style="width: 50%">
+                                    <tbody>
+                                        <tr style="background-color:white;border:none;">
+                                            <th style="border-top-width:0px" colspan="3">FX Hedging experience</th>
+                                            
+                                        </tr>
+                                        <tr>
+                                            <td class="forceBackground " >&nbsp;</td>
+                                            <td class="forceBackground " >Hedging Tools</td>
+                                            <td class="forceBackground text-left" >Additional comment</td>
+                                        </tr>
+                                        <apex:variable var="fxexp" value="FX Hedging experience" />     
+                                             <apex:repeat value="{!QuestionnaireMap[fxexp]}" var="qm" >                                                
+                                        <tr >
+                                             <td class="outputQuestionnaireText" style="width:100px;">
+                                                <apex:outputfield value="{!qm.Answer__c}" styleClass="form-control"
+                                                 /></td>   
+                                                <td class="text-left"><apex:outputfield value="{!qm.Question__c}" /></td>
+                                            
+                                               <td class="text-left"><apex:outputfield value="{!qm.Comment__c}" /></td>
+                                            
+                                                
+                                        </tr>
+                                            </apex:repeat>
+                                    </tbody>
+                                </table>
+                                            </apex:outputpanel>
+                                
+
+
+                            </div>
+                            <div>
+                                <br /> <br />
+                                          
+                                                   
+                                 <apex:outputpanel id="riskblock">               
+                                <table class="table" style="width: 60%">
+                                    <tbody>
+                                        <tr style="background-color:white;border:none;">
+                                            <th colspan="2" style="border-top-width:0px">Credit protection risk</th>
+                                        </tr>
+                                        <tr>
+                                            <td class="forceBackground" >&nbsp;</td>
+                                            <td class="forceBackground " >Export side</td>
+                                            <td class="forceBackground text-left" >Business Opportunity</td>
+                                        </tr>
+                                        <apex:variable var="creditrisk" value="Credit protection risk" />     
+                                             <apex:repeat value="{!QuestionnaireMap[creditrisk]}" var="qm" >                                                
+                                        <tr >
+                                             <td class="outputQuestionnaireText" style="width:100px;">
+                                                <apex:outputfield value="{!qm.Answer__c}" styleClass="form-control fillin"
+                                                 /></td>   
+                                                <td class="text-left"><apex:outputfield value="{!qm.Question__c}" styleClass="form-control" />
+                                                    <br />
+                                                    <apex:outputfield value="{!qm.Question_TH__c}" styleClass="form-control" />
+                                                    </td>
+                                           
+                                             <td class="text-left">
+                                                 <apex:outputfield value="{!qm.Opportunity__c}" 
+                                                 styleClass="form-control" rendered="{!if(qm.Answer__c =='Yes','true','false')}" />
+                                                     </td>
+                                               
+                                                
+                                        </tr>
+                                            </apex:repeat>
+                                    </tbody>
+                                </table>
+                                </apex:outputpanel>
+
+
+
+                            </div>
+                            
+
+                            <div class="col-sm-12 col-md-6 col-lg-6" style="padding:0;width: 100%; ">
+                                
+                                <apex:outputpanel id="expenditureblock">
+                                <table class="table">
+                                    <tbody>
+                                        <tr style="background-color:white;border:none;">
+                                            <h3 class="text-primary">1.2 Other Revenue/Expenditure</h3>
+                                        </tr>
+                                        <tr>
+                                            <td class="forceBackground" >
+                                                Revenue/ Expenditure
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanOtherRevenueExpenditure__c.Fields.RevenueOrExpenditure__c.inlineHelpText}" />     
+                                            </td> 
+                                            <td class="forceBackground" >
+                                                Expected amount/ Historical amount (THB)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanOtherRevenueExpenditure__c.Fields.ExpectedAmountOrHistoricalAmount__c.inlineHelpText}" />     
+                                            </td> 
+                                            <td class="forceBackground" >
+                                                Timeline
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanOtherRevenueExpenditure__c.Fields.Timeline__c.inlineHelpText}" />     
+                                            </td>
+                                            <td class="forceBackground" >
+                                                Currency
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanOtherRevenueExpenditure__c.Fields.Currency__c.inlineHelpText}" />     
+                                            </td>
+                                            <td class="forceBackground" >
+                                                Mismatch currency
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanOtherRevenueExpenditure__c.Fields.MismatchCurrency__c.inlineHelpText}" />     
+                                            </td>
+                                            <td class="forceBackground" >
+                                                Hedging policy
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanOtherRevenueExpenditure__c.Fields.HedgingPolicy__c.inlineHelpText}" />     
+                                            </td>
+                                            <td class="forceBackground" >
+                                                Opportunity
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanOtherRevenueExpenditure__c.Fields.Opportunity__c.inlineHelpText}" />     
+                                            </td>
+                                        </tr>
+                                            <apex:repeat value="{!ExdenditureList}" var="etl">
+                                                <tr>
+                                                <td><apex:outputfield value="{!etl.RevenueOrExpenditure__c    }"  /> </td>
+                                                <td class="text-right" ><apex:outputfield value="{!etl.ExpectedAmountOrHistoricalAmount__c   }"  /> </td>
+                                                <td><apex:outputfield value="{!etl.Timeline__c   }"   /></td>
+                                                <td><apex:outputfield value="{!etl.Currency__r.Name}"  /> </td>
+                                                <td><apex:outputfield value="{!etl.MismatchCurrency__c}"  /> </td>
+                                                <td><apex:outputfield value="{!etl.HedgingPolicy__c}" /> </td>
+                                                <td><apex:outputfield value="{!etl.Opportunity__c }" /> </td>
+                                                </tr>
+                                                </apex:repeat>
+                                    </tbody>
+                                </table>
+                                            </apex:outputpanel>
+                            </div>
+
+
+                        </fieldset>
+                        <!--  Section 3 -->
+
+                    </div>
+                </div>
+                
+                
+                <header class="navbar navbar-default navbar-branded" role="banner">
+                    <div class="panel-heading">
+                        <div class="navbar-header">
+                            <a data-toggle="collapse" aria-expanded="true"
+                               href="#collapse2" class="navbar-brand navbar-foundation-logo">
+                                2) Insurance
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                
+                <div class="card collapse in panel-collapse" id="collapse2">            
+                    <div class="card-detail" >
+                           <h3 class="text-primary">2.1 Credit life insurance</h3>   
+                           <div>
+                                <br />
+                                <table class="table table-striped table-hover" style="width:70%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="border:none;background-color:white;" class="danger">&nbsp;</th>
+                                            <th style="border:none;background-color:white;" class="danger">&nbsp;</th>
+                                            <th class="forceBackground text-center">Business Opportunity</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                                <apex:variable var="creditriskanswer" value="{!''}" />  
+                                          <apex:variable var="creditrisk" value="Credit life insurance" />            
+                                      <apex:repeat value="{!QuestionnaireMap[creditrisk]}" var="qn"> 
+                                      <tr >
+                                         <td class="outputQuestionnaireText" style="width:100px;">
+                                                <apex:outputfield value="{!qn.Answer__c}" styleClass="form-control fillin"
+                                                 />
+                                                  <apex:variable var="creditriskanswer" value="{!qn.Answer__c}" />
+                                                    </td>
+                                        <td class="forceBackground text-left" ><apex:outputfield value="{!qn.Question__C}" />
+                                            <br />
+                                            <apex:outputfield value="{!qn.Question_TH__C}" />
+                                            </td>
+                                        <td class="text-left" ><apex:outputfield value="{!qn.Opportunity__c}" rendered="{!if(qn.Answer__C =='Yes','true','false')}" /></td>
+                                        </tr> 
+                                        </apex:repeat>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div>
+                                <table class="table" style="width:70%;display:{!if(creditriskanswer=='Yes','block','none')};">
+                                    <tbody>
+                                       <tr >
+                                         <td class="forceBackground text-left" >
+                                             Amount of credit facility with TMB
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.AmtOfCreditFaciWithTMB__c.inlineHelpText}" />     
+                                         </td>
+                                         <td class="text-right" style="width:50%;">
+                                             <apex:outputtext value="{0, number, ###,##0}" style="border: none;">
+                                                 <apex:param value="{!wallet.AmtOfCreditFaciWithTMB__c}" />
+                                           </apex:outputtext>
+                                          </td>
+                                       </tr>
+                                       <tr >
+                                         <td class="forceBackground text-left" >
+                                             % of protection 
+                                             <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.ProtectionPercent__c.inlineHelpText}" />     
+                                         </td>    
+                                         <td class="text-right" style="background-color:#f9f9f9;"><apex:outputfield value="{!wallet.ProtectionPercent__c}" styleClass="form-control fillin" /></td>  
+                                       </tr>
+                                       <tr >
+                                         <td class="forceBackground text-left" >
+                                             Required protection amount
+                                             <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.RequiredProtectionAmt__c.inlineHelpText}" />     
+                                         </td>
+                                         <td class="text-right" style="width:50%;">
+                                             <apex:outputtext value="{0, number, ###,##0}" style="border: none;">
+                                                 <apex:param value="{!wallet.RequiredProtectionAmt__c}" />
+                                             </apex:outputtext>
+                                         </td>  
+                                       </tr>                                      
+                                       <tr >
+                                         <td class="forceBackground text-left" >
+                                             BA Premium
+                                             <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.BA_Premium__c.inlineHelpText}" />     
+                                         </td>
+                                         <td class="text-right" style="width:50%;">
+                                             <apex:outputtext value="{0, number, ###,##0}" style="border: none;">
+                                                 <apex:param value="{!wallet.BA_Premium__c}" />
+                                           </apex:outputtext>
+                                          </td>  
+                                       </tr>
+                                       <tr >
+                                         <td class="forceBackground text-left" >
+                                             Wallet of BA fee
+                                             <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.WalletOfBAFee__c.inlineHelpText}" />     
+                                         </td>
+                                         <td class="text-right" style="width:50%;">
+                                             <apex:outputtext value="{0, number, ###,##0}" style="border: none;">
+                                                 <apex:param value="{!wallet.WalletOfBAFee__c}" />
+                                             </apex:outputtext>
+                                          </td>  
+                                       </tr>
+                                       <tr >
+                                         <td class="forceBackground text-left" >
+                                             Total Wallet BA  fee (THB)
+                                             <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                    data-animation="false" data-placement="bottom" 
+                                                    title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalWalletBAFee__c.inlineHelpText}" />     
+                                         </td>
+                                         <td class="text-right" style="width:50%;">
+                                             <apex:outputtext value="{0, number, ###,##0}" style="border: none;">
+                                                 <apex:param value="{!wallet.TotalWalletBAFee__c}" />
+                                             </apex:outputtext>
+                                          </td>  
+                                       </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <br/><br/>
+                            
+                            <h3 class="text-primary">2.2 Non credit life insurance</h3>   
+                            <div>
+                                <br />
+                                <table class="table table-striped table-hover" style="width:70%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="border:none;background-color:white;" class="danger">&nbsp;</th>
+                                            <th style="border:none;background-color:white;" class="danger">&nbsp;</th>
+                                            <th class="forceBackground text-center">Business Opportunity</th>
+                                        </tr>   
+                                    </thead>
+                                    <tbody>
+                                         <apex:variable var="noncredit" value="Non credit life insurance" />            
+                                      <apex:repeat value="{!QuestionnaireMap[noncredit]}" var="qn"> 
+                                      <tr >
+                                         <td class="outputQuestionnaireText" style="width:100px;">
+                                                <apex:outputfield value="{!qn.Answer__c}" styleClass="form-control fillin"
+                                                 /></td>
+                                        <td class="forceBackground text-left" ><apex:outputfield value="{!qn.Question__C}" />
+                                            <br />
+                                            <apex:outputfield value="{!qn.Question_TH__C}" />
+                                            </td>
+                                        <td class="text-left" ><apex:outputfield value="{!qn.Opportunity__c}" rendered="{!if(qn.Answer__C =='Yes','true','false')}" /></td>
+                                        </tr> 
+                                        </apex:repeat>                                           
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <br/><br/>
+                            
+                            <h3 class="text-primary">2.3 Non Life insurance</h3>   
+                            <div>
+                                <br />
+                                <table class="table table-striped table-hover" style="width:70%;">
+                                    <thead>
+                                        <tr>
+                                            <th style="border:none;background-color:white;" class="danger">&nbsp;</th>
+                                            <th style="border:none;background-color:white;" class="danger">&nbsp;</th>
+                                            <th class="forceBackground text-center">Business Opportunity</th>
+                                        </tr>   
+                                    </thead>
+                                    <tbody>
+                                       <apex:variable var="nonlife" value="Non Life insurance" />            
+                                      <apex:repeat value="{!QuestionnaireMap[nonlife]}" var="qn"> 
+                                      <tr >
+                                         <td class="outputQuestionnaireText" style="width:100px;">
+                                                <apex:outputfield value="{!qn.Answer__c}" styleClass="form-control fillin"
+                                                 /></td>
+                                        <td class="forceBackground text-left" >
+                                            
+                                            <apex:outputfield value="{!qn.Question__C}" />
+                                                <br />
+                                                <apex:outputfield value="{!qn.Question_TH__C}" />
+                                            </td>
+                                        <td class="text-left" ><apex:outputfield value="{!qn.Opportunity__c}" rendered="{!if(qn.Answer__C =='Yes','true','false')}" /></td>
+                                        </tr> 
+                                        </apex:repeat>                                                 
+                                    </tbody>
+                                </table>
+                            </div>
+                    </div>
+                </div>
+                                        
+                
+                
+                <header class="navbar navbar-default navbar-branded" role="banner">
+                    <div class="panel-heading">
+                        <div class="navbar-header">
+                            <a data-toggle="collapse" aria-expanded="true"
+                               href="#collapse3" class="navbar-brand navbar-foundation-logo">
+                                3) Balance sheet management
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                                    
+                <div class="card collapse in panel-collapse" id="collapse3">            
+                    <div class="card-detail" >
+                     <h3 class="text-primary">3.1 Liability Management</h3>     
+                         <!-- Liability Management -->
+                                                
+                           
+                           <div>
+                                <br /> <br />
+                             
+                                <table class="table" style="width: 100%">
+                                    <tbody>
+                                        <tr style="background-color:white;border:none;">
+                                            <th colspan="2">3.1.1 Existing liabilities</th>
+                                        </tr>
+                                        <tr>
+                                            <td class="forceBackground" >
+                                                Bank
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.Bank__c.inlineHelpText}" />     
+                                             </td>
+                                            <td class="forceBackground" >
+                                                Currency
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.CCY__c.inlineHelpText}" />     
+                                             </td>
+                                            <td class="forceBackground" >
+                                                Amount
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.EquivalentAmount__c.inlineHelpText}" />     
+                                             </td>
+                                            <td class="forceBackground" colspan="2" >
+                                                Interest type
+                                            </td>
+                                            <td class="forceBackground" >
+                                                Currency Amount Fully hedge?
+                                                    <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.CCYAmtFullyHedge__c.inlineHelpText}" />     
+                                             </td>
+                                            <td class="forceBackground" >
+                                                Interest fully hedge?
+                                                    <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.InterestFullyHedge__c.inlineHelpText}" />     
+                                             </td>
+                                            <td class="forceBackground" >
+                                                Hedging tenor
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.HedgingTenor__c.inlineHelpText}" />     
+                                             </td>
+                                            <td class="forceBackground" >
+                                                Opportunity?
+                                                    <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.Opportunity__c.inlineHelpText}" />     
+                                             </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="forceBackground" colspan="2" >&nbsp;</td>
+                                            <td class="forceBackground" >(THB Equivalent)</td>
+                                            <td class="forceBackground" >Fixed/Float
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.InterestFloatingRate__c.inlineHelpText}" />     
+                                             </td>
+                                            <td class="forceBackground" >Interest rate
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanExistingLongTermLoan__c.Fields.InterestFixedRate__c.inlineHelpText}" />     
+                                             </td>
+                                            <td class="forceBackground" colspan="4" >&nbsp;</td> 
+                                        </tr> 
+                                            <apex:variable var="SumOfExistingLongTermLoan" value="{!0}" />  
+                                           <apex:repeat value="{!APExisitngLongTermLoan}" var="item">
+                                                <tr>
+                                                    <td class="leftLine"><apex:outputField value="{!item.Bank__r.Name}"/></td>
+                                                    <td><apex:outputField value="{!item.CCY__r.Name}"/></td>
+                                                    <td class="text-right"><apex:outputField value="{!item.EquivalentAmount__c}"/></td>
+                                                    <td><apex:outputField value="{!item.InterestType__c}"/></td>
+                                                    <td>
+                                                        <apex:outputField value="{!item.InterestFixedRate__c}" rendered="{!IF(item.InterestType__c == 'Fixed rate','true','false')}"/>
+                                                        <apex:outputField value="{!item.InterestFloatingRate__c}" rendered="{!IF(item.InterestType__c == 'Floating rate','true','false')}"/>
+                                                    </td>
+                                                    <td><apex:outputField value="{!item.CCYAmtFullyHedge__c}"/></td>
+                                                    <td><apex:outputField value="{!item.InterestFullyHedge__c}"/></td>
+                                                    <td><apex:outputField value="{!item.HedgingTenor__c}"/></td>
+                                                    <td><apex:outputField value="{!item.Opportunity__c}" rendered="{!IF(item.CCYAmtFullyHedge__c == 'No' || item.InterestFullyHedge__c == 'No' || item.HedgingTenor__c == 'No' || item.HedgingTenor__c == 'Partial','true','false')}"/></td>
+                                                </tr>
+                                                <apex:variable var="SumOfExistingLongTermLoan" value="{!SumOfExistingLongTermLoan+item.EquivalentAmount__c}" />      
+                                            </apex:repeat> 
+                                            <tr class='info endRow'>
+                                       <td  class='forceBackground' colspan="2" >Total  </td>
+                                       <td class='forceBackground text-right' >
+                                           <apex:outputtext value="{0, number, ###,##0}" style="border: none;">
+                                                 <apex:param value="{!SumOfExistingLongTermLoan}" />
+                                           </apex:outputtext>
+                                        </td> 
+                                    </tr>
+                                    </tbody>
+                                </table>
+
+
+
+
+                            </div>                     
+                                                
+                                                    
+                                                    
+
+                           <div>
+                                <br /> <br />
+                                <table class="table" style="width: 100%">
+                                    <tbody>
+                                        <tr style="background-color:white;border:none;">
+                                            <th colspan="2">3.1.2 Investment Plan /Capital expenditure plan</th>
+                                        </tr>
+                                        <tr>
+                                            <td class="forceBackground" >
+                                                Purpose    
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.Purpose__c.inlineHelpText}" />     
+                                             </td>
+                                            <td class="forceBackground" >
+                                                Project amount<br/> (THB Equivalent)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.ProjectAmount__c.inlineHelpText}" />     
+                                             </td>
+                                            <td class="forceBackground" >
+                                                Investment location
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.InvestmentLocation__c.inlineHelpText}" />     
+                                             </td>
+                                            <td class="forceBackground" >
+                                                Financing ratio <br />(%)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.FinancingRation__c.inlineHelpText}" />     
+                                             </td>                       
+                                            <td class="forceBackground" >
+                                                Tenor <br /> (yrs)
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.TenorYearly__c.inlineHelpText}" />     
+                                             </td>
+                                            
+                                            <td class="forceBackground" >
+                                                Opportunity to make funding <br/>or investment  in foreign currency?
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.OppForForeignCCY__c.inlineHelpText}" />     
+                                             </td>    
+                                            <td class="forceBackground" >
+                                                Mismatch currency<br/> with collection side?
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.MisMatchCCY__c.inlineHelpText}" />     
+                                             </td>    
+                                            <td class="forceBackground" >
+                                                Need to hedge interest<br/> rate risk?
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.NeedToHedgeInterest__c.inlineHelpText}" />     
+                                             </td>    
+                                            <td class="forceBackground" >
+                                                Opportunity?
+                                                <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanCapitalExpenditurePlan__c.Fields.Opportunity__c.inlineHelpText}" />     
+                                             </td>    
+                                            
+                                        </tr>
+                                       <apex:variable var="SumOfCapitalExpenditurePlanProjectAmt" value="{!0}" /> 
+                                        <apex:repeat value="{!APCapitalExpenditurePlan}" var="item">
+                                            <tr>
+                                                <td class="leftLine"><apex:outputField value="{!item.Purpose__c}"/></td>
+                                                <td class="text-right"><apex:outputField value="{!item.ProjectAmount__c}"/></td>
+                                                <td><apex:outputField value="{!item.InvestmentLocation__c}"/></td>
+                                                <td><apex:outputField value="{!item.FinancingRation__c}"/></td>
+                                                <td><apex:outputField value="{!item.TenorYearly__c}"/></td>
+                                                <td><apex:outputField value="{!item.OppForForeignCCY__c}"/></td>
+                                                <td><apex:outputField value="{!item.MisMatchCCY__c}"/></td>
+                                                <td><apex:outputField value="{!item.NeedToHedgeInterest__c}"/></td>
+                                                <td><apex:outputField value="{!item.Opportunity__c}" rendered="{!IF(item.OppForForeignCCY__c == 'Yes' || item.MisMatchCCY__c == 'Yes' || item.NeedToHedgeInterest__c == 'Yes','true','false')}"/></td>          
+                                            </tr>
+                                                <apex:variable var="SumOfCapitalExpenditurePlanProjectAmt" value="{!SumOfCapitalExpenditurePlanProjectAmt+item.ProjectAmount__c}" /> 
+                                        </apex:repeat>
+
+                                            
+                                         <tr class='info endRow'>
+                                       <td  class='forceBackground' >Total  </td>
+                                       <td class='forceBackground text-right' >
+                                           <apex:outputtext value="{0, number, ###,##0}" style="border: none;">
+                                                 <apex:param value="{!SumOfCapitalExpenditurePlanProjectAmt}" />
+                                           </apex:outputtext>
+                                        </td> 
+                                    </tr>   
+                                    </tbody>
+                                </table>
+
+
+
+
+                            </div>  
+                              
+                           <div>
+                                <br /> <br />
+                                <table class="table" style="width: 40%">
+                                    <tbody>
+                                        <tr style="background-color:white;">
+                                            <th colspan="2" style="    border-top-width: 0px;">Internet Banking     </th>
+                                        </tr>
+                                         <apex:variable var="banking" value="Internet Banking" />  
+                                        <apex:variable var="internetbanking" value="" />
+                                      <apex:repeat value="{!QuestionnaireMap[banking]}" var="qn"> 
+                                           <apex:variable var="internetbanking" value="{!qn.Answer__c}" rendered="{!IF(qn.Answer__c == 'Yes' && qn.SEQ__c == 1,true,false)}"/>
+                                            <tr style="display:{!IF(internetbanking == 'Yes' || qn.SEQ__c == 1,'table-row','none')};" class="{!IF(qn.SEQ__c != 1,'internetbanking','')}">
+                                            <td class="outputQuestionnaireText" style="width:100px;">
+                                                    <apex:outputfield value="{!qn.Answer__c}" styleClass="form-control fillin"/></td>
+                                            <td class="forceBackground text-left" ><apex:outputfield value="{!qn.Question__C}" />
+                                                <br />
+                                                <apex:outputfield value="{!qn.Question_TH__C}" />
+                                                </td>
+                                            </tr> 
+                                        </apex:repeat>         
+                                        
+                                    </tbody>
+                                </table>
+
+
+
+
+                            </div>
+                            <div>            
+                             <table class="table table-striped table-hover"
+                                    style="width: 34%">
+                                     <tbody>
+                                         <tr >
+                                        <td class="forceBackground" style="min-width:200px !important;" >
+                                            Total Wallet FX fee (Yearly) 
+                                            <span class="glyphicon glyphicon-question-sign" data-toggle="tooltip" data-delay='{"show":"0", "hide":"100"}'
+                                                        data-animation="false" data-placement="bottom" 
+                                                        title="{!$ObjectType.AcctPlanWallet__c.Fields.SumOfAcctPlanForeignWalletFXFeePerYear__c.inlineHelpText}" />     
+                                       </td>
+                                        <td>
+                                            <apex:outputtext value="{0, number, ###,##0}" style="border: none;">
+                                                 <apex:param value="{!wallet.SumOfAcctPlanForeignWalletFXFeePerYear__c}" />
+                                           </apex:outputtext>
+                                         </td>   
+                                            
+                                        </tr>
+                                    </tbody>
+                                </table>   
+                            </div>
+                                                
+                         <!-- Liability Management -->                    
+                                            
+                                            
+                                            
+                                            
+                                            
+                                            
+                    </div>
+                </div>                                   
+                                            
+                         </apex:pageBlock>
+            </apex:form>
+        </div>
+                         
+                         
+                         <div class="bootstrap-sf1">                                  
+          <!-- Modal -->
+                <div  class="modal fade modal-fullscreen force-fullscreen"  id="frmModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-bottom: 30px;margin-top: 45px;">
+                  <div class="modal-dialog" style="width:100%;height:95%;" >
+                    <div class="modal-content" style="width:100%;height:95%;" >
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel"> </h4>
+                      </div>
+                      <div class="modal-body">
+                          <iframe id="modalIframe" src="#" width="100%" height="400px" frameborder="0" allowtransparency="true"></iframe>  
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>                       
+                      </div>
+                    </div>
+                    <!-- /.modal-content -->
+                  </div>  <!-- /.modal-dialog -->
+                </div>
+              </div> 
+
+        <apex:includeScript value="{!$Resource.AccountPlan_JqueryScript}"/>
+
+        <apex:includeScript value="{!$Resource.AccountPlan_Bootstrap}"/>
+
+        <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+        <apex:includeScript value="/support/console/22.0/integration.js"/>
+
+        <script>
+            var $j = jQuery.noConflict();
+            $j(document).ready( function () {   
+                    
+                    $j("[rel=tooltip]").tooltip({ placement: 'right'});
+                     $j('[data-toggle="tooltip"]').tooltip(); 
+                    });
+
+
+              //Sets the title of the current tab to "Case Transactions Detail"
+            window.onload = function setTitleConsole(){
+                setTitle();
+            }
+            //Sets the title of the current tab to "Case Transactions Detail"
+            function setTitle() {
+                sforce.console.setTabTitle('Wallet by Domain');
+            }
+
+        
+
+            </script>
+    </body>
+
+</apex:page>

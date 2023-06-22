@@ -1,0 +1,158 @@
+<aura:component controller="RTL_HouseHoldUtils" implements="lightning:actionOverride" access="global">
+    <lightning:workspaceAPI aura:id="workspace" />
+    <lightning:navigation aura:id="navService" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="fields" type="Map" default="{}" access="private" />
+    <aura:attribute name="fieldInfoes" type="Map" default="{}" access="private" />
+    <aura:handler name="change" value="{!v.householdReference.RTL_HouseHold__c}" action="{!c.handleHousehold}" />
+    <aura:attribute name="householdReference" type="Map" default="{}" access="private" />
+    
+    <aura:attribute name="theme" type="String" default="{!$Browser.formFactor == 'PHONE' ? 'Theme4t' : 'Theme4u'}" />
+    <aura:attribute name="householdId" type="Id" />
+    <aura:attribute name="householdMemberId" type="Id" />
+    <aura:attribute name="accountId" type="Id" />
+    <aura:attribute name="tabId" type="String" />
+    <aura:attribute name="isEdit" type="Boolean" default="false" />
+
+    <aura:attribute name="userId" type="Id" default="{! $SObjectType.CurrentUser.Id }" access="private" />
+    <aura:attribute name="isManager" type="Boolean" default="false" access="private" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+    <aura:attribute name="isModify" type="Boolean" default="false" />
+
+    <aura:attribute name="error" type="Map" default="{
+        status: false,
+        message: ''
+    }" />
+    <aura:attribute name="activeSections" type="List" default="['A','B']" />
+    <aura:attribute name="deviceSize" type="Map" default="{
+        'size': '12',
+        'smallDeviceSize': '12',
+        'mediumDeviceSize': '6',
+        'largeDeviceSize': '6',
+    }" />
+
+    <ui:scrollerWrapper>
+
+        <lightning:recordEditForm aura:id="recordEditForm" density="compact" recordId="{!v.householdId}" onload="{!c.onLoad}" onsubmit="{!c.onSubmit}"
+            onsuccess="{!c.onSuccess}" onerror="{!c.onError}" objectApiName="RTL_Household__c">
+
+            <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+                <lightning:layoutItem>
+                    <lightning:icon size="medium" iconName="custom:custom1" alternativeText="House hold" />
+                </lightning:layoutItem>
+                <lightning:layoutItem padding="horizontal-small">
+                    <div class="page-section page-header">
+                        <h1 class="slds-text-heading_label">
+                            {!$Label.c.RTL_Household}
+                        </h1>
+                        <h2 class="slds-text-heading_medium">
+                            {!v.householdReference.RTL_HouseHold__c.Name}
+                        </h2>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+
+            <lightning:card>
+                <aura:set attribute="title"></aura:set>
+
+                <aura:set attribute="actions">
+                    <aura:if isTrue="{!!v.isManager}">
+                        <lightning:button label="{!$Label.c.Save}" type="submit" disabled="{!!v.isModify}" />
+                    </aura:if>
+                    <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.handleClose}" />
+                </aura:set>
+                <aura:set attribute="footer">
+                    <aura:if isTrue="{!!v.isManager}">
+                        <lightning:button label="{!$Label.c.Save}" type="submit" disabled="{!!v.isModify}" />
+                    </aura:if>
+                    <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.handleClose}" />
+                </aura:set>
+
+                <aura:if isTrue="{! v.showSpinnerLoading }">
+                    <lightning:spinner alternativeText="Loading" size="medium" />
+                </aura:if>
+
+                <aura:if isTrue="{! v.error.status }">
+                    <div class="slds-align_absolute-center">
+                        <div class="slds-scoped-notification slds-media slds-media_center slds-theme_error" role="status">
+                            <div class="slds-media__figure">
+                                <span class="slds-icon_container slds-icon-utility-error" title="error">
+                                    <lightning:icon iconName="utility:error" />
+                                </span>
+                            </div>
+                            <div class="slds-media__body">
+                                <lightning:formattedText value="{!v.error.message}" />
+                            </div>
+                        </div>
+                    </div>
+                    <aura:set attribute="else">
+                        <lightning:messages aura:id="errorMessage" />
+                    </aura:set>
+                </aura:if>
+
+                <lightning:accordion aura:id="accordion" allowMultipleSectionsOpen="true" onsectiontoggle="{! c.handleSectionToggle }"
+                    activeSectionName="{! v.activeSections }">
+
+                    <lightning:accordionSection name="A" label="{!$Label.c.RTL_Household_Information}">
+                        <lightning:layout verticalAlign="stretch" multipleRows="true">
+                            <aura:iteration items="{!v.fieldInfoes.RTL_Household_Information}" var="field">
+                                <lightning:layoutItem padding="horizontal-small" size="{!v.deviceSize.size}" smallDeviceSize="{!v.deviceSize.smallDeviceSize}"
+                                    mediumDeviceSize="{!v.deviceSize.mediumDeviceSize}" largeDeviceSize="{!v.deviceSize.largeDeviceSize}">
+
+                                    <aura:if isTrue="{!field.readonly}">
+
+                                        <div class="slds-form-element slds-form-element_horizontal">
+                                            <label class="slds-form-element__label">{!field.label}</label>
+                                            <div class="slds-form-element__control">
+                                                <aura:if isTrue="{!field.hover}">
+                                                    <c:popHoverUtils type="{!field.type}" value="{!field.value}" />
+
+                                                    <aura:set attribute="else">
+                                                        <c:pillOutput type="{!field.type}" value="{!field.value}" />
+                                                    </aura:set>
+                                                </aura:if>
+                                            </div>
+                                        </div>
+
+                                        <aura:set attribute="else">
+                                            <lightning:inputField fieldName="{!field.name}" required="{!field.required}" />
+                                        </aura:set>
+                                    </aura:if>
+
+                                </lightning:layoutItem>
+                            </aura:iteration>
+                        </lightning:layout>
+                    </lightning:accordionSection>
+
+                    <lightning:accordionSection name="B" label="{!$Label.c.RTL_Household_Member}">
+                        <lightning:layout verticalAlign="stretch" multipleRows="true">
+                            <aura:iteration items="{!v.fieldInfoes.RTL_Household_Member}" var="field">
+
+                                <lightning:layoutItem padding="horizontal-small" size="{!v.deviceSize.size}" smallDeviceSize="{!v.deviceSize.smallDeviceSize}"
+                                    mediumDeviceSize="{!v.deviceSize.mediumDeviceSize}" largeDeviceSize="{!v.deviceSize.largeDeviceSize}">
+                                    <div class="slds-form-element slds-form-element_horizontal">
+                                        <label class="slds-form-element__label">{!field.label}</label>
+                                        <div class="slds-form-element__control">
+                                            <aura:if isTrue="{!field.hover}">
+                                                <c:popHoverUtils type="{!field.type}" value="{!field.value}" />
+
+                                                <aura:set attribute="else">
+                                                    <c:pillOutput type="{!field.type}" value="{!field.value}" />
+                                                </aura:set>
+                                            </aura:if>
+                                        </div>
+                                    </div>
+                                </lightning:layoutItem>
+
+                            </aura:iteration>
+                        </lightning:layout>
+                    </lightning:accordionSection>
+
+                </lightning:accordion>
+            </lightning:card>
+
+        </lightning:recordEditForm>
+    </ui:scrollerWrapper>
+
+</aura:component>

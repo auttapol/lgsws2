@@ -1,0 +1,249 @@
+<apex:page standardController="Lead" extensions="LeadActionExtension" lightningStylesheets="true" title="{!action}">
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <style>
+        .buttommargin {
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 640px) {
+            input {
+                margin: 5px !important;
+            }
+        }
+    </style>
+    <apex:sectionHeader title="{!action}" subtitle="{!tempLead.name}, {!tempLead.company}" description="{!descriptionPage}" />
+    <apex:form id="theBlock" onkeypress="return noenter(event)">
+        <apex:actionFunction name="backtoListview" action="{!backtoListview}" />
+        <apex:actionFunction name="saveDesktop" action="{!saveDesktop}" />
+        <apex:actionFunction name="saveMobile" action="{!saveMobile}" />
+        <apex:actionFunction name="doCancel" action="{!cancel}" />
+        <apex:actionstatus id="status">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" />
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+        <apex:pageBlock mode="Edit" id="theBlock">
+            <apex:pageblockbuttons >
+
+                <apex:commandbutton styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Check Duplication" rendered="{!isbyPassDuplicateCheck && !isDuplicated && action!='' 
+                                          && $CurrentPage.parameters.prescreen != '1' }" action="{!checkDupAction}" rerender="theBlock,PreScreenBlock,showmsg,redirectpanel"
+                    status="status" />
+                <apex:commandButton styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="{!buttonValue}" onclick="pathSave();"
+                    rendered="{!if( !isReassign &&action!='' && $CurrentPage.parameters.prescreen != '1' && !isbyPassDuplicateCheck ,true,false) }"
+                    reRender="theBlock,showmsg" />
+
+                <apex:commandButton styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Cancel" onclick="pathCancel();return false;"
+                    rendered="{! !isDuplicated &&  !isReassign}" />
+            </apex:pageblockbuttons>
+
+            <apex:outputPanel rendered="{!isReassign}">
+                Lead has been assign to Queue/Person : {!if(tempLead.Suggested_Person__c!=null,tempLead.Suggested_Person__c,tempLead.Suggested_Team__c)}
+                <br />
+                <apex:commandButton styleClass="slds-button slds-button--neutral uiButton forceActionButton" value="Return" onclick="pathListView();return false;"
+                />
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{! !isReassign}">
+                <apex:pageMessages id="showmsg" escape="false"></apex:pageMessages>
+
+                <apex:outputPanel rendered="{!isDuplicated}" id="redirectpanel">
+                    <script type="text/javascript">
+                        window.setTimeout("redirectpage();", 3000);
+
+                        function redirectpage() {
+                            window.location.href = '{!$Site.Prefix}' + '/' + '{!tempLead.id}';
+                        }
+                    </script>
+                </apex:outputPanel>
+                <apex:outputPanel id="scriptBlock">
+                    <script type="text/javascript">
+
+                        var canCancel = {!isCancel};
+                        var theme = '{!$User.UIThemeDisplayed}';
+                        // console.log('isReassign', {!isReassign});
+                        if (canCancel) {
+                            if (theme == "Theme4u") {
+                                // console.log("Refresh");
+                                var recordId = '{!tempLead}';
+                                // window.location.reload(true)
+                                refreshTab(recordId);
+                            } else {
+                                sforce.one.navigateToSObject('{!tempLead.Id}');
+                            }
+                        }
+
+
+                        function refreshTab(recordId) {
+                            sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                                "componentDef": "c:workspaceAPIforVF",
+                                "attributes": {
+                                    "action": 'closeAndRefresh',
+                                    "recordId": recordId,
+                                    "force": true,
+                                    "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                                        return v.toString(16);
+                                    }),
+                                }
+                            })), true);
+                        }
+                    </script>
+                </apex:outputPanel>
+
+                <apex:inputField id="rl1" value="{!tempLead.Unqualified_Action__c}" />
+                <script>
+                    document.getElementById("{!$Component.rl1}").hidden = true;
+                </script>
+                <apex:actionFunction immediate="true" action="{!preScreenAction}" name="resultChange" reRender="PreScreenBlock,showmsg">
+                    <!-- //Fixed: 2018Jan -->
+                    <apex:param value="" name="inpPreScreenResult" />
+                </apex:actionFunction>
+
+
+
+
+
+                <!-- <apex:actionFunction action="{!PreScreenResultChange}" name="PreScreenResultChange" reRender="PreScreenBlock"/> -->
+                <!-- #### 
+                        Edit By: Danudath
+                        Date: 27-02-2017
+                        CR: Modify ‘Reason List’ in Lead Management
+                    -->
+                <apex:pageblocksection columns="1" title="Pre-Screen" id="PreScreenBlock" rendered="{!if(action=='Pre-Screen' 
+                                             && $CurrentPage.parameters.prescreen != '1' 
+                                             && !isbyPassDuplicateCheck ,'true','false')}">
+
+                    <!-- #### 
+                            Edit By: I&I Narathip 
+                            Date: 26-10-2018
+                            CR: Fail Prescreen
+                        -->
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel rendered="{!isFailedPreScreening}">{!$ObjectType.Lead.Fields.Lead_Segment__c.label}</apex:outputLabel>
+                        <apex:outputText value="{!tempLead.Lead_Segment__c}" rendered="{!isFailedPreScreening}" />
+                    </apex:pageBlockSectionItem>
+
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel >Pre-Screening Result</apex:outputLabel>
+                        <apex:inputfield value="{!tempLead.Pre_screening_Result__c}" required="true" onchange="LeadPreScreenResultChange(this)" />
+                        <!-- <apex:inputfield value="{!tempLead.Pre_screening_Result__c}" required="true" onchange="PreScreenResultChange()"/> -->
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="labelCustom" rendered="{!isFailedPreScreening}">Unqualified Reason
+                        </apex:outputLabel>
+                        <apex:inputfield value="{!tempLead.Unqualified_Reasons__c}" rendered="{!isFailedPreScreening}" required="true" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="labelCustom" rendered="{!isFailedPreScreening}">Sub Unqualified Reason</apex:outputLabel>
+                        <apex:inputfield value="{!tempLead.Sub_Unqualified_Reason__c}" rendered="{!isFailedPreScreening}" required="true" />
+                    </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel styleClass="labelCustom">Other Reason</apex:outputLabel>
+                        <apex:inputfield value="{!tempLead.Other_Reason__c }" style="width: 70%" />
+                    </apex:pageBlockSectionItem>
+                </apex:pageblocksection>
+
+                <!-- end edit by danudath-->
+
+                <apex:outputPanel rendered="{!if(action=='Reassign' && !isbyPassDuplicateCheck,'true','false')}">
+                    <table width="70%">
+                        <tr>
+                            <td style="text-align:left;padding-right:20px;width:25%">Suggested Segment </td>
+                            <!-- td width="15px">-</td -->
+                            <td width="200px">
+                                <apex:outputField value="{!tempLead.Suggested_Segment__c}" />
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left;padding-right:20px;width:25%">Suggested Team </td>
+                            <!-- td width="15px">-</td -->
+                            <td width="200px">
+                                <apex:outputField value="{!tempLead.Suggested_Team__c}" />
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left;padding-right:20px;width:25%">Suggested Person </td>
+                            <!-- td width="15px">-</td -->
+                            <td width="200px">
+                                <apex:outputField value="{!tempLead.Suggested_Person__c}" />
+                            </td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td style="text-align:left;padding-right:20px;width:25%">{!$ObjectType.Lead.Fields.Remark__c.label}</td>
+                            <td width="200px">
+                                <apex:inputField value="{!tempLead.Remark__c}" />
+                            </td>
+                            <td></td>
+                        </tr>
+                    </table>
+                </apex:outputPanel>
+
+            </apex:outputPanel>
+
+        </apex:pageBlock>
+
+    </apex:form>
+
+    <script type="text/javascript">
+        function LeadPreScreenResultChange(e) {
+            var PreScreenResult = $(e).val();
+
+            //Fixed: 2018Jan
+            resultChange(PreScreenResult);
+            document.getElementById("{!$Component.showmsg}").hidden = true;
+        }
+
+        function pathCancel() {
+            var theme = '{!$User.UIThemeDisplayed}';
+            var recordId = '{!tempLead}';
+            if (theme == 'Theme4u') {
+                // console.log("Cancel");
+                doCancel();
+                // refreshTab(recordId);
+            } else {
+                sforce.one.navigateToSObject('{!tempLead.Id}');
+            }
+        }
+
+        function refreshTab(recordId) {
+            sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                "componentDef": "c:workspaceAPIforVF",
+                "attributes": {
+                    "action": 'closeAndRefresh',
+                    "recordId": recordId,
+                    "force": true,
+                    "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    }),
+                }
+            })), true);
+        }
+
+        function pathSave() {
+            var theme = '{!$User.UIThemeDisplayed}';
+            if (theme == 'Theme4u') {
+                saveDesktop();
+            } else {
+                saveMobile();
+            }
+        }
+
+        function pathListView() {
+            var theme = '{!$User.UIThemeDisplayed}';
+            if (theme == 'Theme4u') {
+                refreshTab('{!tempLead.Id}');
+            } else {
+                sforce.one.navigateToURL('/00Q/o');
+
+            }
+        }
+    </script>
+</apex:page>

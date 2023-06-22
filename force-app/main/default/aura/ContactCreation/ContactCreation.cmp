@@ -1,0 +1,313 @@
+<aura:component implements="force:appHostable,flexipage:availableForAllPageTypes,force:lightningQuickAction" access="global" controller="ContactCreation">
+    
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="recordTypeId" type="Id"/>
+    <aura:attribute name="accid" type="Id" />
+    <aura:attribute name ="isEdit" type="boolean" default="false"/>
+    <aura:attribute name ="Title" type="String" default="New Contact"/>
+    <aura:attribute name="ContactRec" type="Contact" default="{ 'sobjectType': 'Contact' }"/>
+    <aura:attribute name="activeSections" type="List" default="['A','B','C']" />
+    <aura:attribute name="Account" type="Account" default="" />
+    <aura:attribute name="deviceSize" type="Map" default="{
+                                                          'size': '12',
+                                                          'smallDeviceSize': '12',
+                                                          'mediumDeviceSize': '6',
+                                                          'largeDeviceSize': '6',
+                                                          }" />
+    
+    <aura:attribute name="Salutation" type="String[]" default="[]"/>
+    <aura:attribute name="Country" type="String[]" default="['Thailand']"/>
+    <aura:attribute name="Province" type="String[]" default="[]"/>
+    <aura:attribute name="District" type="String[]" default="[]"/>
+    <aura:attribute name="SubDistrict" type="String[]" default="[]"/>
+    <aura:attribute name="PostalCode" type="String[]" default="[]"/>
+    <aura:attribute name="selectedCountry" type="String" default="Thailand"/>
+    <aura:attribute name="Salute" type="String" default=""/>
+    <aura:attribute name="theme" type="String" default="Theme4u"/>
+    <aura:attribute name="spinner" type="boolean" default="false"/>
+    <aura:attribute name="isCoreBank" type="boolean" default="false"/>
+    <aura:attribute name="isAccess" type="boolean" default="true"/>
+    <aura:attribute name="error" type="String" default=""/>
+    <aura:attribute name="isError" type="boolean" default="false"/>
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    
+    <aura:handler event="aura:waiting" action="{!c.showSpinner}"/>
+    <aura:handler event="aura:doneWaiting" action="{!c.hideSpinner}"/>
+    
+    <lightning:workspaceAPI aura:id="workspace"/>
+    <lightning:navigation aura:id="navService" />
+    
+    <ui:scrollerWrapper> 
+        <aura:if isTrue="{!v.spinner}">
+            <div aura:id="spinnerId" class="slds-spinner_container">
+                <div class="slds-spinner--brand  slds-spinner slds-spinner--large slds-is-relative" role="alert">
+                    <span class="slds-assistive-text">Loading...</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </aura:if>
+        <lightning:layout class="slds-page-header slds-page-header_object-home slds-var-m-bottom_x-small">
+            <lightning:layoutItem>
+                <lightning:icon size="large" iconName="standard:contact" alternativeText="Contact" />
+            </lightning:layoutItem>
+            <lightning:layoutItem padding="horizontal-small">
+                <div class="page-section page-header">
+                    <h1 class="slds-text-heading_label">
+                        {!v.Title}
+                    </h1>
+                    <h2 class="slds-text-heading_medium">
+                        Contact
+                    </h2>
+                </div>
+            </lightning:layoutItem>
+        </lightning:layout>
+
+        <lightning:recordEditForm aura:id="recordCreateForm" objectApiName="Contact" recordId="{!v.recordId}" recordTypeId="{!v.recordTypeId}" onsubmit="{!c.handleSubmit}" onsuccess="{!c.handleSuccess}" onerror="{!c.handleError}">
+
+            <lightning:card>
+
+                <div class="{! !v.isError ? 'slds-hide' : 'slds-notify slds-notify_alert slds-theme_alert-texture slds-theme_error' }" role="alert">
+                    <span class="slds-assistive-text">error</span>
+                    <span class="slds-icon_container slds-icon-utility-error slds-var-m-right_x-small" title="Description of icon when needed">
+                        <!-- <svg class="slds-icon slds-icon_x-small" aria-hidden="true">
+                          <use xlink:href="/assets/icons/utility-sprite/svg/symbols.svg#error"></use>
+                        </svg> -->
+                        <lightning:icon iconName="utility:error" variant="inverse" size="x-small" />
+                    </span>
+                    <h2>{!v.error}</h2>
+                </div>
+
+                <aura:set attribute="actions">
+                    <lightning:button class="{! !v.isAccess ? 'slds-hide' : '' }" type="submit" label="Save" />
+                    <lightning:button label="Cancel" title="Cancel" onclick="{!c.handleCancel}" />
+                </aura:set>
+                <aura:set attribute="footer">
+                    <lightning:button class="{! !v.isAccess ? 'slds-hide' : '' }" type="submit" label="Save" />
+                    <lightning:button label="Cancel" title="Cancel" onclick="{!c.handleCancel}" />
+                </aura:set>
+                
+                <aura:if isTrue="{! v.showSpinnerLoading }">
+                    <lightning:spinner alternativeText="Loading" size="medium" />
+                </aura:if>
+                
+                <div class="{! !v.isAccess ? 'slds-hide' :''}" > 
+                    <lightning:accordion allowMultipleSectionsOpen="true" activeSectionName="{! v.activeSections }" >
+                        <lightning:accordionSection name="A" label="Contact Information">
+                            
+                            <div class="slds-form_horizontal slds-grid slds-wrap">
+                                <!-- Hide if Record Type is Core bank --> <div class=""></div>
+                                <!-- <div class="{! and(v.isCoreBank,v.isEdit) == true ? 'slds-hide' : 'slds-col slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1'}"> -->
+                                <div class="{! and(v.isCoreBank,v.isEdit) == true ? 'slds-hide' : 'slds-col slds-size_1-of-2 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-order_1'}">
+                                    <label style="padding-left:5px;color:#3E3E3C;font-size:12px;" class="sf1" >Salutation</label>
+                                    <lightning:select class="slds-is-relative customPosition" aura:id="inputSalutation" onchange="{!c.salutationChange}">
+                                        <option value="" text="--None--"/>
+                                        <aura:iteration items="{!v.Salutation}" var="s">
+                                            <option text="{!s}"/>
+                                        </aura:iteration>
+                                    </lightning:select>
+                                        
+                                </div>                      
+                                <!-- <div class="{! and(v.isCoreBank,v.isEdit) == true ? 'slds-hide' : 'slds-col slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2'}"> -->
+                                <div class="{! and(v.isCoreBank,v.isEdit) == true ? 'slds-hide' : 'slds-col slds-size_1-of-2 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-order_2'}">
+                                    <lightning:inputField fieldName="ID_Type_PE__c"  />
+                                </div>
+                                <div class="{! and(v.isCoreBank,v.isEdit) == true ? 'slds-hide' : 'slds-col slds-size_1-of-2 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-order_3'}">
+                                    <!-- <lightning:input label="First Name" required="true" /> -->
+                                    <lightning:inputField fieldName="FirstName" required="true" />
+                                </div>
+                                <div class="{! and(v.isCoreBank,v.isEdit) == true ? 'slds-hide' : 'slds-col slds-size_1-of-2 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-order_4'}">
+                                    <!-- <lightning:input label="ID Number" required="true" /> -->
+                                    <lightning:inputField fieldName="ID_Number_PE__c"  />
+                                </div>
+                                <div class="{! and(v.isCoreBank,v.isEdit) == true ? 'slds-hide' : 'slds-col slds-size_1-of-2 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-order_5'}">
+                                    <!-- <lightning:input label="Last Name" required="true" /> -->
+                                    <lightning:inputField fieldName="LastName" required="true" />
+                                </div>
+                                <div class="{! and(v.isCoreBank,v.isEdit) == true ? 'slds-hide' : 'slds-col slds-size_1-of-2 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-order_6'}">
+                                    <!-- <lightning:input label="Position" /> -->
+                                    <lightning:inputField fieldName="Position__c" />
+                                </div>
+                                <div class="{! and(v.isCoreBank,v.isEdit) == true ? 'slds-hide' : 'slds-col slds-size_1-of-2 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-order_7'}">
+                                    <!-- <lightning:input style="left:-100px;" type="date" label="Date of Birth" /> -->
+                                    <lightning:inputField fieldName="Date_of_Birth__c" style="width: 100%;" />
+                                </div>
+                                <div class="{! and(v.isCoreBank,v.isEdit) == true ? 'slds-hide' : 'slds-col slds-size_1-of-2 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-order_8'}">
+                                    <!-- <lightning:input type="checkbox" label="Authorized person of signature"/> -->
+                                    <lightning:inputField fieldName="Authorized_person_of_signature__c" />
+                                </div> 
+                                
+                                <aura:if isTrue="{!v.theme != 'Theme4t'}">
+                                     <!-- True : PC  -->
+                                    <div class="slds-col slds-size_1-of-2 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-order_9">
+                                        <label style="padding-left:5px;color:#3E3E3C;font-size:12px;">Customer Name</label>
+                                        <lightning:inputField variant="label-hidden" fieldName="AccountId"  required="true" value="{!v.accid}"  disabled="{! and(v.accid!='',v.isEdit) }" 
+                                            class = "slds-is-relative customPosition" width="100%" />
+                                    </div> 
+                                    <aura:set attribute="else">
+                                     <!-- False : Tablet  -->
+                                        <div class="slds-col slds-size_1-of-2 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-order_9">
+                                            <div class="slds-col slds-size_1-of-3 slds-medium-size_4-of-12 slds-large-size_4-of-12">
+                                                <label for="accId" style="padding-left:5px;color:#3E3E3C;font-size:12px;">Customer Name</label>
+                                            </div>
+                                            <div class = "slds-col slds-size_2-of-3 slds-medium-size_8-of-12 slds-large-size_8-of-12 slds-order_2 slds-is-relative customPositionSF1">
+                                                <lightning:inputField variant="label-hidden" fieldName="AccountId" id="accId" required="true" value="{!v.accid}"  disabled="{! and(v.accid!='',v.isEdit) }" style="width: 65%;"/>
+                                            </div>
+                                        </div>    
+                                    </aura:set>
+                                </aura:if>
+                                
+                                <div class="slds-col slds-size_1-of-2 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-order_10">
+                                    <lightning:inputField fieldName="Main_contact__c" />
+                                </div>
+
+                                <div class="slds-col slds-size_1-of-2 slds-max-small-size_1-of-1 slds-medium-size_6-of-12 slds-large-size_6-of-12 slds-order_11">
+                                    <lightning:inputField aura:id="inputPhoto" fieldName="Photo__c" />
+                                </div>
+                            </div>
+                            
+                        </lightning:accordionSection>
+
+                        <div class="{! and(v.isCoreBank,v.isEdit) == true ? 'slds-hide' : 'slds-show'}">
+                            <lightning:accordionSection name="B" label="Phone and Address" >
+                                <div class="{! and(v.isCoreBank,v.isEdit) == true ? 'slds-hide' : 'slds-form_horizontal slds-grid slds-wrap'}">
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                        <lightning:inputField fieldName="MobilePhone" />
+                                    </div>
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2">
+                                        <lightning:inputField fieldName="C_AddressLine1_PE__c"/>
+                                    </div> 
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                        <lightning:inputField fieldName="Phone" />
+                                    </div> 
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2">
+                                        <lightning:inputField fieldName="C_AddressLine3_PE__c" />
+                                    </div> 
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                        <lightning:inputField fieldName="Primary_Phone_Ext_PE__c" />
+                                    </div> 
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2">
+                                        <lightning:inputField fieldName="C_AddressLine2_PE__c" />
+                                    </div> 
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                        <lightning:inputField fieldName="Fax" />
+                                    </div> 
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2">
+                                        <aura:if isTrue="{!v.ContactRec.C_Country_PE__c != 'Thailand'}">
+                                            <lightning:inputField fieldName="C_Province_PE__c" />
+                                        </aura:if>
+                                        <aura:if isTrue="{!v.ContactRec.C_Country_PE__c == 'Thailand'}">
+                                            <label style="padding-left:5px;color:#3E3E3C;font-size:12px;">Province</label>
+                                            <lightning:select class="slds-is-relative customPosition" aura:id="inputProvince" onchange="{!c.provinceChange}">
+                                                <option value="" text="--None--"/>
+                                                <aura:iteration items="{!v.Province}" var="s">
+                                                    <option value="{!s}" text="{!s}"/>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </aura:if>
+                                    </div> 
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                        <lightning:inputField fieldName="Email" />
+                                    </div> 
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2">
+                                        <aura:if isTrue="{!v.ContactRec.C_Country_PE__c != 'Thailand'}">
+                                            <lightning:inputField fieldName="C_AddressLine5_PE__c" />
+                                        </aura:if>
+                                        <aura:if isTrue="{!v.ContactRec.C_Country_PE__c == 'Thailand'}">
+                                            <label style="padding-left:5px;color:#3E3E3C;font-size:12px;">District</label>
+                                            <lightning:select class="slds-is-relative customPosition" aura:id="inputDistrict" onchange="{!c.districtChange}">
+                                                <option value="" text="--None--"/>
+                                                <aura:iteration items="{!v.District}" var="s">
+                                                    <option value="{!s}" text="{!s}"/>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </aura:if>
+                                    </div> 
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                        <lightning:inputField fieldName="Facebook_ID__c" />
+                                    </div> 
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2">
+                                        <aura:if isTrue="{!v.ContactRec.C_Country_PE__c != 'Thailand'}">
+                                            <lightning:inputField fieldName="C_AddressLine4_PE__c" />
+                                        </aura:if>
+                                        <aura:if isTrue="{!v.ContactRec.C_Country_PE__c == 'Thailand'}">
+                                            <label style="padding-left:5px;color:#3E3E3C;font-size:12px;">Sub District</label>
+                                            <lightning:select class="slds-is-relative customPosition" aura:id="inputSubDistrict" onchange="{!c.subdistrictChange}">
+                                                <option value="" text="--None--"/>
+                                                <aura:iteration items="{!v.SubDistrict}" var="s">
+                                                    <option value="{!s}" text="{!s}"/>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </aura:if>
+                                    </div>
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                        <lightning:inputField fieldName="Line_ID__c" />
+                                    </div>
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2">
+                                        <aura:if isTrue="{!v.ContactRec.C_Country_PE__c != 'Thailand'}">
+                                            <lightning:inputField fieldName="C_Zipcode_PE__c" />
+                                        </aura:if>
+                                        <aura:if isTrue="{!v.ContactRec.C_Country_PE__c == 'Thailand'}">
+                                            <label style="padding-left:5px;color:#3E3E3C;font-size:12px;">Postal Code</label>
+                                            <lightning:select class="slds-is-relative customPosition" aura:id="inputPostalCode" onchange="{!c.postalChange}">
+                                                <option value="" text="--None--"/>
+                                                <aura:iteration items="{!v.PostalCode}" var="s">
+                                                    <option value="{!s}" text="{!s}"/>
+                                                </aura:iteration>
+                                            </lightning:select>
+                                        </aura:if>
+                                    </div>
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                    </div>
+                                    <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2">
+                                        <label style="padding-left:5px;color:#3E3E3C;font-size:12px;">Country</label>
+                                        <lightning:select class="slds-is-relative customPosition" aura:id="inputCountry" onchange="{!c.countryChange}">
+                                            <aura:iteration items="{!v.Country}" var="s">
+                                                <option value="{!s}" text="{!s}"/>
+                                            </aura:iteration>
+                                        </lightning:select>
+                                    </div>
+                                </div>
+                            </lightning:accordionSection>
+                        </div>
+
+                        <lightning:accordionSection name="C" label="Support Information">
+                            <div class="slds-grid slds-wrap">
+                                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                    <lightning:inputField fieldName="Value_Style__c" />
+                                </div>
+                                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2">
+                                    <lightning:inputField fieldName="Difficult_to_deal__c" />
+                                </div> 
+                                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                    <lightning:inputField fieldName="Decision_Map__c" />
+                                </div> 
+                                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2">
+                                    <lightning:inputField fieldName="Product_Decision__c" />
+                                </div> 
+                                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                    <lightning:inputField fieldName="Decision_Map2__c" />
+                                </div> 
+                                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2">
+                                    <lightning:inputField fieldName="Product_Decision_2_2__c" />
+                                </div> 
+                                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                    <lightning:inputField fieldName="Decision_Map3__c" />
+                                </div> 
+                                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_12 slds-medium-order_1 slds-large-order_1 slds-order_2">
+                                    <lightning:inputField fieldName="Product_Decision_3_2__c" />
+                                </div> 
+                                <div class="slds-size_1-of-2 slds-max-small-size_1-of-1 slds-small-order_1 slds-medium-order_1 slds-large-order_1">
+                                    <lightning:inputField fieldName="Description2__c"/>
+                                </div> 
+                            
+                                
+                            </div>
+                        </lightning:accordionSection>
+                    </lightning:accordion>
+                </div>
+            </lightning:card>
+        </lightning:recordEditForm>
+    </ui:scrollerWrapper>
+</aura:component>

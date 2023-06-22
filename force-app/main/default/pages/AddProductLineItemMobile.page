@@ -1,0 +1,351 @@
+<apex:page extensions="AddProductLineItemController" standardController="opportunity" docType="html-5.0" showChat="false" showHeader="false" sidebar="false"
+    applyBodyTag="false" applyHtmlTag="true" standardStylesheets="true">
+
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+  
+    <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.AccountPlanEditTable)}"/>
+    
+    <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+    <style>
+        html,html body{
+            overflow: auto;
+            -webkit-overflow-scrolling:touch;
+        }
+        body{
+            position:absolute;
+            left:0;
+            right:0;
+            top:0;
+            bottom:0;
+        }
+    </style>
+    
+<body>        
+    
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div> 
+    <div class="bootstrap-sf1">   
+        <div >              
+            <div class="page-header page-header-anchor context-opportunity">
+                <div class="container">
+                    <h1>Opportunity Product - Add</h1>
+                </div>
+            </div> 
+            
+            <apex:actionstatus id="status">
+                <apex:facet name="start">
+                    <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                        &nbsp;
+                    </div>
+                    <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                        <img src="/img/loading32.gif" />
+                    </div>
+                </apex:facet>
+            </apex:actionstatus> 
+            
+            <apex:form id="frm">   
+            
+            <apex:pageMessages escape="false" id="messages"/>   
+            
+            <apex:outputPanel style="display:{!if(isSelect,'none','block')}">
+            
+            <apex:actionFunction name="SelectDomain" action="{!SelectDomain}" status="status" reRender="frm"/>
+            <apex:actionFunction name="productdomainselected" action="{!productdomainselect}" reRender="frm" status="status"/>
+            
+            <div style="margin-bottom:10px;" class='text-center'>
+                <apex:commandButton value="Select" onclick="SelectDomain();return false;" styleClass="btn-lg btn-default" status="status" />
+                &nbsp;
+                <apex:commandButton value="Cancel" onclick="sforce.one.navigateToSObject('{!id}');" styleClass="btn-lg btn-default" status="status"/>
+                <br/><br/>
+                <apex:selectList value="{!ProductdomainSelected}" multiselect="false" size="1" id="product1" onchange="productdomainselected();" styleClass="form-control">
+                    <apex:selectOptions value="{!ProductdomainSelectOption}" ></apex:selectOptions>                    
+                </apex:selectList>
+            </div>
+            
+            <apex:outputPanel id="resultblock">
+            
+                <apex:outputPanel id="result" rendered="{!if(ProductWrapperList !=null && ProductWrapperList.size>0,true,false)}">
+                   
+                <table class="list " border="0" cellpadding="0" cellspacing="0" width="100%" styleClass="form-control">
+                <tr class="headerRow">
+                    <th class="headerRow" style="text-align:center;"> Select </th>
+                    <th class="headerRow"> Product Name </th>
+                    <th class="headerRow"> Product Family </th>
+                    <th class="headerRow"> Product Domain </th>
+                </tr>
+                <apex:repeat value="{!ProductWrapperList}" var="pdl">
+                <tr class="dataRow">
+                    <td style="text-align:center;" ><apex:inputCheckbox value="{!pdl.IsSelected}" /></td>
+                    <td>{!pdl.pricebook.product2.Name}</td>  
+                    <td>{!pdl.pricebook.product2.Family}</td>
+                    <td>{!pdl.pricebook.product2.Product_Domain__c}</td>
+                </tr>
+                </apex:repeat>
+                </table>
+                </apex:outputPanel>
+            
+            </apex:outputPanel>
+            </apex:outputPanel>
+            
+            
+            <apex:outputPanel style="display:{!if(isSelect,'block','none')}">
+
+            <apex:actionFunction name="dosave" action="{!doSaveMobile}" status="status" rerender="messages,navigatePanel"/>       
+            
+            <apex:outputPanel id="navigatePanel">
+                <apex:outputPanel rendered="{!isSave}">
+                    <script>
+                        sforce.one.navigateToSObject('{!Id}');
+                    </script>
+                </apex:outputPanel>
+            </apex:outputPanel>
+            
+            <div style="margin-bottom:10px;" class='text-center'>
+                <apex:commandButton value="Save" onclick="dosave();return false;" styleClass="btn-lg btn-default"/>
+                &nbsp;
+                <apex:commandButton value="Cancel" onclick="sforce.one.navigateToSObject('{!id}');" styleClass="btn-lg btn-default" status="status"/> 
+            </div>
+
+            <apex:repeat value="{!OptLine}" var="crc">    
+            <header class="navbar navbar-default navbar-static-top navbar-branded" role="banner">
+                <div class="container panel-heading">
+                    <div class="navbar-header ">
+                        <a data-toggle="collapse" aria-expanded="true" href="#collapse{!crc.PricebookentryId}" class="navbar-brand navbar-foundation-logo">
+                            {!mapProductName[crc.PricebookEntryId]}
+                        </a>
+                    </div>
+                </div>
+            </header>
+                        
+            <div class="card collapse in panel-collapse" id="collapse{!crc.PricebookentryId}">
+                <div class="card-detail">
+                    <div class="row">   
+                    
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Product</label>
+                                <apex:outputText styleClass="form-control" value="{!mapProductName[crc.PricebookEntryId]}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Request Amt./Vol. (THB)</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.UnitPrice}" required="true"/>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Units of Acct./Limit</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Quantity}" />
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Total Vol./Limit Amount</label>
+                                <apex:outputText value="{0, number, ###,##0.00}" styleClass="form-control">
+                                    <apex:param value="{!crc.Unitprice * crc.Quantity}" />
+                                </apex:outputText>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Tenor (Years) </label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Tenor_Years__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Probability by RM (%)</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Deal_Probability__c}" />
+                            </div>
+                        </div>
+
+                        <!-- div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">All Bank (Limit) for only syndicate loan</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Notional_Amount__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Description</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Description}" />
+                            </div>
+                        </div -->
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">NI Type of Income</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Type_Of_Reference__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">NI Recurring or One-off</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Recurring_Type__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">NI Frequency </label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Frequency__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">NI Expected Start Month </label>
+                                <apex:inputField styleClass="form-control" value="{!crc.RevisedStartMonth__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">NI Expected Start Year </label> 
+                                <apex:inputField styleClass="form-control" value="{!crc.RevisedStartYear__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">NI % Expected Utz./ Year</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Expected_Util_Year_NI__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">NI Expected Utz. (Outs. Vol)</label>
+                                <apex:outputText value="{0, number, ###,##0.00}" styleClass="form-control">
+                                    <apex:param value="{!crc.Unitprice * crc.Quantity * (crc.Expected_Util_Year_NI__c/100)}" />
+                                </apex:outputText>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">NI Expected Margin (%)</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Expected_NIM__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">NI This Year Expected Revenue</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.This_Year_Expected_NI__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">NI Full Deal Expected Revenue</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Expected_Revenue__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Fee Type of Income</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Type_Of_Reference_Fee__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Fee Recurring or One-off</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Recurring_Type_Fee__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Fee Frequency </label>
+                                <apex:inputField styleClass="form-control" value="{!crc.FrequencyFee__c}" />
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Fee Expected Start Month </label>
+                                <apex:inputField styleClass="form-control" value="{!crc.RevisedStartMonthFee__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Fee Expected Start Year </label> 
+                                <apex:inputField styleClass="form-control" value="{!crc.RevisedStartYearFee__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Fee % Expected Utz./ Year</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Expected_Util_Year_Fee__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Fee Expected Utz. (Outs. Vol)</label>
+                                <apex:outputText value="{0, number, ###,##0.00}" styleClass="form-control">
+                                    <apex:param value="{!crc.Unitprice * crc.Quantity * (crc.Expected_Util_Year_Fee__c/100)}" />
+                                </apex:outputText>
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Fee Expected Margin (%)</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Expected_Fee_Rate__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Fee This Year Expected Revenue</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.This_Year_Expected_Fee__c}" />
+                            </div>
+                        </div>
+
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Fee Full Deal Expected Revenue</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Expected_Revenue_Fee__c}" />
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="control-label" for="focusedInput">Description</label>
+                                <apex:inputField styleClass="form-control" value="{!crc.Description}" />
+                            </div>
+                        </div>
+                        
+                        <font color="red">{!remark}</font>
+
+                    </div>
+                    
+                </div>
+            </div>                 
+            </apex:repeat>  
+            </apex:outputPanel>
+            </apex:form>
+            
+            
+        </div>
+    </div>
+    
+</body>
+
+</apex:page>

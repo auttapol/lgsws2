@@ -1,0 +1,165 @@
+<apex:page standardController="lead" title="Check Duplication" extensions="LeadExtensionV2" action="{!doAction}"  standardStylesheets="true" lightningStylesheets="true">
+
+<apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+    <apex:includeScript value="/support/console/28.0/integration.js"/>
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+    <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}"  />
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+    
+<script>
+    
+    sforce.console.setTabTitle('Check Duplication Lead');
+var closeSubtab = function closeSubtab(result) {
+    sforce.console.closeTab(result.id);
+};
+function checkIsSalesforceOne()
+{
+    //alert('{!isStatusPass}');
+    if ('{!isStatusPass}' == 'no')
+    {
+        $("#main-wrapper").css('display','block');
+        var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+        var theme = '{!$User.UIThemeDisplayed}';
+        if ((theme == 'Theme4u'|| theme == 'Theme4t') && isLightningMode) {
+            $("[id$=headerDesktop]").css('display','block');
+            $("#headerMobile").css('display','none');
+            $("[id$=messages]").css('display','block');
+            $("[id$=messagesMobile]").css('display','none');
+        }
+
+        else if ((typeof sforce.one != 'undefined') && (sforce.one != null) ) {
+            /*if ('{!id}' != '')
+                sforce.one.navigateToURL('/apex/LeadCreateMobile?id={!id}' );
+            else
+                sforce.one.navigateToURL('/apex/LeadCreateMobile?recordType={!recordTypeObj.id}' );*/
+            
+            $(".bPageTitle").css('display','none');
+            $("#headerMobile").css('display','block');
+            $("[id$=messages]").css('display','none');
+            $("[id$=messagesMobile]").css('display','block');
+            
+        }else{
+            $("[id$=headerDesktop]").css('display','block');
+            $("#headerMobile").css('display','none');
+            $("[id$=messages]").css('display','block');
+            $("[id$=messagesMobile]").css('display','none');
+            
+        }
+    }else{
+        alert('Commercial Complete Lead cannot be modified');
+        if ((typeof sforce.one != 'undefined') && (sforce.one != null) ) {
+            sforce.one.navigateToURL('/00Q' );
+        }else{
+            if (sforce.console.isInConsole()){
+                sforce.console.getEnclosingTabId(closeSubtab);
+            }else{
+                window.location.href='/00Q';
+            }
+        }
+    }
+} 
+
+$(document).ready(function () {
+    checkIsSalesforceOne();
+    
+    window.setTimeout(function(){
+        doCancel() ;
+    }, 3000);
+
+    
+    
+});
+
+function doCancel()
+{   
+    var theme = '{!$User.UIThemeDisplayed}';
+    var recordId='{!leadObj.id}';
+    var displayAction = '{!displayAction}';
+    if (sforce.console.isInConsole() ){
+
+        if(displayAction == 'Create'){
+          
+            var customer_type = "{!leadobj.customer_type__c}"
+            if(customer_type != 'undefined' && customer_type != null && customer_type != ''){
+
+                cancelSalesConsole();
+            }else{
+                sforce.console.getEnclosingTabId(closeSubtab);
+            }
+        }else{
+            viewDetail();
+        }
+    }else if (theme == 'Theme4t') {
+        sforce.one.navigateToSObject('{!leadObj.id}' );
+    }else if(displayAction == 'Update'){
+        refreshTab(recordId);
+    }else{
+        window.location.href="../00Q";
+    }
+}
+
+function refreshTab(recordId) {
+            // console.log(recordId);
+            sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                "componentDef": "c:workspaceAPIforVF",
+                "attributes": {
+                    "action": 'closeAndRefresh',
+                    "force":true,
+                    "recordId": recordId,
+                    "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                        return v.toString(16);
+                    }),
+                }
+            })), true);
+        }
+
+</script>
+    
+    
+    
+
+<div id="main-wrapper" style='display:none'>
+
+    <apex:form >
+    <apex:actionFunction action="{!cancelSalesConsole}" name="cancelSalesConsole" />
+    </apex:form>
+    
+    <apex:sectionHeader title="Find Duplicated" subtitle="{!leadobj.Company}" id="headerDesktop"/>
+    <div class="bootstrap-sf1" id="headerMobile">   
+        <div class="page-header page-header-anchor context-lead" >
+                <div class="container">
+                    <h1>Find Duplicated</h1>
+                </div>
+        </div>
+    </div>
+    
+    <apex:form id="theForm">
+                     <apex:actionstatus id="status">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" />
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+        
+        
+        <apex:pageblock mode="Edit">
+            <apex:actionFunction action="{!viewDetail}" name="viewDetail" />
+            <apex:actionFunction action="{!cancel}" name="stdCancel" />
+
+			<apex:pageBlockSection columns="1" id="messages">
+            	<apex:pageMessages id="messages"/>
+             </apex:pageBlockSection>
+            
+            	<apex:pageMessages id="messagesMobile"/>
+        </apex:pageblock>
+    </apex:form>
+
+</div>
+
+</apex:page>

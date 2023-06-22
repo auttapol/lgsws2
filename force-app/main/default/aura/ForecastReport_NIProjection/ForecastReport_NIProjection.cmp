@@ -1,0 +1,248 @@
+<aura:component controller="ForecastReportController">
+    <aura:handler name="init" value="{!this}" action="{!c.getReport}" />
+    <aura:handler name="change" value="{!v.reportParam}" action="{!c.getReport}" />
+
+    <aura:attribute name="reportParam" type="Object" />
+    <aura:attribute name="totalFee" type="Object" />
+    <aura:attribute name="totalNI" type="Object" />
+    <aura:attribute name="suffixText" type="Object" />
+    <aura:attribute name="Cube2Data" type="Object[]" />
+    <aura:attribute name="groupByRegionArray" type="Object[]" />
+    <aura:attribute name="Cube1Data" type="Object[]" />
+    <aura:attribute name="LastYearCube1Data" type="Object[]" />
+    <aura:attribute name="targetList" type="Object[]" />
+    <aura:attribute name="NewDealData" type="Object[]" />
+    <aura:attribute name="groupByRegion" type="Object" />
+    <aura:attribute name="monthColumn" type="List" />
+    <aura:attribute name="sumUpNIIc" type="Object" />
+    <aura:attribute name="allDataGroupByRM" type="Object" />
+    <aura:attribute name="allDataGroupByTeam" type="Object" />
+    <aura:attribute name="parent" type="Aura.Component" />
+    <aura:attribute name="isModalOpen" type="boolean" default="false" />
+    <aura:attribute name="hasGraphData" type="boolean" default="false" />
+    <aura:attribute name="isLoading" type="boolean" />
+    <aura:attribute name="userProfile" type="String" />
+    <aura:attribute name="Month" type="Integer" />
+    <aura:attribute name="Year" type="Integer" />
+    <aura:attribute name="jsonForCSV" type="Object[]" default="[]"/>
+
+    <aura:method name="exportCSV" action="{!c.exportCSV}">
+        <aura:attribute name="param1" type="Object[]" />
+    </aura:method>
+
+    <div class="slds-scrollable slds-m-around_large" style="margin: 5px 10px;max-height: 400px;">
+        <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+            <thead>
+                <tr class="slds-text-title--caps">
+                    <th scope="col" rowspan="2" class="center-align border-line-color first-color fixed-column"
+                        style="left: 0;min-width: 100px;max-width: 100px;">
+                        <div class="slds-truncate" title="Team" style="text-align: center;">
+                            <lightning:formattedText title="Team" value="Team" />
+                        </div>
+                    </th>
+                    <th scope="col" rowspan="2" class="center-align border-line-color first-color fixed-column"
+                        style="left: 100px;min-width: 165px;max-width: 165px;">
+                        <div class="slds-truncate" title="RM" style="text-align: center;">
+                            <lightning:formattedText title="RM" value="RM" />
+                        </div>
+                    </th>
+                    <th scope="col" rowspan="2" class="center-align border-line-color first-color fixed-column"
+                        style="left: 265px;min-width: 170px;max-width: 170px;">
+                        <div class="slds-truncate" title="Product Group" style="text-align: center;">
+                            <lightning:formattedText title="PRODUCT" value="PRODUCT" />
+                        </div>
+                    </th>
+                    <th scope="col" rowspan="2" class="center-align border-line-color first-color fixed-column"
+                        style="left: 435px;min-width: 120px;max-width: 120px;">
+                        <div class="slds-truncate" style="text-align: center;">
+                            <lightning:formattedText title="Last Year" value="Last Year" />
+                            <br />
+                            <lightning:formattedText title="{!v.suffixText.lastYear}" value="{!v.suffixText.lastYear}" />
+                        </div>
+                    </th>
+                    <aura:iteration items="{!v.monthColumn}" var="month">
+                        <th scope="col" rowspan="2" class="center-align border-line-color second-color">
+                            <div class="slds-truncate" style="text-align: center;">
+                                <lightning:formattedText title="{!month.label}" value="{!month.label}" />
+                            </div>
+                        </th>
+                    </aura:iteration>
+                    <th scope="col" rowspan="2" class="center-align border-line-color third-color">
+                        <div class="slds-truncate" style="text-align: center;">
+                            <lightning:formattedText title="{!v.suffixText.totalFC}" value="{!v.suffixText.totalFC}" />
+                        </div>
+                    </th>
+                    <th scope="col" rowspan="2" class="center-align border-line-color third-color">
+                        <div class="slds-truncate" style="text-align: center;">
+                            <lightning:formattedText title="YTD" value="YTD" />
+                        </div>
+                    </th>
+                    <th scope="col" rowspan="2" class="center-align border-line-color third-color">
+                        <div class="slds-truncate" style="text-align: center;">
+                            <lightning:formattedText title="Achieved" value="Achieved" />
+                            <br />
+                            <lightning:formattedText title="(%)" value="(%)" />
+                        </div>
+                    </th>
+                    <th scope="col" rowspan="2" class="center-align border-line-color third-color">
+                        <div class="slds-truncate" style="text-align: center;">
+                            <lightning:formattedText title="YoY" value="YoY" />
+                            <br />
+                            <lightning:formattedText title="(%)" value="(%)" />
+                        </div>
+                    </th>
+                    <th scope="col" colspan="3" class="center-align border-line-color third-color">
+                        <div class="slds-truncate" style="text-align: center;">
+                            <lightning:formattedText title="Original Target" value="Original Target" />
+                            <lightning:formattedText value="{!v.suffixText.thisYear}" />
+                        </div>
+                    </th>
+                    <aura:if isTrue="{!or(v.userProfile == 'GroupHead', v.userProfile == 'System Administrator')}">
+                        <aura:if isTrue="{!v.Month >= 3}">
+                            <th scope="col" colspan="3" class="center-align border-line-color third-color">
+                                <div class="slds-truncate" style="text-align: center;">
+                                    <lightning:formattedText title="3+9F Target" value="3+9F Target" />
+                                    <lightning:formattedText value="{!v.suffixText.thisYear}" />
+                                </div>
+                            </th>
+                        </aura:if>
+                        <aura:if isTrue="{!v.Month >= 6}">
+                            <th scope="col" colspan="3" class="center-align border-line-color third-color">
+                                <div class="slds-truncate" style="text-align: center;">
+                                    <lightning:formattedText title="6+6F Target" value="6+6F Target" />
+                                    <lightning:formattedText value="{!v.suffixText.thisYear}" />
+                                </div>
+                            </th>
+                        </aura:if>
+                        <aura:if isTrue="{!v.Month >= 9}">
+                            <th scope="col" colspan="3" class="center-align border-line-color third-color">
+                                <div class="slds-truncate" style="text-align: center;">
+                                    <lightning:formattedText title="9+3F Target" value="9+3F Target" />
+                                    <lightning:formattedText value="{!v.suffixText.thisYear}" />
+                                </div>
+                            </th>
+                        </aura:if>
+                    </aura:if>
+                </tr>
+                <tr class="slds-text-title--caps">
+                    <!-- Original -->
+                    <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                        <div class="slds-truncate" style="text-align: center;">
+                            <lightning:formattedText title="Variance" value="Variance" />
+                        </div>
+                    </th>
+                    <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                        <div class="slds-truncate" style="text-align: center;">
+                            <lightning:formattedText title="Achieve (%)" value="Achieve (%)" />
+                        </div>
+                    </th>
+                    <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                        <div class="slds-truncate" style="text-align: center;">
+                            <lightning:formattedText title="FY Target" value="FY Target" />
+                        </div>
+                    </th>
+
+                    <!-- 3+9 -->
+
+                    <aura:if isTrue="{!or(v.userProfile == 'GroupHead', v.userProfile == 'System Administrator')}">
+                        <aura:if isTrue="{!v.Month >= 3}">
+                            <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                                <div class="slds-truncate" style="text-align: center;">
+                                    <lightning:formattedText title="Variance" value="Variance" />
+                                </div>
+                            </th>
+                            <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                                <div class="slds-truncate" style="text-align: center;">
+                                    <lightning:formattedText title="Achieve (%)" value="Achieve (%)" />
+                                </div>
+                            </th>
+                            <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                                <div class="slds-truncate" style="text-align: center;">
+                                    <lightning:formattedText title="FY Target" value="FY Target" />
+                                </div>
+                            </th>
+                        </aura:if>
+                        <!-- 6+6 -->
+                        <aura:if isTrue="{!v.Month >= 6}">
+
+                            <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                                <div class="slds-truncate" style="text-align: center;">
+                                    <lightning:formattedText title="Variance" value="Variance" />
+                                </div>
+                            </th>
+                            <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                                <div class="slds-truncate" style="text-align: center;">
+                                    <lightning:formattedText title="Achieve (%)" value="Achieve (%)" />
+                                </div>
+                            </th>
+                            <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                                <div class="slds-truncate" style="text-align: center;">
+                                    <lightning:formattedText title="FY Target" value="FY Target" />
+                                </div>
+                            </th>
+                        </aura:if>
+                        <!-- 9+3 -->
+                        <aura:if isTrue="{!v.Month >= 9}">
+
+                            <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                                <div class="slds-truncate" style="text-align: center;">
+                                    <lightning:formattedText title="Variance" value="Variance" />
+                                </div>
+                            </th>
+                            <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                                <div class="slds-truncate" style="text-align: center;">
+                                    <lightning:formattedText title="Achieve (%)" value="Achieve (%)" />
+                                </div>
+                            </th>
+                            <th scope="col" class="center-align border-line-color third-color" style="top: 25px;">
+                                <div class="slds-truncate" style="text-align: center;">
+                                    <lightning:formattedText title="FY Target" value="FY Target" />
+                                </div>
+                            </th>
+                        </aura:if>
+                    </aura:if>
+                </tr>
+            </thead>
+            <tbody>
+                <aura:if isTrue="{!v.hasGraphData}">
+                    <aura:iteration items="{!v.groupByRegionArray}" var="groupByRegion" indexVar="index">
+                        <aura:iteration items="{!groupByRegion.teamArray}" var="groupByTeam" indexVar="index">
+                            <aura:if isTrue="{!(v.userProfile != 'GroupHead')}">
+                                <aura:iteration items="{!groupByTeam.RM}" var="groupByRM" indexVar="index">
+                                    <c:ForecastReport_NIProjectionChild groupByRM="{!groupByRM}" Year="{!v.Year}"
+                                        isLoading="{!v.isLoading}" userProfile="{!v.userProfile}" Month="{!v.Month}" parent="{! this}"/>
+                                </aura:iteration>
+                            </aura:if>
+                            <aura:if
+                                isTrue="{!or(v.userProfile == 'GroupHead', or(v.userProfile == 'TeamHead', v.userProfile == 'System Administrator'))}">
+                                <c:ForecastReport_NIProjectionChild groupByTeam="{!groupByTeam.totalTeam}" Year="{!v.Year}"
+                                    isLoading="{!v.isLoading}" userProfile="{!v.userProfile}" Month="{!v.Month}" parent="{! this}"/>
+                            </aura:if>
+                        </aura:iteration>
+
+                        <aura:if isTrue="{!or(v.userProfile == 'GroupHead', v.userProfile == 'System Administrator')}">
+                            <c:ForecastReport_NIProjectionChild groupByRegion="{!groupByRegion.regionData}" Year="{!v.Year}"
+                                isLoading="{!v.isLoading}" userProfile="{!v.userProfile}" Month="{!v.Month}" parent="{! this}"/>
+                        </aura:if>
+                    </aura:iteration>
+                    <aura:set attribute="else">
+                        <tr>
+                            <td class="fixed-column" style="left: 0;min-width: 100px;">
+                                <div class="slds-truncate">
+                                    <aura:unescapedHtml value="{!$Label.c.no_record_to_display}">
+                                        <lightning:formattedText value="{!$Label.c.no_record_to_display}" />
+                                    </aura:unescapedHtml>
+                                </div>
+                            </td>
+                        </tr>
+                    </aura:set>
+                </aura:if>
+            </tbody>
+        </table>
+        <aura:if isTrue="{!v.isModalOpen}">
+            <c:ForecastReport_NIProjectionGraph isModalOpen="{!v.isModalOpen}" reportParam="reportParam"
+                Cube2Data="{!v.Cube2Data}" targetList="{!v.targetList}" NewDealData="{!v.NewDealData}"
+                Cube1Data="{!v.Cube1Data}" isLoading="{!v.isLoading}" allData="{!v.groupByRegionArray}"/>
+        </aura:if>
+    </div>
+</aura:component>

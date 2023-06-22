@@ -1,0 +1,252 @@
+<apex:page standardController="Account" extensions="RTL_CampaignHistoryExtension" showHeader="false" sidebar="false">
+<div class="slds-tabs_scoped">
+    <ul class="slds-tabs_scoped__nav sub_tab" role="tablist">
+      <li class="slds-tabs_scoped__item slds-is-active" title="Item Two" role="presentation">
+        <a class="slds-tabs_scoped__link mainview" href="javascript:void(0);" role="tab" tabindex="0" aria-selected="true" aria-controls="tab-sub-2">
+        {!$label.RTL_Campaign_History_TabFulfillment}</a>
+    </li>
+
+</ul>
+<apex:variable value="{!1}" var="count"/>
+<div id="tab-sub-2" class="slds-tabs_scoped__content slds-show" role="tabpanel" aria-labelledby="tab-sub-2__item">
+    <apex:form >
+           <!-- <apex:actionFunction action="{!requestInt08}" name="requestDataSMS" reRender="SMSData" status="loadRequestStatusSMS" />
+<apex:actionFunction action="{!requestInt08}" name="navigateSMS" reRender="SMSData" status="loadRequestStatusSMS">
+    <apex:param name="pageNo" assignTo="{!smsCampaignPage}" value=""/>
+</apex:actionFunction> 
+-->
+
+
+<apex:outputPanel id="SMSData" >
+<div class="slds-form-element slds-m-around_small"  id="responsive" >
+
+
+    <div id="ResultPanelSMS">
+        <apex:outputPanel rendered="{!(ISNULL(fulfillmentList) || fulfillmentList.size == 0)}" >
+        <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom">
+            <apex:outputText value="{!$Label.RTL_No_Record_Display}"  styleClass="noRowsHeader" />
+        </div>
+    </apex:outputPanel>
+
+    <!-- <apex:outputPanel rendered="{! !exclusiveCalloutSuccess }" >
+     <div class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom">
+                    <apex:outputText value="{!exclusiveCalloutError} : {!exclusiveCalloutErrorDesc}"  styleClass="noRowsHeader" />
+                </div>
+            </apex:outputPanel> -->
+
+
+            <apex:outputPanel id="excTableSMS" rendered="{! (!ISNULL(fulfillmentList) && fulfillmentList.size > 0)}" >
+            <div class="slds-m-top_xxx-small">
+                <table class="slds-table slds-table--bordered slds-table--cell-buffer slds-max-medium-table--stacked-horizontal slds-table_fixed-layout" style="text-align: center;font-size: 12px; width: 100%;">
+                    <thead>
+                        <tr class="slds-text-title--caps slds-section-title--divider">
+
+                            <th class="slds-size_1-of-12" scope="col"> 
+                                <div class="slds-cell-wrap" title="">
+                                    {!$Label.RTL_ViewCampaignMember_PROCESSDATE}
+                                </div>
+                            </th>
+                            <th class="slds-size_1-of-12" scope="col"> 
+                                <div class="slds-cell-wrap" title="">
+                                    {!$Label.RTL_ViewCampaignMember_CAMPAIGNCODE}
+                                </div>
+                            </th>
+                            <th class="slds-size_2-of-12" scope="col"> 
+                                <div class="slds-cell-wrap" title="">
+                                   {!$Label.RTL_ViewCampaignMember_CAMPAIGNNAME} 
+                                </div>
+                            </th>
+                            <th class="slds-size_2-of-12" scope="col"> 
+                                <div class="slds-cell-wrap" title="">
+                                    {!$Label.RTL_ViewCampaignMember_FULFILLMENTTYPE}
+                                </div>
+                            </th>
+                            <th class="slds-size_2-of-12" scope="col"> 
+                                <div class="slds-cell-wrap" title="">
+                                    {!$Label.RTL_ViewCampaignMember_DESCRIPTION}
+                                </div>
+                            </th>
+                            <th class="slds-size_1-of-12" scope="col"> 
+                                <div class="slds-cell-wrap" title="">
+                                    {!$Label.RTL_ViewCampaignMember_ACCOUNTID} 
+                                </div>
+                            </th>
+                            <th class="slds-size_1-of-12" scope="col"> 
+                                <div class="slds-cell-wrap" title="">
+                                    {!$Label.RTL_ViewCampaignMember_CARDNO} 
+                                </div>
+                            </th>
+                            <th class="slds-size_1-of-12" scope="col"> 
+                                <div class="slds-cell-wrap" title="">
+                                    {!$Label.RTL_ViewCampaignMember_AMOUNT}
+                                </div>
+                            </th>
+                            <th class="slds-size_1-of-12" scope="col"> 
+                                <div class="slds-cell-wrap" title="">
+                                    {!$Label.RTL_ViewCampaignMember_STATUS}
+                                </div>
+                            </th>
+
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <apex:repeat value="{!fulfillData}" var="ffdata" >
+
+                        <tr class="dataRow">
+
+                            <!-- must change label,title,value-->
+
+                            <td data-label="{!$Label.RTL_ViewCampaignMember_PROCESSDATE}" >
+                                <div class="slds-cell-wrap" title="{!ffdata.fulfillmentObj.RTL_Delivery_Date__c}">
+                                    <apex:outputText value="{0,date, dd/MM/yyyy}"> 
+                                                <apex:param value="{!ffdata.fulfillmentObj.RTL_Delivery_Date__c}" /> 
+                                    </apex:outputText>
+                                </div>
+                            </td>
+
+                            <td data-label="{!$Label.RTL_ViewCampaignMember_CAMPAIGNCODE}" > 
+                                <div class="slds-cell-wrap" title="{!ffdata.camObj.RTL_Campaign_Code_10_digits__c}">
+                                    <apex:outputText value="{!ffdata.camObj.RTL_Campaign_Code_10_digits__c}"/>
+                                </div>
+                            </td>
+
+                            <td data-label="{!$Label.RTL_ViewCampaignMember_CAMPAIGNNAME}" > 
+                                <div class="slds-cell-wrap" title="{!ffdata.camObj.name }">
+                                    <!--apex:outputField value="{!ffdata.cam.CampaignId}" /-->
+                                    <a href="#"
+                                        id="lookup{!ffdata.cam.CampaignId}Campaign{!count}"
+                                        onmouseover="LookupHoverDetail.getHover(this.id, '/{!ffdata.cam.CampaignId}/m?retURL=/{!ffdata.cam.CampaignId}&isAjaxRequest=1&isdtp=vw').show();"
+                                        onfocus="LookupHoverDetail.getHover(this.id, '/{!ffdata.cam.CampaignId}/m?retURL=/{!ffdata.cam.CampaignId}&isAjaxRequest=1&isdtp=vw').show();"
+                                        onmouseout="LookupHoverDetail.getHover(this.id).hide();"
+                                        onblur="LookupHoverDetail.getHover(this.id).hide();"
+
+                                        target="_parent"
+                                        onClick="openTab('{!ffdata.cam.CampaignId}','/','{!ffdata.cam.Name}');return false">
+                                            {!ffdata.camObj.Name} 
+                                    </a> 
+                                </div>
+                            </td>
+
+                            <td data-label="{!$Label.RTL_ViewCampaignMember_FULFILLMENTTYPE}" > 
+                                <div class="slds-cell-wrap" title="{!ffdata.fulfillmentObj.RTL_Fulfillment_Type__c}">
+                                    <apex:outputText value="{!ffdata.fulfillmentObj.RTL_Fulfillment_Type__c}"/>
+                                </div>
+                            </td>
+
+                            <td data-label="{!$Label.RTL_ViewCampaignMember_DESCRIPTION}" > 
+                                <div class="slds-cell-wrap" title="{!ffdata.fulfillmentObj.RTL_Description__c }">
+                                    <apex:outputText value="{!ffdata.fulfillmentObj.RTL_Description__c }"/>
+                                </div>
+                            </td>
+
+                            <td data-label="{!$Label.RTL_ViewCampaignMember_ACCOUNTID}" > 
+                                <div class="slds-cell-wrap" title="{!ffdata.fulfillmentObj.RTL_Account_ID__c}">
+                                   <apex:outputText value="{!ffdata.fulfillmentObj.RTL_Account_ID__c}" />  
+                               </div>
+                           </td>
+
+
+                           <td data-label="{!$Label.RTL_ViewCampaignMember_CARDNO}" > 
+                            <div class="slds-cell-wrap" title="">
+                                <apex:outputText value="{!ffdata.fulfillmentObj.RTL_PCI_Card_NO__c}"/>
+                            </div>
+                        </td>
+
+                        <td data-label="{!$Label.RTL_ViewCampaignMember_AMOUNT}" > 
+                            <div class="slds-cell-wrap" title="{!ffdata.fulfillmentObj.RTL_Amount__c}">
+                                <apex:outputText value="{!ffdata.fulfillmentObj.RTL_Amount__c}"/>
+                            </div>
+                        </td>
+
+                        <td data-label="{!$Label.RTL_ViewCampaignMember_STATUS}" > 
+                            <div class="slds-cell-wrap" title="{!ffdata.fulfillmentObj.RTL_Fulfillment_Status__c}">
+                                <apex:outputText value="{!ffdata.status_code_string}"/>
+                            </div>
+                        </td>
+
+
+
+
+
+                    </tr>
+                    <!-- <apex:variable var="rowNum" value="{!rowNum + 1}" /> -->
+                    <apex:variable var="count" value="{!count+ 1}"/>
+                </apex:repeat>
+            </tbody>
+        </table>
+    </div>
+    <div class="slds-m-top_small">
+     <div class="slds-grid">
+         <div class="slds-align_absolute-center">
+             <div class="slds-grid slds-grid_vertical-align-start">
+                 <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-box slds-box_xx-small">
+                     <apex:commandLink action="{!previousFulfillment}" rendered="{! !disablePreviousfulfillment}" value="{!$Label.RTL_Campaign_History_Previous}" status="loadStatus" reRender="excTableSMS" /> 
+                     <apex:outputText value="{!$Label.RTL_Campaign_History_Previous}" rendered="{! disablePreviousfulfillment}" />  
+                 </div>
+
+                 <!-- <apex:repeat value="{!fulfillmentPageList}" var="page">
+                 <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-box slds-box_xx-small">
+                    <apex:commandLink rendered="{! If(page!=fulfillmentPage,true,false) }" 
+                    value="{!page}" status="loadStatus" reRender="excTableSMS" 
+                    onclick="navigateFulfillment({!page})"
+                    /> 
+                    <apex:outputText value="{!page}" rendered="{! If(page!=fulfillmentPage,false,true) }" />   
+                </div>
+            </apex:repeat> -->
+            <apex:repeat value="{!fulfilmentPaignation}" var="page">
+                 <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-box slds-box_xx-small">
+                    <apex:commandLink rendered="{! If(page!=fulfillmentPage,true,false) }" 
+                    value="{!If(page==-1,'',page)}" reRender="excTableSMS" 
+                    onclick="navigateFulfillment({!page});return false;"
+                    /> 
+                    <apex:outputText value="{!page}" rendered="{! If(page!=fulfillmentPage,false,true) }" />
+                    <apex:outputText value="{!If(page==-1,'...',page)}" rendered="{! If(page!=-1,false,true) }" /> 
+                </div>
+            </apex:repeat>
+
+            <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-box slds-box_xx-small">
+             <apex:commandLink action="{!nextFulfillment}" rendered="{! !disableNextfulfillment}" value="{!$Label.RTL_Campaign_History_Next}" status="loadStatus" reRender="excTableSMS" />
+             <apex:outputText value="{!$Label.RTL_Campaign_History_Next}" rendered="{! disableNextfulfillment}" />   
+         </div>
+
+
+     </div>
+
+
+ </div>
+ <div class="slds-p-horizontal_medium slds-m-bottom_xxx-small slds-m-top_xxx-small slds-col_bump-left">
+     {!$Label.RTL_Campaign_History_Page} {!fulfillmentPage} {!$Label.RTL_Campaign_History_Of} {!fulfillmentTotalPage}
+ </div>
+</div>
+</div>
+</apex:outputPanel>
+</div>
+</div> 
+
+
+
+</apex:outputPanel>
+
+<apex:actionFunction name="navigateFulfillment" action="{!navigateFulfillment}" reRender="excTableSMS" status="loadStatus">
+<apex:param name="pageNo" assignTo="{!fulfillmentPage}" value=""/>
+</apex:actionFunction>
+
+</apex:form>   
+
+</div>
+
+
+ <!--            <div id="tab-sub-2" class="slds-tabs_scoped__content slds-hide" role="tabpanel" aria-labelledby="tab-sub-2__item">
+            Pending
+        </div> -->
+    </div>
+
+
+
+    <!-- JAVASCRIPT -->
+    <script type="text/javascript">       
+
+</script>
+<!-- / JAVASCRIPT -->
+
+</apex:page>

@@ -1,0 +1,547 @@
+<apex:page controller="ValidateOpportunityController" doctype="html-5.0" title="Validate Oppty" lightningStyleSheets="true" tabStyle="Opportunity">
+    <html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+        <title>Warning</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <!-- Import the Design System style sheet -->
+        <!-- <apex:slds /> -->
+        <apex:includeScript value="/support/console/48.0/integration.js" />
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+        <style>
+            form {
+                padding: 0 0 .5rem 0;
+            }
+            .slds-scope table {
+                width: 100%;
+            }
+
+            .red-label {
+                list-style: none;
+                color: #f00;
+            }
+
+            .slds-scope .slds-text-title--caps,
+            .slds-scope .slds-text-title_caps {
+                font-size: .79rem !important;
+            }
+
+            .bootstrap-sf1 .output-label {
+                display: inline-block;
+                color: rgb(112, 110, 107);
+                font-size: 0.79rem;
+                line-height: 1.5;
+                margin-right: .75rem;
+                margin-bottom: .125rem;
+                font-weight: normal !important;
+            }
+            
+            .message .messageText {
+                margin-left: 10px;
+                font-size: initial;
+                font-family: inherit;
+                color: black; //change fonnt color here
+            }
+
+            .bootstrap-sf1 .card.context-account .card-heading:after, .bootstrap-sf1 .context-account > .card .card-heading {
+                background-color: unset;
+                background-image: unset;
+            }
+
+        </style>
+
+        <script type="text/javascript">
+            var subId;
+            var theme = '{!$User.UIThemeDisplayed}';
+
+            function openTab(url, label, name, openimmediately) {
+                if (sforce.console.isInConsole()) {
+                    sforce.console.getEnclosingPrimaryTabId(function (primarytab) {
+                        sforce.console.openSubtab(primarytab.id, url, openimmediately, label, null, null, name);
+                    });
+                }
+                //Salesforce classic theme OR Lightning Expericence theme
+                else if (theme == 'Theme3' || theme == 'Theme4d') {
+                    window.open(url);
+                }
+                //Salesforce1 mobile theme
+                else if (theme == 'Theme4t') {
+                    sforce.one.navigateToURL(url);
+                }
+            }
+
+            function redirectPage(url,pageName){
+                //Salesforce console mode
+                if(sforce.console.isInConsole()){
+                    sforce.console.getEnclosingTabId(function (result) {
+                        if(result){
+                            this.subId = result.id;
+                            sforce.console.getEnclosingPrimaryTabId(function (primarytab) {
+                                
+                                var label;
+                                sforce.console.openSubtab(primarytab.id, url, true, label, null, null, 'select recordtype');
+                                sforce.console.closeTab(this.subId);
+                            });
+                        }
+                    });
+                }
+                //Salesforce classic theme OR Lightning Expericence theme
+                else if(theme == 'Theme3' || theme == 'Theme4d'){
+                    window.location.href = url;
+                }
+                //Salesforce1 mobile theme
+                else if(theme == 'Theme4t'){
+                    sforce.one.navigateToURL(url);
+                }
+            }
+
+            function NewOpportunity(){
+                if (theme.includes('Theme4')) {
+                    sforce.one.navigateToURL(`/one/one.app#${btoa(JSON.stringify({
+                        "componentDef": 'c:fetchRecordTypeLightning',
+                        "attributes": {
+                            "theme": theme,
+                            "sObjectName": "Opportunity",
+                            "defaultValue": {
+                                "AccountId": "{!AccountId}"
+                            }
+                        }
+                    }))}`, true);
+                }
+            }
+
+            function closeCurrentTab() {
+                var url = '/{!AccountId}';
+
+                //Salesforce console mode
+                if(sforce.console.isInConsole()){
+                    sforce.console.getEnclosingTabId(function (result) {
+                        if(result){
+                            sforce.console.closeTab(result.id, function(){
+                                // window.location.href = url;
+                            });
+                        }
+                    });
+                }
+                //Salesforce classic theme OR Lightning Expericence theme
+                else if(theme == 'Theme3' || theme == 'Theme4d'){
+                    window.location.href = url;
+                }
+                //Salesforce1 mobile theme
+                else if(theme == 'Theme4t'){
+                    sforce.one.navigateToURL(url);
+                }
+            }
+
+            $(document).ready(function () {
+                if (sforce.console.isInConsole()) {
+                    sforce.console.getEnclosingTabId(function (result) {
+                        if (result) {
+                            sforce.console.setTabTitle('{!$Label.Pending_Task}', result.id);
+                            sforce.console.setTabIcon("{!URLFOR($Resource.customer_logo_icon)}", result.id);
+                        }
+                    });
+                }
+
+                $('#tabSearch a').click(function (e) {
+                    // e.preventDefault();
+                    var tabId = $(this).attr('aria-controls');
+                    $('#tabSearch li').each(function(index, value){
+                        $(this).removeClass('active');
+                        if($(this).find('a').attr('aria-controls') == tabId){
+                            $(this).addClass('active');
+                        }
+                    });
+
+                    $('#LeadblockSection, #ReferralblockSection, #OpportunityblockSection').removeClass('in active');
+                    $('#'+tabId).addClass('in active');
+                });
+            });
+        </script>
+    </head>
+
+    <body style="background-color: #FFF">
+        <div class="">
+            <!-- slds-scope bootstrap-sf1 -->
+            <apex:sectionHeader title="Validate opportunity" subtitle="{!$Label.Pending_Task}" rendered="{!IF($User.UIThemeDisplayed != 'Theme4t', true, false)}"/>
+            <apex:sectionHeader title="{!$Label.Pending_Task}" subtitle="Validate opportunity" rendered="{!IF($User.UIThemeDisplayed == 'Theme4t', true, false)}"/>
+            <apex:pageMessage escape="false" summary="{!$Label.Warning_text_EN} <br/> {!$Label.Warning_text_TH}" severity="warning" strength="3"/>
+            
+            <apex:outputPanel >
+                <apex:form >
+                    <apex:actionFunction name="showMoreLead" action="{!callShowMore}" rerender="LeadsTable, leadcardSection">
+                        <apex:param name="CallType" value="Lead" />
+                    </apex:actionFunction>
+
+                    <apex:actionFunction name="showMoreRefer" action="{!callShowMore}" rerender="ReferralTable, referralcardSection">
+                        <apex:param name="CallType" value="Referral" />
+                    </apex:actionFunction>
+
+                    <apex:actionFunction name="showMoreOpty" action="{!callShowMore}" rerender="OpptyTable,OpptycardSection">
+                        <apex:param name="CallType" value="Oppty" />
+                    </apex:actionFunction>
+
+                    <apex:outputPanel id="statusMessage">
+                        <apex:pageMessages escape="false"></apex:pageMessages>
+                    </apex:outputPanel>
+                    
+                    <apex:outputPanel layout="block" rendered="{!IF($User.UIThemeDisplayed != 'Theme4t', true, false)}">
+                        <apex:pageBlock title="Leads" mode="detail" id="LeadsTable">
+                            <apex:pageBlockTable value="{!leadshowlst}" var="item" rendered="{!IF(leadlst.size > 0, true, false)}">
+                                <!-- styleClass="slds-table slds-table--bordered slds-table--cell-buffer"
+                                headerClass="slds-text-title_caps slds-section-title--divider" 
+                                rowClasses=""
+                                columnClasses="slds-text-body_regular" -->
+
+                                <apex:column >
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.Name.label}" />
+                                    </apex:facet>
+                                    <apex:commandLink value="{!item.Name}" onclick="openTab('/{!item.Id}','{!item.Name}','{!item.Name}',true); return false;" />
+                                </apex:column>
+                                <apex:column value="{!item.Company}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.Company.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.Status}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.Status.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.Primary_Campaign__r.Name}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.Primary_Campaign__c.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.Pri_Campaign_Active__c}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.Pri_Campaign_Active__c.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.CreatedDate}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.CreatedDate.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.LastModifiedDate}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.LastModifiedDate.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.Owner.Name}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$Label.Owner_Full_Name}" />
+                                    </apex:facet>
+                                </apex:column>
+
+                            </apex:pageBlockTable>
+                            <apex:outputPanel layout="block" rendered="{!IF(leadlst.size == 0, true, false)}">
+                                <apex:outputText value="No records to display" />
+                            </apex:outputPanel>
+
+                            <apex:outputPanel layout="block" rendered="{!IF(leadlst.Size > VO_LIMIT && LeadOffset < leadlst.Size, true, false)}">
+                                <apex:commandLink value="Show more" onclick="showMoreLead(); return false;"/>
+                            </apex:outputPanel>
+                        </apex:pageBlock>
+
+
+                        <!-- Referrals -->
+                        <apex:pageBlock title="Referrals" mode="detail" id="ReferralTable">
+                            <apex:pageBlockTable value="{!referalshowlst}" var="item" rendered="{!IF(referallst.size > 0, true, false)}">
+
+                                <apex:column >
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.RTL_Referral__c.Fields.Name.label}" />
+                                    </apex:facet>
+                                    <apex:commandLink value="{!item.Name}" onclick="openTab('/{!item.Id}','{!item.Name}','{!item.Name}',true); return false;" />
+                                </apex:column>
+                                <apex:column value="{!item.RTL_FirstName__c}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.RTL_Referral__c.Fields.RTL_FirstName__c.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.RTL_LastName__c}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.RTL_Referral__c.Fields.RTL_LastName__c.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.RTL_Account_Name__r.Name}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.RTL_Referral__c.Fields.RTL_Account_Name__c.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.RTL_Stage__c}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.RTL_Referral__c.Fields.RTL_Stage__c.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.RTL_Referred_Date_time__c}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.RTL_Referral__c.Fields.RTL_Referred_Date_time__c.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.Owner.Name}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$Label.Owner_Full_Name}" />
+                                    </apex:facet>
+                                </apex:column>
+                                
+
+                            </apex:pageBlockTable>
+                            <apex:outputPanel layout="block" rendered="{!IF(referallst.size == 0, true, false)}">
+                                <apex:outputText value="No records to display" />
+                            </apex:outputPanel>
+
+                            <apex:outputPanel layout="block" rendered="{!IF(referallst.Size > VO_LIMIT && ReferralOffset < referallst.Size, true, false)}">
+                                <apex:commandLink value="Show more" onclick="showMoreRefer(); return false;"/>
+                            </apex:outputPanel>
+                        </apex:pageBlock>
+
+
+                        <!-- Opportunities -->
+                        <apex:pageBlock title="Opportunities" mode="detail" id="OpptyTable">
+                            <apex:pageBlockTable value="{!opptyshowlst}" var="item" rendered="{!IF(opptylst.size > 0, true, false)}">
+
+                                <apex:column >
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Opportunity.Fields.Name.label}" />
+                                    </apex:facet>
+                                    <apex:commandLink value="{!item.Name}" onclick="openTab('/{!item.Id}','{!item.Name}','{!item.Name}',true); return false;"></apex:commandLink>
+                                </apex:column>
+                                <apex:column value="{!item.Account.Name}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Opportunity.Fields.AccountId.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.Opportunity_Type_Formula__c}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Opportunity.Fields.Opportunity_Type_Formula__c.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.StageName}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Opportunity.Fields.StageName.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.Application_Status__c}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Opportunity.Fields.Application_Status__c.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.CreatedDate}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$ObjectType.Opportunity.Fields.CreatedDate.label}" />
+                                    </apex:facet>
+                                </apex:column>
+                                <apex:column value="{!item.Owner.Name}">
+                                    <apex:facet name="header">
+                                        <apex:outputLabel value="{!$Label.Owner_Full_Name}" />
+                                    </apex:facet>
+                                </apex:column>
+
+                            </apex:pageBlockTable>
+                            <apex:outputPanel layout="block" rendered="{!IF(opptylst.size == 0, true, false)}">
+                                <apex:outputText value="No records to display" />
+                            </apex:outputPanel>
+
+                            <apex:outputPanel layout="block" rendered="{!IF(opptylst.Size > VO_LIMIT && OpptyOffset < opptylst.Size, true, false)}">
+                                <apex:commandLink value="Show more" onclick="showMoreOpty(); return false;">
+                                    
+                                </apex:commandLink>
+                            </apex:outputPanel>
+
+                        </apex:pageBlock>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel styleClass="bootstrap-sf1" layout="block" rendered="{! IF($User.UIThemeDisplayed == 'Theme4t', true, false)}">
+                        <apex:outputPanel layout="block" styleClass="card-list" style="font-family: 'Salesforce Sans',Arial,sans-serif">
+                            <ul class="nav nav-tabs" id="tabSearch">
+                                <li class="active">
+                                    <a aria-controls="LeadblockSection" role="tab" data-toggle="tab">
+                                        {!$ObjectType.Lead.Label}
+                                        <span class="badge" style="margin-left:5px">{! leadlst.size}</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a aria-controls="ReferralblockSection" role="tab" data-toggle="tab">
+                                        {!$ObjectType.RTL_Referral__c.Label}
+                                        <span class="badge" style="margin-left:5px">{! referallst.size}</span>
+                                    </a>
+                                </li>
+                                <li>
+                                    <a aria-controls="OpportunityblockSection" role="tab" data-toggle="tab">
+                                        {!$ObjectType.Opportunity.Label} 
+                                        <span class="badge" style="margin-left:5px">{! opptylst.size}</span>
+                                    </a>
+                                </li>
+                            </ul>
+                            <div class="tab-content">
+                                <div id="LeadblockSection" role="tabpanel" class="tab-pane fade in active">
+                                    <apex:PageBlock id="leadcardSection">
+                                        <apex:repeat value="{!leadshowlst}" var="item">
+                                            <div class="card context-account"> 
+                                                <div class="card-heading">
+                                                    <span style="font-family: 'Salesforce Sans',Arial,sans-serif">{!$ObjectType.Lead.Fields.Name.label} :&nbsp;
+                                                        <apex:commandLink value="{!item.Name}" onclick="openTab('/{!item.Id}','{!item.Name}','{!item.Name}',true); return false;"></apex:commandLink>
+                                                    </span>
+                                                </div>
+                                                <ul class="card-detail" style="font-family: 'Salesforce Sans',Arial,sans-serif">
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.Company.label}"/>
+                                                        <apex:outputField value="{!item.Company}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.Status.label}"/>
+                                                        <apex:outputField value="{!item.Status}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.Primary_Campaign__c.label}"/>
+                                                        <apex:outputField value="{!item.Primary_Campaign__r.Name}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.Pri_Campaign_Active__c.label}"/>
+                                                        <apex:outputField value="{!item.Pri_Campaign_Active__c}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.CreatedDate.label}"/>
+                                                        <apex:outputField value="{!item.CreatedDate}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.Lead.Fields.LastModifiedDate.label}"/>
+                                                        <apex:outputField value="{!item.LastModifiedDate}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$Label.Owner_Full_Name}"/>
+                                                        <apex:outputField value="{!item.Owner.Name}"/>
+                                                    </li>
+                                                </ul>
+                                            </div>  
+                                        </apex:repeat>
+    
+                                        <apex:outputPanel layout="block" rendered="{!IF(leadlst.size == 0, true, false)}">
+                                            <apex:outputText value="No records to display" />
+                                        </apex:outputPanel>
+
+                                        <apex:outputPanel layout="block" rendered="{!IF(leadlst.Size > VO_LIMIT && LeadOffset < leadlst.Size, true, false)}">
+                                            <apex:commandLink value="Show more" onclick="showMoreLead(); return false;"/>
+                                        </apex:outputPanel>
+
+                                    </apex:PageBlock>
+                                </div>
+            
+                                <div id="ReferralblockSection" role="tabpanel" class="tab-pane fade">
+                                    <apex:PageBlock id="referralcardSection">
+                                        <apex:repeat value="{!referalshowlst}" var="item">
+                                            <div class="card context-account"> 
+                                                <div class="card-heading">
+                                                    <span style="font-family: 'Salesforce Sans',Arial,sans-serif">{!$ObjectType.RTL_Referral__c.Fields.Name.label} :&nbsp;
+                                                        <apex:commandLink value="{!item.Name}" onclick="openTab('/{!item.Id}','{!item.Name}','{!item.Name}',true); return false;"></apex:commandLink>
+                                                    </span>
+                                                </div>
+                                                <ul class="card-detail" style="font-family: 'Salesforce Sans',Arial,sans-serif">
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.RTL_Referral__c.Fields.RTL_FirstName__c.label}"/>
+                                                        <apex:outputField value="{!item.RTL_FirstName__c}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.RTL_Referral__c.Fields.RTL_LastName__c.label}"/>
+                                                        <apex:outputField value="{!item.RTL_LastName__c}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.RTL_Referral__c.Fields.RTL_Account_Name__c.label}"/>
+                                                        <apex:outputField value="{!item.RTL_Account_Name__r.Name}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.RTL_Referral__c.Fields.RTL_Stage__c.label}"/>
+                                                        <apex:outputField value="{!item.RTL_Stage__c}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.RTL_Referral__c.Fields.RTL_Referred_Date_time__c.label}"/>
+                                                        <apex:outputField value="{!item.RTL_Referred_Date_time__c}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$Label.Owner_Full_Name}"/>
+                                                        <apex:outputField value="{!item.Owner.Name}"/>
+                                                    </li>
+                                                    
+                                                </ul>
+                                            </div>  
+                                        </apex:repeat>
+
+                                        <apex:outputPanel layout="block" rendered="{!IF(referallst.size == 0, true, false)}">
+                                            <apex:outputText value="No records to display" />
+                                        </apex:outputPanel>
+
+                                        <apex:outputPanel layout="block" rendered="{!IF(referallst.Size > VO_LIMIT && ReferralOffset < referallst.Size, true, false)}">
+                                            <apex:commandLink value="Show more" onclick="showMoreRefer(); return false;"/>
+                                        </apex:outputPanel>
+                                        
+                                    </apex:PageBlock>
+                                </div>
+
+                                <div id="OpportunityblockSection" role="tabpanel" class="tab-pane fade">
+                                    <apex:PageBlock id="OpptycardSection">
+                                        <apex:repeat value="{!opptyshowlst}" var="item">
+                                            <div class="card context-account"> 
+                                                <div class="card-heading">
+                                                    <span style="font-family: 'Salesforce Sans',Arial,sans-serif">{!$ObjectType.Opportunity.Fields.Name.label} :&nbsp;<apex:commandLink value="{!item.Name}" onclick="openTab('/{!item.Id}','{!item.Name}','{!item.Name}',true); return false;"></apex:commandLink></span>
+                                                </div>
+                                                <ul class="card-detail" style="font-family: 'Salesforce Sans',Arial,sans-serif">
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.Opportunity.Fields.AccountId.label}"/>
+                                                        <apex:outputField value="{!item.Account.Name}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.Opportunity.Fields.Opportunity_Type_Formula__c.label}"/>
+                                                        <apex:outputField value="{!item.Opportunity_Type_Formula__c}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.Opportunity.Fields.StageName.label}"/>
+                                                        <apex:outputField value="{!item.StageName}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.Opportunity.Fields.Application_Status__c.label}"/>
+                                                        <apex:outputField value="{!item.Application_Status__c}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$ObjectType.Opportunity.Fields.CreatedDate.label}"/>
+                                                        <apex:outputField value="{!item.CreatedDate}"/>
+                                                    </li>
+                                                    <li>
+                                                        <apex:outputLabel value="{!$Label.Owner_Full_Name}"/>
+                                                        <apex:outputField value="{!item.Owner.Name}"/>
+                                                    </li>
+                                                </ul>
+                                            </div>  
+                                        </apex:repeat>
+
+                                        <apex:outputPanel layout="block" rendered="{!IF(opptylst.size == 0, true, false)}">
+                                            <apex:outputText value="No records to display" />
+                                        </apex:outputPanel>
+
+                                        <apex:outputPanel layout="block" rendered="{!IF(opptylst.Size > VO_LIMIT && OpptyOffset < opptylst.Size, true, false)}">
+                                            <apex:commandLink value="Show more" onclick="showMoreOpty(); return false;"/>
+                                        </apex:outputPanel>
+                                    </apex:PageBlock>
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                    <apex:outputPanel layout="block" style="text-align: center;">
+                        <!-- <apex:commandButton value="New Oppportunity" onclick="redirectPage('{!URLFOR($Action.Opportunity.New, null, [retURL=AccountId, accid=AccountId], true)}', 'Select Recortype'); return false;"/> -->
+                        <apex:commandButton value="{!$Label.New_Opportunity}" onclick="NewOpportunity(); return false;"/>
+                        <apex:commandButton value="{!$Label.Cancel}" onclick="closeCurrentTab(); return false;"/>
+                    </apex:outputPanel>
+                    
+                </apex:form>
+            </apex:outputPanel>
+        </div>
+    </body>
+
+    </html>
+</apex:page>

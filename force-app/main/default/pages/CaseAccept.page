@@ -1,0 +1,67 @@
+<apex:page standardStylesheets="true" lightningStylesheets="true" showHeader="true" sidebar="true" standardController="Case" extensions="CaseAcceptController"
+    action="{!validateAcceptPermission}">
+    <apex:includeScript value="/support/console/47.0/integration.js" />
+    <apex:form >
+        <apex:outputPanel rendered="{! !isUpdateSuccess }">
+            <apex:sectionHeader title="Case Accept" subtitle="{!caseObj.CaseNumber }" />
+            <apex:pageBlock title=" " mode="edit" id="page">
+                <apex:pageBlockButtons location="bottom">
+                    <apex:commandbutton value="OK" onclick="cancelAccept(); return false;" />
+                </apex:pageBlockButtons>
+                <apex:pageMessages />
+            </apex:pageBlock>
+        </apex:outputPanel>
+
+        <apex:actionstatus id="loading">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" />
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+
+        <apex:actionFunction name="acceptCase" status="loading" oncomplete="refreshTab(); return false;" />
+        <apex:actionFunction name="cancelCase" status="loading" action="{!cancel}" />
+    </apex:form>
+
+    <script>
+        // Initial run function
+        if ({!isUpdateSuccess}) {
+            acceptCase();
+
+        }
+
+        function refreshTab() {
+            if (sforce.console.isInConsole() && '{!$User.UITheme}' != 'Theme4t') {
+                sforce.console.getEnclosingPrimaryTabId(function (praimatyTab) {
+                    sforce.console.getEnclosingTabId(function (result) {
+                        sforce.console.refreshPrimaryTabById(praimatyTab.id, true, function (resultRefresh) {
+                            // console.log('refreshPrimaryTabById: ', resultRefresh.success);
+                        });
+                        sforce.console.closeTab(result.id, function () {
+                            // sforce.one.navigateToURL(retURL);
+                        });
+                    });
+                });
+            }else{
+                sforce.one.back(true);
+            }
+        }
+
+        function cancelAccept() {
+            if (sforce.console.isInConsole() && '{!$User.UITheme}' != 'Theme3') {
+                sforce.console.getEnclosingTabId(function (result) {
+                    sforce.console.closeTab(result.id, function () {
+                        // sforce.one.navigateToURL(retURL);
+                    });
+                });
+            }
+            else {
+                cancelCase();
+            }
+        }
+    </script>
+</apex:page>

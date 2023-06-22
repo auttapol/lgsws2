@@ -1,0 +1,199 @@
+<aura:component>
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />  
+    <aura:attribute name="branchProfile" type="Object" />
+    <aura:attribute name="saleInfo" type="Object" />
+    <aura:attribute name="branchProfileData" type="Object" />
+    <aura:attribute name="sumSaleInOut" type="Object" />
+    <aura:attribute name="kpiValue" type="Integer" default="0" />
+    <aura:attribute name="averageBankwide" type="Integer" default="0" />
+    <aura:attribute name="inBankwide" type="Integer" default="0" />
+    <aura:attribute name="outBankwide" type="Integer" default="0" />
+    <aura:attribute name="userType" type="String" default="Branch" />
+    <aura:attribute name="chartObj" type="Object" access="public"/>
+    <aura:attribute name="chartNeedleObj" type="Object" access="public"/>
+    <aura:attribute name="branchCode" type="String" />
+    <aura:attribute name="defaultMonthItp" type="String" />
+    <aura:attribute name="defaultYearItp" type="String" />
+    <aura:attribute name="monthSaleInOut" type="String" />
+    <aura:attribute name="yearSaleInOut" type="String" />
+    <aura:attribute name="teamNameTH" type="String" />
+    <aura:attribute name="dataAsOfMonthSecA" type="String" />
+    <aura:attribute name="dataAsOfYearSecA" type="String" />
+    <aura:attribute name="scriptLoaded" type="Boolean" default="false"/>
+    <aura:attribute name="loaded" type="Boolean" default="false" />
+
+    <ltng:require scripts="{!$Resource.ChartJs}" afterScriptsLoaded="{!c.scriptsLoaded}" />
+    <!-- <ltng:require scripts="{!join(',',
+    $Resource.ChartJs_v3_9_1 + '/chart.js',
+    $Resource.ChartJs_v3_9_1 + '/plugin.js')}" afterScriptsLoaded="{!c.scriptsLoaded}" /> -->
+    <aura:handler name="change" value="{!v.sumSaleInOut}" action="{!c.valueChange}"/>
+    <aura:handler name="change" value="{!v.branchProfile}" action="{!c.valueChange}"/>
+    <aura:handler name="change" value="{!v.defaultMonthItp}" action="{!c.periodChange}"/>
+    <aura:handler name="change" value="{!v.defaultYearItp}" action="{!c.periodChange}"/>
+    
+    
+    
+    
+    
+
+    <aura:if isTrue="{!v.userType == 'Branch'}">
+        <div class="outer" style=" 
+        border-bottom: 1pt solid black;
+        border-top: 1pt solid black;
+        border-left: 1pt solid black;
+        border-right: 1pt solid black; 
+        padding-left: 5px;
+        padding-right: 5px
+        ">
+            <div class="slds-grid slds-wrap">
+                <div class="slds-col slds-size_1-of-1" style="margin-top: 10px;text-align: center;">
+                    <span>Branch {!v.branchCode}</span>
+                </div> 
+                <div class=" slds-col slds-size_1-of-1" style="margin-top: 10px;text-align: center;">
+                    <span style = "display:inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30ch;" >{!v.teamNameTH}</span>
+                </div>
+            </div>
+            <div class="slds-grid slds-wrap" style="display: flex;justify-content: center;">
+                <div id="chartTPerfContainer" class="slds-grid slds-wrap chart-container">
+                    <canvas aura:id="chart" id="chartJSContainer" width="207" height="136" style=""></canvas>
+                    <canvas aura:id="chartNeedle" id="secondContainer" width="207" height="136" style="position: absolute;"></canvas>
+                    <canvas aura:id="chartLabel" id="chartLabel" width="207" height="136" style="padding-bottom: 50px; position: absolute;"></canvas>
+                </div>
+            </div>
+            <img src="{!$Resource.T_Performance_Graph_Description}" alt="User avatar" style="margin-bottom: 10px; "/>
+            <div class="slds-grid slds-wrap">
+                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px;padding-left: 10px;text-align: center;">
+                    <aura:if isTrue="{!v.kpiValue != null}">
+                        <span>KPIs : </span> <lightning:formattedNumber minimumFractionDigits="2" maximumFractionDigits="2" value="{!v.kpiValue}" /><span>%</span> 
+                        <aura:set attribute="else">
+                            <span>KPIs : 0%</span>
+                        </aura:set>
+                    </aura:if>
+                </div>
+                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px;padding-left: 10px;text-align: center;">
+                    <aura:if isTrue="{!v.averageBankwide != null}">
+                        <span>Avg. Bankwide : </span> <lightning:formattedNumber minimumFractionDigits="2" maximumFractionDigits="2" value="{!v.averageBankwide}" /><span>%</span>
+                    </aura:if>
+                    <aura:set attribute="else">
+                        <span>Avg. Bankwide : 0%</span>
+                    </aura:set>
+                </div>
+                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px;padding-left: 10px; ">
+                    <aura:if isTrue="{!and(not(empty(v.branchProfileData.Rank_Zone__c)),not(empty(v.branchProfileData.Number_of_Branch_Zone__c)))}">
+                        <span>Rank : Zone </span> <span style="float:right;padding-right: 10px;"><lightning:formattedNumber value="{!v.branchProfileData.Rank_Zone__c}"/>/<lightning:formattedNumber value="{!v.branchProfileData.Number_of_Branch_Zone__c}"/></span>
+                    </aura:if>
+                    <aura:if isTrue="{!and(empty(v.branchProfileData.Rank_Zone__c),empty(v.branchProfileData.Number_of_Branch_Zone__c))}">
+                        <span>Rank : Zone </span> <span style="float:right;padding-right: 10px;">-/-</span>
+                    </aura:if>
+                    <aura:if isTrue="{!and(empty(v.branchProfileData.Rank_Zone__c),not(empty(v.branchProfileData.Number_of_Branch_Zone__c)))}">
+                        <span>Rank : Zone </span> <span style="float:right;padding-right: 10px;">-/<lightning:formattedNumber value="{!v.branchProfileData.Number_of_Branch_Zone__c}"/></span>
+                    </aura:if>
+                    <aura:if isTrue="{!and(not(empty(v.branchProfileData.Rank_Zone__c)),empty(v.branchProfileData.Number_of_Branch_Zone__c))}">
+                        <span>Rank : Zone </span> <span style="float:right;padding-right: 10px;"><lightning:formattedNumber value="{!v.branchProfileData.Rank_Zone__c}"/>/-</span>
+                    </aura:if>
+                   
+                </div>
+                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px;padding-left: 10px;">
+                    <aura:if isTrue="{!and(not(empty(v.branchProfileData.Rank_Region__c)),not(empty(v.branchProfileData.Number_of_Branch_Region__c)))}">
+                        <span>Rank : RH </span> <span style="float:right;padding-right: 10px;"><lightning:formattedNumber value="{!v.branchProfileData.Rank_Region__c}"/>/<lightning:formattedNumber value="{!v.branchProfileData.Number_of_Branch_Region__c}"/></span>
+                    </aura:if>
+                    <aura:if isTrue="{!and(empty(v.branchProfileData.Rank_Region__c),empty(v.branchProfileData.Number_of_Branch_Region__c))}">
+                        <span>Rank : RH </span> <span style="float:right;padding-right: 10px;">-/-</span>
+                    </aura:if>
+                    <aura:if isTrue="{!and(empty(v.branchProfileData.Rank_Region__c),not(empty(v.branchProfileData.Number_of_Branch_Region__c)))}">
+                        <span>Rank : RH </span> <span style="float:right;padding-right: 10px;">-/<lightning:formattedNumber value="{!v.branchProfileData.Number_of_Branch_Region__c}"/></span>
+                    </aura:if>
+                    <aura:if isTrue="{!and(not(empty(v.branchProfileData.Rank_Region__c)),empty(v.branchProfileData.Number_of_Branch_Region__c))}">
+                        <span>Rank : RH </span> <span style="float:right;padding-right: 10px;"><lightning:formattedNumber value="{!v.branchProfileData.Rank_Region__c}"/>/-</span>
+                    </aura:if>
+                </div>
+                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px;padding-left: 10px;">
+                    <aura:if isTrue="{!and(not(empty(v.branchProfileData.Rank_Bankwide__c)),not(empty(v.branchProfileData.Number_of_Branch_Bankwide__c)))}">
+                        <span>Rank : Bankwide </span> <span style="float:right;padding-right: 10px;"><lightning:formattedNumber value="{!v.branchProfileData.Rank_Bankwide__c}"/>/<lightning:formattedNumber value="{!v.branchProfileData.Number_of_Branch_Bankwide__c}"/></span>
+                    </aura:if>
+                    <aura:if isTrue="{!and(empty(v.branchProfileData.Rank_Bankwide__c),empty(v.branchProfileData.Number_of_Branch_Bankwide__c))}">
+                        <span>Rank : Bankwide </span> <span style="float:right;padding-right: 10px;">-/-</span>
+                    </aura:if>
+                    <aura:if isTrue="{!and(empty(v.branchProfileData.Rank_Bankwide__c),not(empty(v.branchProfileData.Number_of_Branch_Bankwide__c)))}">
+                        <span>Rank : Bankwide </span> <span style="float:right;padding-right: 10px;">-/<lightning:formattedNumber value="{!v.branchProfileData.Number_of_Branch_Bankwide__c}"/></span>
+                    </aura:if>
+                    <aura:if isTrue="{!and(not(empty(v.branchProfileData.Rank_Bankwide__c)),empty(v.branchProfileData.Number_of_Branch_Bankwide__c))}">
+                        <span>Rank : Bankwide </span> <span style="float:right;padding-right: 10px;"><lightning:formattedNumber value="{!v.branchProfileData.Rank_Bankwide__c}"/>/-</span>
+                    </aura:if>
+                </div>
+                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px;padding-left: 10px;">
+                    <aura:if isTrue="{!v.outBankwide != null}">
+                        <span>#OUT Bankwide</span> <span style="float:right;padding-right: 10px;"><lightning:formattedNumber value="{!v.outBankwide}"/></span>
+                        <aura:set attribute="else">
+                            <span>#OUT Bankwide</span> <span style="float:right;padding-right: 10px;">0</span> 
+                        </aura:set>
+                    </aura:if>
+                </div>
+                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px;padding-left: 10px;">
+                    <aura:if isTrue="{!v.inBankwide != null}">
+                        <span>#IN Bankwide</span> <span style="float:right;padding-right: 10px;"><lightning:formattedNumber value="{!v.inBankwide}"/></span>
+                        <aura:set attribute="else">
+                            <span>#IN Bankwide</span> <span style="float:right;padding-right: 10px;">0</span> 
+                        </aura:set>
+                    </aura:if>
+                </div>
+                <aura:if isTrue="{!and(v.dataAsOfMonthSecA,v.dataAsOfYearSecA)}">
+                <div class="slds-col slds-size_1-of-1" style="margin-top: 20px;margin-bottom: 10px;padding-left: 10px;">
+                    <span style="float: left;margin-right: 5px;margin-bottom: 5px;font-weight: 700;">As Of {!v.dataAsOfMonthSecA}</span><span style="float: left;margin-right: 10px;margin-bottom: 5px;font-weight: 700">{!v.dataAsOfYearSecA}</span>
+                </div>
+                </aura:if>
+            </div>
+        </div>
+    </aura:if>
+    <aura:if isTrue="{!v.userType == 'RASC'}">
+        <div class="outer" style="  
+        border-bottom: 1pt solid black;
+        border-top: 1pt solid black;
+        border-left: 1pt solid black;
+        border-right: 1pt solid black;
+        padding-left: 5px;
+        padding-right: 5px
+        ">
+            <div class="slds-grid slds-wrap">
+                <div class="slds-col slds-size_1-of-1" style="margin-top: 10px;text-align: center;">
+                    <span>Team  {!v.branchCode}</span>
+                </div>
+                <div class =" slds-col slds-size_1-of-1 team-name-th" style="margin-top: 10px;text-align: center;">
+                    <span style="display:inline-block; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30ch;">{!v.teamNameTH}</span>
+                </div>
+            </div>
+
+            <div class="slds-grid slds-wrap" style="display: flex;justify-content: center;">
+                <div class="slds-grid slds-wrap chart-container" >
+                    <canvas aura:id="chart" id="chartJSContainer" width="207" height="136" style=""></canvas>
+                    <canvas aura:id="chartNeedle" id="secondContainer" width="207" height="136" style="position: absolute;"></canvas>
+                    <canvas aura:id="chartLabel" id="chartLabel" width="207" height="136" style="padding-bottom: 50px; position: absolute;"></canvas>
+                </div>
+            </div>
+            <img src="{!$Resource.T_Performance_Graph_Description}" alt="User avatar" style="margin-bottom: 10px; "/>
+            <div class="slds-grid slds-wrap">
+                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px;padding-left: 10px;text-align: center;">
+                    <aura:if isTrue="{!v.kpiValue != null}">
+                        <span>KPIs : </span> <lightning:formattedNumber minimumFractionDigits="2" maximumFractionDigits="2" value="{!v.kpiValue}" /><span>%</span> 
+                        <aura:set attribute="else">
+                            <span>KPIs : 0%</span>
+                        </aura:set>
+                    </aura:if>
+                </div>
+                <div class="slds-col slds-size_1-of-1" style="margin-bottom: 10px;padding-left: 10px;text-align: center;">
+                    <aura:if isTrue="{!v.averageBankwide != null}">
+                        <span>Avg. Bankwide : </span> <lightning:formattedNumber minimumFractionDigits="2" maximumFractionDigits="2" value="{!v.averageBankwide}" /><span>%</span>
+                    </aura:if>
+                    <aura:set attribute="else">
+                        <span>Avg. Bankwide : 0%</span>
+                    </aura:set>
+                </div>
+                <aura:if isTrue="{!and(v.dataAsOfMonthSecA,v.dataAsOfYearSecA)}">
+                    <div class="slds-col slds-size_1-of-1" style="margin-top: 20px;margin-bottom: 10px;padding-left: 10px;">
+                        <span style="float: left;margin-right: 5px;margin-bottom: 5px;font-weight: 700;">As Of {!v.dataAsOfMonthSecA}</span><span style="float: left;margin-right: 10px;margin-bottom: 5px;font-weight: 700">{!v.dataAsOfYearSecA}</span>
+                    </div>
+                </aura:if>
+            </div>
+        </div>
+    </aura:if>
+</aura:component>

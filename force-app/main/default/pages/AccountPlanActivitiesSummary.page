@@ -1,0 +1,460 @@
+<apex:page controller="AccountPlanActionPlanController" action="{!actSummary}" docType="html-5.0" showChat="false" showHeader="{! !isConsoleMode}" sidebar="false"
+    applyBodyTag="false" applyHtmlTag="true" standardStylesheets="true">
+    <head>
+<title>Action Plan - Activities Summary</title>
+<meta charset="utf-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="description" content="" />
+<meta name="keywords" content="" />
+<meta name="author" content="Keattisak Chinburarat" />
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+<!-- Static Resource -->
+
+<!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+<!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+<!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->
+<apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+<style>
+
+.bootstrap-sf1 {
+    padding: 5px;
+    background-color:white !important;
+}
+.bootstrap-sf1 .table > thead > tr > th {
+    vertical-align: bottom;
+    border-bottom: none;
+}
+#collapseFilter th{
+    background-color: #993301;
+}
+#collapseFilter .FilterContactName{
+    background-color: #fff;
+    color: red;
+    font-weight: bold;
+    font-size: 16px;
+    text-align: left; 
+}
+</style>
+
+
+    </head>
+  <body>   
+<!--     <c:AccountPlanHeader activetab="5" activesubtab="2"
+            CompanyID="a0XO0000008R3bk"
+            GroupID="a0WO0000003Hx6K"
+            />  -->
+       <c:AccountPlanHeader activetab="5" activesubtab="2" 
+       GroupID="{!GroupID}"
+        CompanyID="{!CompanyID}"
+        WalletID="{!WalletID}"
+         Percentage="{!Acctplancompletion.Account_Plan_Completion_Percentage__c }"
+            isMiniView="{!isMiniView}"
+            isHasProdStrategy="{!ishasProdStrategy}"
+            IsHasActionPlan="{!isHasActionPlan}" />     
+            
+     <div class="bootstrap-sf1" >
+            <div id="responseErrors"></div>
+            
+        <!--    <apex:form styleClass="form-horizontal"> -->
+                
+             <div class="card collapse in panel-collapse">                       
+                    <div class="card-detail" >
+                    
+                    <apex:variable var="percent" value="{!Acctplancompletion.Step_5_Percentage__c}" />   
+                        <div 
+                        class="alert {!
+                        if(percent ==null || percent <50,'alert-danger',
+                        if(percent<76,'alert-warning',
+                        if(percent<100,'alert-info','alert-success')))}" 
+                        style="float:right;font-size: 16px;margin-top: -5px;padding:5px;">
+                            COMPLETION:
+                            {!if( percent!=null,percent,0) }%
+                            </div>
+                    
+                                                <div class="col-sm-8 col-md-6 col-lg-6">
+                                        <div class="form-group">
+                                            <apex:outputpanel id="targetPanel">
+                                            <div style="padding-top: 10px;">
+                                                <table class="table">
+                                                    <tbody>
+
+                                                        <tr>
+                                                            <td class="forceBackground" style="border: none;text-align:left;" width="180px">Year
+                                     <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanCompanyProfile__c.Fields.Year__c.inlineHelpText}" />       
+                                                 
+                                    
+                                    </td>
+                                    <td style="border: none;">
+                                        <span class="form-control text-center calculate" style="width:400px;">
+                                            <apex:outputfield value="{!companyprofile.Year__c}" />
+                                                </span>
+                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="forceBackground" style="border: none;text-align:left;">Customer Name
+                                                 <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanCompanyProfile__c.Fields.AccountName__c.inlineHelpText}" />       
+                                                 
+                                                </td>
+                                                <td style="border: none;">
+                                                    <span class="form-control text-center calculate" style="width:400px;">
+                                                        <apex:outputfield value="{!companyprofile.AccountName__c}" />
+                                                    </span>
+                                                 </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                          </apex:outputpanel>
+                                        </div>
+                                    </div>
+                                    <br />
+                        
+                            
+                             <div>
+                               <div id="domainI" style="clear:both;">
+                                <table class="table" style="width:100%;" id="actionplantable">
+                                    <thead>
+                                       <tr>
+                                            
+                                            <th style="border:none;background-color:white;">
+                                                <div style="display:{!if(isHasPermission && (companyProfile.OwnerID == $User.id || isSystemAdmin)
+                                                    ,'block'
+                                                    ,if(isAccountTeamReadWrite,'block','none'))};">
+                                                    
+                                                <div class="row"> 
+                                                    <div class="col-sm-12 col-md-6  col-lg-6" style="width:100%;">                                            
+                                               <apex:outputpanel rendered="{! !companyprofile.isPendingForApproval__c }">
+                                              <button id="visitCall" class="btn btn-success">New Visit Plan / Report</button>
+                                              </apex:outputpanel>
+                                                   </div>                                        
+                                                </div>
+                                                   </div>
+                                            </th>
+                                            <th colspan="6" style="border:none;background-color:white; text-align: left;">
+                                                <div style="display:{!if(isHasPermission && (companyProfile.OwnerID == $User.id || isSystemAdmin)
+                                                    ,'block'
+                                                    ,if(isAccountTeamReadWrite,'block','none'))};">
+                                                <div class="row"> 
+                                                    <div class="col-sm-12 col-md-6  col-lg-6" style="width:100%;">                                            
+                                                 <apex:outputpanel rendered="{! !companyprofile.isPendingForApproval__c }">
+                                                     <button id="taskCall" class="btn btn-success">New Task</button>
+                                                 </apex:outputpanel>
+                                                    </div>                                        
+                                                </div>
+                                                 </div>
+                                            </th>
+                                            
+                                        
+
+                                            
+                                        </tr>
+                                                
+                                        <tr>
+                                            
+                                            <th >Status
+                                            <c:II_Helptext SobjectName="AcctPlanActionPlan__c" FieldApiName="Status__c" />
+                                            </th>
+                                            <th>Group
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Group__c" />
+                                            </th>
+                                            <th style="width: 25%;">Activity
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Activities__c" />
+                                            </th>
+                                            <th>Date
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Date__c" />
+                                            </th>
+                                            
+                                            <th>TMB Counterparties
+                                            <c:II_Helptext SobjectName="AcctPlanStakeholder__c" FieldApiName="User__c" />
+                                            </th>
+                                            <th style="width: 15%;">Visit / Task
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="TaskId__c" />
+                                            </th>
+                                            <th>Visit / Task Status
+                                            <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="Task/Visit Report Status after user has converted the selected activity" />       
+                                            </th>
+                                        </tr>
+                                        
+                                    </thead>
+                                    <tbody>  
+                               <apex:repeat value="{!CustomerCounterpartiesIDSet}" var="crcID">
+                                       <apex:variable var="CustomerCounterparties" value="{!IF(crcID.CustomerCounterparties__c == null,'None',crcID.CustomerCounterparties__c)}" />  
+                                       <tr class="info">
+                                           <td style="text-align:left;">
+                                           <span><b>
+                                                <apex:outputtext value="Customer Counterparty" rendered="{!CustomerCounterparties != 'None'}"/>
+                                                <apex:outputtext value="Customer Counterparty" rendered="{!CustomerCounterparties = 'None'}"/>
+                                            </b></span>
+                                                
+                                            <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="CustomerCounterparties__c" />
+                                            </td>
+                                            <td colspan="6" style="text-align:left;">
+                                                <b><apex:outputField value="{!crcID.CustomerCounterparties__c}" /></b>
+                                            </td>
+                                       </tr>
+                                       <apex:repeat value="{!ActivityMap[CustomerCounterparties]}" var="crc" >   
+                                            <tr>
+                                            <!--<td><apex:outputField value="{!crc.CustomerCounterparties__c}" /></td>-->
+                                            <td><apex:outputField value="{!crc.Status__c}" /></td>
+                                                <td style="text-align:left;"><apex:outputField value="{!crc.Group__c}" /></td>
+                                                <td style="text-align:left;">
+                                                    <apex:outputField value="{!crc.Activities__c}" />
+                                                    <apex:outputpanel rendered="{!crc.CheckOther__c=='Y'}">
+                                                        <span> : </span>
+                                                        <apex:outputField value="{!crc.Other__c}"/>
+                                                    </apex:outputpanel>    
+                                                  </td>
+                                                <td><apex:outputField value="{!crc.Date__c}" /></td>
+                                                
+                                                <td style="text-align:left;">
+                                                     <apex:repeat value="{!StakeHolderMap[crc.id]}" var="stakeholder" >
+                                                       <apex:outputfield value="{!stakeholder.User__r.Name}"/><br/>
+                                                        </apex:repeat>
+                                                    
+                                                    </td>
+                                                 <td><apex:outputField value="{!crc.Visit_Plan_Report__c}" rendered="{!IF(crc.Visit_Plan_Report__c != null,true,false)}" />
+                                                <apex:repeat value="{!TaskMap[crc.TaskId__c]}" var="t"  rendered="{!IF(crc.TaskId__c != null,true,false)}"> 
+                                                    <a href="{!Url}/{!t.Id}" >
+                                                     <apex:outputfield value="{!t.Subject}"/>
+                                                     </a>
+                                                        </apex:repeat> 
+                                                        </td>
+                                                
+                                                <td><apex:outputField value="{!crc.Visit_Plan_Report__r.Status__c }" rendered="{!IF(crc.Visit_Plan_Report__c != null,true,false)}"/>
+                                                 <apex:repeat value="{!TaskMap[crc.TaskId__c]}" var="t" rendered="{!IF(crc.TaskId__c != null,true,false)}" >
+                                                       <apex:outputfield value="{!t.Status}"/>
+                                                        </apex:repeat> 
+                                                        </td>
+                                                
+                                                
+                                            </tr>
+                                        </apex:repeat>
+                                       </apex:repeat>                
+                                    </tbody>
+                                    
+                                </table>
+                               </div>
+                               
+                               
+                                    
+                              
+                            </div>               
+                             
+                        </div>                             
+                 
+                      </div>                                                                             
+      <!--     </apex:form> -->
+   </div>
+                <!-- Start ActionPlanActivityFilter -->
+               <!-- <div class="bootstrap-sf1">    
+                 <header class="navbar navbar-default navbar-branded" role="banner">
+                    <div class="panel-heading">
+                        <div class="navbar-header">
+                            <a data-toggle="collapse" aria-expanded="true"
+                               href="#collapseFilter" class="navbar-brand navbar-foundation-logo">
+                               Group by Customer Counterparties 
+                            </a>
+                        </div>
+                    </div>
+                </header>
+                                    
+                <div class="card collapse in panel-collapse" id="collapseFilter">
+                     <apex:repeat value="{!actionactivityMap}" var="key" > 
+                         <table class="table table-striped table-hover" style="width:80%;margin:30px auto;" id="">
+                             <thead>
+                                 <tr>
+                                     <th  colspan="2" class="FilterContactName">{!key}</th>
+                                     <th style="border:none;background-color:white;"></th>
+                                     <th style="border:none;background-color:white;">
+                                        <div class="row">
+                                            <div class="col-sm-12 col-md-6  col-lg-6" style="width:100%;"></div>
+                                        </div>
+                                     </th>
+                                 </tr>
+                                 <tr>
+                                     <th  style="width:90px;" >Domain
+                                     </th>           
+                                     <th  style="width:90px;" >Status
+                                        <c:II_Helptext SobjectName="AcctPlanActionPlan__c" FieldApiName="Status__c" />
+                                     </th>
+                                     <th>Group
+                                        <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Group__c" />
+                                     </th>
+                                     <th style="width: 25%;">Activity
+                                        <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Activities__c" />
+                                     </th>
+                                     <th>Date
+                                         <c:II_Helptext SobjectName="AcctPlanActivity__c" FieldApiName="Date__c" />
+                                     </th>
+                                 </tr> 
+                             </thead>
+                             <tbody>
+                                <apex:repeat value="{!actionactivityMap[key]}" var="item">
+                                   <tr>
+                                    <td>
+                                        <div class="navFilter">
+                                        <a href="#domainI"><apex:outputtext value="Domain I" rendered="{!item.AccountPlanActionPlanID__r.AcctPlanWalletByDomain__r.WalletDomain__c==1}"/></a>   
+                                        <a href="#domainII"><apex:outputtext value="Domain II" rendered="{!item.AccountPlanActionPlanID__r.AcctPlanWalletByDomain__r.WalletDomain__c==2}"/></a>    
+                                        <a href="#domainIII"><apex:outputtext value="Domain III" rendered="{!item.AccountPlanActionPlanID__r.AcctPlanWalletByDomain__r.WalletDomain__c==3}"/></a>   
+                                        <a href="#domainIV"><apex:outputtext value="Domain IV" rendered="{!item.AccountPlanActionPlanID__r.AcctPlanWalletByDomain__r.WalletDomain__c==4}"/></a>    
+                                        </div>
+                                    </td>
+                                    <td><apex:outputField value="{!item.Status__c}" /></td>    
+                                    <td style="text-align:left;"><apex:outputField value="{!item.Group__c}" /></td>
+                                    <td style="text-align:left;"><apex:outputField value="{!item.Activities__c}" /></td>
+                                    <td><apex:outputField value="{!item.Date__c}" /></td>
+                                   </tr>
+                                </apex:repeat>        
+                            </tbody>
+                        </table>
+                    </apex:repeat>                        
+                </div>
+             </div>      -->                 
+             <!-- End ActionPlanActivityFilter -->                           
+         
+                      <div class="bootstrap-sf1">                                  
+          <!-- Modal -->
+                <div  class="modal fade modal-fullscreen force-fullscreen"  id="frmModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-bottom: 30px;margin-top: 45px;">
+                  <div class="modal-dialog" style="width:100%;height:95%;" >
+                    <div class="modal-content" style="width:100%;height:95%;" >
+                      <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                        <h4 class="modal-title" id="myModalLabel">Action Plan</h4>
+                      </div>
+                      <div class="modal-body">
+                          <iframe id="modalIframe" src="/user/dashboard" width="100%" height="350px" frameborder="0" allowtransparency="true"></iframe>  
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>                       
+                      </div>
+                    </div>
+                    <!-- /.modal-content -->
+                  </div>  <!-- /.modal-dialog -->
+                </div>
+              </div>        
+         
+         
+
+      <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+      <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+   <!--     <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+<apex:includeScript value="/support/console/22.0/integration.js"/>  -->
+          </body> 
+            <script>
+            
+             var $j = jQuery.noConflict();    
+             var comid='{!CompanyID}';       
+                // Ready Event  
+               $j(document).ready( function () {
+
+                //window.onunload = refreshParent;
+    
+                    clearIframe();    
+                    $j('[data-toggle="tooltip"]').tooltip(); 
+                    
+                    
+                      $j("#visitCall").on('click',function(event){
+                          clearIframe();
+                        event.preventDefault();
+                        if(comid != '' ||comid !=null ){
+                        $j('#modalIframe').attr("src",'/apex/ActivitiesVisitCreation?CompanyID={!CompanyID}'); 
+                        $j('#frmModel').modal({show:true});
+                         /*window.open('/apex/ActivitiesVisitCreation?CompanyID={!CompanyID}', '_blank','scrollbars=0,resizable=1,width=1300,height=500,left=50,top=150');*/
+                            }
+                        });
+                        
+                        
+                        $j("#taskCall").on('click',function(event){
+                        clearIframe();
+                        event.preventDefault();
+                        if(comid != '' ||comid !=null ){
+                        
+                        $j('#modalIframe').attr("src",'/apex/ActivitiesTaskCreation?CompanyID={!CompanyID}'); 
+                        $j('#frmModel').modal({show:true});
+                        /*window.open('/apex/ActivitiesTaskCreation?CompanyID={!CompanyID}', '_blank','scrollbars=0,resizable=1,width=1300,height=500,left=50,top=150');*/
+                            
+                        }
+                        });
+                        
+                        $j('#frmModel').on('show.bs.modal', function () {
+                        $j(this).find('.modal-body').css({                        
+                            // 'max-height':'800px'
+                        });
+                        });
+        
+                    $j('#frmModel').on('hidden.bs.modal', function (e) {
+                          // do something...
+                            clearIframe();
+                           location.reload();         
+                    });
+                    
+                    window.closeModal = function(){
+                        $j('#frmModel').modal('hide');
+                    };
+                    
+               $j('a[href^="#"]').on('click',function (e) { 
+                    e.preventDefault();
+            
+                    var target = this.hash;
+                    var target2 = $j(target);
+            
+                    $j('html, body').stop().animate({
+                        'scrollTop': target2.offset().top
+                    }, 900, 'swing', function () {
+                        window.location.hash = target;
+                    });
+                });
+                    
+                    
+             });   
+            
+                function visitCall(){
+                location.href='/apex/ActivitiesVisitCreation?CompanyID={!CompanyID}';
+                }
+                
+                function taskCall(){
+                location.href='/apex/ActivitiesTaskCreation?CompanyID={!CompanyID}';
+                }
+
+               //Sets the title of the current tab to "Case Transactions Detail"
+                window.onload = function setTitleConsole(){
+                    setTitle();
+                }
+                //Sets the title of the current tab to "Case Transactions Detail"
+                function setTitle() {
+                    sforce.console.setTabTitle('Decision Map & Action Plan');
+                }
+                
+                function clearIframe(){
+            $j("#modalIframe").attr('src','');
+                }   
+                
+                function refreshParent() {
+        window.opener.location.reload();
+    }
+            </script>
+</apex:page>

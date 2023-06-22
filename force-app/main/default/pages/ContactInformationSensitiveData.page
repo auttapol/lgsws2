@@ -1,0 +1,1312 @@
+<apex:page standardController="Contact" extensions="ContactDataPartitionExtension" tabStyle="Contact" docType="html-5.0"
+    standardstylesheets="true" showHeader="false" lightningStylesheets="true">
+    <!-- Begin Default Content REMOVE THIS -->
+
+    <head>
+        <apex:includescript value="/support/console/36.0/integration.js" />
+        <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+        <style type="text/css">
+            .sf1value {
+                /* font-family: 'ProximaNovaSoft-Regular', 'Helvetica Neue'; */
+                /* font-size: 15px; */
+                color: black;
+                margin: 0;
+                padding-bottom: 3px;
+                display: block;
+                min-width: 100px;
+                padding-left: 20px;
+            }
+
+            .sf1label {
+                /* font-family: 'ProximaNovaSoft-Regular', 'Helvetica Neue'; */
+                /* font-size: 13px; */
+                color: #696e71;
+                margin: 0;
+                padding-bottom: 3px;
+                display: block;
+                min-width: 100px;
+                padding-left: 20px;
+            }
+
+            textarea {
+                resize: none;
+            }
+
+            .hasMotif {
+                margin: 0;
+                margin-left: -10px;
+            }
+
+            .bPageBlock.brandSecondaryBrd.bDetailBlock.secondaryPalette {
+                margin-bottom: 0;
+            }
+
+            .bottom {}
+
+            @media (max-width: 1024px) {
+                .CheckMobile {
+                    display: none;
+                }
+
+                .bottom {
+                    padding-bottom: 30px;
+                }
+
+                .CheckTablet {
+                    width: 50%;
+                    float: left;
+                }
+
+                .CheckLine {
+                    border-bottom: 1px solid #e3deb8;
+                    border-color: #ececec;
+                    display: Flex;
+                }
+
+                .CheckPosition {
+                    padding-left: 30px;
+                    margin-left: 30px;
+                }
+
+                .Session {
+                    /* font-size: .625rem; */
+                    text-transform: uppercase;
+                    line-height: 1.875rem;
+                    font-weight: inherit;
+                    background-color: rgb(243, 242, 242);
+                    display: block;
+                }
+
+                .SessionMobile {
+                    display: none;
+
+                }
+
+                .More {
+                    padding-top: 5px;
+                    background-color: #ccc;
+                    text-align: center;
+                    height: 25px;
+                    position: fixed;
+                    bottom: 0;
+                }
+            }
+
+            @media (max-width: 670px) {
+
+                .CheckTablet {
+                    display: none;
+                }
+
+                .bottom {
+                    padding-bottom: 30px;
+                }
+
+                .CheckLine {
+                    display: none;
+                }
+
+                .CheckMobile {
+                    width: 100%;
+                    float: left;
+                    border-bottom: 1px solid #e3deb8;
+                    border-color: #ececec;
+                    display: block;
+                }
+
+                .SessionMobile {
+                    width: 100%;
+                    float: left;
+                    /* font-family: 'Salesforce Sans', Arial, sans-serif; */
+                    /* font-size: .625rem; */
+                    text-transform: uppercase;
+                    line-height: 1.875rem;
+                    font-weight: inherit;
+                    background-color: #ececec;
+                    display: block;
+
+                }
+
+                .Session {
+                    display: none;
+                }
+            }
+
+            /* .fontstyle {
+                font-size: 10.35px;
+                font-weight: bold;
+                font-family: Arial, Helvetica, sans-serif;
+            } */
+
+            .fontstyle {
+                /* font-size: 10.35px;
+                font-weight: bold;
+                font-family: Arial, Helvetica, sans-serif;*/
+            }
+
+            span {
+                color: #080707;
+            }
+
+            img {
+                color: #080707 !important;
+            }
+
+            h3 {
+                font-size: 14px !important;
+                color: #080707 !important;
+            }
+
+            body .bPageBlock .detailList .labelCol,
+            .slds-vf-scope .bPageBlock .detailList .labelCol {
+                text-align: left !important;
+            }
+
+
+            .More {
+                padding-top: 5px;
+                background-color: #ccc;
+                text-align: center;
+                position: fixed;
+                bottom: 0;
+                height: 25px;
+                width: 100% !important;
+            }
+        </style>
+    </head>
+
+    <apex:form >
+
+        <!-- <apex:actionFunction name="loadData" action="{!loadData}" status="loadStatus" /> -->
+        <apex:actionFunction name="loadData" action="{!loadData}" rerender="dataSection,dataMobile,preloadSectionMobile,displaySectionMobile,dataDestop,preloadSection,displaySection">
+            <apex:param assignTo="{!sectionName}" name="sectionName" value="Contacts" />
+        </apex:actionFunction>
+        <apex:outputPanel id="dataSection">
+
+            <apex:outputPanel id="dataMobile" rendered="{!isSF1}">
+
+                <apex:outputPanel id="preloadSectionMobile" rendered="{!isLoading}">
+                    <apex:pageBlock mode="loading">
+                        <apex:pageBlockSection columns="1">
+                            <apex:pageBlockSectionItem >
+                                Loading.............
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                    </apex:pageBlock>
+                </apex:outputPanel>
+
+                <apex:outputPanel id="displaySectionMobile" rendered="{!isLoadSuccess}">
+                    
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.IsTBankData__c.label}</p>
+                                <p class="sf1value">{!Contact.IsTBankData__c}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.IsActive__c.label}</p>
+                                <p class="sf1value">{!Contact.IsActive__c}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.ID_Type_PE__c.label}</p>
+                                <p class="sf1value">{!Contact.ID_Type_PE__c}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.ID_Number_PE__c.label}</p>
+                                <p class="sf1value">{!Contact.ID_Number_PE__c}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Date_of_Birth__c.label}</p>
+                                <p class="sf1value">{!dateOfBirth}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Position__c.label}</p>
+                                <p class="sf1value">{!Contact.Position__c}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Age__c.label}</p>
+                                <p class="sf1value">{!age}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Authorized_person_of_signature__c.label}</p>
+                                <p class="sf1value">
+                                    <apex:outputField value="{!Contact.Authorized_person_of_signature__c}" />
+                                </p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Photo__c.label}</p>
+                                <p class="sf1value">
+                                    <apex:outputField value="{!Contact.Photo__c}" />
+                                </p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Main_contact__c.label}</p>
+                                <p class="sf1value">
+                                    <apex:outputField value="{!Contact.Main_contact__c}" />
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="Session">Phone and Address</div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">Mobile No.</p>
+                                <p class="sf1value">{!Contact.MobilePhone}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">Address</p>
+                                <p class="sf1value">{!Contact.MailingStreet} {!Contact.MailingCity} {!Contact.MailingState} {!Contact.MailingCountry
+                                    } {!Contact.MailingPostalCode}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">Office No.</p>
+                                <p class="sf1value">{!Contact.Phone}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Facebook_ID__c.label}</p>
+                                <p class="sf1value">{!Contact.Facebook_ID__c}</p>
+                            </div>
+                        </div>
+
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Primary_Phone_Ext_PE__c.label}</p>
+                                <p class="sf1value">{!Contact.Primary_Phone_Ext_PE__c}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Line_ID__c.label}</p>
+                                <p class="sf1value">{!Contact.Line_ID__c}</p>
+                            </div>
+                        </div>
+
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">Fax</p>
+                                <p class="sf1value">{!Contact.Fax}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label"></p>
+                                <p class="sf1value"></p>
+                            </div>
+                        </div>
+
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Email.label}</p>
+                                <p class="sf1value">{!Contact.Email}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label"></p>
+                                <p class="sf1value"></p>
+                            </div>
+                        </div>
+
+                        <div class="Session">Support Information</div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Value_Style__c.label}</p>
+                                <p class="sf1value">{!Contact.Value_Style__c}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Difficult_to_deal__c.label}</p>
+                                <p class="sf1value">{!Contact.Difficult_to_deal__c}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Decision_Map__c.label}</p>
+                                <p class="sf1value">{!Contact.Decision_Map__c}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Product_Decision__c.label}</p>
+                                <p class="sf1value">{!Contact.Product_Decision__c}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Decision_Map2__c.label}</p>
+                                <p class="sf1value">{!Contact.Decision_Map2__c}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Product_Decision_2_2__c.label}</p>
+                                <p class="sf1value">{!Contact.Product_Decision_2_2__c}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Decision_Map3__c.label}</p>
+                                <p class="sf1value">{!Contact.Decision_Map3__c}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Product_Decision_3_2__c.label}</p>
+                                <p class="sf1value">{!Contact.Product_Decision_3_2__c}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet bottom">
+                                <p class="sf1label">Description</p>
+                                <p class="sf1value">
+                                    <apex:outputField value="{!Contact.Description2__c}" />
+                                </p>
+                            </div>
+                        </div>
+
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.ID_Type_PE__c.label}</p>
+                            <p class="sf1value">{!Contact.ID_Type_PE__c}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Date_of_Birth__c.label}</p>
+                            <p class="sf1value">{!dateOfBirth}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Age__c.label}</p>
+                            <p class="sf1value">{!age}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Photo__c.label}</p>
+                            <p class="sf1value">
+                                <apex:outputField value="{!Contact.Photo__c}" />
+                            </p>
+                        </div>
+
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.ID_Number_PE__c.label}</p>
+                            <p class="sf1value">{!Contact.ID_Number_PE__c}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Position__c.label}</p>
+                            <p class="sf1value">{!Contact.Position__c}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Authorized_person_of_signature__c.label}</p>
+                            <p class="sf1value">
+                                <apex:outputField value="{!Contact.Authorized_person_of_signature__c}" />
+                            </p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Main_contact__c.label}</p>
+                            <p class="sf1value">
+                                <apex:outputField value="{!Contact.Main_contact__c}" />
+                            </p>
+                        </div>
+
+
+                        <div class="SessionMobile">Phone and Address</div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">Mobile No.</p>
+                            <p class="sf1value">{!Contact.MobilePhone}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">Office No.</p>
+                            <p class="sf1value">{!Contact.Phone}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Primary_Phone_Ext_PE__c.label}</p>
+                            <p class="sf1value">{!Contact.Primary_Phone_Ext_PE__c}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">Fax</p>
+                            <p class="sf1value">{!Contact.Fax}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Email.label}</p>
+                            <p class="sf1value">{!Contact.Email}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Facebook_ID__c.label}</p>
+                            <p class="sf1value">{!Contact.Facebook_ID__c}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Line_ID__c.label}</p>
+                            <p class="sf1value">{!Contact.Line_ID__c}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">Address</p>
+                            <p class="sf1value">{!Contact.MailingStreet} {!Contact.MailingCity} {!Contact.MailingState} {!Contact.MailingCountry
+                                } {!Contact.MailingPostalCode}</p>
+                        </div>
+
+
+                        <div class="SessionMobile">Support Information</div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Value_Style__c.label}</p>
+                            <p class="sf1value">{!Contact.Value_Style__c}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Decision_Map__c.label}</p>
+                            <p class="sf1value">{!Contact.Decision_Map__c}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Decision_Map2__c.label}</p>
+                            <p class="sf1value">{!Contact.Decision_Map2__c}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Decision_Map3__c.label}</p>
+                            <p class="sf1value">{!Contact.Decision_Map3__c}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">Description</p>
+                            <p class="sf1value">
+                                <apex:outputField value="{!Contact.Description2__c}" />
+                            </p>
+                        </div>
+
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Difficult_to_deal__c.label}</p>
+                            <p class="sf1value">{!Contact.Difficult_to_deal__c}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Product_Decision__c.label}</p>
+                            <p class="sf1value">{!Contact.Product_Decision__c}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Product_Decision_2_2__c.label}</p>
+                            <p class="sf1value">{!Contact.Product_Decision_2_2__c}</p>
+                        </div>
+                        <div class="CheckMobile bottom">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Product_Decision_3_2__c.label}</p>
+                            <p class="sf1value">{!Contact.Product_Decision_3_2__c}</p>
+                        </div>
+
+                    </apex:outputPanel>
+
+                    <div class="CheckMobile More">
+                        <p class="sf1label">
+                            <span class="glyphicon glyphicon-search arrowDown" aria-hidden="true">v</span>
+                            More detail.</p>
+                    </div>
+
+                    <div class="CheckTablet More">
+                        <p class="sf1label">
+                            <span class="glyphicon glyphicon-search arrowDown" aria-hidden="true">v</span>
+                            More detail.</p>
+                    </div>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.ID_Type_PE__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.ID_Number_PE__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Date_of_Birth__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Position__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Age__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Authorized_person_of_signature__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Photo__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Main_contact__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                        </div>
+
+                        <div class="Session">Phone and Address</div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">Mobile No.</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">Address</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">Office No.</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Facebook_ID__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Primary_Phone_Ext_PE__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Line_ID__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">Fax</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label"></p>
+                                <p class="sf1value"></p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Email.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label"></p>
+                                <p class="sf1value"></p>
+                            </div>
+                        </div>
+
+                        <div class="Session">Support Information</div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Value_Style__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Difficult_to_deal__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Decision_Map__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Product_Decision__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Decision_Map2__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Product_Decision_2_2__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Decision_Map3__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                            <div class="CheckTablet CheckPosition">
+                                <p class="sf1label">{!$ObjectType.Contact.Fields.Product_Decision_3_2__c.label}</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                        </div>
+                        <div class="CheckLine">
+                            <div class="CheckTablet bottom">
+                                <p class="sf1label">Description</p>
+                                <p class="sf1value">{!hiddenText}</p>
+                            </div>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.ID_Type_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Date_of_Birth__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Age__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Photo__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.ID_Number_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Position__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Authorized_person_of_signature__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Main_contact__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+
+
+                        <div class="SessionMobile">Phone and Address</div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">Mobile No.</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">Office No.</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Primary_Phone_Ext_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">Fax</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Email.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Facebook_ID__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Line_ID__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">Address</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+
+                        <div class="SessionMobile">Support Information</div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Value_Style__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Decision_Map__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Decision_Map2__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Decision_Map3__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile ">
+                            <p class="sf1label">Description</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Difficult_to_deal__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Product_Decision__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Product_Decision_2_2__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                        <div class="CheckMobile bottom">
+                            <p class="sf1label">{!$ObjectType.Contact.Fields.Product_Decision_3_2__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+
+
+
+                    </apex:outputPanel>
+                </apex:outputPanel>
+
+            </apex:outputPanel>
+
+
+
+
+            <apex:outputPanel id="dataDestop" rendered="{!!isSF1}">
+
+                <apex:outputPanel id="preloadSection" rendered="{!isLoading}">
+                    <apex:pageBlock mode="loading">
+                        <apex:pageBlockSection columns="1">
+                            <apex:pageBlockSectionItem >
+                                Loading.............
+                            </apex:pageBlockSectionItem>
+                        </apex:pageBlockSection>
+                    </apex:pageBlock>
+                </apex:outputPanel>
+
+                <apex:outputPanel id="posloadSection" rendered="{!isLoadSuccess}">
+                    <apex:pageBlock mode="maindetail">
+                        <apex:outputPanel id="displaySection">
+                            <apex:pageblocksection rendered="{!IF((theme=='Theme4u'),true,false)}" columns="2">
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.IsTBankData__c.label}"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.IsTBankData__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.IsActive__c.label}"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.IsActive__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.IsActive__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.ID_Type_PE__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.ID_Type_PE__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.ID_Type_PE__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Authorized_person_of_signature__c.label}"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.Authorized_person_of_signature__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Authorized_person_of_signature__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.ID_Number_PE__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.ID_Number_PE__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.ID_Number_PE__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Main_contact__c.label}"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.Main_contact__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Main_contact__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Position__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Position__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Position__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.IsVerified__c.label}"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.IsVerified__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Date_of_Birth__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!dateOfBirth}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Date_of_Birth__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem >
+
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Age__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!age}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Age__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem >
+
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Photo__c.label}"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.Photo__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Photo__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                            </apex:pageblocksection>
+
+                            <apex:pageblocksection rendered="{!IF((theme=='Theme4t'),true,false)}" columns="2">
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.IsTBankData__c.label}"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.IsTBankData__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.IsActive__c.label}"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.IsActive__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.IsActive__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.ID_Type_PE__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.ID_Type_PE__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.ID_Type_PE__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.ID_Number_PE__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.ID_Number_PE__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.ID_Number_PE__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Position__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Position__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Position__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem >
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.IsVerified__c.label}"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.IsVerified__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Date_of_Birth__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!dateOfBirth}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Date_of_Birth__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Age__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!age}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Age__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Photo__c.label}"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.Photo__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Photo__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Authorized_person_of_signature__c.label}"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.Authorized_person_of_signature__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Authorized_person_of_signature__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Main_contact__c.label}"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.Main_contact__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Main_contact__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                            </apex:pageblocksection>
+
+                            <apex:pageblocksection rendered="{!IF((theme=='Theme4u'),true,false)}" title="Phone & Address" columns="2">
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Mobile No."></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.MobilePhone}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Mobile No."></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Address"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.MailingStreet} {!Contact.MailingCity} {!Contact.MailingState} {!Contact.MailingCountry } {!Contact.MailingPostalCode}"
+                                    />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Address"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Office No."></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Phone}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Office No."></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Facebook_ID__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Facebook_ID__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Facebook_ID__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Primary_Phone_Ext_PE__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Primary_Phone_Ext_PE__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Primary_Phone_Ext_PE__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Line_ID__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Line_ID__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Line_ID__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Fax"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Fax}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Fax"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel ></apex:outputLabel>
+                                    <apex:outputText />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel ></apex:outputLabel>
+                                    <apex:outputText />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Email.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Email}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Email.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                            </apex:pageblocksection>
+
+                            <apex:pageblocksection rendered="{!IF((theme=='Theme4t'),true,false)}" title="Phone & Address" columns="2">
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Mobile No."></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.MobilePhone}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Mobile No."></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Office No."></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Phone}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Office No."></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Primary_Phone_Ext_PE__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Primary_Phone_Ext_PE__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Primary_Phone_Ext_PE__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Fax"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Fax}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Fax"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Email.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Email}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Email.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Address"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.MailingStreet} {!Contact.MailingCity} {!Contact.MailingState} {!Contact.MailingCountry } {!Contact.MailingPostalCode}"
+                                    />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Address"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Facebook_ID__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Facebook_ID__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Facebook_ID__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Line_ID__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Line_ID__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Line_ID__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                            </apex:pageblocksection>
+
+                            <apex:pageblocksection title="Support Information" columns="2">
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Value_Style__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Value_Style__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Value_Style__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Difficult_to_deal__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Difficult_to_deal__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Difficult_to_deal__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Decision_Map__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Decision_Map__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Decision_Map__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Product_Decision__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Product_Decision__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Product_Decision__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Decision_Map2__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Decision_Map2__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Decision_Map2__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Product_Decision_2_2__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Product_Decision_2_2__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Product_Decision_2_2__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Decision_Map3__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Decision_Map3__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Decision_Map3__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Product_Decision_3_2__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!Contact.Product_Decision_3_2__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="{!$ObjectType.Contact.Fields.Product_Decision_3_2__c.label}"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Description"></apex:outputLabel>
+                                    <apex:outputField value="{!Contact.Description2__c}" />
+                                </apex:pageBlockSectionItem>
+
+                                <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                                    <apex:outputLabel styleClass="fontstyle" value="Description"></apex:outputLabel>
+                                    <apex:outputText value="{!hiddenText}" />
+                                </apex:pageBlockSectionItem>
+                            </apex:pageblocksection>
+
+
+                        </apex:outputPanel>
+                        <div class="CheckMobile More" style="text-align:center;{!IF((theme=='Theme4t'), 'display:block', 'display:none')}">
+                            <p class="sf1label" style="margin : auto;position:relative;right:10px;top:-5px;">
+                                <span class="glyphicon glyphicon-search arrowDown" aria-hidden="true">v</span>
+                                More detail.</p>
+                        </div>
+                    </apex:pageBlock>
+                </apex:outputPanel>
+
+            </apex:outputPanel>
+
+        </apex:outputPanel>
+
+        <!-- End Default Content REMOVE THIS -->
+    </apex:form>
+    <script>
+        $(document).ready(function () {
+            loadData();
+
+            if (jQuery(document).height() <= jQuery(window).height()) {
+                jQuery('.More').fadeOut("slow");
+            }
+
+            window.addEventListener('touchmove', function () {
+                if (jQuery(document).height() <= (jQuery(window).height() + jQuery(window).scrollTop())) {
+                    jQuery('.More').fadeOut("slow");
+                } else {
+                    jQuery(".More").fadeIn("slow");
+                }
+            });
+
+            jQuery(window).scroll(function () {
+                if (jQuery(document).height() <= (jQuery(window).height() + jQuery(window).scrollTop() +
+                    20)) {
+                    jQuery('.More').fadeOut("slow");
+                } else {
+                    jQuery(".More").fadeIn("slow");
+                }
+            });
+
+        });
+    </script>
+
+</apex:page>

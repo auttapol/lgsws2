@@ -1,0 +1,234 @@
+<apex:page standardController="Campaign" extensions="RTL_CampaignChangeStatusConfirmCtrl" tabStyle="Campaign" standardStylesheets="true" lightningStylesheets="true" showHeader="false">
+<html xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <meta http-equiv="x-ua-compatible" content="ie=edge" />
+        <title>{!messageSubtitleShowPage}</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+        <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />   
+        <apex:includeScript value="/support/console/48.0/integration.js"/>
+
+        <!-- Import the Design System style sheet -->
+        <apex:slds />
+        <style type="text/css">
+           .slds-scope table{
+            width: auto;
+          }
+        </style>
+
+    </head>
+
+    <body>
+
+    <!-- REQUIRED SLDS WRAPPER -->
+    <div class="slds-scope">
+   
+
+        <!-- MASTHEAD -->
+        <!-- / MASTHEAD -->
+
+        <!-- PAGE HEADER -->
+        <div class="slds-page-header">
+
+          <!-- LAYOUT GRID -->
+          <div class="slds-grid">
+
+            <!-- GRID COL -->
+            <div class="slds-col slds-has-flexi-truncate">
+                <!-- HEADING AREA -->
+                <!-- MEDIA OBJECT = FIGURE + BODY -->
+                <div class="slds-media slds-no-space slds-grow">
+                  <div class="slds-media__figure">
+                    <svg aria-hidden="true" class="slds-icon slds-icon-standard-campaign">
+                      <use xlink:href="{!URLFOR($Asset.SLDS, '/assets/icons/standard-sprite/svg/symbols.svg#campaign')}"></use>
+                    </svg>
+                  </div>
+                  <div class="slds-media__body">
+                    <p class="slds-text-title--caps slds-line-height--reset">{!$ObjectType.Campaign.Name}</p>
+                    <h1 class="slds-page-header__title slds-m-right--small slds-align-middle slds-truncate">
+                        {!messageSubtitleShowPage}
+                    </h1>
+                  </div>
+                </div>
+                <!-- / MEDIA OBJECT -->
+                <!-- /HEADING AREA -->
+            </div>
+
+          </div>
+          <!-- / LAYOUT GRID -->
+        </div>
+        <!-- / PAGE HEADER -->
+
+
+        <!-- PRIMARY CONTENT WRAPPER -->
+        <apex:pageMessages />
+        <div>
+            <apex:form >
+             <apex:actionFunction name="redirect" action="{!cancel}"  status="loadStatus" /> 
+                <apex:pageBlock mode="edit" rendered="{!if(displayPopup,false,true)}">
+                <div class="slds-grid">
+                  <div class="slds-col" align="center">
+                    <br/>
+                    <div class="slds-form-element">
+                        {!messageShowPage}
+                    </div>
+                    <div class="slds-form-element" align="left" style="width: 60%;">
+                      <label class="slds-form-element__label" for="input-unique-id">{!$Label.RTL_Campaign_Status_remark}</label>
+                      <div class="slds-form-element__control">
+                        <apex:inputField value="{!Campaign.RTL_Remark__c}" required="true" styleClass="slds-input"/>
+                      </div>
+                      <br/> 
+                    </div>
+                    <div class="slds-form-element">   
+                        <apex:commandButton value="{!$Label.RTL_Campaign_Status_BtnConfirm}" action="{!save}" styleClass="slds-button slds-button_brand"/>
+                        <apex:commandButton value="{!$Label.RTL_Campaign_Status_BtnCancel}" styleClass="slds-button slds-button--neutral" onclick="CloseCurrentTab(); return false;" />
+                    </div>
+                    <br/>
+                  </div>
+                </div>
+
+
+                </apex:pageBlock>
+
+                <apex:pageBlock mode="edit" rendered="{!displayPopup}" >
+                    <div class="slds-grid">
+                      <div class="slds-col" align="center">
+                        <br/>
+                        <div class="slds-form-element" style="padding-bottom: 10px;">
+                            <apex:outputText rendered="{!if(displayCannotHold,false,true)}">
+                                {!successShowPage}
+                            </apex:outputText>
+                            <apex:outputText rendered="{!displayCannotHold}">
+                               {!$Label.RTL_Campaign_Status_ERR007}
+                            </apex:outputText>
+                        </div>
+                        <div class="slds-form-element">   
+                            <apex:commandButton value="{!$Label.RTL_Campaign_Status_BtnReturn}" styleClass="slds-button slds-button_brand" onclick="ReturnToMainTab(); return false;"/>
+                        </div>
+                        <br/>
+                      </div>
+                    </div>
+                </apex:pageBlock>
+            </apex:form>
+        </div>
+        <!-- / PRIMARY CONTENT WRAPPER -->
+
+        <!-- FOOTER -->
+        <!-- / FOOTER -->
+
+    </div>
+    <!-- / REQUIRED SLDS WRAPPER -->    
+
+<!-- JAVASCRIPT -->
+
+<script type="text/javascript">
+        var $j = jQuery.noConflict();
+        var inconsole = sforce.console.isInConsole();
+        var _maintab;
+        var _subtab;
+
+
+    //Sets the title of the current tab 
+    function setTitle() {
+        sforce.console.setTabTitle('{!Campaign.Name}');
+    }  
+        
+
+    $j(document).ready(function(){ 
+
+        if(inconsole ){
+            _maintab = sforce.console.getEnclosingPrimaryTabId(mainTab);
+              sforce.console.getFocusedSubtabId(function(retsult){
+                if(retsult!=null){
+                    sforce.console.setTabIcon("{!URLFOR($Resource.RTL_Campaign_Logo)}", retsult.id);
+                }
+              });
+            
+            
+            
+            setTitle();
+        }
+        
+    });
+
+    function CloseCurrentTab() {
+            //First find the ID of the current tab to close it
+
+            if (sforce.console.isInConsole()) {
+              sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                "componentDef": "c:workspaceAPIforVF",
+                "attributes": {
+                  "action": 'close',
+                }
+              })), true);
+              
+            }else{
+              redirect();
+            }
+    }
+
+    function ReturnToMainTab() {
+            //First find the ID of the current tab to close it
+
+            if (inconsole) {
+                // refreshPrimaryTabById();
+                // sforce.console.getEnclosingTabId(closeSubtab);
+                sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+                  "componentDef": "c:workspaceAPIforVF",
+                  "attributes": {
+                    "action": 'closeAndRefresh',
+                    "recordId": '{!Campaign.Id}',
+                    "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                      var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                      return v.toString(16);
+                    }),
+                  }
+                })), true);
+                
+            }else{
+              redirect();
+            }
+    }
+
+
+    function refreshPrimaryTabById() {
+            if (sforce.console.isInConsole()) { 
+                sforce.console.refreshPrimaryTabById(_maintab,true,closeSubtab);
+            }                  
+    }
+
+
+        
+    var closeSubtab = function closeSubtab(result) {
+            //Now that we have the tab ID, we can close it
+            var tabId = result.id;
+            sforce.console.closeTab(tabId);
+
+    };
+
+
+
+    var subtab = function subtab(result) {
+                //Now that we have the primary tab ID, we can close it
+                _subtab = result.id;                               
+            };
+
+
+    var mainTab = function mainTab(result) {
+                //Now that we have the primary tab ID, we can close it
+                _maintab = result.id;                               
+    };
+    
+
+
+
+    
+
+</script>
+<!-- / JAVASCRIPT -->
+
+</body>
+
+</html>
+</apex:page>

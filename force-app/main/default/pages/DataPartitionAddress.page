@@ -1,0 +1,823 @@
+<apex:page standardController="Account" showHeader="false" sidebar="false" extensions="AccountDataPartitionExtension" standardstylesheets="true"
+    title="Address" lightningStylesheets="true">
+    <!-- Begin Default Content REMOVE THIS -->
+
+    <head>
+        <apex:includescript value="/support/console/36.0/integration.js" />
+        <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+        <style type="text/css">
+
+            .sf1label {
+                font-family: 'ProximaNovaSoft-Regular', 'Helvetica Neue';
+                font-size: 12px;
+                color: #3E3E3C;
+                margin: 0;
+                padding: 3px 0;
+                display: block;
+                min-width: 100px;
+            }
+
+            .sf1value {
+                font-family: 'ProximaNovaSoft-Regular', 'Helvetica Neue';
+                font-size: 14px;
+                color: #080807;
+                margin: 0;
+                padding-bottom: 2px;
+                display: block;
+                min-width: 100px;
+                min-height: 25px;
+                border-bottom: 1px solid #ccc;
+            }
+
+            textarea {
+                resize: none;
+            }
+
+            .hasMotif {
+                margin: 0;
+                margin-left: -10px;
+            }
+
+            .bPageBlock.brandSecondaryBrd.bDetailBlock.secondaryPalette {
+                margin-bottom: 0;
+            }
+
+            body {
+                /*background: #eee;*/
+                overflow-x: scroll !important;
+            }
+
+            .bootstrap-sf1 {
+                padding: 20px 20px 40px 20px;
+                background-color: white;
+                max-width: 70%;
+                <!-- 670px -->border: 1px solid #ccc;
+                margin: 10px auto;
+                background: #fff;
+            }
+
+            .bootstrap-sf1 tbody td {
+                text-align: left;
+                line-height: normal;
+                font-size: 13px;
+                height: auto !important;
+            }
+
+            .bootstrap-sf1 tbody tr {}
+
+            .asOfDate {
+                font-family: "ProximaNovaSoft-Regular", Calibri, "Gill Sans", "Gill Sans MT", Candara, Segoe, "Segoe UI", Arial, sans-serif;
+                font-size: 13px;
+            }
+
+            .closebtn {
+                text-align: center;
+                margin-bottom: 20px !important;
+            }
+
+            .reportClick {
+                top: 0;
+                width: 285px;
+                height: 235px;
+                position: absolute;
+                z-index: 102;
+                background-image: url('{!$Resource.transparent}');
+            }
+
+            .activityPipelineSection {
+                height: 600px;
+            }
+
+            .activitySection {
+                font-size: 80%;
+                width: 49%;
+            }
+
+            .revenueSection {
+                font-size: 80%;
+                width: 65%;
+            }
+
+            .col {
+                width: 50%;
+                float: left;
+            }
+
+            .CheckMobile {
+                display: block;
+                width: 98%;
+                float: left;
+                padding-left: 10px;
+            }
+
+            .SessionMobile {
+                font-size: 16px;
+                /* font-size: 14px; */
+                color: #080807;
+                width: 100%;
+                float: left;
+                padding-left: 10px;
+                margin-top: 0;
+                margin-bottom: 5px;
+                font-family: 'Salesforce Sans', Arial, sans-serif;
+                text-transform: uppercase;
+                line-height: 1.875rem;
+                font-weight: inherit;
+                background-color: #ececec;
+                display: block;
+            }
+
+            @media (max-width: 670px) {
+                body {
+                    background: #fff;
+                    overflow-x: scroll !important;
+                }
+                .bootstrap-sf1 {
+                    margin: 0px auto;
+                    border: none;
+                }
+                .activitySection {
+                    clear: both;
+                    width: 100%;
+                }
+                .revenueSection {
+                    width: 100%;
+                }
+                .col {
+                    width: 100%;
+                }
+                .CheckMobile {
+                    width: 100%;
+                    float: left;
+                    padding-left: 10px;
+                    border-bottom: 1px solid #e3deb8;
+                    border-color: #ececec;
+                    display: block;
+                }
+            }
+        </style>
+    </head>
+
+    <apex:form >
+        <div class="bootstrap-sf1" id="main-wrapper" style='display:none;'>
+            <div class="closebtn" id="closebutton" style="display: none">
+                <apex:commandbutton onclick="closetab();return false;" value="Close" styleClass="btn btn-default" />
+                <apex:actionFunction name="customCancel" action="{!customCancel}"  />
+            </div>
+            <apex:outputpanel id="statusMessage">
+                <apex:pagemessages ></apex:pagemessages>
+            </apex:outputpanel>
+
+            <!-- <apex:actionFunction name="loadData" action="{!loadData}" status="loadStatus" /> -->
+            <apex:actionFunction name="loadData" action="{!loadData}" rerender="displayContact">
+
+                <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Contact Information" />
+
+            </apex:actionFunction>
+
+            <apex:outputPanel id="displayContact">
+                <apex:pageBlock mode="maindetail">
+                    <apex:pageBlockSection columns="2" title="Contact Information" id="theSection">
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Mobile_Number_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Mobile_Number_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Mobile_Number_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Office_Phone_Number__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.RTL_Office_Phone_Number__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Office_Phone_Number__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Fax.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Fax}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Fax.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Primary_Phone_Ext_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Primary_Phone_Ext_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Primary_Phone_Ext_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Email_Address_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Email_Address_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Email_Address_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem >
+                            &nbsp;
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem >
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </apex:outputPanel>
+
+            <apex:actionFunction name="loadDataAdditional" action="{!loadData}" rerender="displayAddress">
+
+                <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Address Information" />
+
+            </apex:actionFunction>
+
+            <apex:outputPanel id="displayAddress">
+                <apex:pageBlock mode="maindetail">
+
+                    <apex:pageBlockSection columns="2" title="Address Information">
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Primary_Address_Line_1_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Primary_Address_Line_1_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Primary_Address_Line_1_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Office_Address_Line_1_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Office_Address_Line_1_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Office_Address_Line_1_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Primary_Address_Line_2_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Primary_Address_Line_2_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Primary_Address_Line_2_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Office_Address_Line_2_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Office_Address_Line_2_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Office_Address_Line_2_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Primary_Address_Line_3_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Primary_Address_Line_3_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Primary_Address_Line_3_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Office_Address_Line_3_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Office_Address_Line_3_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Office_Address_Line_3_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Province_Primary_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Province_Primary_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Province_Primary_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Province_Office_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Province_Office_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Province_Office_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Zip_Code_Primary_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Zip_Code_Primary_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Zip_Code_Primary_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Zip_Code_Office_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Zip_Code_Office_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Zip_Code_Office_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <!--////////////////////////////////////-->
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Registered_Address_Line_1_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Registered_Address_Line_1_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Registered_Address_Line_1_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem >
+                            &nbsp;
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Registered_Address_Line_2_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Registered_Address_Line_2_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Registered_Address_Line_2_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem >
+                            &nbsp;
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Registered_Address_Line_3_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Registered_Address_Line_3_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Registered_Address_Line_3_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem >
+                            &nbsp;
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Province_Registered_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Province_Registered_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Province_Registered_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem >
+                            &nbsp;
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Zip_Code_Registered_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!Account.Zip_Code_Registered_PE__c}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem rendered="{!!isVisible}">
+                            <apex:outputLabel value="{!$ObjectType.Account.Fields.Zip_Code_Registered_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText value="{!hiddenText}" />
+                        </apex:pageBlockSectionItem>
+
+                        <apex:pageBlockSectionItem >
+                            &nbsp;
+                        </apex:pageBlockSectionItem>
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </apex:outputPanel>
+
+        </div>
+        <!-- End Default Content REMOVE THIS -->
+    </apex:form>
+
+    <!-- Mobile -->
+
+    <apex:form >
+        <div class="" id="mobile-wrapper" style='display:none;background:#fff;padding:5px;'>
+            <div class="closebtn" id="closebutton" style="display: none">
+                <apex:commandbutton onclick="closetab();return false;" value="Close" styleClass="btn btn-default" />
+                <apex:actionFunction name="customCancel" action="{!customCancel}"  />
+            </div>
+            <apex:outputpanel id="statusMessage">
+                <apex:pagemessages ></apex:pagemessages>
+            </apex:outputpanel>
+
+            <!-- <apex:actionFunction name="loadData" action="{!loadData}" status="loadStatus" /> -->
+            <apex:actionFunction name="loadDataMobile" action="{!loadData}" rerender="displayMobile">
+
+                <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Contact Information" />
+
+            </apex:actionFunction>
+
+            <apex:outputPanel id="displayMobile">
+                <div class="SessionMobile">Address and Contact Infomartion</div>
+
+                <div class="col">
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Mobile_Number_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Mobile_Number_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Mobile_Number_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Fax.label}</p>
+                            <p class="sf1value">{!Account.Fax}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Fax.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Email_Address_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Email_Address_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Email_Address_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}"</p>
+                        </div>
+                    </apex:outputPanel>
+
+                </div>
+
+                <div class="col">
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.RTL_Office_Phone_Number__c.label}</p>
+                            <p class="sf1value">{!Account.RTL_Office_Phone_Number__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.RTL_Office_Phone_Number__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Primary_Phone_Ext_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Primary_Phone_Ext_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Primary_Phone_Ext_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel >
+                    </apex:outputPanel>
+                </div>
+
+            </apex:outputPanel>
+
+            <apex:actionFunction name="loadDataAdditionalMobile" action="{!loadData}" rerender="displayAdditionalMobile">
+
+                <apex:param name="sectionName" assignTo="{!sectionName}" value="ComCust:Address Information" />
+
+            </apex:actionFunction>
+            <apex:outputPanel id="displayAdditionalMobile">
+                <div class="SessionMobile" >Additional Address</div>
+
+                <div class="col">
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Primary_Address_Line_1_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Primary_Address_Line_1_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Primary_Address_Line_1_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Primary_Address_Line_2_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Primary_Address_Line_2_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Primary_Address_Line_2_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Primary_Address_Line_3_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Primary_Address_Line_3_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Primary_Address_Line_3_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Province_Primary_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Province_Primary_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Province_Primary_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Zip_Code_Primary_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Zip_Code_Primary_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Zip_Code_Primary_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <!-- //////////////////////////////////////////////////////////////////// -->
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Registered_Address_Line_1_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Registered_Address_Line_1_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Registered_Address_Line_1_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Registered_Address_Line_2_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Registered_Address_Line_2_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Registered_Address_Line_2_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Registered_Address_Line_3_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Registered_Address_Line_3_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Registered_Address_Line_3_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Province_Registered_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Province_Registered_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Province_Registered_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Zip_Code_Registered_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Zip_Code_Registered_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Zip_Code_Registered_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+                </div>
+                <!-- ///////////////////////////////////////////////////////////////////// -->
+                <div class="col">
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Office_Address_Line_1_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Office_Address_Line_1_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Office_Address_Line_1_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Office_Address_Line_2_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Office_Address_Line_2_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Office_Address_Line_2_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Office_Address_Line_3_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Office_Address_Line_3_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Office_Address_Line_3_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Province_Office_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Province_Office_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Province_Office_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Zip_Code_Office_PE__c.label}</p>
+                            <p class="sf1value">{!Account.Zip_Code_Office_PE__c}</p>
+                        </div>
+                    </apex:outputPanel>
+
+                    <apex:outputPanel rendered="{!!isVisible}">
+                        <div class="CheckMobile">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.Zip_Code_Office_PE__c.label}</p>
+                            <p class="sf1value">{!hiddenText}</p>
+                        </div>
+                    </apex:outputPanel>
+                </div>
+            </apex:outputPanel>
+
+        </div>
+        <!-- End Default Content REMOVE THIS -->
+    </apex:form>
+
+    <script>
+        //var $j = jQuery.noConflict(); 
+        function checkIsSalesforceOne() {
+            var isLightningMode = {!CONTAINS($CurrentPage.URL, "lightning.force.com")};
+            var theme = '{!$User.UIThemeDisplayed}';
+            if (theme == 'Theme4u' && isLightningMode) {
+                $("#main-wrapper").css('display', 'block');
+                loadData();
+                loadDataAdditional();
+            }else if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+                $("#mobile-wrapper").css('display', 'block');
+                loadDataMobile();
+                loadDataAdditionalMobile();
+            } else {
+                $("#main-wrapper").css('display', 'block');
+                loadData();
+                loadDataAdditional();
+            }
+        }
+
+        $(document).ready(function () {
+            $('#closebutton').show();
+            checkIsSalesforceOne();
+
+        });
+
+        function closetab() {
+            customCancel();
+            // if ((typeof sforce.one != 'undefined') && (sforce.one != null)) {
+            //     NavigateTo('{!Account.id}', 'Account');
+            // } else if (sforce.console.isInConsole()) {
+            //     sforce.console.getEnclosingTabId(closeSubtab);
+            // } else {
+            //     window.close();
+            // }
+        }
+
+        var closeSubtab = function closeSubtab(result) {
+            //Now that we have the tab ID, we can close it
+            var tabId = result.id;
+            sforce.console.closeTab(tabId);
+        };
+ /*   function redirectExternalURL(url,pageName){
+         if(sforce.console.isInConsole()){
+             // In Sales Console
+             //OpenTabPage(url,pageName);
+             //the external URL must be whitelisted domain in "retail sales console"  
+             //use null (_primaryTabId) to open a new primary tab
+             //sforce.console.openPrimaryTab(null , url, true, pageName,openSuccess);
+             window.open(url,'_blank');
+         }else if((typeof sforce != 'undefined') && sforce && (!!sforce.one)){
+             //In Salesforce1
+             sforce.one.navigateToURL(url);
+         }else{
+             //Desktop Version
+             //window.location.href = url;
+             console.log('url' + url);
+             window.open(url,'_blank');
+         }
+     }  */
+    </script>
+
+</apex:page>

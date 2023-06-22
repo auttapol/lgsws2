@@ -1,0 +1,443 @@
+<!-- <apex:page controller="CustomerProductHoldingsAndNBOCtrl" showchat="false" sidebar="false" showheader="false" action="{!getLastOffer}"> -->
+<apex:page controller="CustomerProductHoldingsAndNBOCtrl" showchat="false" sidebar="false" showheader="false">
+    <apex:slds />
+    
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:includescript value="/support/console/47.0/integration.js" />
+    <apex:actionstatus onstart="startLoading('Loading ...');" id="status" onstop="endLoading();" />
+    <apex:actionstatus onstart="startLoadingInline('Loading ...');" id="statusInline" onstop="endLoadingInline();" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    <style>
+        .text-bold {
+            font-weight: bold;
+        }
+
+        .slds-scope .slds-table thead th {
+            background: rgb(216, 237, 255);
+
+        }
+
+        .slds-scope .slds-table_resizable-cols thead th {
+            padding: 0.5rem;
+        }
+        .slds-scope .slds-notify_alert,
+        .slds-scope .slds-notify--alert {
+            justify-content: left;
+        }
+    </style>
+    <body style="background-color: #FFF">
+    <!-- start spinner  -->
+    <div id="spinner" class="slds-spinner_container">
+        <div role="status" class="slds-spinner slds-spinner_brand slds-spinner_medium">
+            <span class="slds-assistive-text">Loading</span>
+            <div class="slds-spinner__dot-a"></div>
+            <div class="slds-spinner__dot-b"></div>
+        </div>
+    </div>
+
+    
+    <!-- end spinner -->
+    <!-- start page header -->
+    <!-- <div class="slds-page-header">
+        <div class="slds-media">
+            <div class="slds-media__figure">
+                <span class="slds-icon_container slds-icon-standard-account" title="Description of icon when needed">
+                    <svg class="slds-icon slds-page-header__icon" aria-hidden="true">
+
+                        <use xmlns:xlink="http://www.w3.org/1999/xlink" xlink:href="/apexpages/slds/latest/assets/icons/standard-sprite/svg/symbols.svg#account"
+                        />
+                    </svg>
+
+                </span>
+            </div>
+            <div class="slds-media__body">
+                <p class="slds-text-body_small slds-line-height_reset">{!$ObjectType.Account.label}</p>
+                <h1 class="slds-page-header__title slds-truncate slds-align-middle" title="">{!acct.Name}</h1>
+            </div>
+        </div>
+    </div> -->
+    <div class="slds-page-header" style="height:45px;padding:0.4rem;padding-left:15px;    box-shadow: rgba(0, 0, 0, 0.1) 0px 0px 0px 0px;">
+        <!-- LAYOUT GRID -->
+        <div class="slds-grid">
+            <div class="slds-col slds-has-flexi-truncate">
+                <div class="slds-media slds-no-space slds-grow">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-account" style="width:32px;height:32px;" >
+                            <span aria-hidden="true" class="slds-icon slds-icon_medium">
+                                <img src="/apexpages/slds/latest/assets/icons/standard/account.svg"
+                                     style="width:100%;"
+                                     class="pageTitleIcon" title="{!$ObjectType.Account.label}" />
+                            </span>
+                        </span>                                    
+                    </div>
+                    <div class="slds-media__body">
+                        <nav>
+                            <ol class="slds-breadcrumb slds-line-height_reset">
+                                <li class="slds-breadcrumb__item">
+                                    <span>{!$ObjectType.Account.label}</span>
+                                </li>
+                            </ol>
+                        </nav> 
+                        <h1 class="slds-page-header__title slds-m-right_small slds-align-middle slds-truncate" title="Customer">
+                            <apex:outputPanel >{!acct.Name}</apex:outputPanel>
+                        </h1>
+                    </div>                               
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- end page header -->
+    <!-- start alert box -->
+    
+    <div class="slds-scope slds-p-left_medium slds-p-right_medium">
+        <apex:outputPanel id="alertbox" style="display:{!IF(pageMessage == null,'none','')}">
+            <div class="bootstrap-sf1">
+                <div class="alert alert-dismissible alert-danger" style="margin-bottom: 0px;">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <h4>Warning!</h4>
+                    <p>                     
+                        <apex:outputText value="{!pageMessage}" escape="false" />
+                    </p>
+                </div>
+            </div>
+        </apex:outputPanel>
+    </div>
+    
+    <!-- end alert box -->
+
+    <div class="slds-p-around_medium">
+        <article class="slds-card ">
+            <div class="slds-card__header slds-grid">
+                <header class="slds-media slds-media_center slds-has-flexi-truncate">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-standard-apps" style="width:26px;height:26px;" >
+                            <span aria-hidden="true" class="slds-icon slds-icon_small">
+                                <img src="/apexpages/slds/latest/assets/icons/standard/product_item.svg"
+                                     style="width:100%;"
+                                     class="pageTitleIcon" />
+                            </span>
+                        </span>                                    
+                    </div>
+                    <div class="slds-media__body">
+                        <h2 class="slds-card__header-title">
+                            <span class="slds-text-heading_small slds-card__header-link slds-truncate">{!$Label.Product_Holding_and_NBO}</span>
+                        </h2>
+                    </div>
+                </header>
+            </div>
+            <div class="slds-card__body slds-scrollable--x">
+			<apex:form >
+                <table class="slds-table slds-table_bordered slds-table_resizable-cols  slds-table_col-bordered slds-table_striped "
+                    role="grid">
+                    <thead class="blue-bg">
+                        <tr>
+                            <th class="slds-text-title_caps slds-text-align_center " rowspan="2">
+                                <span class="slds-truncate" title="Product Group">{!$Label.Product_Group}</span>
+                            </th>
+						    <th class="slds-text-title_caps slds-text-align_center" rowspan="2">
+                                <span class="slds-truncate" title="Holding">{!$Label.Holding}</span>
+                            </th>
+							<th class="slds-text-title_caps slds-text-align_center" rowspan="2">
+                                <span class="slds-truncate" title="Current Offer">{!$Label.Current_Offer}</span>
+                            </th>
+                            <th class="slds-text-title_caps slds-text-align_center" colspan="4">
+                                <span class="slds-truncate" title="Last Offer">{!$Label.Last_Offer}</span>
+                            </th>
+                        </tr>
+                        <tr>
+                            <th class="slds-text-title_caps slds-text-align_center slds-border_left">
+                                <span class="slds-truncate" title="Product">{!$Label.Product}</span>
+                            </th>
+                            <th class="slds-text-title_caps slds-text-align_center">
+                                <span class="slds-truncate" title="Result">{!$Label.Stage}</span>
+                            </th>
+                            <th class="slds-text-title_caps slds-text-align_center">
+                                <span class="slds-truncate" title="Reason">{!$Label.Reason}</span>
+                            </th>
+                            <th class="slds-text-title_caps slds-text-align_center">
+                                <span class="slds-truncate" title="Date">{!$Label.Last_Updated_Date}</span>
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    <apex:repeat value="{!productGroupLabelMappingList}" var="data">
+                        <tr class="slds-hint-parent">
+                            <td role="gridcell" style="width:15%">
+                                <div class="slds-truncate {!IF(data.Is_Main_Value__c == true,'text-bold','slds-p-left_large')}">{!data.Label__c}</div>
+                            </td>
+                            <!-- Start Current Offer Column  -->
+                            <td role="gridcell" style="width:7%">
+                                <apex:outputPanel styleClass="slds-truncate slds-text-align_center" id="column1">
+                                <!-- Start Product Holding Detail -->
+                                <apex:outputPanel layout="block" rendered="{!muleInfo!=''&&muleInfo.status!='ERROR'&& NOT(ISBLANK(currentOfferMap)) && NOT(ISBLANK(currentOfferMap[data.Product_Group_Key__c].HoldingFlag))}">
+                                    <apex:outputPanel rendered="{!currentOfferMap[data.Product_Group_Key__c].HoldingFlag == true}">
+                                        <input type="checkbox" disabled="disabled" checked="checked" />
+                                    </apex:outputPanel>
+                                    <apex:outputPanel rendered="{!currentOfferMap[data.Product_Group_Key__c].HoldingFlag == false}">
+                                        <input type="checkbox" disabled="disabled" />
+                                    </apex:outputPanel>
+                                </apex:outputPanel>
+                                <!-- End Product Holding Detail -->
+                                <!-- Start Spinner -->
+                                <apex:outputPanel rendered="{!data.Current_Offer__c}">
+                                    <div class="slds-align_absolute-center" style="height: 1.2rem;">
+                                        <div role="status" class="slds-spinner slds-spinner_brand slds-spinner_xx-small slds-spinner_inline">
+                                            <span class="slds-assistive-text">Loading</span>
+                                            <div class="slds-spinner__dot-a"></div>
+                                            <div class="slds-spinner__dot-b"></div>
+                                        </div>
+                                    </div>
+                                </apex:outputPanel>
+                                <!-- End Spinner -->
+                                <!-- Start Product Holding Error -->
+                                <apex:outputPanel layout="block" style="color:red" rendered="{!muleInfo!=''&&muleInfo.status!='ERROR'&& NOT(ISBLANK(currentOfferMap)) && (ISBLANK(currentOfferMap[data.Product_Group_Key__c].HoldingFlag)) && data.Current_Offer__c==true}">
+                                    Error                                
+                                </apex:outputPanel>
+                                <!-- End Product Holding Error -->
+                                           
+                                </apex:outputPanel>
+                            </td>
+                            
+                            <td role="gridcell" style="width:15%">
+                                <apex:outputPanel styleClass="slds-truncate slds-text-align_center" id="column2" layout="block">
+                                <!-- Start Campaign/NBO Detail -->
+                                <apex:outputPanel rendered="{!muleInfo!=''&&muleInfo.status!='ERROR'&&AND(NOT(ISBLANK(currentOfferMap[data.Product_Group_Key__c].CampaignNBO)),NOT(ISBLANK(currentOfferMap[data.Product_Group_Key__c].RuleBasedNBO)))&&NOT(ISBLANK(currentOfferMap))}" >                          
+                                    <apex:outputLink value="" onclick="checkIfNBOExists('{!currentOfferMap[data.Product_Group_Key__c].CampaignNBO.NBOId}');checkIfCampaignMemberExists('{!currentOfferMap[data.Product_Group_Key__c].CampaignNBO.NBOId}','{!acct.TMB_Customer_ID_PE__c}',{!checkProfileAssign});return false;">{!IF(AND(currentOfferMap[data.Product_Group_Key__c].CampaignNBO.NBOFlag != '0',currentOfferMap[data.Product_Group_Key__c].CampaignNBO != ''),$ObjectType.Campaign.label,'')}</apex:outputLink>
+                                    {!IF(AND(currentOfferMap[data.Product_Group_Key__c].CampaignNBO.NBOFlag != '0',currentOfferMap[data.Product_Group_Key__c].CampaignNBO != '' , currentOfferMap[data.Product_Group_Key__c].RuleBasedNBO.NBOFlag != '0',currentOfferMap[data.Product_Group_Key__c].RuleBasedNBO != '') , ' / ','')}
+                                    {!IF(AND(currentOfferMap[data.Product_Group_Key__c].CampaignNBO.NBOFlag == '0',currentOfferMap[data.Product_Group_Key__c].RuleBasedNBO.NBOFlag == '0') , ' - ','')}
+                                    <apex:outputLink value="" onclick="checkIfNBOExists('{!currentOfferMap[data.Product_Group_Key__c].RuleBasedNBO.NBOId}');return false;">{!IF(AND(currentOfferMap[data.Product_Group_Key__c].RuleBasedNBO.NBOFlag != '0',currentOfferMap[data.Product_Group_Key__c].RuleBasedNBO != ''),'NBO','')}</apex:outputLink>
+                                </apex:outputPanel>
+                                <!-- End Campaign/NBO Detail -->
+                                <!-- Start spinner  -->
+                                <apex:outputPanel rendered="{!data.Current_Offer__c}">
+                                <div class="slds-align_absolute-center" style="height: 1.2rem;">
+                                    <div role="status" class="slds-spinner slds-spinner_brand slds-spinner_xx-small slds-spinner_inline">
+                                        <span class="slds-assistive-text">Loading</span>
+                                        <div class="slds-spinner__dot-a"></div>
+                                        <div class="slds-spinner__dot-b"></div>
+                                    </div>
+                                </div>
+                                </apex:outputPanel>
+                                <!-- End Spinner -->
+                                <!-- Start Campaign/NBO Error -->
+                                <apex:outputPanel layout="block" style="color:red" rendered="{!muleInfo!=''&&muleInfo.status!='ERROR'&&NOT(ISBLANK(currentOfferMap))&&OR(ISBLANK(currentOfferMap[data.Product_Group_Key__c].RuleBasedNBO),ISBLANK(currentOfferMap[data.Product_Group_Key__c].CampaignNBO))&&data.Current_Offer__c==true}">
+                                    Error                             
+                                </apex:outputPanel>
+                                <!-- End Campaign/NBO Error -->
+                                </apex:outputPanel>
+                                
+                            </td>
+                            <!-- End Current Offer Column -->
+                            <!-- Start Last Offer Column -->
+                            <td role="gridcell" style="width:15%" id="">
+                                <apex:outputPanel StyleClass="slds-truncate" id="column3">
+                                    {!LastOfferMap[data.Product_Group_Key__c].product}
+                                </apex:outputPanel>
+                            </td>
+                            <td role="gridcell" style="width:10%">
+                                <apex:outputPanel StyleClass="slds-truncate" style="{!IF(NOT(ISBLANK(LastOfferMap[data.Product_Group_Key__c].reason)),'color:red','')}" id="column4">
+                                    {!LastOfferMap[data.Product_Group_Key__c].result}
+                                </apex:outputPanel>
+                            </td>
+                            <td role="gridcell" style="width:25%">
+                                <apex:outputPanel StyleClass="slds-truncate" id="column5">
+                                    {!LastOfferMap[data.Product_Group_Key__c].reason}
+                                </apex:outputPanel>
+                            </td>
+							<td role="gridcell" style="width:10%">
+                                <apex:outputPanel StyleClass="slds-truncate" id="column6">
+                                    {!LastOfferMap[data.Product_Group_Key__c].lastModifiedDate} 
+                                </apex:outputPanel>
+                            </td>
+                            <!-- End Last Offer Column -->
+                        </tr>
+                        </apex:repeat>
+                    </tbody>
+                </table>
+                <!-- get last offer function  -->
+                <apex:actionFunction name="getLastOffer" action="{!getLastOffer}" rerender="alertbox,column3,column4,column5,column6" status="status">
+                </apex:actionFunction>
+                
+                <!-- call product holding & nbo service -->
+                <apex:actionFunction name="callProductOfferService" action="{!startCallProductOfferService}" rerender="alertbox,column1,column2" status="statusInline">
+                </apex:actionFunction>
+
+                <!-- open NBO and Campaign Member page function -->
+                <apex:actionFunction name="callNBOService" action="{!startRequest}" rerender="alertbox" status="status" oncomplete="redirectPage('{!nboURL+nboId}','{!nboId}')">
+                    <apex:param id="nboid" name="nboid" assignTo="{!nboId}" value="" />
+                </apex:actionFunction>
+    
+			</apex:form>
+            </div>
+        </article>
+    </div>
+    </body>
+    
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+    <script>
+        /*-------------------------------------------------------------------------
+        Salesforce :  Main Function
+        ---------------------------------------------------------------------------*/
+        var _primaryTabId ='';
+        
+        $(document).ready(function () {
+            $('#spinner').hide();
+            $('.slds-align_absolute-center').hide();
+			sforce.console.setTabTitle('Product & NBO');
+            sforce.console.getEnclosingPrimaryTabId(MainTabId);
+            callProductOfferService();
+            getLastOffer();
+            
+        });
+
+        function startLoading(text) {
+            $('#spinner').show();
+        }
+        function endLoading() {
+            $('#spinner').hide();
+        }
+
+        function startLoadingInline(text) {
+            console.log('start loading');
+            $('.slds-align_absolute-center').show();
+
+        }
+        function endLoadingInline() {
+            console.log('end loading');
+            $('.slds-align_absolute-center').hide();
+        }
+
+        function redirectPage(url,pageName){
+            startLoading('loading');
+            console.log('redirect to :: '+url);
+            var theme = '{!$User.UIThemeDisplayed}';
+            console.log('theme :: '+theme);
+            //Salesforce console mode
+            if(sforce.console.isInConsole()){
+                OpenTabPage(url,pageName);
+            }
+            //Salesforce classic theme OR Lightning Expericence theme
+            else if(theme == 'Theme3' || theme == 'Theme4d'){
+                console.log('new window in classic');
+                window.open(url);
+            }
+            //Salesforce1 mobile theme
+            else if(theme == 'Theme4t'){
+                sforce.one.navigateToURL(url);
+            }
+            endLoading();
+            
+        }
+
+        function checkIfNBOExists(nboId) {
+            console.log('NBO ID :: '+nboId);
+            Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.CustomerProductHoldingsAndNBOCtrl.checkNBOExists}',
+                    nboId, 
+                    function(result, event){
+                        if (event.status) {
+                                console.log(result);
+                                if(result != null){
+                                    redirectPage(result+nboId,nboId);
+                                }else{
+                                    console.log('start call service');
+                                    callNBOService(nboId);
+                                }
+                                
+                        } else if (event.type === 'exception') {
+                                
+                        } else {
+                                
+                        }
+                    }, 
+                    {escape: true}
+            );
+        }
+
+        function checkIfCampaignMemberExists(nboId,tmbCustId,checkProfileAssign) {
+            Visualforce.remoting.Manager.invokeAction(
+                    '{!$RemoteAction.CustomerProductHoldingsAndNBOCtrl.checkCampaignMemberExists}',
+                    nboId,tmbCustId,
+                    function(result, event){
+                        if (event.status) {
+                                console.log(result);
+                                console.log('nboId:'+nboId);
+                                console.log('tmbCustId:'+tmbCustId);
+                                console.log('checkProfileAssign:'+checkProfileAssign);
+                                if(result == '' || result == 'null' || result == null ){  
+                                    if(checkProfileAssign)                                                         
+                                    {
+                                        openLightningTab(nboId,tmbCustId,result);
+                                    }
+                                    else
+                                    {
+                                        redirectPage('/apex/RTl_viewCampaignmember?mcode='+nboId+'&tmbid='+tmbCustId,nboId);
+                                    }
+                                }else{                                 
+                                    if(checkProfileAssign)           
+                                    {
+                                        openLightningTab(null,null,result);
+                                    }
+                                    else
+                                    {
+                                        redirectPage('/apex/RTl_viewCampaignmember?id='+result,nboId);
+                                    }
+                                    
+                                }
+                                
+                        } else if (event.type === 'exception') {
+                                
+                        } else {
+                                
+                        }
+                    }, 
+                    {escape: true}
+            );
+        }
+
+        function OpenTabPage(url,pagename){
+            // Open new sub tab
+            sforce.console.openSubtab(_primaryTabId , url, true, pagename, null, openSuccess );
+        }
+        var MainTabId = function getMainTabId(result  /* primary tab info */) {
+            //Now that we have the primary tab ID, we can open a new subtab in it
+            _primaryTabId = result.id;
+        };
+        var openSuccess = function openSuccess(result) {
+            //Report whether we succeeded in opening the subtab
+            if (result.success == true) {
+
+            } else {
+ 
+            }
+        };
+
+        function openLightningTab(nboId,tmbCustId,recId)
+        {
+            // sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+            //             "componentDef": "c:CampaignMember_Main",
+            //             "attributes": {
+            //                 "recordId": recId,
+            //                 "mcode" : nboId,
+            //                 "tmbCustId" : tmbCustId,
+            //                 "mode": 'View'
+            //             }
+            //         })), true);
+
+            var compDefinition = { 
+                "componentDef": "c:CampaignMember_Main",
+                    "attributes": {
+                        "recordId": recId,
+                        "mcode" : nboId,
+                        "tmbCustId" : tmbCustId,
+                        "mode": 'View'
+                    } 
+            };
+            // Base64 encode the compDefinition JS object
+            var encodedCompDef = btoa(JSON.stringify(compDefinition));
+            var url = "/one/one.app#"+encodedCompDef;
+            sforce.console.openSubtab(_primaryTabId , url, true, nboId, null, openSuccess );
+        }
+
+    </script>
+</apex:page>

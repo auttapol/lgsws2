@@ -1,0 +1,222 @@
+<apex:page standardController="Account" extensions="RTL_DataQualitySummaryExtension" sidebar="false" showHeader="false" docType="html-5.0" tabStyle="Account" action="{!updateAccount}" rendered="true" standardStylesheets="true">
+  <!-- Includes Js -->
+    <style>
+        .bootstrap-sf1{
+        	 margin-top: 0px;
+            font-size: 13px;
+            color: rgb(84, 105, 141);
+            line-height: 16px;
+
+        }
+        .blockDisplay{
+    		float: left;
+    		width: 50%;
+		}
+        .left-block{
+        	padding-left: 25px;
+        }
+        .bPageBlock.brandSecondaryBrd.bDetailBlock.secondaryPalette{
+            margin-bottom: 0;
+         }
+        @media only screen and (max-width: 768px) {
+        	.message{
+                width: 95%;
+                padding: 1px 5px;
+                margin: 0;
+        		font-size: 11px;
+            }
+        }
+        @media only screen and (max-width: 415px) {
+        	.message{
+                width: 95%;
+                padding: 2px 5px;
+                margin: 0;
+            }
+            .blockDisplay{
+                float: left;
+                width: 100%;
+            }
+            .left-block{
+        		clear: both;
+                padding-left: 0px;
+            }
+        }
+    </style>
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+    <!-- Salesconsole JS API -->
+    <apex:includescript value="/support/console/36.0/integration.js" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    
+    <apex:pageBlock mode="maindetail" rendered="{!!isSF1}">
+       <apex:pageMessage summary="{!dataSummary.RTL_Data_Age_Message__c}" strength="1" severity="warning" rendered="{!IF(dataAgeStatus == 'Fail', true, false)}"></apex:pageMessage>
+        <apex:pageBlockSection columns="2" collapsible="true">             
+             <apex:pageblocksectionItem >              
+                <apex:outputLabel >{!$Label.RTL_Data_Quality_Marketing}</apex:outputLabel>  
+                 <apex:outputText rendered="{!qtymktRerender}" style="font-weight:bold;color:{!qtymktColor};" value="{!qualityStatus}">
+                 </apex:outputText>         
+              </apex:pageblocksectionItem>
+              <apex:pageBlockSectionItem >
+                <apex:outputLabel >{!$Label.RTL_Data_Age}</apex:outputLabel>
+                <apex:outputText rendered="{!ageRerender}"  style="font-weight:bold;color:{!ageColor};" value="{!dataAgeStatus}">
+                </apex:outputText>
+             </apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem rendered="{!IF(dataAgeStatus == 'Fail', true, false)}">
+                <apex:outputLabel style="font-size:91%">For More Details</apex:outputLabel>
+                <apex:outputLink style="font-size:90%" onclick="redirectURL('/apex/RTL_DataQualityDetails?Id={!account.id}&isdtp=vw','{!$Label.Data_Quality_Details}');return false;">Click Here</apex:outputLink>
+             </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+        <apex:pageBlockSection columns="2" collapsible="true" rendered="{!IF(dataAgeStatus == 'Fail', false, true)}">
+            <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem ></apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >&nbsp;</apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >&nbsp;</apex:pageBlockSectionItem>
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel style="font-size:91%">For More Details</apex:outputLabel>
+                <apex:outputLink style="font-size:90%" onclick="redirectURL('/apex/RTL_DataQualityDetails?Id={!account.id}&isdtp=vw','{!$Label.Data_Quality_Details}');return false;">Click Here</apex:outputLink>
+             </apex:pageBlockSectionItem>
+        </apex:pageBlockSection>
+      </apex:pageBlock>
+    
+      <apex:outputpanel rendered="{!isSF1}">
+        <apex:pageMessage summary="{!dataSummary.RTL_Data_Age_Message__c}" strength="1" severity="warning" rendered="{!IF(dataAgeStatus == 'Fail', true, false)}"></apex:pageMessage>
+        
+        <div class="bootstrap-sf1">
+          <div class="blockDisplay">
+            <span>{!$Label.RTL_Data_Quality_Marketing}</span>&nbsp;    
+            <span style="font-weight:bold;color:{!qtymktColor};">{!qualityStatus}</span>
+          </div>   
+          <div class="blockDisplay left-block">
+			<span>{!$Label.RTL_Data_Age}</span>&nbsp;    
+            <span style="font-weight:bold;color:{!ageColor};">{!dataAgeStatus}</span> 
+          </div>
+        </div>
+        </apex:outputpanel>
+    
+      <!--<apex:pageBlock mode="maindetail" rendered="{!isSF1}">
+      <apex:pageBlockSection columns="2">
+        <div class="bootstrap-sf1">
+          <table width="100%">
+            <tbody>
+              <tr class="danger"><td colspan="5"><label>{!dataSummary.RTL_Data_Age_Message__c}</label></td></tr>
+              <tr>
+                <td>
+                  {!$Label.RTL_Data_Age}
+                </td>
+                <td>
+                  <span style="font-weight:bold;color:{!ageColor};">{!dataAgeStatus}</span> 
+                </td>
+                <td>&nbsp;</td>
+                <td>
+                 {!$Label.RTL_Data_Quality_Marketing}
+                </td>
+                <td>
+                  <span style="font-weight:bold;color:{!qtymktColor};">{!qualityStatus}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>                  
+        </div>     
+        </apex:pageBlockSection>
+      </apex:pageBlock>-->
+    
+    <script>
+    // Global variable
+    var _isInConsole = false;
+    var _isInSF1 = false;
+    var _primaryTabId ='';
+    var _tabid;
+    var _subTabId;
+    var _customername = 'account';
+
+    function startLoading(text){
+        $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+        $('.loadingBox').show();
+    }
+    function endLoading(){
+        $('.loadingBox').hide();
+        hideNormalLink();
+    }
+    function redirectURL(url,pageName){
+            if(_isInConsole){
+                // In Sales Console
+                OpenTabPage(url,pageName);
+                
+            }else if(_isInSF1){
+                //In Salesforce1
+                sforce.one.navigateToURL(url);
+            }else{
+                //Desktop Version
+                window.open(url,'_blank');
+            }
+            //endLoading();
+     }
+    /*-------------------------------------------------------------------------
+            Salesforce :  Sale Console Js
+        ---------------------------------------------------------------------------*/
+    function IsInConsole() {
+        if (sforce.console.isInConsole()) {
+            _isInConsole = true;
+            _isInSF1 = false;
+            // Then get primary tab id
+            sforce.console.getFocusedPrimaryTabId (MainTabId);
+            sforce.console.getFocusedSubtabId(callCloseTab);
+            //sforce.console.setTabTitle(_customername);
+            sforce.console.getEnclosingTabId(callCloseTab);
+
+        }
+        // Ref. https://developer.salesforce.com/docs/atlas.en-us.salesforce1.meta/salesforce1/vf_dev_best_practices_pages_multipurpose.htm
+        else if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+            _isInConsole = false;
+            _isInSF1 = true;
+
+        }
+        else {
+            _isInConsole = false;
+            _isInSF1 = false;
+        }
+
+        console.log('_isInConsole = ' +  _isInConsole);
+        console.log('_isInSF1 = ' +  _isInSF1);
+
+
+    }
+    function OpenTabPage(url,pagename){
+        // Open new sub tab
+        sforce.console.openSubtab(_primaryTabId , url, true, pagename,null,openSuccess);
+    }
+    
+    
+    var MainTabId = function getMainTabId(result  /* primary tab info */) {
+        //Now that we have the primary tab ID, we can open a new subtab in it
+        _primaryTabId = result.id;
+        console.log(_primaryTabId);
+    };
+    
+    
+    var openSuccess = function openSuccess(result) {
+        //Report whether we succeeded in opening the subtab
+        if (result.success == true) {
+
+        } else {
+
+        }
+    };
+    
+     //The callback function that closeTab will call once it has the ID for its tab
+        var callCloseTab= function callCloseTab(result) {
+            console.log('subtabid  ' + result.id);
+     
+            _subTabId = result.id;
+        };
+    
+
+    /*-------------------------------------------------------------------------
+            Salesforce :  Main Function
+        ---------------------------------------------------------------------------*/
+    $(document).ready(function () {
+        //Check Application
+        IsInConsole();
+    });
+    </script>
+ </apex:page>

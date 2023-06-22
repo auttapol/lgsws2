@@ -1,0 +1,458 @@
+<aura:component controller="QCA_LeadSimplifiedController"
+    implements="force:appHostable,flexipage:availableForAllPageTypes" access="global">
+    <aura:registerEvent name="varSimplifiedLeadProcessStatus" type="c:SimplifiedLeadProcessStatus" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="leadRecordTypeId" type="Id" />
+    <aura:attribute name="isDisabledFeild" type="Boolean" default="false" />
+    <aura:attribute name="isEditedFieldPrimaryCampaign" type="Boolean" default="false" />
+    <aura:attribute name="isEditedFieldContact" type="Boolean" default="false" />
+
+    <aura:attribute name="leadObjId" type="Id" />
+    <aura:attribute name="leadObj" type="Lead" />
+
+    <aura:attribute name="tabSet" type="String" default="Lead_Info" />
+    <aura:attribute name="isValidInputFieldCompany" type="Boolean" default="false" />
+    <aura:attribute name="isValidInputField" type="Boolean" default="false" />
+    <aura:attribute name="onInitValidInputField" type="Boolean" default="false" />
+    <aura:attribute name="showErrorMessage" type="Boolean" default="false" />
+
+    <!-- <aura:attribute name="ErrorHeader" type="String" default="" /> -->
+    <aura:attribute name="errorMessageList" type="List" default="" />
+
+    <aura:attribute name="showOnloading" type="Boolean" default="false" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" />
+    <aura:attribute name="showSpinnerLoadingOnModal" type="Boolean" default="false" />
+
+    <aura:handler name="varHandlerSearchingCompanyEvent" event="c:HandlerSearchingCompanyEvent"
+        action="{!c.onHandlerCompanyEvent}" />
+    <aura:attribute name="searchingCompanyKey" type="String" default="" />
+    <aura:attribute name="isSearching" type="Boolean" default="false" />
+    <aura:attribute name="showSearchingCompany" type="Boolean" default="false" />
+
+    <aura:attribute name="companyDetail" type="Map" default="{}" />
+    <aura:attribute name="provinceField" type="List" default="[]" />
+    <aura:attribute name="isSelectedCompanyList" type="Boolean" default="false" />
+    <aura:attribute name="hasChangeRecordEditForm" type="Boolean" default="false" />
+    <aura:attribute name="refreshRecordEditForm" type="Boolean" default="true" />
+    
+    <div>
+    <aura:renderIf isTrue="{! v.showSearchingCompany }">
+        <div>
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+                aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open slds-modal_large">
+                <!-- <aura:if isTrue="{! v.showSpinnerLoadingOnModal }">
+                    <lightning:spinner class="slds-theme_transparent" alternativeText="Loading" size="medium" />
+                </aura:if> -->
+                <div class="slds-modal__container">
+                    <header class="slds-modal__header">
+                        <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse"
+                            title="Close" onclick="{!c.onShowSearchingCompany}">
+                            <lightning:icon iconName="utility:close" size="small" />
+                            <span class="slds-assistive-text">Close</span>
+                        </button>
+                        <h2 class="slds-text-heading_medium slds-hyphenate">
+                            Search Existing Customers
+                        </h2>
+                    </header>
+                    <div class="slds-modal__content slds-p-around_medium">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem class="slds-p-top_x-small slds-p-horizontal_x-small" size="12"
+                                smallDeviceSize="12" mediumDeviceSize="10" largeDeviceSize="10">
+                                <lightning:input aura:id="inputSearching" type="search" name="SearchKeyType"
+                                    label="Customer Name or ID Number" variant="standard"
+                                    isLoading="{! v.isSearching || v.showSpinnerLoadingOnModal }" minlength="3" min="3" required="true" 
+                                    messageWhenTooShort="{!$Label.c.Error_message_searching_input}"
+                                    messageWhenValueMissing="{!$Label.c.Error_message_searching_input}"
+                                    onchange="{! c.onValidateInputSearching }"
+                                    value="{! v.searchingCompanyKey }" />
+                                    <!-- disabled="{! v.isSearching || v.showSpinnerLoadingOnModal }" -->
+                            </lightning:layoutItem>
+                            <lightning:layoutItem class="slds-p-top_x-small slds-p-horizontal_x-small"
+                                size="12" smallDeviceSize="12" mediumDeviceSize="2" largeDeviceSize="2">
+                                <!--<lightning:button class="slds-select btn-group" label="Search" variant="brand" 
+                                    disabled="{! v.isSearching }" onclick="{!c.onSearchingCompany}" />-->
+                                <div class="slds-form-element">
+                                    <label class="slds-form-element__label button_label">&nbsp;</label>
+                                    <div class="slds-form-element__control">
+                                        <lightning:button class="slds-button_stretch" label="Search" variant="brand" 
+                                                          disabled="{! v.isSearching || v.showSpinnerLoadingOnModal }" 
+                                                          onclick="{!c.onSearchingCompany}" />                                   
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                        <lightning:layout>
+                            <lightning:layoutItem class="slds-p-top_x-small slds-p-horizontal_x-small searchContainer" size="12"
+                                smallDeviceSize="12" >
+
+                                <c:QCA_EnliteSearchingCompany aura:id="enliteSearchCompany" />
+
+                            </lightning:layoutItem>
+                        </lightning:layout>
+
+                    </div>
+                    <footer class="slds-modal__footer">
+                        <lightning:button type="button" class="slds-button slds-button_neutral" variant="brand" label="Cancel"
+                            onclick="{!c.onShowSearchingCompany}" />
+                        <lightning:button type="button" class="slds-button slds-button_brand" variant="brand" label="Submit" 
+                            disabled="{! !v.isSelectedCompanyList || v.isSearching || v.showSpinnerLoadingOnModal }"
+                            onclick="{! c.onSelectedCompanyDetail }" />
+                    </footer>
+                </div>
+            </section>
+            <div class="slds-backdrop slds-backdrop_open"></div>
+        </div>
+    </aura:renderIf>
+
+    <aura:if isTrue="{! v.refreshRecordEditForm }">
+    <lightning:recordEditForm aura:id="LeadForm" onload="{!c.onLoad}" onsubmit="{!c.onSubmit}"
+        onsuccess="{!c.onSuccess}" onerror="{!c.onError}" objectApiName="Lead"
+        recordId="{! v.leadObjId ? v.leadObjId : '' }" recordTypeId="{! v.leadRecordTypeId }">
+        <!-- <lightning:messages /> -->
+        <aura:if isTrue="{! v.showSpinnerLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" />
+        </aura:if>
+
+        <aura:renderIf isTrue="{! v.showErrorMessage }">
+            <!-- <ui:message title="Error" severity="error" closable="false"></ui:message> -->
+            <div class="slds-notify_container slds-is-relative">
+                <div role="alert" class="slds-notify slds-notify_toast slds-theme_error">
+                    <div class="slds-notify__content">
+                        <aura:iteration items="{! v.errorMessageList }" var="e">
+                            <h2 class="slds-text-heading_small">
+                                {! e.errorHeader }
+                            </h2>
+                            <div class="slds-text-body_regular">
+                                {! e.errorMessage }
+                            </div>
+                        </aura:iteration>
+                    </div>
+                </div>
+            </div>
+        </aura:renderIf>
+
+        <aura:if isTrue="{! !v.leadObjId }">
+        <lightning:layout multipleRows="true" class="slds-p-horizontal_large slds-p-vertical_medium section">
+            <lightning:layoutItem class="slds-p-top_xx-small slds-m-top_xxsmall slds-form-element__label" size="12" smallDeviceSize="12" mediumDeviceSize="8"
+                largeDeviceSize="8">
+                <span class="slds-m-right_x-small">
+                    <lightning:icon iconName="utility:search" size="x-small" />
+                </span>
+                <ui:outputText value="Search and auto fill existing customers detail" />
+            </lightning:layoutItem>
+            <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="4" largeDeviceSize="4">
+                <lightning:button class="slds-float_right" label="Search Existing Customers" variant="brand"
+                    onclick="{!c.onShowSearchingCompany}" />
+            </lightning:layoutItem>
+        </lightning:layout>
+        </aura:if>
+
+        <div class="slds-p-horizontal_large slds-p-vertical_x-small slds-hide">
+            <div class="slds-form_stacked slds-m-bottom_x-small">
+                <lightning:layout multipleRows="true">
+                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                        <lightning:inputField aura:id="LeadFormInput" fieldName="OwnerId" />
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                        <!-- <lightning:inputField aura:id="LeadFormInput" fieldName="Account__c" /> -->
+                    </lightning:layoutItem>
+                    <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                        <lightning:input name="RecordTypeId" label="Record Type ID"
+                            value="{! v.leadObj ? v.leadObj.RecordType.Name : v.leadRecordTypeId }" readonly="true" />
+                    </lightning:layoutItem>
+                </lightning:layout>
+            </div>
+        </div>
+
+        <lightning:tabset class="tabset" selectedTabId="{! v.tabSet }">
+            <lightning:tab label="Lead Info" id="Lead_Info">
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small">
+                    <!-- <h2 class="slds-text-heading_small slds-m-top_xx-small">Lead Info</h2> -->
+                    <div class="slds-form_stacked slds-m-bottom_x-small">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div aura:id="Customer_Type__c" class="slds-form-element customRequiredField">
+                                    <lightning:inputField aura:id="LeadFormInput" fieldName="Customer_Type__c"
+                                        disabled="{! v.isDisabledFeild }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" value="{! v.leadObjId ? v.leadObj.Customer_Type__c : v.companyDetail.Customer_Type__c }" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div aura:id="Company" class="slds-form-element">
+                                    <lightning:inputField aura:id="LeadFormInput" fieldName="Company"
+                                        disabled="{! v.isDisabledFeild }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" value="{! v.leadObjId ? v.leadObj.Company : v.companyDetail.Company }"/>    
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <!-- <lightning:inputField aura:id="LeadFormInput" fieldName="Customer_Name_EN__c" disabled="{! v.isDisabledFeild }" /> -->
+                                <div aura:id="ID_Type__c" class="slds-form-element customRequiredField">
+                                    <lightning:inputField aura:id="LeadFormInput" fieldName="ID_Type__c"
+                                        disabled="{! v.isDisabledFeild }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" value="{! v.leadObjId ? v.leadObj.ID_Type__c : v.companyDetail.ID_Type__c }" />
+                                </div>
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div aura:id="Customer_Name_EN__c" class="slds-form-element">
+                                    <lightning:inputField aura:id="LeadFormInput" fieldName="Customer_Name_EN__c"
+                                        disabled="{! v.isDisabledFeild }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div aura:id="ID_Number__c" class="slds-form-element customRequiredField">
+                                    <lightning:inputField aura:id="LeadFormInput" fieldName="ID_Number__c"
+                                        disabled="{! v.isDisabledFeild }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" value="{! v.leadObjId ? v.leadObj.ID_Number__c : v.companyDetail.ID_Number__c }" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div aura:id="Mobile_No__c" class="slds-form-element customRequiredField">
+                                    <lightning:inputField aura:id="LeadFormInput" fieldName="Mobile_No__c"
+                                        disabled="{! v.isEditedFieldContact }"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" value="{! v.leadObjId ? v.leadObj.Mobile_No__c : v.companyDetail.Mobile_No__c }" />
+                                </div>
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <aura:renderIf isTrue="{! v.showOnloading }">
+                                    <c:strike_lookup label="Primary Campaign" object="Campaign" searchField="Name"
+                                        placeholder="" iconName="standard:campaign"
+                                        subtitleField="RTL_Campaign_Code_10_digits__c" limit="5"
+                                        filter="IsActive = true" loadingMessage="Loading..."
+                                        errorMessage="Invalid input" showRecentRecords="true"
+                                        disabled="{! v.isEditedFieldPrimaryCampaign }"
+                                        value="{! v.leadObj.Primary_Campaign__c }" aura:id="varPrimary_Campaign" />
+                                </aura:renderIf>
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div class="slds-grid slds-wrap slds-form_stacked">
+                                    <div aura:id="Office_No__c"
+                                        class="slds-col slds-p-horizontal_small slds-form-element slds-size_8-of-12 customRequiredField">
+                                        <lightning:inputField aura:id="LeadFormInput" fieldName="Office_No__c"
+                                            disabled="{! v.isEditedFieldContact }"
+                                            onchange="{! c.onChanngRemoveInvalidInputField }" value="{! v.leadObjId ? v.leadObj.Office_No__c : v.companyDetail.Office_No__c }" />
+                                    </div>
+                                    <div aura:id="Ext__c"
+                                        class="slds-col slds-p-horizontal_small slds-form-element slds-size_4-of-12">
+                                        <lightning:inputField aura:id="LeadFormInput" fieldName="Ext__c"
+                                            disabled="{! v.isEditedFieldContact }" />
+                                    </div>
+                                </div>
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Status" disabled="true" />
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Email__c"
+                                    disabled="{! v.isDisabledFeild }" />
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12"
+                                largeDeviceSize="12">
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Remark__c" label="Remark"
+                                    disabled="{! v.isDisabledFeild }" />
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </div>
+                </div>
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small section">
+                    <div class="slds-var-p-horizontal_xx-small slds-text-title_caps slds-var-p-vertical_small">
+                        Contact Info
+                    </div>
+                    <div class="slds-form_stacked slds-m-bottom_x-small">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="12" mediumDeviceSize="12" class="leadName">
+                                <div aura:id="Name"
+                                    class="slds-form-element customRequiredField remove-required-on-lastname">
+                                    <lightning:inputField aura:id="LeadFormInput" fieldName="Name"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <div aura:id="Phone__c" class="slds-form-element customRequiredField">
+                                    <lightning:inputField aura:id="LeadFormInput" fieldName="Phone__c"
+                                        onchange="{! c.onChanngRemoveInvalidInputField }" />
+                                </div>
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Title" />
+                            </lightning:layoutItem>
+
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Decision_Map__c" />
+                            </lightning:layoutItem>
+
+                            <!-- <lightning:layoutItem size="6" smallDeviceSize="12" mediumDeviceSize="12">
+                            <lightning:button variant="brand" type="submit" name="save" label="Save" />
+                        </lightning:layoutItem> -->
+                        </lightning:layout>
+                    </div>
+                </div>
+            </lightning:tab>
+            <lightning:tab label="Other Info" id="Other_Info">
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small">
+                    <div class="slds-var-p-horizontal_xx-small slds-text-title_caps slds-var-p-vertical_small">
+                        Address
+                    </div>
+                    <div class="slds-form_stacked slds-m-bottom_x-small">
+                        <lightning:layout multipleRows="true">
+
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Address_Line_1__c" value="{! v.leadObjId ? v.leadObj.Address_Line_1__c : v.companyDetail.Address_Line_1__c }"
+                                    disabled="{! v.isDisabledFeild }" />
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Address_Line_3__c" value="{! v.leadObjId ? v.leadObj.Address_Line_3__c : v.companyDetail.Address_Line_3__c }"
+                                    disabled="{! v.isDisabledFeild }" />
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Country__c" value="{! v.leadObjId ? v.leadObj.Country__c : v.companyDetail.Country__c }"
+                                    disabled="{! v.isDisabledFeild }" />
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Address_Line_2__c" value="{! v.leadObjId ? v.leadObj.Address_Line_2__c : v.companyDetail.Address_Line_2__c }"
+                                    disabled="{! v.isDisabledFeild }" />
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Province__c" value="{! v.leadObjId ? v.leadObj.Province__c : v.companyDetail.Province__c }"
+                                    disabled="{! v.isDisabledFeild }" />
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Zipcode__c" value="{! v.leadObjId ? v.leadObj.Zipcode__c : v.companyDetail.Zipcode__c }"
+                                    disabled="{! v.isDisabledFeild }" />
+                            </lightning:layoutItem>
+
+                        </lightning:layout>
+                    </div>
+                </div>
+            </lightning:tab>
+            <lightning:tab label="Detail Info" id="Detail_Info">
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small">
+                    <!-- <h2 class="slds-text-heading_small slds-m-top_xx-small">Detail Info</h2> -->
+                    <div class="slds-form_stacked slds-m-bottom_x-small">
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Rating" />
+                                <!-- <lightning:inputField aura:id="LeadFormInput" fieldName="Parent_Company__c" /> -->
+                                <aura:renderIf isTrue="{! v.showOnloading }">
+                                    <c:strike_lookup label="Parent Company" object="Account" searchField="Name"
+                                        iconName="standard:account" loadingMessage="Loading..."
+                                        errorMessage="Invalid input" showRecentRecords="true"
+                                        disabled="{! v.isDisabledFeild }" value="{! v.leadObj.Parent_Company__c }"
+                                        aura:id="varParent_Company" />
+                                </aura:renderIf>
+                                <!-- <lightning:inputField aura:id="LeadFormInput" fieldName="Group__c" /> -->
+                                <aura:renderIf isTrue="{! v.showOnloading }">
+                                    <c:strike_lookup label="Group" object="Group__c" searchField="Name"
+                                        iconName="standard:user_role" loadingMessage="Loading..."
+                                        errorMessage="Invalid input" showRecentRecords="true"
+                                        disabled="{! v.isDisabledFeild }" value="{! v.leadObj.Group__c }"
+                                        aura:id="varGroup" />
+                                </aura:renderIf>
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Total_Expected_Revenue__c" />
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Link_Document__c"
+                                    disabled="{! v.isDisabledFeild }" />
+
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <!-- <lightning:inputField aura:id="LeadFormInput" fieldName="Industry__c" /> -->
+                                <aura:renderIf isTrue="{! v.showOnloading }">
+                                    <c:strike_lookup label="Industry" object="Industry__c" searchField="Name"
+                                        iconName="standard:picklist_choice" loadingMessage="Loading..."
+                                        errorMessage="Invalid input" showRecentRecords="true"
+                                        disabled="{! v.isDisabledFeild }" value="{! v.leadObj.Industry__c }"
+                                        aura:id="varIndustry" />
+                                </aura:renderIf>
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Sales_amount_per_year__c"
+                                    disabled="{! v.isDisabledFeild }" />
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="No_of_Years_Business_Run__c"
+                                    disabled="{! v.isDisabledFeild }" />
+                                <!-- <lightning:inputField aura:id="LeadFormInput" fieldName="Preferred_Branch__c" /> -->
+                                <aura:renderIf isTrue="{! v.showOnloading }">
+                                    <c:strike_lookup label="Preferred Branch" object="Branch_and_Zone__c"
+                                        searchField="Name" iconName="standard:picklist_choice"
+                                        loadingMessage="Loading..." errorMessage="Invalid input"
+                                        showRecentRecords="true" disabled="{! v.isDisabledFeild }"
+                                        value="{! v.leadObj.Preferred_Branch__c }" aura:id="varPreferred_Branch" />
+                                </aura:renderIf>
+
+                            </lightning:layoutItem>
+                        </lightning:layout>
+                    </div>
+                </div>
+            </lightning:tab>
+            <lightning:tab label="Lead Source" id="Lead_Source">
+                <div class="slds-p-horizontal_large slds-p-vertical_x-small">
+                    <!-- <h2 class="slds-text-heading_small slds-m-top_xx-small">Lead Source</h2> -->
+                    <div class="slds-form_stacked slds-m-bottom_x-small">
+
+                        <lightning:layout multipleRows="true">
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+
+                                <!-- <lightning:inputField aura:id="LeadFormInput" fieldName="Branch_Referred__c" /> -->
+                                <aura:renderIf isTrue="{! v.showOnloading }">
+                                    <c:strike_lookup label="Branch Referred" object="Branch_and_Zone__c"
+                                        searchField="Name" iconName="standard:work_order_item"
+                                        loadingMessage="Loading..." errorMessage="Invalid input"
+                                        showRecentRecords="true" value="{! v.leadObj.Branch_Referred__c }"
+                                        aura:id="varBranch_Referred" />
+                                </aura:renderIf>
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Referral_Staff_ID__c" />
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Referral_Staff_Name__c" />
+
+                            </lightning:layoutItem>
+                            <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6"
+                                largeDeviceSize="6">
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="LeadSource" />
+                                <lightning:inputField aura:id="LeadFormInput" fieldName="Other_Source__c" />
+                                <!-- <lightning:inputField aura:id="LeadFormInput" fieldName="RTL_Referral__c" /> -->
+                                <aura:renderIf isTrue="{! v.showOnloading }">
+                                    <c:strike_lookup label="Referral" object="RTL_Referral__c" searchField="Name"
+                                        iconName="standard:picklist_choice" loadingMessage="Loading..."
+                                        errorMessage="Invalid input" showRecentRecords="true"
+                                        value="{! v.leadObj.RTL_Referral__c }" aura:id="varRTL_Referral" />
+                                </aura:renderIf>
+
+                            </lightning:layoutItem>
+                        </lightning:layout>
+
+                    </div>
+                </div>
+            </lightning:tab>
+        </lightning:tabset>
+
+        <div class="slds-p-horizontal_large slds-p-vertical_x-small btn-next">
+            <lightning:layout multipleRows="true">
+                <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                    <!-- <lightning:button variant="brand" type="submit" name="save" label="Next" /> -->
+                </lightning:layoutItem>
+                <lightning:layoutItem size="12" smallDeviceSize="6" mediumDeviceSize="6" largeDeviceSize="6">
+                    <div class="slds-clearfix">
+                        <div class="slds-clearfix">
+                            <lightning:button class="slds-float_right" variant="brand" type="submit" name="save"
+                                label="Next" onclick="{! c.onSubmitValidateCustomeField }" />
+                        </div>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+        </div>
+
+    </lightning:recordEditForm>
+    </aura:if>
+    </div>
+</aura:component>

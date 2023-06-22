@@ -1,0 +1,294 @@
+<apex:page standardController="RTL_Household_History_and_Approval__c" extensions="RTL_HouseHoldHistoryEditExtension" tabStyle="RTL_Household_Member__c" showchat="false" sidebar="false" showheader="false"
+           standardstylesheets="true">
+     <!-- Includes Js -->
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+    <!-- Salesconsole JS API -->
+    <apex:includescript value="/support/console/36.0/integration.js" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    
+    <apex:form >
+        <apex:actionFunction name="save" action="{!save}" reRender="block" oncomplete="redirectPage();"/>
+        <apex:actionFunction name="cancel" action="{!cancel}"/>
+    <apex:sectionheader title="{!$Label.RTL_History}" subtitle="{!history.Name}"/>
+    <apex:pageBlock mode="edit" id="block" > 
+        <apex:outputpanel id="statusMessage">
+                <apex:pagemessages escape="false"></apex:pagemessages>
+            </apex:outputpanel>
+         <script>
+        function saveHH(){
+            save();
+        }
+        function redirectPage(){
+            _customername = '';
+            var url = '/apex/RTL_Household_Detail?id={!history.RTL_Household__c}';
+            var pageName = '{!history.RTL_Household__r.Name}';
+            if($('.errorMsg').length > 0 || '{!hasError}' == 'true'){
+                //If has error , do nothing
+            }
+            else{
+                tabNavigation(url);
+            }
+            
+        }
+        
+        function tabNavigation(url){
+            if(_isInConsole){
+                // In Sales Console           
+                sforce.console.getFocusedPrimaryTabObjectId(showTabIds);
+            }else if(_isInSF1){
+                //In Salesforce1
+                sforce.one.navigateToURL(url);
+            }else{
+                //Desktop Version
+                window.location.href = url;
+            }
+        }
+        function redirectURL(url,pageName){
+            if(_isInConsole){
+                // In Sales Console           
+                OpenTabPage(url,pageName);
+
+            }else if(_isInSF1){
+                //In Salesforce1
+                sforce.one.navigateToURL(url);
+            }else{
+                //Desktop Version
+                window.location.href = url;
+            }
+        }
+        var showTabIds = function showTabIds(result) {
+            var url = '/apex/RTL_HouseHold_Detail?id='+'{!history.RTL_Household__c}';
+            var pageName = '{!history.RTL_Household__r.Name}';
+            //Display the subtab IDs
+            var objId = result.id.toString();
+            //Open from Primary Tab
+            if(objId.startsWith('001') == false){
+                sforce.console.openPrimaryTab(_primaryTabId,url ,true)
+            }else{
+                var outcome = '{!history.RTL_Outcome__c}';
+                var type = '{!history.RTL_Field_Label__c}';
+                if(!( outcome == 'Rejected' && type == 'New Household')){
+                    OpenTabPage(url,pageName);
+                }
+                sforce.console.closeTab('{!householdTabId}');
+                sforce.console.getEnclosingTabId(callCloseTab);
+            }
+     };
+        </script>
+        <!-- Buttons -->
+        <apex:pageBlockButtons >
+            <apex:commandbutton onclick="saveHH();return false;"  value="{!$Label.Save}"/>
+            <apex:commandbutton onclick="cancelCreation();return false;" value="{!$Label.Cancel}"/>
+        </apex:pageBlockButtons>
+        
+        
+        <!-- start Household Information -->
+        <apex:pageBlockSection title="{!$Label.RTL_Household_Information}" columns="2" rendered="{!IF(history.RTL_Section__c == $Label.RTL_Member,false,true)}">
+            <!-- start Household Name -->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.RTL_Household_History_and_Approval__c.Fields.RTL_Household__c.Label}"></apex:outputLabel>
+                <apex:outputText >{!history.RTL_Household__r.Name}</apex:outputText>
+            </apex:pageBlockSectionItem> 
+            <!-- end Household Name -->
+            <!-- start RM Name -->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.RTL_Household_History_and_Approval__c.Fields.RTL_HH_RM_BM__c.Label}"></apex:outputLabel>
+                <apex:outputLink onclick="redirectURL('/{!history.RTL_HH_RM_BM__c }','{!history.RTL_HH_RM_BM__r.Name}');return false;">{!history.RTL_HH_RM_BM__r.Name}</apex:outputLink>
+            </apex:pageBlockSectionItem> 
+            <!-- start RM Name -->
+            
+            <apex:outputField value="{!history.RTL_HH_Req_Benefit_Package__c }"/>
+            <apex:outputField value="{!history.RTL_HH_Req_Remarks__c}"/>
+        </apex:pageBlockSection> 
+        <!-- end Household Information -->
+        
+        <!-- start Household And Member Information -->
+        <apex:pageBlockSection title="{!$Label.RTL_Household_And_Member_Information}" columns="2" rendered="{!IF(history.RTL_Section__c == $Label.RTL_Member,true,false)}">
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.RTL_Household_History_and_Approval__c.Fields.RTL_Household__c.Label}"></apex:outputLabel>
+                <apex:outputText >{!history.RTL_Household__r.Name}</apex:outputText>
+            </apex:pageBlockSectionItem> 
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.RTL_Household_History_and_Approval__c.Fields.RTL_HH_RM_BM__c.Label}"></apex:outputLabel>
+                <apex:outputLink onclick="redirectURL('/{!history.RTL_HH_RM_BM__c }','{!history.RTL_HH_RM_BM__r.Name}');return false;">{!history.RTL_HH_RM_BM__r.Name}</apex:outputLink>
+            </apex:pageBlockSectionItem> 
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.RTL_Household_History_and_Approval__c.Fields.RTL_Member_Lookup_Account__c.Label}"></apex:outputLabel>
+                <apex:outputLink onclick="redirectURL('/{!history.RTL_Member_Lookup_Account__c}','{!history.RTL_Member_Lookup_Account__r.Name}');return false;">{!history.RTL_Member_Lookup_Account__r.Name}</apex:outputLink>
+            </apex:pageBlockSectionItem>
+            <apex:outputField value="{!history.RTL_HHM_Relationship__c}"/>
+            <apex:outputField value="{!history.RTL_HHM_Benefit__c }"/>
+            
+        </apex:pageBlockSection> 
+        <!-- end Household And Member Information -->
+        <!-- start Request Details -->
+        <apex:pageBlockSection title="{!$Label.RTL_Request_Details}" columns="2" >
+            <apex:outputField value="{!history.RTL_Field_Label_Display__c}"/>
+
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.RTL_Household_History_and_Approval__c.Fields.RTL_User_Requesting__c.Label}"></apex:outputLabel>
+                <apex:outputLink onclick="redirectURL('/{!history.RTL_User_Requesting__c}','{!history.RTL_User_Requesting__r.Name}');return false;">{!history.RTL_User_Requesting__r.Name}</apex:outputLink>
+            </apex:pageBlockSectionItem>       
+            <!-- start Old Value -->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_Prev_Value__c.Label}" ></apex:outputLabel>
+                <apex:outputPanel >
+                    <apex:outputPanel rendered="{!history.RTL_Field_Changed__c != 'RTL_Benefit__c'}">
+                        <apex:outputText style="{!IF(history.RTL_Field_Changed__c == 'RTL_To_Delete__c','display:none;','')}" value="{!history.RTL_Prev_Value__c }"></apex:outputText>
+                        <apex:outputText style="{!IF(history.RTL_Field_Changed__c == 'RTL_To_Delete__c','','display:none;')}"></apex:outputText>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!history.RTL_Field_Changed__c == 'RTL_Benefit__c'}">
+                        <apex:outputText value="{!IF(history.RTL_Prev_Value__c == 'true' ,'Yes','No')}"></apex:outputText>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+            </apex:pageBlockSectionItem>
+            <!-- end Old Value -->
+            <!-- start New Value -->
+            <apex:pageBlockSectionItem >
+                <apex:outputLabel value="{!$ObjectType.RTL_Household_History_and_Approval__c.fields.RTL_New_Value__c.Label}" ></apex:outputLabel>
+                <apex:outputPanel >
+                    <apex:outputPanel rendered="{!history.RTL_Field_Changed__c != 'RTL_Benefit__c'}"> 
+                        <apex:outputText style="{!IF(history.RTL_Field_Changed__c == 'RTL_To_Delete__c' || history.RTL_Field_Changed__c == 'New Household' || history.RTL_Field_Changed__c == 'New Member','display:none;','')}" value="{!history.RTL_New_Value__c }"></apex:outputText>
+                        <apex:outputText style="{!IF(history.RTL_Field_Changed__c == 'RTL_To_Delete__c' || history.RTL_Field_Changed__c == 'New Household' || history.RTL_Field_Changed__c == 'New Member','','display:none;')}"></apex:outputText>
+                    </apex:outputPanel>
+                    <apex:outputPanel rendered="{!history.RTL_Field_Changed__c == 'RTL_Benefit__c'}">
+                        <apex:outputText value="{!IF(history.RTL_New_Value__c == 'true' ,'Yes','No')}"></apex:outputText>
+                    </apex:outputPanel>
+                </apex:outputPanel>      
+            </apex:pageBlockSectionItem>
+            <!-- end New Value -->
+             <apex:outputField value="{!history.RTL_Date_Requested__c }"/>
+          
+        </apex:pageBlockSection>
+        <!--end Request Details -->
+        <!--start Approval Details -->
+        <apex:pageBlockSection title="{!$Label.RTL_Approval_Details}" columns="2" >
+            <apex:inputField value="{!history.RTL_Outcome__c}" required="true"/>
+        </apex:pageBlockSection> 
+        <!--end Approval Details -->
+
+    </apex:pageBlock>
+    </apex:form>
+        <script>
+    // Global variable
+    var _isInConsole = false;
+    var _isInSF1 = false;
+    var _primaryTabId ='';
+    var _customername ='{!history.Name}';
+    var _tabId;
+
+    function startLoading(text){
+        $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+        $('.loadingBox').show();
+    }
+    function endLoading(){
+        $('.loadingBox').hide();
+        hideNormalLink();
+    }
+    /*-------------------------------------------------------------------------
+            Salesforce :  Sale Console Js
+        ---------------------------------------------------------------------------*/
+    function IsInConsole() {
+        if (sforce.console.isInConsole()) {
+            _isInConsole = true;
+            _isInSF1 = false;
+            // Then get primary tab id
+            sforce.console.getEnclosingPrimaryTabId(MainTabId);
+            sforce.console.setTabTitle(_customername);
+            sforce.console.setTabIcon("{!URLFOR($Resource.RTL_Household_Logo)}", null);
+
+        }
+        // Ref. https://developer.salesforce.com/docs/atlas.en-us.salesforce1.meta/salesforce1/vf_dev_best_practices_pages_multipurpose.htm
+        else if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+            _isInConsole = false;
+            _isInSF1 = true;
+
+        }
+        else {
+            _isInConsole = false;
+            _isInSF1 = false;
+        }
+
+        console.log('_isInConsole = ' +  _isInConsole);
+        console.log('_isInSF1 = ' +  _isInSF1);
+
+
+    }
+    
+    function OpenTabPage(url,pagename){
+        // Open new sub tab
+        sforce.console.openSubtab(_primaryTabId , url, true, pagename, null, openSuccess);
+    }
+    var MainTabId = function getMainTabId(result  /* primary tab info */) {
+        //Now that we have the primary tab ID, we can open a new subtab in it
+        _primaryTabId = result.id;
+        sforce.console.getFocusedPrimaryTabObjectId(setTabIcon);
+    };
+    var setTabIcon= function setTabIcon(result) {
+        var objId = result.id.toString();
+        if(objId.startsWith('001') == false)
+        {
+            sforce.console.setTabIcon("{!URLFOR($Resource.RTL_Household_Logo)}", _primaryTabId);
+            
+        }
+            
+    }
+    var openSuccess = function openSuccess(result) {
+        //Report whether we succeeded in opening the subtab
+        if (result.success == true) {
+            console.log('open page successfully '+result);
+        } else {
+
+        }
+    };
+    
+     //The callback function that closeTab will call once it has the ID for its tab
+     var callCloseTab= function callCloseTab(result) {
+        sforce.console.closeTab(result.id);
+     }     
+     //This JS function is to control cancel URL for each Application
+    function cancelCreation() {
+        if(_isInConsole){
+            //In Sales Console
+            sforce.console.getEnclosingTabId(callCloseTab);
+        }else if(_isInSF1){
+            //In Salesforce1
+            sforce.one.navigateToURL('/apex/RTL_Household_Detail?id={!history.RTL_Household__c}');
+        }else{
+            // Normal web
+            cancel();
+        }
+    }
+    
+    function closeTabBySubtabId(subtabId) {
+        sforce.console.closeTab(subtabId);
+    }
+   
+    function testGetFocusedSubtabId() {
+        sforce.console.getFocusedSubtabId(showTabId);
+    }
+        
+    var showTabId = function showTabId(result) {
+        // Display the tab ID
+        _tabId = result.id;
+    };
+    
+    /*-------------------------------------------------------------------------
+            Salesforce :  Main Function
+        ---------------------------------------------------------------------------*/
+    $(document).ready(function () {
+        //Check Application
+        IsInConsole();
+        console.log('Tab Id '+'{!householdTabId}');
+
+    });
+    
+    if (!String.prototype.startsWith) {
+        String.prototype.startsWith = function(searchString, position) {
+            position = position || 0;
+            return this.indexOf(searchString, position) === position;
+        };
+    }
+    </script>
+</apex:page>

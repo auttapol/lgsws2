@@ -1,0 +1,408 @@
+<apex:page standardcontroller="Account" id="thePage" extensions="AccountCreationCheckDisqualified" showChat="true" lightningStylesheets="true">
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Inserting ...');" id="InsertStatus" onstop="endLoading();" />
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 0 0;
+            width: 32px;
+            height: 32px;
+            position: absolute;
+            left: 50%;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+    <apex:sectionheader title="Account Edit" subtitle="{!account.Name}" />
+    <!-- noenter : used to auto click button dave -->
+    <apex:form onkeypress="return noenter(event)">
+        <apex:actionfunction action="{!CheckDisqualified}" 
+                             rerender="statusMessage" 
+                             status="InsertStatus" name="doSave" oncomplete="" />
+        <apex:actionFunction action="{!viewCustomer}" name="viewCustomer" />
+        <apex:pageblock title="Customer Edit" mode="edit">
+            <apex:outputpanel id="statusMessage">
+                <apex:pagemessages ></apex:pagemessages>
+            </apex:outputpanel>
+            <apex:pageblockbuttons >
+                <apex:commandbutton action="{!CheckDisqualified}" value="Save" rerender="statusMessage" 
+                                    rendered="{!IsHasPermission}"
+                             status="InsertStatus" oncomplete="if({!isUpdateSuccess})viewCustomer();"  />
+                <apex:commandbutton action="{!cancel}" value="Cancel" />
+            </apex:pageblockbuttons>
+            <!-- Detail 1 -->
+    <apex:actionFunction name="loadDataCustInfo" action="{!loadData}" rerender="CustomerInformation,preloadSectionCustInfo,displaySectionCustInfo" >
+        				<apex:param assignTo="{!sectionName}" name="sectionName" value="ComPros:Customer Information"/>
+    				</apex:actionFunction>
+      
+      				<apex:actionFunction name="loadDataProdInterest" action="{!loadData}" rerender="ProductInterest,preloadSectionProdInterest,displaySectionProdInterest" >
+        				<apex:param assignTo="{!sectionName}" name="sectionName" value="ComPros:Product Interest"/>
+    				</apex:actionFunction>
+      
+      				<apex:actionFunction name="loadDataCustSource" action="{!loadData}" rerender="CustomerSource,preloadSectionCustSource,displaySectionCustSource" >
+        				<apex:param assignTo="{!sectionName}" name="sectionName" value="ComPros:Customer Source"/>
+    				</apex:actionFunction>
+      
+      				<apex:actionFunction name="loadDataReassCust" action="{!loadData}" rerender="ReassignmentCustomer,preloadSectionReassCust,displaySectionReassCust" >
+        				<apex:param assignTo="{!sectionName}" name="sectionName" value="ComPros:Re-assignment Customer"/>
+    				</apex:actionFunction>
+            
+            	
+            	<apex:pageblocksection title="General Information" columns="2">
+                <!-- Row 1-->
+                <apex:inputfield value="{!account.name}" required="true" taborderhint="1" />
+                <apex:pageblocksectionitem />
+                <!-- Row 2-->
+                <apex:inputfield value="{!account.Customer_Name_PE_Eng__c}" taborderhint="11" />
+                <apex:outputField value="{!account.Account_Type__c}" />
+                <!-- Row 3-->
+                <apex:inputfield value="{!account.Customer_Type__c}" required="true" taborderhint="13" />
+                <apex:outputfield value="{!account.Disqualified_Reason__c}"  />
+                <!-- Row 4 -->
+                <apex:pageblocksectionitem helptext="Depends on 'Customer Type'">
+                    <apex:outputlabel value="{!$ObjectType.Account.Fields.ID_Type_PE__c.label}" for="idpe" />
+                    <apex:inputfield value="{!account.ID_Type_PE__c}" id="idpe" taborderhint="15" />
+                </apex:pageblocksectionitem>  
+                <!-- Row 5 -->
+                    <apex:pageBlockSectionItem >
+                    <apex:outputLabel >Owner</apex:outputLabel>
+                    <apex:outputfield value="{!account.Owner.Name}"/>
+                </apex:pageBlockSectionItem> 
+                    <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Account.Fields.NID__c.label}"/>
+                    <apex:outputfield value="{!account.NID__c}"/>
+                    </apex:pageBlockSectionItem> 
+                     <apex:inputHidden value="{!account.ID_Number_PE__c}" />
+                
+                <!-- Row 6 -->
+                
+                <!-- Row 10  -->
+                
+            </apex:pageblocksection>
+                
+                <apex:pageblocksection title="Detail Information" columns="2">
+                <!-- Row 1-->
+                <apex:inputfield value="{!account.Rating}" taborderhint="27" />
+                <apex:inputfield value="{!account.Industry__c}" taborderhint="28" />
+                <!-- Row 3-->
+                <apex:inputfield value="{!account.ParentId}" taborderhint="29" />
+                <apex:inputfield value="{!account.Sales_amount_per_year__c}" taborderhint="30" />
+                <!-- Row 3-->
+                <apex:inputfield value="{!account.Group__c}" taborderhint="31" />
+                <apex:inputfield value="{!account.No_of_years_business_run__c}" taborderhint="32" />
+                <!-- Row 4-->
+                <apex:inputfield value="{!account.Account_Plan_Flag__c}" taborderhint="33" />
+                <apex:inputfield value="{!account.Account_Plan_Form__c}" taborderhint="33" />
+            	</apex:pageblocksection>
+
+				<!-- Detail 1-->
+            	<apex:outputPanel id="CustomerInformation">
+                <apex:outputPanel id="preloadSectionCustInfo" rendered="{!isLoading}">
+                <apex:pageBlock mode="loading" >
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem >   
+                        Loading.............
+                        </apex:pageBlockSectionItem>   
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </apex:outputPanel>
+            	<apex:outputPanel id="displaySectionCustInfo" rendered="{!isLoadSuccess}">
+                	<apex:outputPanel rendered="{!isVisible}">
+            			<apex:pageblocksection title="Customer Information" columns="2">
+                <apex:inputfield value="{!account.Mobile_Number_PE__c}" taborderhint="19" />
+                <apex:inputfield value="{!account.Primary_Address_Line_1_PE__c}" taborderhint="16" />
+                <!-- Row 5 -->
+                <apex:inputfield value="{!account.Phone}" taborderhint="21" />
+                <apex:inputfield value="{!account.Primary_Address_Line_2_PE__c}" taborderhint="18" />
+                <!-- Row 6 -->
+                <apex:inputfield value="{!account.Primary_Phone_Ext_PE__c}" taborderhint="23" />
+                <apex:inputfield value="{!account.Primary_Address_Line_3_PE__c}" taborderhint="20" />
+                <!-- Row 7 -->
+                <apex:inputfield value="{!account.Email_Address_PE__c}" taborderhint="25" />
+                <apex:inputfield value="{!account.Province_Primary_PE__c}" taborderhint="22" />
+                <!-- Row 8 -->
+                <apex:outputText value="" />
+                <apex:inputfield value="{!account.Zip_Code_Primary_PE__c}" taborderhint="24" />
+                <!-- Row 9 -->
+                <apex:outputText value="" />
+                <apex:inputfield value="{!account.Country_Primary_PE__c}" taborderhint="26" />
+                <!-- Row 10  -->
+                
+            </apex:pageblocksection>
+                  </apex:outputPanel>
+                	<apex:outputPanel rendered="{!!isVisible}">
+            			<apex:pageblocksection title="Customer Information" columns="2">
+                <!-- Row 1-->
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Account.Fields.Mobile_Number_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                    </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Account.Fields.Primary_Address_Line_1_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                 </apex:pageBlockSectionItem> 
+                <!-- Row 5 -->
+                            <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Account.Fields.Phone.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                    </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Account.Fields.Primary_Address_Line_2_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                    </apex:pageBlockSectionItem>
+                <!-- Row 6 -->
+                 <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Account.Fields.Primary_Phone_Ext_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                    </apex:pageBlockSectionItem>
+                 <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Account.Fields.Primary_Address_Line_3_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                    </apex:pageBlockSectionItem>
+                <!-- Row 7 -->
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Account.Fields.Email_Address_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                    </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Account.Fields.Province_Primary_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                    </apex:pageBlockSectionItem>
+                <!-- Row 8 -->
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel value=""></apex:outputLabel>
+                        <apex:outputText value="" />
+                    </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Account.Fields.Zip_Code_Primary_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                    </apex:pageBlockSectionItem>
+                <!-- Row 9 -->
+                 <apex:pageBlockSectionItem >
+                        <apex:outputLabel value=""></apex:outputLabel>
+                        <apex:outputText value="" />
+                    </apex:pageBlockSectionItem>
+                <apex:pageBlockSectionItem >
+                        <apex:outputLabel value="{!$ObjectType.Account.Fields.Country_Primary_PE__c.label}"></apex:outputLabel>
+                        <apex:outputText value="{!hiddenText}" />
+                    </apex:pageBlockSectionItem>
+                <!-- Row 10  -->
+            </apex:pageblocksection>
+                  </apex:outputPanel>
+                </apex:outputPanel>
+            </apex:outputPanel>
+              	<!-- Detail 2-->
+                <apex:outputPanel id="ProductInterest" >
+                    <apex:outputPanel id="preloadSectionProdInterest" rendered="{!isLoading}">
+                <apex:pageBlock mode="loading" >
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem >   
+                        Loading.............
+                        </apex:pageBlockSectionItem>   
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </apex:outputPanel>
+                    <apex:outputPanel id="displaySectionProdInterest" rendered="{!isLoadSuccess}">
+                        <apex:outputPanel rendered="{!isVisible}">
+                     		 <apex:pageblocksection title="Product Interest" columns="2">
+                <!-- Row 1-->
+                <apex:inputfield value="{!account.Product_Group_1__c}" taborderhint="34" />
+                <apex:inputfield value="{!account.Amount_1__c}" taborderhint="35" />
+                <!-- Row 2-->
+                <apex:inputfield value="{!account.Product_Group_2__c}" taborderhint="36" />
+                <apex:inputfield value="{!account.Amount_2__c}" taborderhint="37" />
+                <!-- Row 3-->
+                <apex:inputfield value="{!account.Product_Group_3__c}" taborderhint="38" />
+                <apex:inputfield value="{!account.Amount_3__c}" taborderhint="39" />
+            </apex:pageblocksection>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!!isVisible}">
+                     		 <apex:pageblocksection title="Product Interest" columns="2">
+                <!-- Row 1-->
+                                 <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Product_Group_1__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem> 
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Amount_1__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem> 
+                <!-- Row 2-->
+                                 <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Product_Group_2__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem> 
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Amount_2__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem>
+                <!-- Row 3-->
+                                 <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Product_Group_3__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem> 
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Amount_3__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem>
+            </apex:pageblocksection>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                     </apex:outputPanel>
+                <!-- Detail 3-->
+                <apex:outputPanel id="CustomerSource" >
+                    <apex:outputPanel id="preloadSectionCustSource" rendered="{!isLoading}">
+                <apex:pageBlock mode="loading" >
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem >   
+                        Loading.............
+                        </apex:pageBlockSectionItem>   
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </apex:outputPanel>
+                    <apex:outputPanel id="displaySectionCustSource" rendered="{!isLoadSuccess}">
+                        <apex:outputPanel rendered="{!isVisible}">
+                     		<apex:pageblocksection title="Customer Source" columns="2">
+                <!-- Row 1-->
+                <apex:inputfield value="{!account.Channel__c}" taborderhint="39" />
+                <apex:inputfield value="{!account.Other_Channel__c}" taborderhint="40" />
+                <!-- Row 2-->
+                <apex:inputfield value="{!account.Branch_Referred__c}" taborderhint="41" />
+                <apex:inputfield value="{!account.Campaign_ID__c}" taborderhint="42" />
+                <!-- Row 3-->
+                <apex:inputfield value="{!account.TMB_Employee_ID__c}" taborderhint="43" />
+                <apex:inputfield value="{!account.Remark__c}" taborderhint="44" />
+                <!-- Row 4-->
+                <apex:inputfield value="{!account.TMB_Employee_Name__c}" taborderhint="44" />
+            </apex:pageblocksection>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!!isVisible}">
+                     		<apex:pageblocksection title="Customer Source" columns="2">
+                <!-- Row 1-->
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Channel__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem> 
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Other_Channel__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem>
+                <!-- Row 2-->
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Branch_Referred__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem> 
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Campaign_ID__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem>
+                <!-- Row 3-->
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.TMB_Employee_ID__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem> 
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Remark__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem>
+                <!-- Row 4-->
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.TMB_Employee_Name__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem>
+            </apex:pageblocksection>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                    </apex:outputPanel>
+                <!-- Detail 4 -->
+                <apex:outputPanel id="ReassignmentCustomer">
+                    <apex:outputPanel id="preloadSectionReassCust" rendered="{!isLoading}">
+                <apex:pageBlock mode="loading" >
+                    <apex:pageBlockSection columns="1">
+                        <apex:pageBlockSectionItem >   
+                        Loading.............
+                        </apex:pageBlockSectionItem>   
+                    </apex:pageBlockSection>
+                </apex:pageBlock>
+            </apex:outputPanel>
+                    <apex:outputPanel id="displaySectionReassCust" rendered="{!isLoadSuccess}">
+                        <apex:outputPanel rendered="{!isVisible}">
+                     		<apex:pageblocksection title="Re-assignment Customer" columns="2">
+                <!-- Row 1-->
+                <apex:inputfield value="{!account.Branch_and_Zone__c}" taborderhint="45" />
+                <apex:outputfield value="{!account.Suggested_Segment__c}"  />
+                <!-- Row 2-->
+                <apex:pageblocksectionitem />
+                <apex:outputfield value="{!account.Suggested_Sub_Segment__c}"  />
+            </apex:pageblocksection>
+                        </apex:outputPanel>
+                        <apex:outputPanel rendered="{!!isVisible}">
+                     		<apex:pageblocksection title="Re-assignment Customer" columns="2">
+                <!-- Row 1-->
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Branch_and_Zone__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem> 
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Suggested_Segment__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem> 
+                <!-- Row 2-->
+                                <apex:pageBlockSectionItem >
+                        			<apex:outputLabel value="{!$ObjectType.Account.Fields.Suggested_Sub_Segment__c.label}"></apex:outputLabel>
+                        			<apex:outputText value="{!hiddenText}" />
+                 				</apex:pageBlockSectionItem> 
+            				</apex:pageblocksection>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                    </apex:outputPanel>
+        </apex:pageblock>
+    </apex:form>
+    <script type="text/javascript">
+        function startLoading(text){
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading(){
+            $('.loadingBox').hide();
+        }
+        $(document).ready(function () {
+ 				loadDataCustInfo();
+        		loadDataProdInterest();
+        		loadDataCustSource();
+        		loadDataReassCust();     
+        });
+        function noenter(ev)  {
+            if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+                save();
+                return false;
+            } else {
+                return true;
+            }
+        }
+        function save(){
+            //checkID();
+            doSave();
+        }
+    </script>
+</apex:page>

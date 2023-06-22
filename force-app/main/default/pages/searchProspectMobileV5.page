@@ -1,0 +1,902 @@
+<apex:page standardController="Search__c" tabStyle="Account" extensions="SearchControllerExV5" id="thePage"
+    showHeader="false" standardstylesheets="true" lightningStylesheets="true">
+    <apex:slds />
+    
+    <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:includeScript value="/support/console/33.0/integration.js" />
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+    <!--Include stylesheets for the mobile look and feel -->
+    <apex:stylesheet value="{!URLFOR($Resource.SLOS)}" />
+    <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system-vf.css')}" />
+    <apex:stylesheet value="{!URLFOR($Resource.Mobile_Design_Templates,'Mobile-Design-Templates-master/common/css/app.min.css')}"
+    />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    <!-- <apex:actionStatus onstart="startLoading();" onstop="endLoading();" id="loadStatus" /> -->
+    
+    <apex:actionstatus id="loadStatus">
+        <apex:facet name="start">
+            <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                <div id="spinner" role="status" class="slds-spinner slds-spinner_medium">
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div>
+        </apex:facet>
+    </apex:actionstatus>
+   
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <style>
+        .pageTitleIcon {
+            background-position: initial;
+            display: block !important;
+            background-image:  url(/apexpages/slds/latest/assets/icons/custom/custom15.svg);
+            /* background-image: "{!URLFOR($Asset.SLDS, '/assets/icons/custom-sprite/svg/symbols.svg#custom15')}"; */
+            background-color: #f77e75;
+            background-size: contain;
+            background-position: 0 0;
+        }
+        tr.dataRow {
+            background-color: white;
+        }
+
+        tr.dataRow:hover {
+            background-color: #e3f3ff;
+        }
+
+        .buttommargin {
+            margin-bottom: 10px;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+
+        select {
+            width: auto !important;
+            height: auto !important;
+            padding: 3px !important;
+            font-size: auto !important;
+        }
+
+        input[type=text],
+        select {
+            border: 1px solid #ccc !important;
+            width: 140px !important;
+            padding-top: 8px;
+        }
+
+        /* input[type=checkbox],input[type=radio]{width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;}             */
+
+        .sf1List {
+            margin: 0;
+            display: list-item;
+            padding: 14px;
+            border-bottom: solid 1px #cfd4d9;
+            list-style: none;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            color: rgb(60, 61, 62);
+        }
+
+        .sf1List:first-child {
+            border-radius: 4px 4px 0px 0px;
+        }
+
+        .sf1List:last-child {
+            border-radius: 0px 0px 4px 4px;
+            border-bottom: none;
+        }
+
+        .sf1List a {
+            display: block;
+            width: 100%;
+            height: 100%;
+            text-decoration: none;
+            color: rgb(60, 61, 62);
+        }
+    </style>
+    <style type="text/css">
+        @media (max-width: 500px) {
+            .bootstrap-sf1 .form-horizontal .form-group {
+                margin-left: -10px;
+                margin-right: -10px;
+            }
+            .dateOnlyInput .dateFormat {
+                top: 25px;
+            }
+            /* input[type="checkbox"], input[type="radio"] {
+                height: 30px;
+                width: 50px;
+            } */
+            .bootstrap-sf1 .form-horizontal .checkbox {
+                margin-bottom: 5px;
+            }
+            .bootstrap-sf1 .radio label,
+            .bootstrap-sf1 .checkbox label {
+                padding-left: 40px;
+            }
+            .bootstrap-sf1 .radio input[type="radio"],
+            .bootstrap-sf1 .radio-inline input[type="radio"],
+            .bootstrap-sf1 .checkbox input[type="checkbox"],
+            .bootstrap-sf1 .checkbox-inline input[type="checkbox"] {
+                position: absolute;
+                margin-left: -45px;
+                top: -5px;
+            }
+            .bootstrap-sf1 {
+                overflow: hidden;
+            }
+            .bootstrap-sf1 .container {
+                padding-left: 0px;
+                padding-right: 0px;
+            }
+            .bootstrap-sf1 .page-header[class*="context-"] {
+                position: relative;
+                padding-top: 14px;
+                margin: -15px -15px 10px -15px;
+            }
+        }
+
+        .bootstrap-sf1 {
+            background-color: #FFF;
+        }
+    </style>
+
+    <!-- svg loader style -->
+    <style>
+        .Indicator {
+            /*position : relative;*/
+        }
+
+        .Indicator.hidden {
+            display: none;
+        }
+
+        .Indicator .modal-glass {
+            background-color: #000000;
+            bottom: 0;
+            display: block;
+            left: 0;
+            margin-left: 0px;
+            opacity: 0.3;
+            position: fixed;
+            right: 0;
+            top: 0;
+            height: 100%;
+            z-index: 1999;
+        }
+
+        .Indicator .hideEl {
+            display: none;
+        }
+
+        .Indicator .indicatorContainer {
+            background: none repeat scroll 0 0 #354452;
+            border-radius: 5px;
+            color: #FFFFFF;
+            display: block;
+            height: 82px;
+            left: 0;
+            margin: -65px auto;
+            opacity: 0.9;
+            padding-top: 22px;
+            position: fixed;
+            right: 0;
+            text-align: center;
+            top: 250px;
+            width: 110px;
+            z-index: 2000;
+        }
+
+        table.messageTable {
+            width: 95%;
+        }
+
+        /*Set the color of the icon*/
+
+        svg path,
+        svg rect {
+            fill: #2A94D6;
+        }
+
+        .text-blue-color {
+            color: #2a94d6;
+        }
+
+        .bootstrap-sf1 label {
+            margin-right: 10px;
+            margin-top: 5px;
+        }
+
+        #tabSearch a {
+            float: left;
+        }
+
+        .badge {
+            float: left;
+            position: relative;
+            top: 10px;
+            left: 0px;
+        }
+
+        .pbTitle {
+            width: 100% !important;
+        }
+
+        .apexp {
+            padding-left: 10px;
+            padding-right: 10px;
+        }
+
+        div.pbSubsection {
+            position: relative;
+        }
+
+        h3 {
+            
+            position: relative;
+        }
+    </style>
+
+    <!-- <div class="bootstrap-sf1 ">
+        <div class="container" style="margin-top:15px;">
+            <div class="page-header page-header-anchor context-account">
+                <div class="container" style="margin:auto auto; width: 350px;">
+                    <h1>Search Customer</h1>
+                </div>
+            </div>    
+        </div>
+    </div> -->
+
+
+    <div class="bootstrap-sf1 ">
+        <div class="container">
+
+            <apex:pageblock title="Account Detail" rendered="{!searchCustomer}">
+                <apex:outputpanel id="statusMessage">
+                    <apex:outputText >You are not authorized!</apex:outputText>
+
+                </apex:outputpanel>
+
+            </apex:pageblock>
+            
+            <apex:sectionHeader title="Search Customer" />
+            <apex:Form onkeypress="return noenter(event);" id="theForm" style="padding:5px;" rendered="{!!searchCustomer}">
+
+                <apex:actionFunction name="doSearch" action="{!search}" reRender="result,resultblock,Leadresultblock,buttons2" status="loadStatus"
+                />
+                <apex:actionFunction name="resetNext" action="{!resetNextButton}" reRender="buttons2,result,resultblock,Leadresultblock"
+                />
+
+                
+                <apex:pageMessages id="resultblock" />
+
+                        <div style="margin:auto auto; width: 350px;">
+
+                            <apex:panelGrid columns="3" id="theGrid">
+                                <apex:outputPanel ></apex:outputPanel>
+                                <apex:outputLabel value="Customer Type " styleClass="buttommargin">
+                                    <span class="red-label">*</span>
+                                </apex:outputLabel>
+
+                                <select id="custType" name="custType" style='width:140px;'>
+                                    <option value='--None--'>--None--</option>
+                                    <option value='Individual'>Individual</option>
+                                    <option value='Juristic'>Juristic</option>
+                                </select>
+
+                                <apex:inputCheckbox id="inputbutton" value="{!isInformation}" onclick="inputtype('info');" />
+                                <apex:outputLabel value="Customer Name " styleClass="labStyle" id="companyName"></apex:outputLabel>
+                                <apex:inputField value="{!account.First_name__c}" onkeyup="resetNext();" id="firstName" />
+                                <apex:outputPanel ></apex:outputPanel>
+                                <apex:outputLabel value="Mobile No." styleClass="labStyle" />
+                                <apex:inputField value="{!account.Mobile_Number_Temp__c}" onchange="resetNext();" id="mobileNum" />
+                                <apex:outputPanel ></apex:outputPanel>
+                                <apex:outputLabel value="Office No." styleClass="labStyle" />
+                                <apex:inputField value="{!account.Office_Number_Temp__c}" onchange="resetNext();" id="officeNum" />
+                                <apex:outputPanel ></apex:outputPanel>
+                                <apex:outputLabel value="ID Type " styleClass="labStyle" />
+                                <select id="idType" name="idType" style='width:140px;'>
+                                    <option value='--None--'>--None--</option>
+                                </select>
+                                <apex:outputPanel ></apex:outputPanel>
+                                <apex:outputLabel value="ID Number " styleClass="buttommargin" />
+                                <apex:inputField value="{!account.ID_Number_Temp__c}" onchange="resetNext();" styleClass="buttommargin" id="idNum" />
+                                <apex:inputCheckbox id="cusbutton" value="{!isCusOnly}" onclick="inputtype('cust');" />
+                                <apex:outputLabel value="TMB Customer ID " styleClass="labStyle" id="CusID">
+                                    <span class="red-label" id="custreddot">*</span>
+                                </apex:outputLabel>
+                                <apex:inputField value="{!account.TMB_Customer_ID_Temp__c}" id="tmbCust" />
+                                <apex:inputHidden value="{!isIDValid}" id="isIDValid" />
+
+                                <!-- Server Hidden Field -->
+                                <apex:inputHidden value="{!hdCusType}" id="hdCusType" />
+                                <apex:inputHidden value="{!hdIdType}" id="hdIdType" />
+                                <apex:inputHidden value="{!hdCheckBoxMode}" id="hdCheckBoxMode" />
+                                <apex:inputHidden value="{!isButtonDisabled}" id="isButtonDisabled" />
+                            </apex:panelGrid>
+                        </div>
+                    
+                    <!-- PageBlockButtons -->
+                    <!--<apex:PageBlockButtons location="bottom" >-->
+
+                    <div style="margin:15px auto; text-align:center;">
+                        <apex:commandButton value="Search" styleClass="btn btn-default " style="width:auto !important;height:auto !important;font-size:auto !important; "
+                            onclick="search();return false;" reRender="result,resultbutton,resultblock,Leadresultblock,buttons2"
+                            status="loadStatus" />&nbsp;
+                        <apex:commandButton value="Cancel" styleClass="btn btn-default " style="width:auto !important;height:auto !important;font-size:auto !important;top: 1px;margin:auto; "
+                            action="{!cancelSF1}" reRender="buttons2" />&nbsp;
+                        <apex:outputPanel id="buttons2">
+                            <apex:commandButton value="Next" styleClass="btn btn-default " style="width:auto !important;height:auto !important;font-size:auto !important; "
+                                id="btnNext" disabled="{!isButtonDisabled}" action="{!nextbuttonSF1}" Rerender="buttons2" status="loadStatus"/>
+                        </apex:outputPanel>
+                    </div>
+
+                    <!--</apex:PageBlockButtons>-->
+                
+
+                <div class="bootstrap-sf1 ">
+                    <div class="card-list">
+                        <apex:outputPanel id="result">
+                            <div class="card-list-heading">
+                                <h3 style="padding: 0;top :-1px;">Result</h3>
+                            </div>
+                            <apex:outputPanel id="AccountLeadResult" rendered="{!accounts.size>0 || leads.size>0}">
+                                <ul class="nav nav-tabs" id="tabSearch">
+                                    <li class="active">
+                                        <a aria-controls="customerblockSection" role="tab" data-toggle="tab" href="#customerblockSection">Customer</a>
+                                        <apex:outputPanel rendered="{!if(accounts.size > 0,'true','false')}">
+                                            <span class="badge" style="margin-left:5px;background-color:red;">{!noOfRecordsAccount}</span>
+                                        </apex:outputPanel>
+                                    </li>
+                                    <li>
+                                        <a aria-controls="leadeditblockSection" role="tab" data-toggle="tab" href="#leadeditblockSection">Lead</a>
+                                        <apex:outputPanel rendered="{!if(leads.size > 0,'true','false')}">
+                                            <span class="badge" style="margin-left:5px;background-color:red;">{!noOfRecordsLead}</span>
+                                        </apex:outputPanel>
+                                    </li>
+                                </ul>
+                                <div class="tab-content">
+                                    <div id="customerblockSection" role="tabpanel" class="tab-pane fade in active">
+                                        <apex:PageBlock id="customerblock">
+                                            <apex:outputPanel id="resultblock">
+                                                <apex:outputPanel id="resultNoAccount" rendered="{!accounts.size<=0}">
+                                                    <span style="text-align: center;">&nbsp;</span>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel id="result" rendered="{!accounts.size>0}">
+                                                    <apex:repeat value="{!accounts}" var="acc">
+                                                        <div class="card context-account">
+                                                            <div class="card-heading">
+                                                                <span>TMB Customer ID : {!acc.TMB_Customer_ID_PE__c}</span>
+                                                            </div>
+                                                            <ul class="card-detail">
+                                                                <span>Customer Name :&nbsp;</span>
+                                                                <apex:outputLink onclick="sforce.one.navigateToSObject('{!acc.Id}');return false;">{!acc.Name}</apex:outputLink>
+                                                                <!--<li>RM phone number :  {!acc.Owner.MobilePhone}</li>-->
+                                                                <li>ID Type : {!acc.ID_Type_PE__c}</li>
+                                                                <li>ID Number : {!acc.NID__c}</li>
+                                                                <li>Account Type : {!acc.Account_Type__c}</li>
+                                                                <li>Segment : {!acc.Core_Banking_Suggested_Segment__c}</li>
+                                                                <!-- <li>Address 1 :  {!acc.Primary_Address_Line_1_PE__c}</li> 
+                                                    <li>Address 2 :  {!acc.Primary_Address_Line_2_PE__c}</li>            
+                                                    <li>Address 3 :  {!acc.Primary_Address_Line_3_PE__c}</li>
+                                                    <li>Province :  {!acc.Province_Primary_PE__c}</li>
+                                                    <li>Zip code :  {!acc.Zip_Code_Primary_PE__c}</li>     -->
+                                                                <li>
+                                                                    <span>Account Owner Name : </span>
+                                                                    <apex:outputLink onclick="sforce.one.navigateToSObject('{!acc.OwnerId}');return false;">{!acc.Owner.Name}</apex:outputLink>
+                                                                    <!-- apex:commandLink value="{!acc.Owner.Name}" action="{!viewOwner}" onclick="return IsOnConsoleWay('{!acc.OwnerId}');"> 
+                                                            <apex:param name="ownerId" value="{!acc.OwnerId}" assignTo="{!ownerId}"/>
+                                                        </apex:commandLink -->
+                                                                </li>
+                                                                <li>Owner Team : {!acc.Sub_Segment2__c}</li>
+                                                            </ul>
+
+                                                        </div>
+                                                    </apex:repeat>
+
+                                                    <apex:panelGrid columns="4" style="margin: 15px auto;">
+                                                        <apex:commandLink action="{!first}" rendered="{!hasPrevious}" reRender="resultblock" status="loadStatus" style="margin-left: 15px;">First</apex:commandlink>
+                                                        <apex:commandLink action="{!previous}" rendered="{!hasPrevious}" reRender="resultblock" status="loadStatus" style="margin-left: 15px;">Previous</apex:commandlink>
+                                                        <apex:commandLink action="{!next}" rendered="{!hasNext}" reRender="resultblock" status="loadStatus" style="margin-left: 15px;">Next</apex:commandlink>
+                                                        <apex:commandLink action="{!last}" rendered="{!hasNext}" reRender="resultblock" status="loadStatus" style="margin-left: 15px;">Last</apex:commandlink>
+                                                    </apex:panelGrid>
+                                                </apex:outputPanel>
+                                            </apex:outputPanel>
+                                        </apex:PageBlock>
+                                    </div>
+
+                                    <div id="leadeditblockSection" role="tabpanel" class="tab-pane fade">
+                                        <apex:PageBlock id="leadeditblock">
+                                            <apex:outputPanel id="Leadresultblock">
+                                                <apex:outputPanel id="resultNoLeads" rendered="{!leads.size<=0}">
+                                                    <span style="text-align: center;">&nbsp;</span>
+                                                </apex:outputPanel>
+                                                <apex:outputPanel id="result" rendered="{!leads.size>0}">
+                                                    <apex:repeat value="{!Leads}" var="ld">
+                                                        <div class="card context-account">
+                                                            <div class="card-heading">
+                                                                <span>TMB Customer ID :&nbsp;</span>
+                                                            </div>
+                                                            <ul class="card-detail">
+                                                                <span>Customer Name :&nbsp;</span>
+                                                                <apex:outputLink onclick="sforce.one.navigateToSObject('{!ld.Id}');return false;">{!ld.Company}</apex:outputLink>
+
+                                                                <!--<li>RM phone number :  {!ld.Owner.Phone}</li>-->
+
+                                                                <li>ID Type : {!ld.ID_Type__c}</li>
+                                                                <li>ID Number :
+                                                                    <apex:outputPanel rendered="{! IF(LEN( ld.ID_REGEX__c ) == 5 , true,false ) }">
+                                                                        <apex:outputText style="font-style:italic" value="{0}{!maskedLabel}{1}">
+                                                                            <apex:param value="{! LEFT(ld.ID_REGEX__c,1) }" />
+                                                                            <apex:param value="{! RIGHT(ld.ID_REGEX__c,4) }" />
+                                                                        </apex:outputText>
+                                                                    </apex:outputPanel>
+                                                                </li>
+                                                                <!--<li>ID Number : {!ld.ID_Number__c}</li> -->
+                                                                <!-- <li>Lead Type :  {!ld.Customer_Type__c}</li>
+                                                    <li>Segment :  {!ld.Owner_Segment__c}</li> -->
+                                                                <!--
+                                                    <li>Address 1 :  {!ld.Address_Line_1__c }</li> 
+                                                    <li>Address 2 :  {!ld.Address_Line_2__c }</li>            
+                                                    <li>Address 3 :  {!ld.Address_Line_3__c }</li>
+                                                    <li>Province :  {!ld.Province__c }</li>
+                                                    <li>Zip code :  {!ld.Zipcode__c }</li>   -->
+                                                                <li>
+                                                                    <span>Lead Owner Name : </span>
+                                                                    <apex:outputLink onclick="sforce.one.navigateToSObject('{!ld.OwnerId}');return false;">{!ld.Owner.Name}</apex:outputLink>
+                                                                    <!-- apex:commandLink value="{!ld.Owner.Name}" action="{!viewOwner}" onclick="return IsOnConsoleWay('{!ld.OwnerId}');"> 
+                                                            <apex:param name="ownerId" value="{!ld.OwnerId}" assignTo="{!ownerId}"/>
+                                                        </apex:commandLink -->
+                                                                </li>
+                                                                <li>Lead Owner Team : {!ld.Owner_Team_Zone__c }</li>
+                                                            </ul>
+
+                                                        </div>
+                                                    </apex:repeat>
+
+                                                    <apex:panelGrid columns="4" style="margin: 15px auto;">
+                                                        <apex:commandLink action="{!Leadfirst}" rendered="{!LeadhasPrevious}" reRender="Leadresultblock" status="loadStatus" style="margin-left: 15px;">First</apex:commandlink>
+                                                        <apex:commandLink action="{!Leadprevious}" rendered="{!LeadhasPrevious}" reRender="Leadresultblock" status="loadStatus" style="margin-left: 15px;">Previous</apex:commandlink>
+                                                        <apex:commandLink action="{!Leadnext}" rendered="{!LeadhasNext}" reRender="Leadresultblock" status="loadStatus" style="margin-left: 15px;">Next</apex:commandlink>
+                                                        <apex:commandLink action="{!Leadlast}" rendered="{!LeadhasNext}" reRender="Leadresultblock" status="loadStatus" style="margin-left: 15px;">Last</apex:commandlink>
+                                                    </apex:panelGrid>
+                                                </apex:outputPanel>
+                                            </apex:outputPanel>
+                                        </apex:PageBlock>
+                                    </div>
+                                </div>
+                            </apex:outputPanel>
+                        </apex:outputPanel>
+                    </div>
+                </div>
+
+            </apex:Form>
+        </div>
+    </div>
+
+
+    <!-- /Loadding ajax -->
+    <!-- <div id="loadingImage" class="Indicator">
+        <div class="modal-glass">&nbsp;</div>
+        <div class="indicatorContainer" role="alert">
+            <div class="loader" title="0">
+                <svg version="1.1" id="loader-1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+                    width="40px" height="40px" viewBox="0 0 40 40" enable-background="new 0 0 40 40" xml:space="preserve">
+                    <path opacity="0.2" fill="#000" d="M20.201,5.169c-8.254,0-14.946,6.692-14.946,14.946c0,8.255,6.692,14.946,14.946,14.946
+                                                           s14.946-6.691,14.946-14.946C35.146,11.861,28.455,5.169,20.201,5.169z M20.201,31.749c-6.425,0-11.634-5.208-11.634-11.634
+                                                           c0-6.425,5.209-11.634,11.634-11.634c6.425,0,11.633,5.209,11.633,11.634C31.834,26.541,26.626,31.749,20.201,31.749z">
+                    </path>
+                    <path fill="#000" d="M26.013,10.047l1.654-2.866c-2.198-1.272-4.743-2.012-7.466-2.012h0v3.312h0
+                                             C22.32,8.481,24.301,9.057,26.013,10.047z">
+                        <animateTransform attributeType="xml" attributeName="transform" type="rotate" from="0 20 20" to="360 20 20" dur="0.5s" repeatCount="indefinite">
+                        </animateTransform>
+                    </path>
+                </svg>
+                
+            </div>
+            <div id="Indicator-message">Loading ...</div>
+        </div>
+    </div> -->
+    <!-- Loading ajax -->
+   
+    
+
+    <script type="text/javascript">
+        // Globle variable
+        var firstName;
+        var lastName;
+        var mobileNum;
+        var officeNum;
+        var idNum;
+        var tmbCust;
+        var idType;
+        var isButtonDisabled;
+        var hdCheckBoxMode;
+        var hdCusType;
+        var hdIdType;
+        var btnNext;
+        var individualOptions = {
+            '': '--None--',
+            'Alien ID': 'Alien ID',
+            'Citizen ID': 'Citizen ID',
+            'Passport ID': 'Passport ID',
+            'Work Permit ID': 'Work Permit ID'
+        };
+        var juristicOptions = {
+            '': '--None--',
+            'BRN ID': 'BRN ID'
+        };
+
+        var sfView = (function () {
+            var indicator = $("#loadingImage");
+            var msg = $("#Indicator-message");
+            // All functions now have direct access to each other
+            var onProcess = function (strmessage) {
+                msg.text(strmessage);
+                indicator.removeClass('hidden');
+            };
+            var onComplete = function () {
+                indicator.addClass('hidden');
+            };
+            // Return the object that is assigned to Module
+            return {
+                onProcess: onProcess,
+                onComplete: onComplete
+            };
+        }());
+
+        function navTo(objID) {
+            if ((typeof sforce != 'undefined') && (sforce != null)) {
+                //alert("sforce.one");
+                //sforce.one.navigateToURL(objID); 
+                sforce.one.navigateToSObject(objID, "detail");
+            }
+            else {
+                window.location.href = window.location.protocol + "//" + window.location.hostname + "/" + objID;
+            }
+
+
+        }
+
+        function navToURL(ObjId) {
+
+            startLoading('Loading ...');
+            // Go back to the Account detail page
+            if ((typeof sforce != 'undefined') && (sforce != null)) {
+                // Salesforce1 navigation
+                //sforce.one.navigateToSObject('{!$CurrentPage.parameters.accid}');
+                sforce.one.navigateToURL('/apex/AccountCreationPEMobile');
+                //window.location.href = '/apex/AccountCreationPEMobile';
+            }
+            //sforce.one.navigateToURL('/apex/searchProspectMobile');
+            window.location.href = '/apex/AccountCreationPEMobile';
+
+
+        }
+
+
+
+        function startLoading() {
+            sfView.onProcess('Loading ...');
+        }
+
+        function endLoading() {
+            sfView.onComplete();
+        }
+
+
+        function noenter(ev) {
+            if (window.event && window.event.keyCode == 13 || ev.which == 13) {
+                search();
+                return false;
+            }
+            else {
+                return true;
+            }
+        }
+
+        function search() {
+            checkID();
+            LogFormValue();
+            doSearch();
+        }
+        // inputtype
+        function inputtype(checked) {
+            var cusbutton = $('[id$=cusbutton]');
+            var inputbutton = $('[id$=inputbutton]');
+            var custType = $('[id$=custType]');
+            var namedot = $('[id$=namedot]');
+            var custdot = $('[id$=custdot]');
+
+            if (checked == 'info') {
+                cusbutton.attr('checked', false);
+                inputbutton.attr('checked', true);
+            }
+            else if (checked == 'cust') {
+                inputbutton.attr('checked', false);
+                cusbutton.attr('checked', true);
+            }
+            if (checked == 'info') {
+                hdCheckBoxMode.val('info');
+                cusbutton.attr('checked', false);
+                tmbCust.attr('disabled', 'disabled');
+                tmbCust.val('');
+                custType.attr('disabled', false);
+                firstName.attr('disabled', false);
+                lastName.attr('disabled', false);
+                mobileNum.attr('disabled', false);
+                officeNum.attr('disabled', false);
+                idType.attr('disabled', false);
+                idNum.attr('disabled', false);
+
+                lastName.removeAttr('disabled');
+                if (hdCusType.val() == 'Juristic') {
+                    lastName.attr('disabled', 'disabled');
+                }
+            }
+            else {
+
+                hdIdType.val('');
+                hdCheckBoxMode.val('cust');
+                // console.log(' hdIdType value is '+  hdIdType.val()); 
+                inputbutton.attr('checked', false);
+                firstName.attr('disabled', 'disabled');
+                firstName.val('');
+                lastName.attr('disabled', 'disabled');
+                lastName.val('');
+                mobileNum.attr('disabled', 'disabled');
+                mobileNum.val('');
+                officeNum.attr('disabled', 'disabled');
+                officeNum.val('');
+                idType.attr('disabled', 'disabled');
+                idType.val('');
+                idNum.attr('disabled', 'disabled');
+                idNum.val('');
+                tmbCust.attr('disabled', false);
+            }
+
+            LogFormValue();
+            WebresetNext();
+        }
+        // end inputtype
+
+        // citizen id check
+        function checkID() {
+            var isValid = $("[id$=isIDValid]");
+            var id = $("[id$=idNum]").val();
+            if (id.length != 13) {
+                isValid.val(false);
+                return false;
+            }
+            for (i = 0, sum = 0; i < 12; i++) {
+                sum += parseFloat(id.charAt(i)) * (13 - i);
+            }
+
+            if ((11 - sum % 11) % 10 != parseFloat(id.charAt(12))) {
+                isValid.val(false);
+                return false;
+            }
+            isValid.val(true);
+            return true;
+        }
+        // end citizen id check
+
+        // runs after everything has finished loading. image
+        window.onload = function () {
+            $('[id$=inputbutton]').attr('checked', 'disabled');
+            $('[id$=tmbCust]').attr('disabled', 'disabled');
+            $('[id$=idType]').attr('disabled', 'disabled');
+            //endLoading();
+            setTimeout(function () { sfView.onComplete(); }, 2000);
+        }
+
+        // Disable function
+        jQuery.fn.extend({
+            disable: function (state) {
+                return this.each(function () {
+                    this.disabled = state;
+                });
+            }
+        });
+
+        // Run when html loaded
+        $(document).ready(function () {
+            // get dom
+            firstName = $('[id$=firstName]');
+            lastName = $('[id$=lastName]');
+            mobileNum = $('[id$=mobileNum]');
+            officeNum = $('[id$=officeNum]');
+            idNum = $('[id$=idNum]');
+            tmbCust = $('[id$=tmbCust]');
+            idType = $('[id$=idType]');
+            hdCusType = $('[id$=hdCusType]');
+            hdIdType = $('[id$=hdIdType]');
+            hdCheckBoxMode = $('[id$=hdCheckBoxMode]');
+            isButtonDisabled = $('[id$=isButtonDisabled]');
+            btnNext = $('[id$=btnNext]');
+            //startLoading();
+            setTimeout(function () { sfView.onComplete(); }, 2000);
+
+            $('#custType').on('change', CustomerTypeOptionChange);
+            $('#idType').on('change', IdTypeOptionChange);
+            $('[id$=tmbCust]').mouseleave(function () {
+
+                var el = $(this);
+                var oldValue = el.val();
+                if (oldValue.length <= 26) {
+                    //console.log("Less Than 26");                
+                    var newValue = '0011' + pad(oldValue, 26, '0', 1);
+                    //console.log(newValue);
+                    el.val(newValue);
+                }
+                WebresetNext();
+
+            });
+
+
+
+            hdCheckBoxMode.val('info');
+            LogFormValue();
+
+            $('#tabSearch a').click(function (e) {
+                //e.preventDefault();
+                //alert('test');
+                $(this).tab('show');
+            })
+        });
+        function WebresetNext() {
+            isButtonDisabled = 'true';
+            $('[id$=btnNext]').disable(true);
+            $('[id$=btnNext]').addClass('btnDisabled');
+            $('[id$=result] .message').hide();
+        }
+        function CustomerTypeOptionChange() {
+
+            startLoading();
+            var el = $(this);
+            idType.find('option').remove().end();
+            if (hdCheckBoxMode.val() == 'info') {
+                clearForm();
+                hdCusType.val(el.val());
+                if (el.val() == 'Juristic') {
+                    lastName.attr('disabled', 'disabled');
+                    idType.removeAttr('disabled');
+                    $.each(juristicOptions, function (val, text) {
+                        idType.append(
+                            $('<option></option>').val(val).html(text)
+                        );
+                    });
+                }
+                else if (el.val() == 'Individual') {
+                    idType.removeAttr('disabled');
+                    $.each(individualOptions, function (val, text) {
+                        idType.append(
+                            $('<option></option>').val(val).html(text)
+                        );
+                    });
+                }
+                else {
+                    idType.append($('<option></option>').val('--None--').html('--None--'));
+                }
+                if (hdCusType.val() == 'Juristic') {
+                    lastName.attr('disabled', 'disabled');
+                }
+                else {
+                    lastName.removeAttr('disabled');
+                }
+            }
+            else {
+                clearForm();
+                hdCusType.val(el.val());
+                if (el.val() == 'Juristic') {
+                    $.each(juristicOptions, function (val, text) {
+                        idType.append(
+                            $('<option></option>').val(val).html(text)
+                        );
+                    });
+                }
+                else if (el.val() == 'Individual') {
+
+                    $.each(individualOptions, function (val, text) {
+                        idType.append(
+                            $('<option></option>').val(val).html(text)
+                        );
+                    });
+
+                }
+                else {
+                    idType.append($('<option></option>').val('--None--').html('--None--'));
+                }
+            }
+
+            hdIdType.val('');
+            endLoading();
+            LogFormValue();
+            // resetNext();
+            WebresetNext();
+            setTimeout(function () { endLoading(); }, 1000);
+        }
+        function IdTypeOptionChange() {
+
+            startLoading();
+            hdIdType.val('');
+            var select = $(this);
+            var newVal = select.val();
+            hdIdType.val(newVal);
+            endLoading();
+            LogFormValue();
+
+        }
+        function clearForm() {
+            //firstName.val('');               
+            lastName.val('');
+            mobileNum.val('');
+            officeNum.val('');
+            idNum.val('');
+            tmbCust.val('');
+            hdCusType.val('');
+        }
+        function WebCustTypeSelected() {
+            console.debug('WebCustTypeSelected Pre Process');
+
+            CustTypeSelected();
+            console.debug('WebCustTypeSelected Post Process');
+            var el = $('[id$=custType]');
+            resetNext();
+            var lastName = $('[id$=lastName]');
+            if ($(el).val() == 'Juristic') {
+                lastName.value = '';
+                lastName.attr('disabled', 'disabled');
+
+            } else {
+                lastName.attr('disabled', 'disabled');
+            }
+            console.debug('WebCustTypeSelected Done Process');
+
+        }
+        function LogFormValue() {
+            /*  console.log('============================================'); 
+            console.log('1. Customer Type :'+  hdCusType.val()); 
+            console.log('2. First Name/Company Name :'+  firstName.val()); 
+            console.log('3. Last Name :'+  lastName.val()); 
+            console.log('4. Mobile Number :'+  mobileNum.val()); 
+            console.log('5. Office Number :'+  officeNum.val()); 
+            console.log('6. ID Type :'+  hdIdType.val()); 
+            console.log('7. ID Number :'+  idNum.val());
+            console.log('8. TMB Customer ID :'+  tmbCust.val());
+            console.log('9. Mode :'+  hdCheckBoxMode.val()); */
+        }
+        // javascript pad string
+        var STR_PAD_LEFT = 1;
+        var STR_PAD_RIGHT = 2;
+        var STR_PAD_BOTH = 3;
+        function pad(str, len, pad, dir) {
+
+            if (typeof (len) == "undefined") { var len = 0; }
+            if (typeof (pad) == "undefined") { var pad = ' '; }
+            if (typeof (dir) == "undefined") { var dir = STR_PAD_RIGHT; }
+            if (len + 1 >= str.length) {
+                switch (dir) {
+                    case STR_PAD_LEFT:
+                        str = Array(len + 1 - str.length).join(pad) + str;
+                        break;
+
+                    case STR_PAD_BOTH:
+                        var right = Math.ceil((padlen = len - str.length) / 2);
+                        var left = padlen - right;
+                        str = Array(left + 1).join(pad) + str + Array(right + 1).join(pad);
+                        break;
+
+                    default:
+                        str = str + Array(len + 1 - str.length).join(pad);
+                        break;
+
+                } // switch                
+            }
+            return str;
+        }
+    </script>
+
+</apex:page>

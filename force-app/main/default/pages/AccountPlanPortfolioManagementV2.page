@@ -1,0 +1,717 @@
+<apex:page standardcontroller="AcctPlanPortfolio__c" extensions="AccountPlanPortfolioManagementCtrlV2"
+           doctype="html-5.0" showchat="false" showheader="true" sidebar="false"
+           applybodytag="false" applyhtmltag="true" standardstylesheets="true">
+    <head>
+        <title>Portfolio Management</title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Nuttanun S." />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->
+        <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+        <style>
+            .outputText {
+                padding-top: 7px;
+                background-color: #b2a1c7;
+            }
+
+            .modal-dialog {
+                width: 700px !important;
+            }
+            .event-paging{
+                width: 50px;
+                display: inline-table;
+                margin: 10px 0px;
+            }
+            .index-paging{
+                color: #acacac;
+                font-size: 13px;
+            }
+        </style>
+    </head>
+    <body>
+    <div id="main-wrapper" style='display:none;'> 
+        <apex:actionstatus id="status">
+            <apex:facet name="start">
+                <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                    &nbsp;
+                </div>
+                <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                    <img src="/img/loading32.gif" />
+                </div>
+            </apex:facet>
+        </apex:actionstatus>
+
+        <div class="bootstrap-sf1">
+            <div id="responseErrors"></div>
+            <apex:form id="portfolioForm" styleclass="form-horizontal" style="margin-top:25px">
+                <apex:actionfunction name="approvalprocess" action="{!ApprovalExRemoteAction}" rerender="approvaltable,approvalouterpanel,updatepanel,targetPanel,editButtonLock,refreshButton" status="status" immediate="true" />
+                <apex:pageblock id="pgBlock">
+                    <fieldset>
+                        <legend>Portfolio Management</legend>
+                    </fieldset>
+
+
+
+                    <apex:outputpanel id="statusMessage">
+                        <apex:pagemessages ></apex:pagemessages>
+                    </apex:outputpanel>
+                    <div class="bootstrap-sf1 ">
+                        <div class="row">
+                            <div class="col-sm-12 col-md-12  col-lg-12">
+                                <ul class="nav nav-tabs">
+                                    <li class="active">
+                                        <a href="/apex/accountplanportfoliomanagementV2?id={!portfolio.id}">RM Portfolio</a>
+                                    </li>
+                                    <li class="">
+                                        <a href="/apex/AccountPlanPortfolioPerformance?PortID={!portfolio.id}">Portfolio Performance</a>
+                                    </li>
+
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <div style="text-align: center;">
+                            <apex:pageblockbuttons location="top" style="float:left;margin-left:150px;">
+                                <apex:outputpanel id="editButtonLock">
+                                    <apex:commandbutton value="Edit" action="{!redirect}" styleclass="btn btn-success"
+                                                        rendered="{!if(portfolio.SalesOwner__c == $User.Id && !portfolio.isPendingForApproval__c,'true','false')}" />
+                                    <span class="btn btn-default glyphicon glyphicon-lock"
+                                          rel="tooltip"
+                                          title="This record has been locked while pending Approval Process"
+                                          style="display:{!if(portfolio.isPendingForApproval__c,'grid','none')};margin-top:10px">Edit</span>
+                                </apex:outputpanel>
+                            </apex:pageblockbuttons>
+
+                        </div>
+                    </div>
+                    <div class="card collapse in panel-collapse">
+                        <div class="card-detail">
+                            <!--  Section 1 -->
+                            <fieldset>
+                                <div class="">
+                                    <div class="col-sm-8 col-md-8 col-lg-8">
+                                        <div class="form-group">
+                                            <apex:outputpanel id="targetPanel">
+                                                <div style="padding-top: 50px;">
+                                                    <table class="table" style="width:65%;">
+                                                        <thead>
+                                                            <tr>
+                                                                <td colspan="2" style="text-align:left">Unit : THB </td>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <tr>
+                                                                <td class="forceBackground" style="border: none;text-align:left;">Portfolio Owner</td>
+                                                                <td style="border: none;">
+                                                                    <span class="form-control text-right calculate" style="height: auto;">
+                                                                        <apex:outputfield value="{!portfolio.SalesOwner__c}" />
+                                                                    </span>
+                                                                </td>
+                                                                <td style="border: none;">&nbsp;</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="forceBackground" style="border: none;text-align:left;" width="35%">Year</td>
+                                                                <td style="border: none;">
+                                                                    <span class="form-control text-right calculate">
+                                                                        <apex:outputfield value="{!portfolio.Year__c}" />
+                                                                    </span>
+                                                                </td>
+                                                                <td style="border: none;" width="20%">&nbsp;</td>
+                                                            </tr>
+
+                                                            <tr>
+                                                                <td class="forceBackground" style="border: none;text-align:left;">Status</td>
+                                                                <td style="border: none;">
+                                                                    <span class="form-control text-right calculate">
+                                                                        <apex:outputfield value="{!portfolio.Status__c}" />
+                                                                    </span>
+                                                                </td>
+                                                                <td style="border: none;">&nbsp;</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="forceBackground" style="border: none;text-align:left;">Target NI</td>
+                                                                <td style="border: none;">
+                                                                    <span class="form-control text-right calculate">
+                                                                        <apex:outputfield value="{!portfolio.TargetNI__c}" />
+                                                                    </span>
+                                                                </td>
+                                                                <td style="border: none;text-align:left;"></td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="forceBackground" style="border: none;text-align:left;">No. of customers under RM</td>
+                                                                <td style="border: none;">
+                                                                    <apex:outputtext escape="true"
+                                                                                     value="{!tempCustomerNum}"
+                                                                                     styleclass="form-control text-right calculate" />
+                                                                </td>
+                                                                <td style="border: none;text-align:left;">customers</td>
+                                                            </tr>
+                                                            <tr>
+                                                                <td class="forceBackground" style="border: none;text-align:left;">No. of groups under RM</td>
+                                                                <td style="border: none;">
+                                                                    <apex:outputtext escape="true"
+                                                                                     value="{!tempGroupNum}"
+                                                                                     styleclass="form-control text-right calculate" />
+                                                                </td>
+                                                                <td style="border: none;text-align:left;">groups</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </apex:outputpanel>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div class="col-sm-12 col-md-12 col-lg-12">
+                                        <div class="form-group">
+                                            <apex:outputpanel id="div_data">
+                                                <div>
+                                                    <div style="text-align: left;">
+
+                                               <!-- <div class="alert alert-info" role="alert" style="display:{!if(IsRefreshGroup,'block','none')};">
+  {!afterrefreshgroupMsg}
+</div> -->
+
+
+<div class="alert alert-info text-left" role="alert"
+                                                                         style="width:100%;margin-right:25px;background-color: #FFFFCC;color:#000000;border-color:#3399FF;padding: 8px 20px 8px 20px; display:{!if(IsRefreshGroup,'block','none')};">
+                                                                         <i class="glyphicon glyphicon-info-sign" 
+                                                                         style="color: #006DCC;font-size: 24px;margin-right: 10px;
+    top: 5px;"></i>
+                                                                          <span>
+                                                                         {!afterrefreshgroupMsg}</span>
+                                                                         </div>
+
+                                                        <apex:outputpanel id="refreshButton">
+                                                            <apex:outputpanel rendered="{!if(portfolio.SalesOwner__c == $User.Id && !portfolio.isPendingForApproval__c,'true','false')}"
+                                                            >
+                                                             <!--<apex:commandlink action="{!Refreshfunction}"
+                                                                                  rerender="porttable,messages,filterpanel,targetPanel,div_data"
+                                                                                  styleclass="btn btn-primary glyphicon glyphicon-repeat"
+                                                                                  status="status"
+                                                                                  style="height:44px;padding-top: 10px;word-spacing: -7px;"
+                                                                                  onclick="if(!confirm('Refresh will retrieve and update information of groups and customers on this screen. Are you sure you want to continue?')) return false;"
+                                                                                  id="refreshpanel">
+                                                                                       
+                                                                                      &nbsp;Refresh&nbsp;Cust&nbsp;List
+                                                                                      </apex:commandlink>-->
+                                                                <apex:commandlink action="{!Refreshfunction}"
+                                                                                  rerender="porttable,messages,filterpanel,targetPanel,div_data,AchievementSection"
+                                                                                  styleclass="btn btn-primary glyphicon glyphicon-repeat"
+                                                                                  status="status"
+                                                                                  style="height:44px;padding-top: 10px;word-spacing: -7px;"
+                                                                                  onclick="if(!confirm('{!alertMsgCustomer}')) return false;"
+                                                                                  id="refreshpanel">
+                                                                                       
+                                                                                      &nbsp;Refresh&nbsp;Cust&nbsp;List
+                                                                                      </apex:commandlink>
+                                                                
+                                                                         </apex:outputpanel>
+                                                                <apex:outputpanel id="filterpanel">
+                                                                    &nbsp;Data as of
+                                                                    <label>
+                                                                        <apex:outputfield value="{!portfolio.RefreshAsOf__c}" />
+
+                                                                    </label>
+
+ 
+                                                                </apex:outputpanel>
+                                                            <div class="btn-group" style="float:right;width:{!if(portfolio.isPendingForApproval__c || portfolio.SalesOwner__c != $User.Id ,'150px;padding-bottom:15px;','395px')};">
+                                                                
+                                                                <apex:outputpanel id="refreshWalletButton" style="margin-right:15px;float:left;">
+                                                                <apex:outputpanel rendered="{!if(portfolio.SalesOwner__c == $User.Id && !portfolio.isPendingForApproval__c,'true','false')}">
+                                                                    <!--<apex:commandlink action="{!RefreshWalletFunction}"
+                                                                                  rerender="porttable,messages,filterpanel,targetPanel,div_data"
+                                                                                  styleclass="btn btn-primary glyphicon glyphicon-repeat"
+                                                                                  status="status"
+                                                                                  style="height:44px;padding-top: 10px;word-spacing: -7px;"
+                                                                                  onclick="if(!confirm('Refresh will retrieve and update information of wallet and actual performance on this screen. Are you sure you want to continue?')) return false;"
+                                                                                  id="refreshWalletpanel">&nbsp;Refresh&nbsp;Wallet&nbsp;&amp;&nbsp;Actual</apex:commandlink>-->
+
+                                                                     <apex:commandlink action="{!RefreshWalletFunction}"
+                                                                                  rerender="porttable,messages,filterpanel,targetPanel,div_data,AchievementSection"
+                                                                                  styleclass="btn btn-primary glyphicon glyphicon-repeat"
+                                                                                  status="status"
+                                                                                  style="height:44px;padding-top: 10px;word-spacing: -7px;"
+                                                                                  onclick="if(!confirm('{!alertMsgWallet}')) return false;"
+                                                                                  id="refreshWalletpanel">&nbsp;Refresh&nbsp;Wallet&nbsp;&amp;&nbsp;Actual</apex:commandlink>
+                                                                </apex:outputpanel>
+                                                                </apex:outputpanel>
+                                                                   
+                                                                       
+                                                                <div rel="tooltip" title="{!infoMsg}" style="float:left;">
+                                                                   <apex:outputpanel id="tablebuttonpanel">      
+                                                                <button type="button"
+                                                                        class="btn btn-primary dropdown-toggle glyphicon glyphicon-list-alt"
+                                                                        data-toggle="dropdown" aria-haspopup="true"
+                                                                        aria-expanded="false"
+                                                                        style="height:44px;padding-top5px;width:150px;float:left; ">
+                                                                    &nbsp;Filters 
+                                                                    
+                                                                    <span class="caret">
+                                                                        </span>
+                                                                </button>
+                                                                  
+                                                                       
+                                                                <ul class="dropdown-menu" style="left: inherit;right: 0;">
+
+                                                                    <li style="margin-left:0;" class="{!if(FiltersOption=='Flag','active','')}">
+                                                                        <apex:commandlink value="With Account Plan Flag"
+                                                                                          action="{!AccountPlanFilters}" status="status"
+                                                                                          rerender="porttable,messages,filterpanel,targetPanel,tablebuttonpanel" immediate="true">
+                                                                            <apex:param name="filtername" assignto="{!FiltersOption}" value="Flag" />
+                                                                        </apex:commandlink>
+                                                                    </li>
+                                                                    <li style="margin-left:0;" class="{!if(FiltersOption=='Group','active','')}">
+                                                                        <apex:commandlink value="Under Group"
+                                                                                          action="{!AccountPlanFilters}" status="status"
+                                                                                          rerender="porttable,messages,filterpanel,targetPanel,tablebuttonpanel" immediate="true">
+                                                                            <apex:param name="filtername" assignto="{!FiltersOption}" value="Group" />
+                                                                        </apex:commandlink>
+                                                                    </li>
+                                                                    <li style="margin-left:0;" class="{!if(FiltersOption=='Target','active','')}">
+                                                                        <apex:commandlink value="Has Target Amount"
+                                                                                          action="{!AccountPlanFilters}" status="status"
+                                                                                          rerender="porttable,messages,filterpanel,targetPanel,tablebuttonpanel" immediate="true">
+                                                                            <apex:param name="filtername" assignto="{!FiltersOption}" value="Target" />
+                                                                        </apex:commandlink>
+                                                                    </li>
+                                                                </ul>
+                                                                            </apex:outputPanel>
+                                                                </div> 
+                                                                            
+                                                            </div>
+                                                        </apex:outputpanel>
+                                                      <!--  <div class="alert alert-info text-center" role="alert"
+                                                             style="width:350px;float:right;margin-right:20px;height:45px;">(Click Filter to select how to view customer records)</div>-->
+
+                                                             
+                                                    </div> 
+                                                             
+                                                    <br />
+                                                       <apex:outputpanel id="porttable">
+                                                        <apex:panelGrid columns="5"  >
+                                                            <apex:commandLink action="{!first}" rendered="{!hasPrevious}" status="status"  rerender="porttable" styleClass="event-paging" >First</apex:commandlink>
+                                                            <apex:commandLink action="{!previous}" rendered="{!hasPrevious}" status="status" rerender="porttable" styleClass="event-paging" style="width:70px;">Previous</apex:commandlink>
+                                                            <apex:commandLink action="{!next}" rendered="{!hasNext}" status="status" rerender="porttable,Subtotalpanel" styleClass="event-paging" >Next</apex:commandlink>
+                                                            <apex:commandLink action="{!last}" rendered="{!hasNext}" status="status" rerender="porttable" styleClass="event-paging" >Last</apex:commandlink>
+                                                            <apex:outputpanel rendered="{!hasNext || hasPrevious}" styleClass="index-paging">
+                                                                 ({!(pageNumber * size)+1-size}-{!IF(((pageNumber * size)>noOfRecords), noOfRecords,(pageNumber * size))} of {!noOfRecords})
+                                                            </apex:outputpanel>
+                                                         </apex:panelGrid>
+                                                            
+                                                        <table class="table table-striped table-hover" style="border-bottom: 1px solid #dadee2;">
+                                                            <thead>
+                                                                <tr>
+                                                                    <th style="vertical-align: top;" width="4%">Action</th>
+                                                                    
+                                                                    <th style="vertical-align: top;" width="6%">No</th>
+                                                                    <th style="vertical-align: top;" width="4%"></th>
+                                                                    <th style="vertical-align: top;" width="23%">Group name</th>
+                                                                    <th style="vertical-align: top;" width="22%">Customer name</th>
+                                                                    <th style="vertical-align: top;" width="15%">Wallet</th>
+                                                                    <th style="vertical-align: top;" width="15%">Actual Performance <br />(12-mth Rolling)</th>
+                                                                    <th style="vertical-align: top;" width="15%">Target NI by RM/BDM</th>
+                                                                    <th style="vertical-align: top;" width="15%">Expected NI by Account Plan</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody>
+
+                                                               <apex:variable value="{!(pageNumber * size)+1-size}" var="rowNum"/> 
+                                                                    
+                                                                    <apex:repeat value="{!ComPortListWrapper}" var="comWrapper">
+                                                                        
+                                                                        <tr class="{!if(comWrapper.IsSubTotal,'info endRow','')}" 
+                                                                        style="{!if(comWrapper.IsSubTotal,'border-bottom:none;text-align:center; vertical-align: middle; font-weight:bold;','')}">
+                                                                            
+                                                                             <td class="text-center" style="vertical-align: middle;">
+                                                                                <apex:outputpanel rendered="{!if(
+                                                                                comWrapper.Comport.Account_Plan_Company_Profile__c != null
+                                                                                && !comWrapper.IsSubTotal
+                                                                                    ,true,false)}">
+                                                                                    <apex:commandlink value="View" action="{!EditAccountPlan}" styleclass="btn btn-info" status="status">
+                                                                                        <apex:param name="acctKey"
+                                                                                                    value="{!comWrapper.Comport.id}"
+                                                                                                    assignto="{!acctKey}" />
+                                                                                    </apex:commandlink>
+                                                                                </apex:outputpanel>
+                                                                                <apex:outputpanel rendered="{!if(
+                                                                                comWrapper.Comport.Account_Plan_Company_Profile__c == null
+                                                                                && !comWrapper.IsSubTotal,true,false)}">
+
+                                                                                    <span class="btn btn-default glyphicon glyphicon-lock"
+                                                                                      rel="tooltip"
+                                                                                      title="This record has been changed, Please click refresh before add an Account Plan"
+                                                                                      style="display:{!if(portfolio.SalesOwner__c == $User.Id && comWrapper.Comport.IsNeedtoRefresh__c,'grid','none')};">Add</span>
+
+
+                                                                                    <apex:commandlink value="Add" action="{!InitiateAccountPlan}" styleclass="btn btn-success" status="status"
+                                                                                                      rendered="{!if(portfolio.SalesOwner__c == $User.Id && !comWrapper.Comport.IsNeedtoRefresh__c,true,false)}">
+                                                                                        <apex:param name="acctKey"
+                                                                                                    value="{!comWrapper.Comport.id}"
+                                                                                                    assignto="{!acctKey}" />
+                                                                                    </apex:commandlink>
+                                                                                </apex:outputpanel>
+                                                                            </td>
+
+
+
+
+
+                                                                            <td class="text-center" style="display:{! if(comWrapper.IsSubTotal,'none','')};">
+                                                                                {!rowNum}</td>
+
+                                                                                <td class="text-right">
+                                                                                    
+                                                                                <apex:outputpanel rendered="{!if(!comWrapper.IsSubTotal && (portfolio.SalesOwner__c == $User.Id || isSystemAdmin),true,false)}">
+
+                                                                                <span  data-toggle="tooltip"
+                                                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                                                     data-animation="false"
+                                                                                     data-placement="bottom" 
+                                                                                     title="{!hoverrefreshgroupMsg}"
+                                                                                >
+
+                                                                                 <apex:commandlink action="{!RefreshGroupFunction}" 
+                                                                                 styleclass="glyphicon glyphicon-refresh" status="status"                    rerender="porttable,messages,filterpanel,targetPanel,div_data,AchievementSection,statusMessage"
+
+                                                                                                      rendered="{!comWrapper.Comport.IsNeedtoRefresh__c}"
+
+                                                                                                    onclick="if(!confirm('{!clickrefreshgroupMsg}')) return false;"
+
+
+
+                                                                                    style="margin-top: 10px;font-size: 16px;text-decoration:none;"
+
+                                                                                                      >
+                                                                                        <apex:param name="acctKey"
+                                                                                                    value="{!comWrapper.Comport.id}"
+                                                                                                    assignto="{!acctKey}" />
+                                                                                    </apex:commandlink>
+
+                                                                                    </span>
+                                                                                   <!-- <a href="" 
+
+                                                                                    data-toggle="tooltip"
+                                                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                                                     data-animation="false"
+                                                                                     data-placement="bottom" 
+                                                                                     title="Group has been changed, Please click to refresh the data."
+
+
+
+                                                                                    style="margin-top: 10px;font-size: 16px;display:{!if(comWrapper.Comport.IsNeedtoRefresh__c,'grid','none'
+                                                                                        )};">
+                                                                                        <span class="glyphicon glyphicon-refresh" aria-hidden="true" style="color:##006DCC;"></span>
+                                                                                    </a> -->
+                                                                                 </apex:outputpanel>
+
+                                                                            </td>
+
+                                                                            <td colspan="{!if(comWrapper.IsSubTotal,3,1)}">
+                                                                               <apex:outputpanel rendered="{!if(
+                                                                               comWrapper.Comport.AcctPlanGroupPort__r.Account_Plan_Group_Profile__c !=null 
+                                                                               && !comWrapper.IsSubTotal,true,false)}">
+
+                                                                                    <apex:outputfield value="{!comWrapper.Comport.AcctPlanGroupPort__r.Account_Plan_Group_Profile__c}" rendered="{!comWrapper.isGroupProfile}"/>
+                                                                                   
+                                                                                </apex:outputpanel>
+                                                                                <apex:outputpanel rendered="{!if(
+                                                                                comWrapper.Comport.AcctPlanGroupPort__r.Account_Plan_Group_Profile__c ==null 
+                                                                                && !comWrapper.IsSubTotal,true,false)}">
+                                                                                    <apex:outputtext value="{!comWrapper.groupName}" />
+                                                                                </apex:outputpanel>
+                                                                                
+                                                                                    <apex:outputpanel rendered="{!if(comWrapper.IsSubTotal,true,false)}">
+                                                                                        <apex:outputtext value="{!comWrapper.GroupName} Sub Total " />
+                                                                                    </apex:outputpanel>
+                                                                            </td>
+                                                                             
+
+
+
+                                                                            <td class="text-center" id="Compro{!rowNum}" style="display:{! if(comWrapper.IsSubTotal,'none','')};" >
+                                                                                <apex:outputpanel rendered="{!if(comWrapper.Comport.Account_Plan_Company_Profile__c !=null,true,false)}" styleClass="Customer{!rowNum}">
+                                                                                    <a href="/{!comWrapper.Comport.Account_Plan_Company_Profile__c}" id="hover{!rowNum}" 
+                                                                                        position="relative"
+                                                                                        onblur="LookupHoverDetail.getHover('hover{!rowNum}').hide();" 
+                                                                                        onfocus="LookupHoverDetail.getHover('hover{!rowNum}', '/{!comWrapper.Comport.Account_Plan_Company_Profile__c}/m?retURL=%2F{!comWrapper.Comport.Account_Plan_Company_Profile__c}&isAjaxRequest=1').show();" 
+                                                                                        onmouseout="LookupHoverDetail.getHover('hover{!rowNum}').hide();" 
+                                                                                        onmouseover="LookupHoverDetail.getHover('hover{!rowNum}', '/{!comWrapper.Comport.Account_Plan_Company_Profile__c}/m?retURL=%2F{!comWrapper.Comport.Account_Plan_Company_Profile__c}&isAjaxRequest=1').show();">
+                                                                                        {!comWrapper.Comport.Account_Name__c}
+                                                                                    </a>
+                                                                                </apex:outputpanel>
+                                                                                <apex:outputpanel rendered="{!if(comWrapper.Comport.Account_Plan_Company_Profile__c ==null,true,false)}">
+                                                                                    <apex:outputfield value="{!comWrapper.Comport.Account_Name__c}" />
+                                                                                </apex:outputpanel>
+                                                                            </td>
+                                                                            <td class="text-right"><apex:outputfield value="{!comWrapper.Comport.Wallet__c}" /></td>
+                                                                             <td class="text-right"><apex:outputfield value="{!comWrapper.Comport.Performance__c }" /></td>
+                                                                           <td class="text-right"><apex:outputfield value="{!comWrapper.Comport.Target_NI_By_RM__c}" /></td>
+                                                                            <td class="text-right"><apex:outputfield value="{!comWrapper.Comport.ExpectedNIbyAccountPlan__c}" /></td> 
+                                                                            <apex:variable var="rowNum" value="{!if(comWrapper.IsSubTotal,rowNum,rowNum + 1)}" />
+                                                                             </tr>
+                                                                             
+                                                                             <!--<apex:variable var="GroupName" value="{!comWrapper.Comport.AcctPlanGroupPort__r.Group_Name__c}" />-->
+                                                                    </apex:repeat>
+                                                                    <tr class="info endRow" style="display:{!IF(hasNext,'none','row')}">
+                                                                        <td colspan="5" style="text-align:center; font-weight:bold;">Total</td>
+                                                                        <td class="text-right" style="font-weight:bold;">
+                                                                            <apex:outputfield value="{!portfolio.SumOfWallet__c}" />
+                                                                        </td>
+                                                                        <td class="text-right" style="font-weight:bold;">
+                                                                            <apex:outputfield value="{!portfolio.SumOfPerformance__c}" />
+                                                                        </td>
+                                                                        <td class="text-right" style="font-weight:bold;">
+                                                                            <apex:outputfield value="{!portfolio.SumOfTargetNIByRM__c}" />
+    
+                                                                        </td>
+                                                                        <td class="text-right" style="font-weight:bold;">
+                                                                            <apex:outputfield value="{!portfolio.SumOfExpectedNIByAcctPlan__c}" />
+    
+                                                                        </td>
+                                                                    </tr>     
+                                                                             
+                                                                    
+                                                            </tbody>
+                                                        </table>
+                                                          <apex:panelGrid columns="5"  >
+                                                            <apex:commandLink action="{!first}" rendered="{!hasPrevious}" status="status"  rerender="porttable" styleClass="event-paging" >First</apex:commandlink>
+                                                            <apex:commandLink action="{!previous}" rendered="{!hasPrevious}" status="status" rerender="porttable" styleClass="event-paging" style="width:70px;">Previous</apex:commandlink>
+                                                            <apex:commandLink action="{!next}" rendered="{!hasNext}" status="status" rerender="porttable,Subtotalpanel" styleClass="event-paging" >Next</apex:commandlink>
+                                                            <apex:commandLink action="{!last}" rendered="{!hasNext}" status="status" rerender="porttable" styleClass="event-paging" >Last</apex:commandlink>
+                                                            <apex:outputpanel rendered="{!hasNext || hasPrevious}" styleClass="index-paging">
+                                                                 ({!(pageNumber * size)+1-size}-{!IF(((pageNumber * size)>noOfRecords), noOfRecords,(pageNumber * size))} of {!noOfRecords})
+                                                            </apex:outputpanel>
+                                                         </apex:panelGrid>  
+                                                    </apex:outputpanel>
+                                                </div>
+                                            </apex:outputpanel>
+                                        </div>
+                                        <br />
+                                    </div>
+
+                                    <div >
+                                        <div class="form-group">
+                                            <div class="col-sm-8 col-md-4 col-lg-4">
+                                            
+                                                <table class="table">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td class="forceBackground" style="border: none;text-align:left;" width="50%">Achievement</td>
+                                                            <td style="border: none;" width="30%">
+                                                                <apex:outputPanel id="AchievementSection">  
+                                                                    <apex:outputtext value="{0, number, ###,##0.00}" styleclass="form-control text-right calculate">
+                                                                            <apex:param value="{!Achievement}" />
+                                                                        </apex:outputtext>                             
+                                                                </apex:outputPanel>
+                                                            </td>
+                                                            <td style="border: none;text-align:left;" width="20%">%</td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                                
+                                            </div>
+                                            <div class="row" style="margin:15px;clear: both;">
+                                                <h3 class="text-primary">Approval History</h3>
+                                                <apex:commandlink id="apprefresh" value="ajaxsubmit" action="{!ApprovalExRemoteAction}" status="status"
+                                                                  styleclass="ahide" rerender="approvalouterpanel,targetPanel,editButtonLock,refreshButton" immediate="true"></apex:commandlink>
+
+
+                                                <apex:outputpanel id="approvalouterpanel">
+                                                    <div class="center-block" style="width: 150px; padding-bottom: 5px; display:{!if(portfolio.OwnerId == $User.Id ,'block','none')};">
+
+                                                        <apex:outputpanel style="display:{!if(isPending  && portfolio.OwnerId == $User.Id ,'none','grid')}">
+                                                            <a href="#" class="btn btn-primary" id="submitapproval" onclick="onSubmitapproval(); return false;"> Submit for Approval</a>
+                                                        </apex:outputpanel>
+                                                        <apex:outputpanel style="display:{!if(isPending && portfolio.OwnerId == $User.Id ,'grid','none')}">
+                                                            <a href="#" class="btn btn-primary" id="recallapproval" onclick="onRecallapproval(); return false;"> Recall Approval Request</a>
+                                                        </apex:outputpanel>
+                                                    </div>
+                                                    <apex:variable var="rowNum" value="{!1}" />
+                                                    <table class="table table-striped table-hover " id="approvaltable">
+                                                        <thead>
+                                                            <tr>
+                                                                <th width="80px">Action</th>
+                                                                <th width="150px">Date</th>
+                                                                <th width="100px">Status</th>
+                                                                <th width="150px">Assigned To</th>
+                                                                <th width="150px">Actual Approver</th>
+                                                                <th width="330px">Comments</th>
+                                                                <th width="140px">Overall Status</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            <apex:repeat value="{!ApprovalWrapList}" var="appr">
+                                                                <tr>
+
+                                                                    <td colspan="2" class=" text-left" style="background-color:#4691CE;color:white;">{!appr.Stepstatus}</td>
+                                                                    <td colspan="4" class=" text-left" style="background-color:#4691CE;color:white;"></td>
+                                                                    <td class=" text-left" style="vertical-align: middle;
+    text-align: center; background-color:#4691CE;color:white; ">
+                                                                        <apex:outputpanel styleclass="label-success" style="padding: 5px;" rendered="{!appr.status=='Approved'}">
+                                                                            &nbsp;
+                                                                            <span class="glyphicon glyphicon-ok ">
+                                                                                &nbsp;Approved
+                                                                            </span>
+                                                                            &nbsp;
+                                                                        </apex:outputpanel>
+                                                                        <apex:outputpanel styleclass="label-danger" style="padding: 5px;" rendered="{!appr.status=='Rejected'}">
+                                                                            &nbsp;
+                                                                            <span class="glyphicon glyphicon-info-sign">&nbsp;Rejected</span>
+                                                                            &nbsp;
+                                                                        </apex:outputpanel>
+                                                                        <apex:outputpanel styleclass="label-warning" style="padding: 5px;" rendered="{!appr.overallStatus=='Pending'}">
+                                                                            &nbsp;
+                                                                            <span class="glyphicon glyphicon-time">&nbsp;Pending</span>
+                                                                            &nbsp;
+                                                                        </apex:outputpanel>
+                                                                        <apex:outputpanel style="padding: 5px;background-color:#AAAAAA" rendered="{!appr.overallStatus=='Recalled'}">
+                                                                            &nbsp;
+                                                                            <span class="glyphicon glyphicon-minus-sign">&nbsp;Recalled</span>
+                                                                            &nbsp;
+                                                                        </apex:outputpanel>
+                                                                    </td>
+
+                                                                </tr>
+                                                                <tr>
+                                                                    <td>
+                                                                        <apex:outputpanel style="display:{!if(appr.status=='Pending' && (appr.AssignedTo.id == $User.Id || appr.DeligatedApprover == $User.Id) ,'block','none')};">
+                                                                            <a href="#" class="btn btn-primary actionapproval" onclick="onActionapproval(); return false;">Approve / Reject</a>
+                                                                        </apex:outputpanel>
+                                                                    </td>
+                                                                    <td>
+                                                                        <!-- <apex:outputText value="{0,date,M/d/yyyy, HH:mm} น.">
+                                                                            <apex:param value="{!appr.submitdatetimeformat}" />
+                                                                        </apex:outputText> -->
+                                                                        <apex:outputtext value="{!appr.submitdatetime}" />
+                                                                    </td>
+                                                                    <td>{!appr.status}</td>
+                                                                    <td>{!appr.ActualApprover.Firstname} {!appr.ActualApprover.LastName}</td>
+                                                                    <td>{!appr.AssignedTo.Firstname} {!appr.AssignedTo.LastName}</td>
+                                                                    <td>{!appr.comments}</td>
+                                                                    <td>&nbsp;</td>
+                                                                </tr>
+                                                                <apex:variable var="rowNum" value="{!rowNum + 1}" />
+                                                            </apex:repeat>
+                                                        </tbody>
+                                                    </table>
+
+                                                </apex:outputpanel>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </fieldset>
+
+                        </div>
+                    </div>
+                </apex:pageblock>
+            </apex:form>
+        </div>
+        <div class="bootstrap-sf1">
+            <!-- Modal -->
+            <div class="modal fade modal-fullscreen force-fullscreen" id="frmModel" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="margin-bottom: 30px;margin-top: 45px;">
+                <div class="modal-dialog" style="width:700px;height:50px;">
+                    <div class="modal-content" style="width:90%;height:400px;">
+                        <div class="modal-header" style=" padding: 15px; padding-bottom: 25px;">
+                            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                            <h4 class="modal-title" id="myModalLabel"> </h4>
+                        </div>
+                        <div class="modal-body" style="margin-left:15px;">
+                            <iframe id="modalIframe" src="/user/dashboard" style="max-height: 356px;" width="100%" height="200px" frameborder="0" allowtransparency="true"></iframe>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-default" data-dismiss="modal" id="modalclosebutton">Close</button>
+                        </div>
+                    </div>
+                    <!-- /.modal-content -->
+                </div>  <!-- /.modal-dialog -->
+            </div>
+        </div>
+        
+        </div>
+         
+         <div id="mobile-wrapper" style='display:none;'>    
+         <h2> This page is not available on Salesforce1.</h2>
+         
+         </div>    
+        
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Mustache}" />
+        <apex:includeScript value="/support/console/22.0/integration.js"/>
+        <script>
+            var $j = jQuery.noConflict();
+            var portId = '{!portfolio.id}';
+            
+            function checkIsSalesforceOne()
+                {
+                //     if ((typeof sforce.one != 'undefined') && (sforce.one != null) ) {
+                //         $j("#mobile-wrapper").css('display','block');   
+                //     }
+                //   else{
+                       $j("#main-wrapper").css('display','block');
+                    //   }
+                }
+            
+            $j(document).ready(function () {
+                checkIsSalesforceOne();   
+                clearIframe();
+
+                    $j('[data-toggle="tooltip"]').tooltip(); 
+
+                $j("[rel=tooltip]").tooltip({ placement: 'top'});
+
+                $j("#frmModel").on('hidden.bs.modal', function () {
+
+                });
+                
+                //console.log($j("#Compro2").val())
+            });
+
+            function onSubmitapproval(){
+                $j('#modalIframe').attr("src", '/apex/AccountPlanPortfolioApproval?id=' + portId + '&action=Request');
+                $j('#frmModel').modal({ show: true });
+            }
+
+            function onRecallapproval(){
+                $j('#modalIframe').attr("src", '/apex/AccountPlanPortfolioApproval?id=' + portId + '&action=recall');
+                $j('#frmModel').modal({ show: true });
+            }
+
+            function onActionapproval() {
+                $j('#modalIframe').attr("src", '/apex/AccountPlanPortfolioApproval?id=' + portId + '&action=action');
+                $j('#frmModel').modal({ show: true });
+            }
+
+            $j("#frmModel").on('hidden.bs.modal', function () {
+                $j("[id$=apprefresh]").click();
+            });
+
+            function modalclose() {
+                 $j('.modal.in').modal('hide');
+                    clearIframe();
+            }
+            function clearIframe(){
+                    $j("#modalIframe").attr('src','');
+            }
+
+        </script>
+    </body>
+</apex:page>

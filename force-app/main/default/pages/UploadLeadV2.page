@@ -1,0 +1,287 @@
+<apex:page controller="UploadLeadServiceV2" showChat="false" showHeader="true" sidebar="false"
+           standardStylesheets="true" applyHtmlTag="true">
+    
+    <head>
+        
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+        <apex:stylesheet value="{!URLFOR($Resource.boostrapex)}"/>
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-2.0.0.min.js')}"  />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+        <apex:actionStatus onstart="startLoading();" onstop="endLoading();" id="loadStatus"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+        
+        <style>
+        /*[id^=switch] + *{
+          display:none;
+        }
+        [id^=switch]:target + *{
+          display:block;
+        }*/
+            /*#ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #1D78E6;
+        }        
+        #li {
+            float: left;
+        }        
+        #li a {
+            display: inline-block;
+            color: white;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }        
+        #li a:hover {
+            background-color: none;
+        }
+        .headuploadlead {
+            color: #D3D3D3;
+            font-size: 18px;
+            
+        }
+        .button1 {
+            padding-left: 30px;
+            padding-top: 40px;
+        }
+        .show {display:block;}
+        
+        .table-striped {
+            width: 699px;
+        }  
+        
+        .button {
+            visibility: hidden;
+            }*/
+       
+        /*Custom style by Jantanee*/
+            .headuploadlead {
+                color: #D3D3D3;
+                font-size: 18px;
+            }
+            .importCSVsection{
+                margin: 20px auto;
+                width: 400px;
+            }
+            .importCSVbtn{
+            	margin-top: 30px !important;
+            }
+            #switch2{
+            	margin: 20px auto;
+            }
+            #log table{
+            	background-color:#FFF;
+            	width: 100%;
+            	border: 1px solid #dadee2
+            }
+            #log td{
+            	padding: 3px;
+            }
+            .successin th{
+                background-color:#2a94d6;
+            	text-align: center;
+            	color: #fff;
+           		padding: 5px;
+        		font-size: 15px;
+            }
+            .successin{
+            	width:100%;
+    			padding: 5px;
+            }
+            .successout {
+                overflow:scroll;
+            }
+            .errorin th{
+                background-color:#e56d2c;
+            	text-align: center;
+            	color: #fff;
+                padding: 5px;
+        		font-size: 15px;
+            }
+            .errorin {
+            	width:100%;
+    			padding: 5px;
+            }
+            .errorout {
+				overflow:scroll;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <div class="bootstrap-sf1">   
+            <apex:form id="frm">        
+                <apex:actionstatus id="status">
+                    <apex:facet name="start">
+                        <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                            &nbsp;
+                        </div>
+                        <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                            <img src="/img/loading32.gif" />
+                        </div>
+                    </apex:facet>
+                </apex:actionstatus>
+                <apex:pageMessages id="messages"/>    
+                    
+                <div style="margin-top:20px;">
+                    <!--<ul id="ul">
+                      <li id="li"><a class="active" href="apex/UploadLead" onclick="menu1()">Upload Lead</a></li>
+                      <li id="li"><a href="#switch2" onclick="menu2()">Log File</a></li>
+                    </ul>-->
+                    <ul class="nav nav-tabs" id="tabSearch" >
+                      <li class="active">
+                          <a aria-controls="uploadLead" role="tab" data-toggle="tab" href="#switch1" >Upload Lead</a>
+                      </li>
+                      <li>
+                          <a aria-controls="logFile" role="tab" data-toggle="tab" href="#switch2" >Log File</a>
+                      </li>
+                  </ul>
+                </div>
+                
+        <div class="tab-content" style="padding: 0 30px">
+            <div id="switch1" role="tabpanel" class="tab-pane fade in active importCSVsection">
+                <div class="text-center"><span class="headuploadlead">Choose CSV File<br/></span>
+                    <apex:outputPanel rendered="{!RowList = null}">
+                        <!--<apex:inputFile value="{!csvFileBody}"  filename="{!csvAsString}"/>-->
+                        <div class="fileinput fileinput-new" data-provides="fileinput">
+                            <apex:inputFile value="{!csvFileBody}"  filename="{!csvAsString}" id="csvFile" style="margin: 15px auto;"></apex:inputFile>
+                        </div> 
+                        <apex:commandButton status="status" id="importCSVbtn" style="display:none;" styleClass="btn btn-default importCSVbtn" value="Import CSV File" action="{!importCSVFile}" />
+                    </apex:outputPanel>
+                </div>
+                
+                <apex:outputPanel style="overflow-x: scroll;" >
+                    <apex:pageBlock rendered="{!ValidDetail.size != null}" >    
+                        <apex:pageblocktable id="leadTable" value="{!ValidDetail}" var="row" >
+                            <apex:column style="{!IF(!row.valid__c,'background-color:#ED4337','')};" value="{!row.leadOwner__c}" headerValue="Lead Owner"/>
+                        </apex:pageblocktable>
+                    </apex:pageBlock>
+                </apex:outputPanel>            
+            </div>
+
+            <div id="switch2" role="tabpanel" class="tab-pane fade" >
+                <apex:actionFunction name="callclass" action="{!logfiles}" reRender="success"/>
+                <apex:outputPanel id="success">
+                    <div id="log" class="successout">
+                        <div class="successin">
+                            <span><h4>Upload Result</h4></span>
+                            <table class="table ">
+                                        <tr>
+                                            <th style="">#</th>
+                                            <th style="width:500px;">Name</th>
+                                            
+                                            <th style="">Total</th>
+                                            <th style="">Success</th>
+                                            <th style="">Fail</th>
+                                            <th style="">Create Date</th>
+                                        </tr>
+                                        <apex:repeat value="{!loghead}" var="Resultlog">
+                                            <tr >
+                                                <td>{!Resultlog.Row__c}</td>
+                                                <td><a href="UploadLeadcsv?idname={!Resultlog.Id}"> {!Resultlog.Name}_Result</a></td>
+                                                
+                                                <td>
+                                                    <apex:outputField value="{!Resultlog.Total_Import_Records__c }" />
+                                                </td>  
+                                                <td class="success">
+                                                    <apex:outputField value="{!Resultlog.Total_Success__c  }" />
+                                                </td>  
+                                                <td class="danger">
+                                                    <apex:outputField value="{!Resultlog.Total_Fail__c }" />
+                                                </td> 
+                                                <td>
+                                                    <apex:outputText value="{0, date,d MMMM yyyy}">
+                                                        <apex:param value="{!Resultlog.Createddate}" /> 
+                                                    </apex:outputText>
+                                                </td>
+                                                
+                                            </tr>
+                                        </apex:repeat>                            
+                                    </table>                      
+                        </div>
+                    </div>
+                    
+                    <div id="log" class="errorout">
+                        <div class="errorin">
+                            <span><h4>Validate Result</h4></span>
+                            <table class="table ">
+                                        <tr>
+                                            <th style="">#</th>
+                                            <th style="width:500px;">Name</th>
+                                            
+                                            <th style="">Total</th>
+                                            <th style="color:#E56D2C;">Success</th>
+                                            <th style="color:#E56D2C;">Fail</th>
+                                            <th >Create Date</th>
+                                        </tr>
+                                        <apex:repeat value="{!logheadFalse}" var="InvalidLog">
+                                             <tr >
+                                                <td>{!InvalidLog.Row__c}</td>
+                                                <td><a href="UploadLeadcsvError?idname={!InvalidLog.Id}"> {!InvalidLog.Name}_Invalid</a></td>
+                                                <td >
+                                                    <apex:outputField value="{!InvalidLog.Total_Invalid__c }" />
+                                                </td>
+                                                 <td style="color:white;" >
+                                                    <apex:outputField value="{!InvalidLog.Total_Success__c }" />
+                                                </td>
+                                                  <td style="color:white;">
+                                                    <apex:outputField value="{!InvalidLog.Total_Fail__c }" />
+                                                </td>
+                                                 
+                                                <td>
+                                                    <apex:outputText value="{0, date,d MMMM yyyy}">
+                                                        <apex:param value="{!InvalidLog.Createddate}" /> 
+                                                    </apex:outputText>
+                                                </td>
+                                                
+                                            </tr>
+                                        </apex:repeat>
+                                    </table>                        
+                        </div>
+                    </div>
+                </apex:outputPanel>
+            </div>
+        </div>
+      </apex:form>
+    </div>
+    </body>
+    <script type="text/javascript">
+    //$j = jQuery.noConflict();
+    $(document).ready(function () {
+        $("[id$=csvFile]").change(function (){
+            var fileName = $(this).val();
+            if(fileName != null && fileName != ''){
+                var ext = $(this).val().split(".").pop().toLowerCase();
+                if($.inArray(ext, ["csv"]) == -1) {
+                    alert('{!messagefiletype}');
+                    return false;
+                }else{
+                	$("[id$=importCSVbtn]").show();
+                }
+            }else{
+                $("[id$=importCSVbtn]").hide();
+            }
+        });
+    });
+    
+    
+    function menu1() {
+        document.getElementById("switch1").style.display = "block";
+        document.getElementById("switch2").style.display = "none";
+    }
+    function menu2() {
+        document.getElementById("switch1").style.display = "none";
+        document.getElementById("switch2").style.display = "block";
+        callclass();
+    }
+    function alertsuccess() {
+        alert('Success import lead.');
+        document.getElementById("switch1").style.display = "none";
+        document.getElementById("switch2").style.display = "block";
+        callclass();
+    }
+    
+    </script> 
+</apex:page>

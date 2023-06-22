@@ -1,0 +1,204 @@
+<aura:component controller="ForecastReportController">
+    <aura:handler name="init" value="{!this}" action="{!c.getReport}" />
+    <aura:handler name="change" value="{!v.report1Param}" action="{!c.getReport}" />
+
+    <aura:attribute name="monthColumns" type="List" access="PRIVATE" />
+    <aura:attribute name="Cube1Data" type="Object[]" />
+    <aura:attribute name="year" type="Integer" />
+    <aura:attribute name="LYCube1Data" type="Object[]" />
+    <aura:attribute name="groupedData" type="Object[]" />
+    <aura:attribute name="jsonForCSV" type="Object[]" default="[]" />
+    <aura:attribute name="report1Param" type="Object" />
+    <aura:attribute name="suffixHeaderColumb" type="Object" />
+    <aura:attribute name="gridColumnsMockTable" type="List" access="PRIVATE" />
+    <aura:attribute name="selectedCustomerPort" type="String" />
+    <aura:attribute name="userProfile" type="String" />
+    <aura:attribute name="userRegion" type="String" />
+    <aura:attribute name="parent" type="Aura.Component" />
+    <aura:attribute name="teamTotalRow" type="Object[]" />
+    <aura:attribute name="regionTotalRow" type="Object" />
+    <aura:attribute name="priorityProduct" type="Object[]" />
+    <aura:attribute name="isLoading" type="boolean" />
+    <aura:attribute name="hasRec" type="boolean" default="false" />
+    <aura:attribute name="isCanSeeTotalRow" type="boolean" />
+    <aura:attribute name="isCanSeeDetailRow" type="boolean" />
+    <aura:attribute name="gridDataMockTable" type="Object" default="{}" access="PRIVATE" />
+    <aura:attribute name="isGrouped" type="Boolean" default="false" />
+
+    <aura:method name="sumGroupTotalRow" action="{!c.sumGroupTotalRow}">
+        <aura:attribute name="param1" type="Object" />
+    </aura:method>
+
+    <aura:method name="calculateRegionTotal" action="{!c.sumRegion}">
+        <aura:attribute name="param1" type="Object" />
+    </aura:method>
+
+    <aura:method name="exportCSV" action="{!c.exportCSV}">
+        <aura:attribute name="param1" type="Object[]" />
+    </aura:method>
+
+    <!-- <aura:if isTrue="{!v.hasRec}">
+        <div style="text-align: right; margin: 0 20px;">
+            <c:csvExporter records="{!v.priorityProduct}" fileName="new file.csv" />
+        </div>
+    </aura:if> -->
+
+    <div class="slds-scrollable slds-m-around_large" style="margin: 5px 10px;max-height: 400px;">
+        <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+            <thead>
+                <tr class="slds-text-title--caps">
+                    <th rowspan="2" class="fixed-column border-line-color first-color"
+                        style="left: 0;min-width: 100px;max-width: 100px;">
+                        <div class="slds-truncate" title="Team" style="text-align: center;">
+                            <lightning:formattedText value="Team" />
+                        </div>
+                    </th>
+
+                    <th rowspan="2" class="fixed-column border-line-color first-color"
+                        style="left: 100px;min-width: 165px;max-width: 165px;" scope="row">
+                        <div class="slds-truncate" rowspan="2" title="RM" style="text-align: center;">
+                            <lightning:formattedText value="RM" />
+                        </div>
+                    </th>
+
+                    <th rowspan="2" class="fixed-column border-line-color first-color"
+                        style="left: 265px;min-width: 170px;max-width: 170px;">
+                        <div class="slds-truncate" rowspan="2" title="Product Group" style="text-align: center;">
+                            <lightning:formattedText value="PRODUCT GROUP" />
+                        </div>
+                    </th>
+
+                    <th scope="col" rowspan="2" class="fixed-column border-line-color first-color"
+                        style="left: 435px;min-width: 80px;max-width: 80px;">
+                        <div class="slds-truncate" rowspan="2" title="Limit" style="text-align: center;">
+                            <lightning:formattedText value="LIMIT" />
+                        </div>
+                    </th>
+
+                    <th scope="col" rowspan="2" class="fixed-column border-line-color first-color"
+                        style="left: 515px;min-width: 120px;max-width: 120px; font-size:10px;">
+                        <div class="slds-truncate" rowspan="2" title="ENDING BAL LAST YEAR" style="text-align: center;">
+                            <lightning:formattedText value="ENDING BAL." />
+                            <br />
+                            <lightning:formattedText value="LAST YEAR " />
+                            <lightning:formattedText value="{!v.suffixHeaderColumb.LastYear}" />
+
+                        </div>
+                    </th>
+
+                    <th scope="col" colspan="12" class="border-line-color second-color">
+                        <div class="slds-truncate" colspan="12" title="Ending Bal" style="text-align: center;">
+                            <lightning:formattedText value="ENDING BAL." />
+                        </div>
+                    </th>
+
+                    <th scope="col" rowspan="2" class="border-line-color third-color">
+                        <div class="slds-truncate" rowspan="2" title="Actaul Ending Balance"
+                            style="text-align: center;">
+                            <lightning:formattedText value="ENDING BAL." />
+                            <br />
+                            <lightning:formattedText value="ACTUAL" /> 
+                            <lightning:formattedText value="{!v.suffixHeaderColumb.ActualEndingBalance}" />
+                        </div>
+                    </th>
+
+                    <th scope="col" rowspan="2" class="border-line-color third-color">
+                        <div class="slds-truncate" rowspan="2" title="Projected Ending Balance"
+                            style="text-align: center;">
+                            <lightning:formattedText value="ENDING BAL." />
+                            <br />
+                            <lightning:formattedText value="PROJECTED" /> 
+                            <lightning:formattedText value="{!v.suffixHeaderColumb.ProjectedEndingBalance}" />
+                        </div>
+                    </th>
+
+                    <th scope="col" rowspan="2" class="border-line-color third-color">
+                        <div class="slds-truncate" rowspan="2" title="Variance" style="text-align: center;">
+                            <lightning:formattedText value="VARIANCE" />
+                            <br />
+                            <lightning:formattedText value="{!v.suffixHeaderColumb.Variance}" />
+                        </div>
+                    </th>
+
+                    <th scope="col" rowspan="2" class="border-line-color third-color">
+                        <div class="slds-truncate" rowspan="2" title="MTD" style="text-align: center;">
+                            <lightning:formattedText value="MTD" />
+                            <br />
+                            <lightning:formattedText value="{!v.suffixHeaderColumb.MTD}" />
+                        </div>
+                    </th>
+
+                    <th scope="col" rowspan="2" class="border-line-color third-color">
+                        <div class="slds-truncate" rowspan="2" title="MoM" style="text-align: center;">
+                            <lightning:formattedText value="MOM" />
+                            <br />
+                            <lightning:formattedText value="{!v.suffixHeaderColumb.MoM}" />
+                        </div>
+                    </th>
+
+                    <th scope="col" rowspan="2" class="border-line-color third-color">
+                        <div class="slds-truncate" rowspan="2" title="YTD" style="text-align: center;">
+                            <lightning:formattedText value="YTD" />
+                            <br />
+                            <lightning:formattedText value="{!v.suffixHeaderColumb.YTD}" />
+                        </div>
+                    </th>
+
+                    <th scope="col" rowspan="2" class="border-line-color third-color">
+                        <div class="slds-truncate" rowspan="2" title="Actaul Ending Balance"
+                            style="text-align: center;">
+                            <lightning:formattedText value="UTILIZED" />
+                            <br />
+                            <lightning:formattedText value="(%)" />
+                        </div>
+                    </th>
+                </tr>
+
+                <tr class="slds-text-title--caps">
+                    <aura:iteration items="{!v.monthColumns}" var="data" indexVar="index">
+                        <th scope="col" class="border-line-color second-color" style="top: 25px;">
+                            <div class="slds-truncate" title="Actaul Ending Balance" style="text-align: center;">
+                                <lightning:formattedText value="{!data.label2}" />
+                            </div>
+                        </th>
+                    </aura:iteration>
+                </tr>
+            </thead>
+
+            <aura:if isTrue="{!v.hasRec}">
+                <tbody>
+                    <aura:iteration items="{!v.groupedData}" var="region" indexVar="index">
+                        <aura:iteration items="{!region.teamArray}" var="team" indexVar="index">
+                            <aura:iteration items="{!team.groupedByRM}" var="dataRM" indexVar="index">
+                                <c:ForecastReport_ForecastVolume_Child year="{!v.year}" userProfile="{!v.userProfile}"
+                                    priorityProduct="{!v.priorityProduct}"  groupingByRM="{!dataRM}" parent="{! this}" />
+                            </aura:iteration>
+
+                            <c:ForecastReport_ForecastVolume_Child year="{!v.year}" userProfile="{!v.userProfile}"
+                                priorityProduct="{!v.priorityProduct}" groupingByTeam="{!team.teamAllData}"
+                                parent="{! this}" />
+                        </aura:iteration>
+
+                        <c:ForecastReport_ForecastVolume_Child year="{!v.year}" userProfile="{!v.userProfile}"
+                        priorityProduct="{!v.priorityProduct}" groupingByReg="{!region.regionData}"
+                        parent="{! this}" />
+
+                    </aura:iteration>
+                </tbody>
+
+                <aura:set attribute="else">
+                    <tr>
+                        <td class="fixed-column" style="left: 0;min-width: 100px;">
+                            <div class="slds-truncate">
+                                <aura:unescapedHtml value="{!$Label.c.no_record_to_display}">
+                                    <lightning:formattedText value="{!$Label.c.no_record_to_display}" />
+                                </aura:unescapedHtml>
+                            </div>
+                        </td>
+                    </tr>
+                </aura:set>
+            </aura:if>
+
+        </table>
+    </div>
+</aura:component>

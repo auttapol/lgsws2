@@ -1,0 +1,70 @@
+<aura:component>
+	<aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+
+	<aura:attribute name="qObj" type="Object" />
+	<aura:attribute name="questionLevel" type="Integer" />
+
+	<aura:attribute name="surveyAwnser" type="Object"  default="{}" />	 
+
+	<aura:handler name="choiceUpdate" event="c:SurveyChoiceSelectionEvent" action="{!c.updateChoice}"/>
+	<aura:registerEvent name="scoreUpdate" type="c:SurveyUpdateScoreEvent"/>
+
+
+	<div class="slds-grid slds-wrap">
+
+		
+		<aura:if isTrue="{! v.qObj.question.Question_Title__c}">
+			<div class="{!'slds-col ' + v.qObj.gridTitleStyleClass }">
+				<div class="slds-text-body_regular">
+					<div class="slds-p-top_small">	
+						<b>{!v.qObj.question.Question_Title__c}</b>
+					</div>
+				</div>
+			</div>
+		</aura:if>
+
+		<div class="{!'slds-col ' + v.qObj.gridChoiceStyleClass }">
+			<div class="slds-grid slds-wrap slds-p-left_medium">
+
+				<aura:iteration items="{!v.qObj.choiceList}" var="choiceObj">
+
+				<aura:if isTrue="{! v.qObj.question.Choice_Render_Type__c == 'Choice Render Below' }">
+					<div class="{!'slds-col slds-size_1-of-' + v.qObj.question.Question_Grid_Size__c}">
+						<c:SurveyChoiceRender choiceAll="{!choiceObj}" surveyAwnser="{!v.surveyAwnser}"  />
+					</div>
+				</aura:if>
+
+				<aura:if isTrue="{! v.qObj.question.Choice_Render_Type__c == 'Choice Render On Right' }">
+					<div class="{!'slds-col slds-size_1-of-' + ( v.qObj.question.Question_Grid_Size__c - 1) }">
+						<c:SurveyChoiceRender choiceAll="{!choiceObj}" surveyAwnser="{!v.surveyAwnser}"  />
+					</div>
+				</aura:if>
+
+						
+
+					<aura:if isTrue="{!choiceObj.dependentQuestion != null}">
+						<div class="{!'slds-col slds-size_1-of-' + v.qObj.question.Question_Grid_Size__c}">
+							
+		         			<c:SurveyQuestionRender qObj="{!choiceObj.dependentQuestion }" surveyAwnser="{!v.surveyAwnser}" questionLevel="{!v.questionLevel+1}"/>
+		         		</div>
+		         	</aura:if>
+
+				</aura:iteration>
+			</div>
+		</div>
+
+
+
+		<div class="{!'slds-col ' + v.qObj.gridChoiceStyleClass + ' slds-p-left_medium'}">
+			<aura:iteration items="{!v.qObj.subQuestionList}" var="sq">
+		 		<aura:if isTrue="{!sq != null}">
+		     			<c:SurveyQuestionRender qObj="{!sq}" surveyAwnser="{!v.surveyAwnser}" questionLevel="{!v.questionLevel+1}" />
+		     	</aura:if>
+		 	</aura:iteration>
+
+		</div>
+
+
+	 </div>
+
+</aura:component>

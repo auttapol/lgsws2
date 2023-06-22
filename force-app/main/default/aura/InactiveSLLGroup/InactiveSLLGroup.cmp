@@ -1,0 +1,64 @@
+<aura:component implements="lightning:actionOverride,force:hasRecordId,force:lightningQuickActionWithoutHeader" access="global" controller="RequestToInactiveSLLGroup">
+    <aura:handler name="change" value="{!v.curSLLGroup}" action="{!c.handleLoadRecord}" />
+
+    <aura:attribute name="recordId" type="String" />
+    <aura:attribute name="curSLLGroup" type="SLL_Group__c" />
+    <aura:attribute name="requestComment" type="String" />
+    <aura:attribute name="isLoading" type="Boolean" default="true" />
+
+    <force:recordData aura:id="recordLoader" recordId="{!v.recordId}" fields="Id, Name, SLL_Group_ID__c, RecordTypeId, RecordType.Name, Is_Active__c" targetFields="{!v.curSLLGroup}" />
+
+    <aura:html tag="style">
+        .cuf-content {
+            padding: 0 !important;
+        }
+        .slds-modal__content{
+            overflow-y:hidden !important;
+            height:unset !important;
+            max-height:unset !important;
+            padding: 0;
+        }
+    </aura:html>
+
+    <aura:if isTrue="{! v.isLoading }">
+        <div class="slds-is-relative">
+            <lightning:spinner class="custom-loading" alternativeText="Loading" size="medium" variant="brand" />
+        </div>
+    </aura:if>
+
+    <header class="slds-modal__header">
+        <h2 id="modal-heading-01" class="slds-text-heading_medium slds-hyphenate">Inactive SLL Group</h2>
+    </header>
+
+    <div class="slds-modal__content slds-p-around_medium" id="modal-content-id-1"
+        style="padding: 20px !important; min-height: 200px !important">
+        <aura:if isTrue="{! and(not(v.isLoading), not(and(v.curSLLGroup.Is_Active__c,v.curSLLGroup.RecordType.Name == 'Available')))}">
+            <div class="slds-notify slds-notify_alert slds-alert_error notify-margin" style="margin-bottom: 0.5rem;" role="alert">
+                <span class="slds-assistive-text">{!$Label.c.E_Client_VerifyCustomer_Error_Text}</span>
+                <span class="slds-icon_container slds-icon-utility-error slds-m-right_x-small"
+                    title="Description of icon when needed">
+                    <lightning:icon iconName="utility:error" alternativeText="Error" title="Error" class="icn-style" />
+                </span>
+                <h2>
+                    {!$Label.c.SLLGroupMessage16}
+                </h2>
+            </div>
+        </aura:if>
+
+        <aura:if isTrue="{! and(v.curSLLGroup.Is_Active__c,v.curSLLGroup.RecordType.Name == 'Available')}">
+            <lightning:layout class="confirm-msg">Are you sure to inactive this SLL Group?</lightning:layout>
+        </aura:if>
+
+        <lightning:card>
+            <lightning:messages />
+            <lightning:input name="SLL_Group_Id" disabled="true" value="{!v.curSLLGroup.SLL_Group_ID__c}" label="SLL Group ID" />
+            <lightning:input name="SLL_Group_Name" disabled="true" value="{!v.curSLLGroup.Name}" label="SLL Group Name" />
+            <lightning:textarea class="custom-input" value="{!v.requestComment}" label="Comment" disabled="{! or(v.curSLLGroup.RecordType.Name != 'Available',not(v.curSLLGroup.Is_Active__c)) }" />
+        </lightning:card>
+    </div>
+
+    <footer class="slds-modal__footer slds-text-align_center">
+        <button class="slds-button slds-button_neutral" onclick="{!c.clickCancel}">{!$Label.c.Cancel}</button>
+        <button class="slds-button slds-button_brand" onclick="{!c.clickConfirm}" disabled="{! not(and(v.curSLLGroup.Is_Active__c,v.curSLLGroup.RecordType.Name == 'Available'))}">{!$Label.c.FX_Order_Submit_Confirm_Button}</button>
+    </footer>
+</aura:component>

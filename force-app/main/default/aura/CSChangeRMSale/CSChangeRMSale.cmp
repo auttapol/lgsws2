@@ -1,0 +1,116 @@
+<aura:component controller="CSChangeRMSaleController"  implements="force:lightningQuickAction,flexipage:availableForRecordHome,force:hasRecordId,lightning:actionOverride" access="global">
+        
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:handler name="oSelectedAccountEvent" event="c:selectedAccountEvent" action="{!c.handleComponentEvent}"/>
+
+    <aura:attribute name="selectedRecord" type="Account" default="{}" description="Use,for store SELECTED sObject Record"/>
+    <aura:attribute name="eClientObj" type="E_Client_Suitability__c[]" />
+    <aura:attribute name="hasEclient" type="Boolean" default="false" />
+    <aura:attribute name="stepName" type="Boolean" default="VerifyCustomer" />
+    <aura:attribute name="selectedRm" type="Account" default="{}" description="Use,for store SELECTED RM Record"/>
+    <aura:attribute name="selectedFx" type="Account" default="{}" description="Use,for store SELECTED FX Record"/>       
+    <aura:attribute name="recordIdList" type="String" />
+    <aura:attribute name="currentUser" type="User" />
+    <aura:attribute name="eClientCanChange" type="E_Client_Suitability__c[]" />
+
+    <aura:registerEvent name="CSReviewEClientEvent" type="c:CSReviewEClientEvent" />
+
+    <aura:if isTrue="{!v.hasEclient}">
+        <div class="slds-card slds-has-top-magnet">
+            <div class="slds-p-around_small">					
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-text-align_center slds-size_2-of-2">{!$Label.c.E_Client_ChangeRM_Title}</div>
+                </div>
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-4 slds-m-top_x-large"  >
+                       {!$Label.c.E_Client_ChangeRM_RM_Text}
+                    </div>
+                    <div class="slds-col slds-size_3-of-4">
+                        <c:CScustomLookup checkNameLookup="RM" SearchKeyWord="{!v.eClientObj[0].CS_RM__c}"/>              
+                        
+                    </div>
+    
+                </div>
+
+                <div class="slds-grid slds-wrap">
+                    <div class="slds-col slds-size_1-of-4 slds-m-top_x-large" >
+                        {!$Label.c.E_Client_ChangeRM_FXSale_Text}
+                    </div>
+                    <div class="slds-col slds-size_3-of-4">
+                        <c:CScustomLookup checkNameLookup="FX" SearchKeyWord="{!v.eClientObj[0].OwnerId}"/>
+                    </div>
+                </div>
+                
+                <div class="slds-grid slds-wrap slds-m-around_xx-large slds-text-align_center" >
+                        <div class="slds-col slds-size_1-of-2">
+                            <lightning:button label="{!$Label.c.E_Client_Confirm_Button_Text}" variant="brand" onclick="{!c.reviewerConfirm}" />
+                        </div>
+                        <div class="slds-col slds-size_1-of-2">
+                            <lightning:button label="{!$Label.c.E_Client_Cancel_Button_Text}" variant="brand" onclick="{!c.reviewerCancel}" />
+                        </div>
+                </div>
+
+                <table class="slds-table slds-table_cell-buffer slds-table_bordered slds-table_col-bordered">
+                <thead>
+                        <tr class="slds-line-height_reset">
+                            <th class="slds-text-title_caps slds-cell-wrap" scope="col">
+                                <div class="slds-truncate slds-cell-wrap slds-text-align_center">
+                                    E-Client Suitability Name
+                                </div>
+                            </th>
+                            <th class="slds-text-title_caps slds-cell-wrap slds-text-align_center" scope="col">
+                                <div class="slds-truncate">
+                                    Status
+                                </div>
+                            </th>
+                            <th class="slds-text-title_caps slds-cell-wrap slds-text-align_center" scope="col">
+                                <div class="slds-truncate">
+                                    RM
+                                </div>
+                            </th>
+                            <th class="slds-text-title_caps slds-cell-wrap slds-text-align_center" scope="col">
+                                <div class="slds-truncate">
+                                    SALE OWNER
+                                </div>
+                            </th>         
+                        </tr>
+                </thead>
+                <tbody>
+                    <aura:iteration items="{!v.eClientCanChange}" var="eClient">
+                        <tr class="slds-cell-wrap">
+                            <th>
+                                <div class="slds-truncate slds-cell-wrap slds-text-align_center">
+                                    {!eClient.Name}
+                                </div>
+                            </th>
+                            <th>
+                                <div class="slds-truncate slds-cell-wrap slds-text-align_center">
+                                    {!eClient.CS_Status__c}
+                                </div>
+                            </th>
+                            <th>
+                                <div class="slds-truncate slds-cell-wrap slds-text-align_center">
+                                        {!eClient.CS_RM__r.Name}
+                                </div>
+                            </th>
+                            <th>
+                                <div class="slds-truncate slds-cell-wrap slds-text-align_center">
+                                    {!eClient.CS_Sales_Owner__r.Name}
+                                </div>     
+                            </th>    
+                        </tr>           
+                    </aura:iteration>
+                </tbody>
+            </table>
+            </div>
+        </div>
+
+
+        <aura:set attribute="else">
+             <div >{!$Label.c.E_Client_ChangeRM_Invalid_ChangeRM_Msg}</div>
+        </aura:set>
+
+    </aura:if>
+
+
+</aura:component>

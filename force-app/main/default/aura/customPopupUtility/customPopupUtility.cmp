@@ -1,0 +1,150 @@
+<aura:component implements="force:hasRecordId,lightning:utilityItem" access="global"  controller="customPopupUtilityController">
+    <lightning:navigation aura:id="navService" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <lightning:empApi aura:id="empApi" />
+    <!-- 001100000000000000000000158618 -->
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}"/>
+    <aura:handler name="change" value="{!v.cdata}" action="{!c.Popup}"/>
+    <aura:handler name="change" value="{!v.transfer_data}" action="{!c.Transfer}" />
+    <aura:handler name="change" value="{!v.outbound_data}" action="{!c.Outbound}" />
+    
+    <!-- <aura:attribute name="recordId" type="Id" />     -->
+    <aura:attribute name="vercode" type="Id" />
+    <aura:attribute name="objectName" type="String" />
+    <aura:attribute name="incomingLog" type="List"/>
+
+    <!-- <aura:attribute name="channel" type="String" default="/event/Customer_Inbound__e"/> -->
+    <aura:attribute name="channel" type="String" default="/topic/PopupInfo?Employee_ID__c=00000"/>
+    <!-- <aura:attribute name="transfer_channel" type="String" default="/event/Customer_Transfer__e" />
+    <aura:attribute name="outbound_channel" type="String" default="/event/Customer_Outbound__e" /> -->
+
+    <aura:attribute name="serviceName" type="String" default="ccpin"/>
+    <aura:attribute name="cdata" type="Object"/>
+    <aura:attribute name="transfer_data" type="Object" />
+    <aura:attribute name="outbound_data" type="Object" />
+
+    <aura:attribute name="serviceNametmp" type="String"/>
+    <aura:attribute name="cdatatmp" type="String"/>
+    <aura:attribute name="sfidForTab" type="String"/>
+    <aura:attribute name="responseCase" type="String"/>
+    <aura:attribute name="step" type="String" default=""/>
+    <aura:attribute name="cceventmsg" type="String"/>
+    <aura:attribute name="callbackId" type="Id"/>
+
+    <!-- Agent Id From Avaya -->
+    <aura:attribute name="agentId" type="String" />
+
+    <aura:attribute name="subscription_Inbound" type="Map" />
+    <aura:attribute name="subscription_Transfer" type="Map" />
+    <aura:attribute name="subscription_Outbound" type="Map" />
+    <aura:attribute name="subscription" type="Map" />
+    <aura:attribute name="reconnectMsg" type="String" />
+    <aura:attribute name="isSuccess" type="Boolean" default="false" />
+
+    <lightning:utilityBarAPI aura:id="utilbarTMB" />
+
+    <aura:registerEvent name="ccpageProxyEvent" type="c:ccpageProxyEvent" />
+    <aura:handler event="c:ccpageProxyEvent" action="{!c.handleEventccpageProxy}" />
+    
+    <!-- Debug -->
+    <div class="slds-card__header slds-grid">
+        <header class="slds-media slds-media_center slds-has-flexi-truncate">
+            <div class="slds-media__figure">
+                <lightning:icon iconName="standard:agent_session" alternativeText="Agent Session" title="Agent Session" />
+            </div>
+            <div class="slds-media__body">
+                <h2 class="slds-card__header-title">           
+                   Popup information
+                </h2>
+            </div>
+        </header>
+    </div>
+    <hr class="slds-m-vertical_xx-small"/>
+    <div class="slds-card__body slds-card__body_inner">
+        <div class="slds-grid">
+            <div class="slds-col slds-size_2-of-3">
+                <div class="slds-col slds-size_1-of-1 slds-m-vertical_medium">  
+                    <div class="slds-media__body">
+                        <span class="slds-m-right_x-small"><b>Agent ID : </b> {!v.agentId}</span>
+                        <br/>
+                        <span class="slds-m-right_x-small"><b>Vercode : </b> {!v.vercode}</span>
+                        <br/>
+                        <span class="slds-m-right_x-small"><b>Status : </b> 
+                            <lightning:icon aura:id="status" iconName="utility:wifi" size="small" variant="Error"/>
+                        </span>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-col slds-size_1-of-3">
+                <div class="slds-col slds-size_1-of-1 slds-m-vertical_medium">  
+                    <lightning:button label="Reconnect" title="Reconnect" onclick="{! c.Reconnect }"/>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr class="slds-m-vertical_xx-small"/>
+    <div class="slds-card__body slds-card__body_inner">                            
+        <div class="slds-col slds-size_1-of-1 slds-m-vertical_medium">                
+            <ul class="slds-grid slds-wrap slds-grid_pull-padded">
+                <div class="slds-media__figure">                           
+                    <lightning:icon iconName="standard:events" alternativeText="Customer" title="Customer" class="slds-m-left_small" />
+                </div>     
+                <div>
+                    <div class="slds-media__body">
+                        <span class="slds-m-right_x-small slds-m-bottom_x-small" style="font-size: small;" ><b>Service Name : </b>{!v.serviceNametmp}</span>
+                        <br/>
+                        <span class="slds-m-right_x-small slds-m-bottom_x-small" style="font-size: small;" ><b>Search for : </b>{!v.responseCase}</span>
+                        <br/>
+                        <span class="slds-m-right_x-small slds-m-bottom_x-small" style="font-size: small;" ><b>step : </b>{!v.step}</span>  
+                        <br/>
+
+                        <aura:if isTrue="{!v.sfidForTab != null}">
+                            <span class="slds-m-right_x-small slds-m-bottom_x-small" style="font-size: small;" ><b>Salesforce ID :</b><br/>
+                                <a href="{!'/one/one.app?#/sObject/'+ v.sfidForTab + '/view'}" target="_blank">{!v.sfidForTab}</a>
+                            </span>
+                            <aura:set attribute="else">
+                                <span class="slds-m-right_x-small slds-m-bottom_x-small" style="font-size: small;" ><b>Salesforce ID :</b><br/></span>  
+                            </aura:set>
+                        </aura:if>
+                    </div>
+                </div>
+            </ul>
+        </div>
+    </div>
+    <hr class="slds-m-vertical_xx-small"/>
+    <div class="slds-card__body slds-card__body_inner">              
+        <aura:iteration items="{!v.incomingLog}" var="field">                   
+            <div class="slds-col slds-size_1-of-1 slds-m-vertical_medium">                
+                <ul class="slds-grid slds-wrap slds-grid_pull-padded">
+                    <div class="slds-media__figure">                           
+                        <lightning:icon iconName="standard:log_a_call" alternativeText="Customer" title="Customer" class="slds-m-left_small" />
+                    </div>     
+                    <div>
+                        <div class="slds-media__body">
+                            <span class="slds-m-right_x-small slds-m-bottom_x-small" style="font-size: small;" ><b>TMB Cust ID :</b><br/>{!field.TMB_Cust_ID__c}</span>
+                            <br/>
+                            <span class="slds-m-right_x-small slds-m-bottom_x-small" style="font-size: small;" ><b>Call Number :</b><br/>{!field.Call_Number__c}</span>
+                            <br/>
+                            <span class="slds-m-right_x-small slds-m-bottom_x-small" style="font-size: small;" ><b>Channel :</b><br/>{!field.Type__c}</span>
+                            <br/>
+                            <span class="slds-m-right_x-small slds-m-bottom_x-small" style="font-size: small;" ><b>Call Start Datetime :</b><br/>{!field.Call_Start__c}</span>
+                            <br/>
+                            <span class="slds-m-right_x-small slds-m-bottom_x-small" style="font-size: small;" ><b>Popup Type :</b><br/>{!field.Channel__c}</span>
+                        </div>
+                    </div>
+                </ul>
+            </div>
+        </aura:iteration>
+    </div>
+    
+    <div style=" text-align: center;
+    font-weight: bold;
+    font-size: medium;" 
+    class="slds-text-color_success slds-col slds-size_1-of-1 slds-m-vertical_medium">{!v.reconnectMsg}</div>
+    <!-- <div class="slds-col slds-size_1-of-2">
+        <lightning:input name="cdata" value="{!v.cdata.Customer_ID__c}" aura:id="search-wealth" label="cdata" placeholder="cdata" />
+    </div> -->
+
+    <!-- <c:customPopupRecord recordId="{!v.cdata.Customer_ID__c}" /> -->
+
+</aura:component>

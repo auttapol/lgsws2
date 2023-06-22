@@ -1,0 +1,88 @@
+<aura:component controller="customCampaignMemberHistoryCtrl" implements="force:appHostable,flexipage:availableForAllPageTypes,force:hasRecordId" access="global">
+    
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />  
+    <lightning:navigation aura:id="navigation"/>
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="displayData" type="list" />
+    <aura:attribute name="loaded" type="Boolean" default="true" />
+
+    <aura:attribute name="emptyResult" type="Boolean" default="false" />
+
+    <div>
+        <div class="slds-card ">
+
+            <aura:if isTrue="{! v.loaded }">
+                <lightning:spinner alternativeText="Loading" />   
+            </aura:if>
+            <div class="slds-page-header">
+                <div class="slds-page-header__row">
+                    <div class="slds-page-header__col-title">
+                        <div class="slds-media">
+                            <div class="slds-media__figure">
+                                <lightning:icon iconName="standard:campaign" alternativeText="campaign" title="campaign" />
+                            </div>
+                            <div class="slds-media__body">
+                                <div class="slds-page-header__name">
+                                    <div class="slds-page-header__name-title">
+                                        <h1>
+                                            <span>{!$Label.c.RTL_Campaign_Member_History_Section_Title}</span>
+                                        </h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="slds-card__body slds-card__body_inner">
+                <aura:if isTrue="{!empty(v.displayData)}">
+                    No results.
+                    <aura:set attribute="else">
+                        <aura:iteration items="{!v.displayData}" var="data">
+                            <table class="slds-m-bottom_small" style="table-layout: fixed;">
+                                <tr>
+                                    <td>{!$Label.c.RTL_Campaign_Member_History_Header_Date}</td>
+                                    <td>
+                                        <!-- {data.RTL_Campaign_Member_History__r.RTL_Date__c} -->
+                                        <lightning:formattedDateTime
+                                            value="{!data.modifiedDate}"
+                                            year="numeric"
+                                            day="2-digit"
+                                            month="2-digit"
+                                            hour="2-digit"
+                                            minute="2-digit">
+                                        </lightning:formattedDateTime>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>{!$Label.c.RTL_Campaign_Member_History_Header_Field} </td>
+                                    <td>{!data.fieldLabel}</td>
+                                </tr>
+                                <tr>
+                                    <td>{!$Label.c.RTL_Campaign_Member_History_Header_ModBy} </td>
+                                    <td>
+                                        <a data-id="{!data.modifiedById}" onclick="{!c.handleClickUser}">{!data.modifiedBy}</a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>{!$Label.c.RTL_Campaign_Member_Updated_Text} </td>
+                                    <td>{!data.oldValue}</td>
+                                </tr>
+                                <tr>
+                                    <td>{!$Label.c.RTL_Campaign_Member_To_Text} </td>
+                                    <td>{!data.newValue}</td>
+                                </tr>
+                            </table>
+                        </aura:iteration>
+                    </aura:set>
+                </aura:if>
+            </div>
+            <footer class="slds-card__footer">
+                <a class="slds-card__footer-action" onclick="{!c.handleViewAll}">View All
+                    <span class="slds-assistive-text">Accounts</span>
+                </a>
+            </footer>
+        </div>
+    </div>
+</aura:component>

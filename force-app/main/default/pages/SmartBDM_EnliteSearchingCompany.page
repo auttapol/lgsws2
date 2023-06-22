@@ -1,0 +1,525 @@
+<apex:page controller="SmartBDM_EnliteSearchCompanyCtrl" doctype="html-5.0" title="Smart BDM" lightningStylesheets="true"
+    showHeader="false" docType="html-5.0">
+
+    <head>
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includeScript value="/support/console/45.0/integration.js" />
+        <apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.sfLightningVF, 'assets/styles/salesforce-lightning-design-system.css')}" />
+        <apex:slds />
+
+        <style type="text/css">
+            html {
+                overflow: scroll;
+                height: 100%;
+            }
+
+            .header-nav {
+                margin-top: 0 !important;
+                /* font-size: 1rem !important; */
+            }
+
+            .wrapper-header-nav {
+                padding: 1rem 1rem;
+                padding-bottom: .75rem;
+                height: 65px;
+                display: flex;
+                align-items: center;
+                background-color: #F7F9FB;
+            }
+
+            .wrapper-header-nav .slds-media__figure {
+                display: flex;
+            }
+
+            .padding-0-200 {
+                padding: 0 2rem !important;
+            }
+
+            [placeholder] {
+                color: #16325C !important;
+                font-size: 0.8rem !important;
+                opacity: 1;
+                /* Firefox */
+            }
+
+            input[type="checkbox"][disabled]:checked:after {
+                border-color: #16325C !important;
+            }
+
+            ::-webkit-input-placeholder {
+                color: #16325C !important;
+                font-size: 0.8rem !important;
+                opacity: 1;
+                /* Firefox */
+            }
+
+            .btn-search {
+                border: 1px solid rgb(221, 219, 218) !important;
+                transition: border .15s linear !important;
+                background-color: rgb(0, 112, 210) !important;
+                border-color: rgb(0, 112, 210) !important;
+                color: rgb(255, 255, 255) !important;
+            }
+
+            div.CompanyEnlite {
+                height: -webkit-fill-available !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border: none !important;
+                border-radius: none !important;
+                box-shadow: none !important;
+                -webkit-box-shadow: none !important;
+            }
+
+            .select-css select,
+            input.slds-select {
+                font-size: .8rem;
+                color: #16325C !important;
+            }
+
+            @media (max-width: 1024px) {
+                .CheckTablet {
+                    float: right;
+                }
+            }
+
+            @media (max-width: 500px) {
+                .CheckTablet {
+                    /* width: 50%; */
+                    float: left;
+                }
+            }
+
+            .slds-text-heading_medium {
+                color: #16325c !important;
+            }
+
+            .slds-form-element__label,
+            .slds-card__header-title {
+                color: #54698d !important;
+            }
+
+            .slds-icon-search {
+                background-color: #A8B7C7 !important;
+            }
+
+            .slds-scope a {
+                text-decoration: none !important;
+            }
+
+            .slds-table tbody tr {
+                color: #16325C;
+            }
+
+            .slds-scope .slds-table thead th,
+            .pagination {
+                color: #54698d;
+            }
+
+            .companyName,
+            li.slds-breadcrumb__item {
+                color: rgb(0, 109, 204) !important;
+            }
+
+            body input[type="checkbox"]:before,
+            .slds-vf-scope input[type="checkbox"]:before {
+                border-radius: 1.125rem;
+            }
+
+            body input[type="radio"][disabled]:before,
+            body input[type="checkbox"][disabled]:before,
+            .slds-vf-scope input[type="radio"][disabled]:before,
+            .slds-vf-scope input[type="checkbox"][disabled]:before {
+                background-color: #04844B;
+                border-color: #04844B;
+            }
+
+            input[type="checkbox"][disabled]:checked:after {
+                border-color: #FFF !important;
+            }
+
+            body input[type="checkbox"] {
+                width: 1.25rem;
+                height: 1.25rem;
+            }
+        </style>
+        <script type="text/javascript">
+            $(document).ready(function () {
+                // var lcBaseURL = '{! lightningBaseURL }';
+                // // Listen for messages from the Lightning Component
+                // window.addEventListener("message", function (event) {
+                //     if (event.origin !== lcBaseURL) {
+                //         // Not the expected origin: reject message
+                //         return;
+                //     }
+
+                //     // Only handle messages we are interested in            
+                //     if (event.data.topic === "smartbdm.com.tmbbank.companylist") {
+                //         var searchKey = event.data.searchKey;
+                //         Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.SmartBDM_EnliteSearchCompanyCtrl.startCallGetCompanyListService}', searchKey, function (result) {
+                //             // Send result to Lightning Component
+                //             parent.postMessage({
+                //                 topic: "smartbdm.com.tmbbank.companylist",
+                //                 result: result
+                //             }, lcBaseURL);
+                //         });
+                //     }
+
+                // }, false);
+
+                // parent.postMessage({
+                //     topic: "smartbdm.com.tmbbank.onloading",
+                //     result: true
+                // }, lcBaseURL);
+
+            });
+
+            function redirectMiniInformation(elem, onClick) {
+                var Id = $(elem).find(".rowAccountId").text();
+                var registerId = $(elem).find(".rowAccountRegisterID").text();
+                var AccountName = $(elem).find(".rowAccountName").text();
+                var isSF = $(elem).find(".rowIsSF").text() == 'true' ? true : false;
+                var isOnwer = $(elem).find(".rowIsOnwer").text() == 'true' ? true : false;
+                
+                var param = {
+                    'Id': isOnwer && isSF ? Id : registerId,
+                    'AccountName': AccountName,
+                    'retURL': '/lightning/n/Searching_Company_Enlite',
+                    'refType': 'Accountlist',
+                    // 'typeSearch': $('#searchCompanyKey').val()
+                }
+                var path = isOnwer && isSF ? '/apex/Mini_CSV' : '/apex/SmartBDM_NewMiniCSV_EnliteData';
+                // console.log(path, param);
+                var paramURL = Object.keys(param).reduce((list, key) => {
+                    return list += key + '=' + param[key] + (key != Object.keys(param)[Object.keys(param).length - 1] ? '&' : '');
+                }, '?');
+                sforce.one.navigateToURL(path + paramURL, false);
+            }
+
+            var isValidated = false;
+            function calloutGetCompanyListService() {
+                var searchCompanyKey = $('#searchCompanyKey').val();
+                var formElement = $('#searchElement');
+
+                if (searchCompanyKey.length >= 3) {
+                    isValidated = false;
+                    formElement.removeClass('slds-has-error');
+                    formElement.find('#form-error-searchKey').remove();
+                    startSpinner();
+                    Visualforce.remoting.Manager.invokeAction('{!$RemoteAction.SmartBDM_EnliteSearchCompanyCtrl.startCallGetCompanyListService}', searchCompanyKey, function (result, event) {
+                        // console.log(result, event);
+                        // var companyListSize = result ? result.companyList.GetExcuteSearchResponse.ListOfExcuteSearchs.ListOfSearchDescs[0].Value.length : 0;
+                        // var limitOffsetRecord = parseInt({! limitOffset });
+                        // && companyListSize <= limitOffsetRecord
+                        stopSpinner();
+                        if (result && result.isSuccess) {
+                            onHandlerCompanies(JSON.stringify(result.companyList));
+                            if (result.companyList.GetExcuteSearchResponse.ListOfExcuteSearchs.ListOfSearchDescs.length == 0) {
+                                formElement.addClass('slds-has-error');
+                                formElement.append('<div id="form-error-searchKey" class="slds-form-element__help">' + result.errorMessage + '</div>');
+                            }
+                        } else {
+                            formElement.addClass('slds-has-error');
+                            formElement.append('<div id="form-error-searchKey" class="slds-form-element__help">' + (result ? result.errorMessage : '{!$Label.Timeout_message}') + '</div>');
+                        }
+                    });
+                }
+                else if (!isValidated) {
+                    isValidated = true;
+                    formElement.find('#form-error-searchKey').remove();
+                    formElement.addClass('slds-has-error');
+                    formElement.append('<div id="form-error-searchKey" class="slds-form-element__help">{!$Label.Error_message_searching_input}</div>');
+                }
+            }
+
+            function onHandlerSearchingInput() {
+                var element = $('#btnClearSearching');
+                var searchCompanyInput = $('#searchCompanyKey');
+
+                if (searchCompanyInput.val().length > 0) {
+                    element.removeClass('slds-hide');
+                }
+                else {
+                    element.addClass('slds-hide');
+                }
+            }
+
+            function onHandlerClearInput() {
+                var element = $('#btnClearSearching');
+                var searchCompanyInput = $('#searchCompanyKey');
+                element.addClass('slds-hide');
+                searchCompanyInput.val('');
+            }
+
+            function startSpinner() {
+                $('#spinnerStatus').show();
+                $('*[id$=btnSubmit]').prop("disabled", true);
+            }
+            function stopSpinner() {
+                $('#spinnerStatus').hide();
+                $('*[id$=btnSubmit]').prop("disabled", false);
+            }
+        
+            function getMobileOperatingSystem() {
+                var userAgent = navigator.userAgent || navigator.vendor || window.opera;
+                if (userAgent.match(/iPad/i) || userAgent.match(/iPhone/i) || userAgent.match(/iPod/i)) {
+                    return 'iOS';
+                } else if (userAgent.match(/Android/i)) {
+                    return 'Android';
+                } else {
+                    return 'unknown';
+                }
+            }
+            
+            function goToOutside() {
+                switch (getMobileOperatingSystem()) {
+                    case 'Android':
+                        sforce.one.navigateToURL('{!deeplinkToKony}');
+                        break;
+                    case 'iOS':
+                        sforce.one.navigateToURL('{!deeplinkToKony}');
+                        break;
+                    default:
+                        console.log('Unknown');
+                        break;
+                }
+            }
+        </script>
+        <apex:slds />
+    </head>
+    <apex:outputPanel styleClass="CompanyEnlite" layout="block">
+        <apex:form >
+            <apex:actionFunction name="onHandlerCompanies" action="{!refreshCompanyTable}" rerender="filterCompany_table, test" status="loadingStatus">
+                <apex:param name="result" assignTo="{!resultCompany}" value="" />
+            </apex:actionFunction>
+            <div class="slds-col slds-has-flexi-truncate wrapper-header-nav">
+                <div class="slds-media slds-no-space slds-grow">
+                    <div class="slds-media__figure">
+                        <span class="slds-icon_container slds-icon-search" style="width:48px;height:48px;">
+                            <span aria-hidden="true" class="slds-icon slds-icon_medium">
+                                <img src="/apexpages/slds/latest/assets/icons/utility/search.svg" style="width:36px; height:36px; margin-top: 7px; margin-left: 7px;"
+                                />
+                            </span>
+                        </span>
+                    </div>
+                    <div class="slds-media__body">
+                        <nav role="navigation" aria-label="Breadcrumbs" style="color:rgb(0, 109, 204);">
+                            <ul class="slds-breadcrumb slds-list_horizontal slds-wrap">
+                                <li class="slds-breadcrumb__item">
+                                    <a href="javascript:void(0);" onclick="goToOutside(); " class="slds-breadcrumb__item" title="{!$Label.TMB_Smart_title}">
+                                        <span class="slds-truncate" title="{!$Label.TMB_Smart_title}">{!$Label.TMB_Smart_title}</span>
+                                    </a>
+                                </li>
+                                <li class="slds-breadcrumb__item">
+                                    <a href="javascript:void(0);" class="slds-breadcrumb__item" title="{!$Label.Search_Company_Label}">
+                                        <span class="slds-truncate" title="{!$Label.Search_Company_Label}">{!$Label.Search_Company_Label}</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                        <h1 class="slds-page-header__title slds-text-heading_medium slds-m-right_small slds-align-middle slds-wrapper slds-m-top_xxx-small header-nav"
+                            title="Search">
+                            <apex:outputPanel id="header_title">{!$Label.Search_Company_Label}</apex:outputPanel>
+                        </h1>
+                    </div>
+                </div>
+            </div>
+
+            <div class="slds-grid slds-wrap slds-m-top_small padding-0-200">
+                <div class="slds-col slds-size_9-of-12 slds-medium-size_9-of-12 slds-large-size_10-of-12 slds-p-right_xx-small">
+                    <div id="searchElement" class="slds-form-element">
+                        <div class="slds-form-element__control select-css ">
+                            <label class="slds-form-element__label">Company Name or ID Number</label>
+                            <div class="slds-form-element__control slds-input-has-icon slds-input-has-icon_left-right">
+                                <svg class="slds-icon slds-input__icon slds-input__icon_left slds-icon-text-default" aria-hidden="true" xmlns="http://www.w3.org/2000/svg"
+                                    width="12.25" height="12.25" viewBox="0 0 24 24">
+                                    <path xmlns="http://www.w3.org/2000/svg" d="M22.9 20.9l-6.2-6.1c1.3-1.8 1.9-4 1.6-6.4-.6-3.9-3.8-7.1-7.8-7.4C5 .4.4 5 1 10.5c.3 4 3.5 7.3 7.4 7.8 2.4.3 4.6-.3 6.4-1.5l6.1 6.1c.3.3.7.3 1 0l.9-1c.3-.3.3-.7.1-1zM3.7 9.6c0-3.2 2.7-5.9 5.9-5.9 3.3 0 6 2.7 6 5.9 0 3.3-2.7 6-6 6-3.2 0-5.9-2.6-5.9-6z"
+                                    />
+                                </svg>
+
+                                <input onkeyup="onHandlerSearchingInput(); return false;" id="searchCompanyKey" class="slds-input slds-select" type="text"
+                                    value="" />
+
+                                <div class="slds-input__icon-group slds-input__icon-group_right">
+
+                                    <div id="spinnerStatus" role="status" class="slds-spinner slds-spinner_brand slds-spinner_x-small slds-input__spinner" style="display: none;">
+                                        <span class="slds-assistive-text">Loading</span>
+                                        <div class="slds-spinner__dot-a"></div>
+                                        <div class="slds-spinner__dot-b"></div>
+                                    </div>
+
+                                    <button onclick="onHandlerClearInput(); return false;" id="btnClearSearching" type="button" class="slds-button slds-button_icon slds-input__icon slds-input__icon_right slds-hide"
+                                        title="Clear">
+                                        <svg class="slds-button__icon slds-icon-text-light" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" width="12.25" height="12.25"
+                                            viewBox="0 0 24 24">
+                                            <path xmlns="http://www.w3.org/2000/svg" d="M12 .9C5.9.9.9 5.9.9 12s5 11.1 11.1 11.1 11.1-5 11.1-11.1S18.1.9 12 .9zm2.3 11.5l3.6 3.6c.1.2.1.4 0 .6l-1.3 1.3c-.2.2-.5.2-.7 0l-3.6-3.6c-.2-.2-.4-.2-.6 0l-3.6 3.6c-.2.2-.5.2-.7 0l-1.3-1.3c-.1-.2-.1-.4 0-.6l3.6-3.6c.2-.2.2-.5 0-.7L6.1 8.1c-.2-.2-.2-.5 0-.7l1.3-1.3c.2-.1.4-.1.6 0l3.7 3.7c.2.2.4.2.6 0l3.6-3.6c.2-.2.5-.2.7 0l1.3 1.3c.1.2.1.4 0 .6l-3.6 3.6c-.2.2-.2.5 0 .7z"
+                                            />
+                                        </svg>
+                                        <span class="slds-assistive-text">Clear</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- slds-p-top_medium slds-m-top_medium slds-align-top -->
+                <div class="slds-col slds-size_3-of-12 slds-medium-size_3-of-12 slds-large-size_2-of-12 slds-p-left_xx-small">
+                    <div class="slds-form-element">
+                        <div class="slds-form-element__control">
+                            <!-- ********************** -->
+                            <!-- SF-Requests-1805, Case No.8798 -->
+                            <!-- Fixed Date: 2019-09-24 -->
+                            <!-- Fixed by: Siwapongsakorn Dechapisood -->
+                            <!-- ********************** -->
+                            <label class="slds-form-element__label">&nbsp;</label>
+                            <div class="slds-form-element__control">
+                            <apex:commandButton style="color: white !important;" styleClass="btn-search slds-button_brand slds-select" value="Search"
+                                    id="btnSubmit" onclick="calloutGetCompanyListService(); return false;" />
+                            </div>
+                            <!--<div class="slds-form-element__control">
+                                <!-- <apex:commandButton style="color: white !important;" styleClass="btn-search slds-button slds-button_brand slds-select" value="Search"
+                                    id="btnSubmit" onclick="calloutGetCompanyListService(); return false;" /> -->
+                            
+                            <!--</div>-->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <apex:outputPanel id="statusMessage">
+                <apex:pageMessages escape="false"></apex:pageMessages>
+            </apex:outputPanel>
+
+            <div id="hrefLinkCompanyListTable" class="padding-0-200 slds-p-bottom_small">
+                <apex:outputPanel id="filterCompany_table">
+                    <apex:outputPanel rendered="{! IF(companyList.Size > 0, true, false) }">
+                        <apex:dataTable value="{!companyListDisplay}" var="c" id="companyListTable" rowClasses="odd,even" onRowClick="redirectMiniInformation(this, 'onRowClick'); return false;"
+                            styleClass="slds-table slds-table_bordered  slds-table_fixed-layout slds-m-top_large slds-table_cell-buffer"
+                            headerClass="slds-text-title_caps slds-cell-wrap slds-text-align_center" columnClasses="slds-cell-wrap"
+                            columnsWidth="36%,21%,11%,11%,21%">
+                            <!-- <apex:facet name="header">table header</apex:facet> -->
+                            <apex:column headerClass="slds-col slds-size_4-of-12">
+                                <apex:facet name="header">
+                                    <!-- {!$ObjectType.Account.Fields.Name.label} -->
+                                    <apex:commandLink value="{!$ObjectType.Account.Fields.Name.label}" action="{!SortCompany}" reRender="companyListTable" status="loadingStatus"
+                                        styleClass="slds-cell-wrap">
+                                        <apex:param name="order" assignTo="{!orderCompanyKey}" value="accountName" />
+                                    </apex:commandLink>
+                                </apex:facet>
+
+                                <apex:outputText escape="false" value="{! c.account.Name }" styleClass="rowAccountName companyName" />
+                                <apex:outputText value="{! c.account.Id }" styleClass="rowAccountId hidden" />
+                                <apex:outputText value="{! c.account.ID_Number_PE__c }" styleClass="rowAccountRegisterID hidden" />
+                                <apex:outputText value="{! c.SF }" styleClass="rowIsSF hidden" />
+                                <apex:outputText value="{! c.isOnwer }" styleClass="rowIsOnwer hidden" />
+
+                            </apex:column>
+
+                            <apex:column headerClass="slds-col slds-size_3-of-12" styleClass="slds-text-align_center">
+                                <apex:facet name="header">
+                                    <!-- {!$ObjectType.Account.Fields.ID_Number_PE__c.label} -->
+                                    <apex:commandLink value="{!$ObjectType.Account.Fields.ID_Number_PE__c.label}" action="{!SortCompany}" reRender="companyListTable"
+                                        status="loadingStatus" styleClass="slds-cell-wrap">
+                                        <apex:param name="order" assignTo="{!orderCompanyKey}" value="registerId" />
+                                    </apex:commandLink>
+                                </apex:facet>
+
+                                <apex:outputText value="{! c.account.ID_Number_PE__c }" />
+                            </apex:column>
+
+                            <apex:column headerClass="slds-col slds-size_1-of-12" styleClass="slds-text-align_center">
+                                <apex:facet name="header">
+                                    SF
+                                </apex:facet>
+                                <apex:inputCheckbox value="{! c.SF }" disabled="true" rendered="{!c.SF}" />
+                            </apex:column>
+
+                            <apex:column headerClass="slds-col slds-size_1-of-12" styleClass="slds-text-align_center">
+                                <apex:facet name="header">
+                                    Enlite
+                                </apex:facet>
+                                <apex:inputCheckbox value="{! c.Enlite }" disabled="true" />
+                            </apex:column>
+
+                            <apex:column headerClass="slds-col slds-size_2-of-12">
+                                <apex:facet name="header">
+                                    <!-- Owner -->
+                                    <apex:commandLink value="{!$Label.Owner_Full_Name}" action="{!SortCompany}" reRender="companyListTable" status="loadingStatus"
+                                        styleClass="slds-cell-wrap">
+                                        <apex:param name="order" assignTo="{!orderCompanyKey}" value="OnwerName" />
+                                    </apex:commandLink>
+                                </apex:facet>
+
+                                <apex:outputText value="{! c.OnwerName }" styleClass="" />
+                            </apex:column>
+
+                        </apex:dataTable>
+
+                        <apex:outputPanel id="pageinationSet">
+                            <div class="slds-grid slds-wrap slds-m-top_x-small">
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2">
+                                    <div class="slds-clearfix">
+                                        <div class="slds-clearfix">
+                                            <div class="slds-float_left pagination">
+                                                <apex:outputText value="Showing {! IF(companyList.Size != 0, offset + 1, 0) } to {! to } of {!records} entries" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-large-size_1-of-2">
+                                    <div class="slds-clearfix">
+                                        <div class="slds-clearfix">
+                                            <div class="CheckTablet">
+                                                <ol class="slds-breadcrumb slds-list_horizontal slds-wrap" style="color:rgb(0, 109, 204);">
+                                                    <li class="slds-breadcrumb__item slds-text-title_caps">
+                                                        <apex:commandLink value="Previous" onclick="location.href = '#hrefLinkCompanyListTable'; previouspage(); return false;">
+                                                            <apex:actionFunction name="previouspage" action="{!PreviousPage}" rerender="companyListTable, pageinationSet" status="loadingStatus"
+                                                            />
+                                                        </apex:commandLink>
+                                                    </li>
+                                                    <li class="slds-breadcrumb__item slds-text-title_caps">
+                                                        <a href="javascript:void(0)">
+                                                            <apex:outputText value="{!currentPage} / {!pages}" />
+                                                        </a>
+                                                    </li>
+                                                    <li class="slds-breadcrumb__item slds-text-title_caps">
+                                                        <apex:commandLink value="Next" onclick="location.href = '#hrefLinkCompanyListTable'; nextpage(); return false;">
+                                                            <apex:actionFunction name="nextpage" action="{!NextPage}" rerender="companyListTable, pageinationSet" status="loadingStatus"
+                                                            />
+                                                        </apex:commandLink>
+                                                    </li>
+                                                </ol>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </apex:outputPanel>
+                    </apex:outputPanel>
+                </apex:outputPanel>
+            </div>
+
+            <!-- For Spinner -->
+            <apex:actionStatus id="loadingStatus">
+                <apex:facet name="start">
+                    <div class="slds-spinner_container slds-is-fixed">
+                        <div role="status" class="slds-spinner_brand slds-spinner slds-spinner_large">
+                            <span class="slds-assistive-text">Loading</span>
+                            <div class="slds-spinner__dot-a"></div>
+                            <div class="slds-spinner__dot-b"></div>
+                        </div>
+                    </div>
+                </apex:facet>
+            </apex:actionStatus>
+            <!-- <div id="spinnerStatus" class="slds-spinner_container slds-is-fixed" style="display: none;">
+                <div role="status" class="slds-spinner_brand slds-spinner slds-spinner_large">
+                    <span class="slds-assistive-text">Loading</span>
+                    <div class="slds-spinner__dot-a"></div>
+                    <div class="slds-spinner__dot-b"></div>
+                </div>
+            </div> -->
+
+        </apex:form>
+    </apex:outputPanel>
+</apex:page>

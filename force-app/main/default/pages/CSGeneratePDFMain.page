@@ -1,0 +1,492 @@
+<apex:page controller="CSGeneratePDFMainController" renderAs="PDF" applyBodyTag="false" standardStylesheets="false"
+ showHeader="false" sidebar="false" cache="false" applyhtmltag="false">
+
+	<head>
+		<apex:stylesheet value="{!$Resource.AccountPlanPDF}" />
+		<apex:includeScript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+		<apex:includeScript value="/support/console/44.0/integration.js"/>
+		<style>
+			.logoTMB {
+				height: 50px;
+				/* margin: -5px 0 0 0; */
+			}
+
+			.description {
+				font-size: 8px;
+			}
+
+			.header_form {
+				font-size: 10px;
+				font-weight: bold;
+				color: blue;
+				margin-bottom: -12px;
+			}
+
+			.information {
+				font-size: 8px;
+			}
+
+			.question-section {
+				padding: 0 0 0 0;
+			}
+
+			.question {
+				font-size: 10px;
+				font-weight: bold;
+			}
+
+			.choice {
+				text-indent: 20px;
+				font-size: 8px;
+				width: 350px;
+			}
+
+			.image_checkbox {
+				height: 12px;
+				width: 16px;
+			}
+
+			table {
+				border-collapse: collapse;
+				border-spacing: 0;
+				background-color: transparent;
+			}
+
+			.table2 {
+				width: 100%;
+				max-width: 100%;
+			}
+
+			th,
+			.table2 th {
+
+				font-weight: bold;
+				text-align: center;
+				background-color: #aaa;
+			}
+
+			.table2 td,
+			.table2 th {
+				background-color: #fff !important;
+
+			}
+
+			hr {
+				border: 2px solid rgb(100, 149, 237);
+				border-top: 2px solid rgb(100, 149, 237);
+				margin-bottom: -5px;
+			}
+
+			body {
+				font-family: "Arial Unicode MS";
+			}
+
+			@page {
+				size: A4 Portrait;
+			}
+		</style>
+		
+	</head>
+
+	<body>
+
+		<apex:outputPanel rendered="{!showFormA}">
+
+			<table class="table2">
+				<tr>
+					<td rowspan="2">
+						<apex:image value="{!$Resource.TMB_All_Blue_Logo}" styleClass="logoTMB" />
+					</td>
+					<td>
+						<apex:outputPanel layout="block" style="background-color:#99CCFF; padding: 5px; text-align: center;">
+							<apex:outputtext styleClass="question" style="color: white;" value="CLIENT SUITABILITY ASSESSMENT"></apex:outputtext>
+						</apex:outputPanel>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<apex:outputPanel layout="block" style="padding: 5px; text-align: center;">
+							<apex:outputtext styleClass="question" value="by Relationship Manager"></apex:outputtext>
+						</apex:outputPanel>
+					</td>
+				</tr>
+
+			</table>
+
+			<div>
+				<span class="description">
+					This assessment will be performing by Relationship Manager and Global Markets Sales to assess the client
+					suitability to enter into the derivative transactions.
+				</span>
+			</div>
+
+			<div>
+				<hr />
+			</div>
+
+			<div>
+
+				<span class="header_form">General Information</span>
+				<div class="information">
+					<span>
+						Name of
+						Corporation: <u>{!account.Name}</u>
+					</span>
+				</div>
+				<div class="information">
+					<span>
+						Registered
+						Address: <u>{! account.Registered_Address_Line_1_PE__c + ' ' + account.Registered_Address_Line_2_PE__c + ' ' +
+							account.Registered_Address_Line_3_PE__c + ' ' + account.Province_Registered_PE__c + ' ' +
+							account.Zip_Code_Registered_PE__c + ' ' + account.Country_Registered_PE__c }</u>
+					</span>
+				</div>
+
+			</div>
+
+			<div>
+				<hr />
+			</div>
+
+			<div>
+
+				<span class="header_form">(A) {!shA.Info_1__c}</span>
+				<div style="padding: 0 0 0 0;">
+					<apex:repeat value="{!awserDataA.survey.questionlist}" var="Listqeustion">
+
+						<c:CSSurveyQuestionComponent questiondata="{!Listqeustion}" ChAnsMap="{!AnsMapA}" />
+
+					</apex:repeat>
+				</div>
+
+			</div>
+
+			<apex:outputPanel rendered="{!showFormB}">
+				<div style="page-break-after:always;" />
+			</apex:outputPanel>
+		</apex:outputPanel>
+
+		<apex:outputPanel rendered="{!showFormB}">
+			<table class="table2">
+				<tr>
+					<td rowspan="2">
+						<apex:image value="{!$Resource.TMB_All_Blue_Logo}" styleClass="logoTMB" />
+					</td>
+					<td>
+						<apex:outputPanel layout="block" style="background-color:#99CCFF; padding: 5px; text-align: center;">
+							<apex:outputtext styleClass="question" style="color: white;" value="CLIENT SUITABILITY ASSESSMENT"></apex:outputtext>
+						</apex:outputPanel>
+					</td>
+				</tr>
+				<tr>
+					<td>
+						<apex:outputPanel layout="block" style="padding: 5px; text-align: center;">
+							<apex:outputtext styleClass="question" value="by Global Markets Salesperson"></apex:outputtext>
+						</apex:outputPanel>
+					</td>
+				</tr>
+
+			</table>
+
+			<div>
+				<span class="description">
+					The answer will be evaluated into score to classify client’s knowledge
+				</span>
+			</div>
+
+			<div>
+				<apex:outputPanel rendered="{!showCSlevel}">
+				<table class="table2">
+					<tr>
+						<td>
+							<span class="header_form">(B) {!shB.Info_1__c}</span>
+						</td>
+						<td>
+							<!-- <apex:outputPanel layout="block" style="background-color:#e5e5e5; text-align: center; padding: 2px;" rendered="{!!showCover}">
+								<apex:outputtext styleClass="question" value="{!shB.Total_Score__c}"></apex:outputtext>
+							</apex:outputPanel> -->
+						</td>
+						<td>
+							<apex:outputPanel layout="block" style="background-color:#e5e5e5; text-align: center; padding: 2px;" rendered="{!!showCover}">
+								<apex:outputtext styleClass="question" value="{!shB.Score_Group__c}"></apex:outputtext>
+							</apex:outputPanel>
+						</td>
+					</tr>
+				</table>
+				</apex:outputPanel>
+
+				<apex:repeat value="{!awserDataB.survey.questionlist}" var="Listqeustion">
+
+					<c:CSSurveyQuestionComponent questiondata="{!Listqeustion}" ChAnsMap="{!AnsMapB}" />
+
+				</apex:repeat>
+			</div>
+			<apex:outputPanel rendered="{!showFormA}">
+				<div style="page-break-after:always;" />
+			</apex:outputPanel>
+			<!-- <apex:outputPanel rendered="{!showFormA}">
+				<div style="page-break-after:always;" />
+			</apex:outputPanel> -->
+		</apex:outputPanel>
+
+		<apex:outputPanel rendered="{!showCover}">
+
+			<div>
+				<apex:image value="{!$Resource.TMB_All_Blue_Logo}" styleClass="logoTMB" />
+			</div>
+
+			<table border="1" width="100%" style="font-size: 10px;">
+				<tr>
+					<td style="background-color:#99CCFF; color: white;">Sign Off</td>
+				</tr>
+				<table border="1" width="100%" align="center">
+					<td>
+						<table width="100%">
+							<tr>
+								<td align="center"><br><b>Global Markets</b></br></td>
+							</tr>
+							<tr>
+								<td>
+									<br><b>Signature:</b> 
+									<div style="border-bottom: 1px solid black;width:78%; display:inline-block"> 
+									<!-- <span style="{!IF(ec.CS_Sales_Owner__r.Name != null,'text-decoration:underline;','')}"> -->
+										{!IF(ec.CS_Sales_Owner__r.Name == null, ' ', ec.CS_Sales_Owner__r.Name)}
+									<!-- </span> -->
+									</div>
+									</br>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<b>Date:</b> 
+									<div style="border-bottom: 1px solid black;width:85%; display:inline-block">
+									<!-- <span> -->
+										<!-- <u> -->
+											<apex:outputText value="{0, date,d MMMM yyyy}">
+												<apex:param value="{!ec.PDF_Generated_Date_Time__c}" />
+											</apex:outputText>
+										<!-- </u> -->
+									<!-- </span>		 -->
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<b>Name:</b> 
+									<div style="border-bottom: 1px solid black;width:84%; display:inline-block">
+									<!-- <span style="{!IF(ec.CS_Sales_Owner__r.Name != null,'text-decoration:underline;','')}"> -->
+										{!IF(ec.CS_Sales_Owner__r.Name == null, ' ', ec.CS_Sales_Owner__r.Name)}
+									<!-- </span> -->
+									</div>
+								</td>
+							</tr>
+
+							<tr>	
+								<td>
+									<br>Designation: Corporate Sales</br>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<br><b>Signature:</b> 
+									<div style="border-bottom: 1px solid black;width:78%; display:inline-block">
+									<!-- <span style="{!IF(ec.CS_Sales_TH__c != null,'text-decoration:underline;','')}"> -->
+										{!IF(ec.CS_Sales_TH_Approved_Date_Time__c == null, ' ', sale_ApprovedBy)}
+									<!-- </span> --></div>
+									</br>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<b>Date:</b> 
+									<div style="border-bottom: 1px solid black;width:85%; display:inline-block">
+									<!-- <span style="{!IF(ec.Sales_TH_Approved_DT__c != null,'text-decoration:underline;','')}"> -->
+											{!IF(ec.Sales_TH_Approved_DT__c == null, ' ', approvedDate)}
+									<!-- </span> -->
+									<!-- <span>
+										<u>
+											<apex:outputText value="{0, date,d MMMM yyyy}">
+												<apex:param value="{!ec.Sales_TH_Approved_DT__c}" />
+											</apex:outputText>
+										</u>
+									</span>		 -->
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<b>Name:</b> 
+									<div style="border-bottom: 1px solid black;width:84%; display:inline-block">
+									<!-- <span style="{!IF(ec.CS_Sales_TH__c != null,'text-decoration:underline;','')}"> -->
+										{!IF(ec.CS_Sales_TH_Approved_Date_Time__c == null, ' ', sale_ApprovedBy)}
+									<!-- </span> -->
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td><br>Designation: Team Head of Corporate Sales</br></td>
+							</tr>
+						</table>
+					</td>
+					<td>
+						<table width="100%">
+							<tr>
+								<td align="center"><br><b>Relationship Management</b></br></td>
+							</tr>
+							<tr>
+								<td>
+									<br><b>Signature:</b>
+									<div style="border-bottom: 1px solid black;width:78%; display:inline-block">
+									<!-- <span style="{!IF(ec.CS_RM__r.Name != null,'text-decoration:underline;','')}"> -->
+										{!IF(ec.CS_RM__r.Name == null, ' ', ec.CS_RM__r.Name)}
+									<!-- </span> -->
+									</div>
+								</br>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<b>Date:</b> 
+									<div style="border-bottom: 1px solid black;width:85%; display:inline-block">
+										<!-- <span>
+											<u> -->
+												<apex:outputText value="{0, date,d MMMM yyyy}">
+												    <apex:param value="{!ec.RM_TH_Approve_DT__c}" />
+												</apex:outputText>
+											<!-- </u>
+										</span> -->
+										</div>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<b>Name:</b> 
+									<div style="border-bottom: 1px solid black;width:84%; display:inline-block">
+									<!-- <span style="{!IF(ec.CS_RM__r.Name != null,'text-decoration:underline;','')}"> -->
+										{!IF(ec.CS_RM__r.Name == null, ' ', ec.CS_RM__r.Name)}
+									<!-- </span> -->
+									</div>
+								</td>
+							</tr>
+
+							<tr>
+								<td>
+									<br>Designation: Relationship Manager</br>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<br><b>Signature:</b>
+									<div style="border-bottom: 1px solid black;width:78%; display:inline-block">
+									<!-- <span style="{!IF(ec.CS_RM_TH__c != null,'text-decoration:underline;','')}"> -->
+										{!IF(ec.CS_RM_TH_Approved_Date_Tme__c == null, ' ', rm_ApprovedBy)}
+									<!-- </span> -->
+									</div>
+								</br>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<b>Date:</b> 
+									<div style="border-bottom: 1px solid black;width:85%; display:inline-block">
+									<!-- <span> -->
+										<!-- <u> -->
+											<apex:outputText value="{0, date,d MMMM yyyy}">
+											    <apex:param value="{!ec.RM_TH_Approve_DT__c}" />
+											</apex:outputText>
+										<!-- </u> -->
+									<!-- </span> -->
+									</div>
+								</td>
+							</tr>
+							<tr>
+								<td>
+									<b>Name:</b> 
+									<div style="border-bottom: 1px solid black;width:84%; display:inline-block">
+										<!-- <span style="{!IF(ec.CS_RM_TH__c != null,'text-decoration:underline;','')}"> -->
+										{!IF(ec.CS_RM_TH_Approved_Date_Tme__c == null, ' ', rm_ApprovedBy)}
+									<!-- </span> -->
+									</div>
+								</td>
+							</tr>
+
+							<tr>
+								<td>
+									<br>Designation: Team Head of Relationship Manager</br>
+								</td>
+							</tr>
+						</table>
+					</td>
+				</table>
+			</table>
+
+			<table cellpadding="5" width="100%" align="center">
+				<tr>
+					<td>In case of the products required acknowledgement by Customer.</td>
+				</tr>
+			</table>
+
+			<table border="1" width="100%" align="center">
+				<tr>
+					<td>
+						<table>
+							<tr>
+								<td align="center"><b>Acknowledgement</b></td>
+							</tr>
+							<tr>
+								<td>
+									I/We hereby acknowledge that the answer to the questionnaire are true, accurate and
+									complete and can be
+									relied upon by the Relationship Manager and Global Markets Products Sales. I/We understand
+									that the
+									Client Suitability Assessment Form (CSA) shall be used as guide for the Bank to represent
+									hedging instruments.
+								</td>
+							</tr>
+							<tr>
+								<td><br>______________________________________________</br></td>
+							</tr>
+							<tr>
+								<td><br>Authorized signatory</br></td>
+							</tr>
+							<tr>
+								<td>Name:_______________________</td>
+							</tr>
+							<tr>
+								<td>Designation:_______________________</td>
+							</tr>
+							<tr>
+								<td>Date:_______________________</td>
+							</tr>
+						</table>
+					</td>
+				</tr>
+			</table>
+
+		</apex:outputPanel>
+
+		<!-- <script type="text/javascript">
+			var $j = jQuery.noConflict();
+			var inconsole = sforce.console.isInConsole();
+			var _maintab;
+			var _subtab;
+
+			//Sets the title of the current tab 
+			function setTitle() {
+				sforce.console.setTabTitle('{!IF(showFormA == true, shA.Info_1__c, IF(showFormB == true, shB.Info_1__c, 'Loading...'))}');
+			}
+			
+			$j(document).ready(function(){ 
+				_maintab = sforce.console.getEnclosingPrimaryTabId(mainTab);
+				sforce.console.getFocusedSubtabId(function(retsult){
+					if(retsult!=null){
+						sforce.console.setTabIcon("/apexpages/slds/latest/assets/icons/standard/document.svg", retsult.id);
+					}
+				});
+				setTitle();
+				
+			});
+		</script> -->
+	</body>
+
+</apex:page>

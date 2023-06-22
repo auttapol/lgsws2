@@ -1,0 +1,271 @@
+<apex:page controller="InvestmentProductDetailCtrl" showchat="false" sidebar="false" showheader="true" standardstylesheets="true" tabstyle="Account">
+    <!-- Includes Js -->
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    <!-- Style for Ajax Request -->
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+            /* width: 32px;*/
+            height: 32px;
+            position: absolute;
+            left: 48%;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+
+        .bootstrap-sf1 {
+            overflow: hidden;
+        }
+
+            .bootstrap-sf1 .container {
+                padding-left: 0px;
+                padding-right: 0px;
+            }
+
+        .bootstrap-sf1 {
+            background-color: #FFF;
+        }
+
+            .bootstrap-sf1 .btn-block {
+                display: block;
+                width: 100%;
+                text-align: center;
+            }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+    <div class="bootstrap-sf1 sf1_bk" style="display:none;">
+        <div class="container">
+            <a href="javascript:sforce.one.back();" class="btn-lg btn-default btn-block">Back</a>
+        </div>
+    </div>
+    <apex:sectionheader title="Investment Product" subtitle="{!$Label.Details_of_Investment_Product}" />
+    <apex:form onkeypress="return noenter(event)">
+        <!-- Ajax Function -->
+        <apex:actionfunction action="{!startRequest}" rerender="section1,section2,section3,alertbox" status="status" name="doRest" />
+        
+        <!-- Alert Box -->
+        <apex:outputPanel id="alertbox">
+        <div class="bootstrap-sf1" style="{!IF(PageMessage == '','display:none','')}" >
+            <div class="alert alert-dismissible alert-danger">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <h4>Warning!</h4>
+                <p>{!PageMessage}</p>
+            </div>
+        </div>
+        </apex:outputPanel>
+        
+        <apex:pageblock id="section1" mode="maindetail">
+            <apex:pageblocksection title="{!$Label.Investment_Info}" columns="2">
+                <!-- Row 1 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Unit_Holder_No}" />
+                    <apex:outputtext value="{!unitHolderNo}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Product_Name}" />
+                    <apex:outputtext value="{!ViewState.InvestmentProductDetails.InvestmentInformation.ProductName}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 2 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Asset_Class}" />
+                    <apex:outputtext value="{!ViewState.InvestmentProductDetails.InvestmentInformation.AssetType}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Product_Sub_Group}" />
+                    <apex:outputtext value="{!ViewState.InvestmentProductDetails.InvestmentInformation.ProductType}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 3 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputPanel ></apex:outputPanel>
+                    <!--<apex:outputlabel value="{!$Label.Fund_type}" />
+                    <apex:outputtext value="{!ViewState.InvestmentProductDetails.InvestmentInformation.FundType}" />-->         
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Issuer_Fund_House}" />
+                    <apex:outputtext value="{!ViewState.InvestmentProductDetails.InvestmentInformation.IssuerFundHouse}">
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!-- Row 4 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Number_of_unit}" />
+                    <!--<apex:outputtext value="{!ViewState.InvestmentProductDetails.InvestmentInformation.NumberOfUnit}" />-->
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,##0.0000}">
+                        <apex:param value="{!ViewState.InvestmentProductDetails.InvestmentInformation.NumberOfUnit}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Cost_of_Investment}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,##0.00}">
+                        <apex:param value="{!CEILING(ViewState.InvestmentProductDetails.InvestmentInformation.CostOfInvestment*100)/100}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!-- Row 5 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Market_Value}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,##0.00}">
+                        <apex:param value="{!CEILING(ViewState.InvestmentProductDetails.InvestmentInformation.MarketValue*100)/100}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Average_cost_per_unit}" />
+                    
+                    <apex:outputpanel >
+                    <!--<img src="/s.gif" class="imgclass" title="Formula is CostOfInvestment / NumberOfUnit" /> -->  
+                    <apex:outputtext style="{!IF(ViewState.InvestmentProductDetails.InvestmentInformation.NumberOfUnit == 0,'','display:none;')}" value="{!devideByZeroText}" />
+                    <apex:outputtext style="{!IF(ViewState.InvestmentProductDetails.InvestmentInformation.NumberOfUnit != 0,'','display:none;')}" value="{0, number, ###,###.0000}">
+                        <apex:param value="{!CEILING(ViewState.InvestmentProductDetails.InvestmentInformation.AvgCostUnit*10000)/10000}" />
+                    </apex:outputtext>
+                    </apex:outputpanel>
+                </apex:pageblocksectionitem>
+                <!-- Row 6 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.NAV_Unit}" />
+                    <apex:outputtext style="padding-right:5px;" value="{!ViewState.InvestmentProductDetails.InvestmentInformation.NAVUnit}" />
+                </apex:pageblocksectionitem>
+                <!--  <apex:pageblocksectionitem>
+                     <apex:outputlabel value="" />
+                     <apex:outputtext value="" />
+                 </apex:pageblocksectionitem>-->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Unrealized_G_L}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,##0.00}">
+                        <apex:param value="{!CEILING(ViewState.InvestmentProductDetails.InvestmentInformation.UnrealizedGL*100)/100}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                 <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.AIP_instruction}" />
+                    <apex:outputtext value="{!ViewState.InvestmentProductDetails.InvestmentInformation.AipInstruction}" />
+                </apex:pageblocksectionitem>
+
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.percent_of_Unrealized_G_L}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,##0.00}">
+                        <apex:param value="{! IF(ViewState.InvestmentProductDetails.InvestmentInformation.CostOfInvestment != 0, (CEILING(ViewState.InvestmentProductDetails.InvestmentInformation.UnrealizedGL*100)/100) / (CEILING(ViewState.InvestmentProductDetails.InvestmentInformation.CostOfInvestment*100)/100) * 100, 0.00) }" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+
+            </apex:pageblocksection>
+        </apex:pageblock>
+        
+        <apex:pageblock id="section2" title="{!$Label.Auto_Investment_Plan}" mode="view">
+            <apex:pageblocktable value="{!ViewState.InvestmentProductDetails.AutoInvestmentPlans}" var="atp">
+                <!-- <apex:column style="width:60px;" headervalue="{!$Label.AIP_instruction}">
+                    <apex:outputtext value="{!atp.Instruction}" />
+                </apex:column> -->
+                <apex:column style="width:15%;" headervalue="{!$Label.AIP_Since_Date}">
+                    <!--<apex:outputtext style="padding-right:5px;" value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!atp.SinceDate}" />
+                    </apex:outputtext>-->
+                    <apex:outputtext value="{!atp.ConvertedSinceDate}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.AIP_Created_Channel}">
+                    <apex:outputtext value="{!atp.CreatedChannel}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.AIP_frequency}">
+                    <apex:outputtext value="{!atp.Frequency}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.AIP_date}">
+                    <apex:outputtext style="padding-right:5px;" value="{!atp.Date_x}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.AIP_balance}">
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!atp.Balance}" />
+                    </apex:outputtext>
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Saving_account_bundling}">
+                    <apex:outputtext value="{!atp.SavingAccountBundling}" />
+                </apex:column>
+            </apex:pageblocktable>
+        </apex:pageblock>
+        
+        <apex:pageblock id="section3" title="{!$Label.Investment_Transaction}" mode="view">
+            <apex:pageblocktable value="{!ViewState.InvestmentProductDetails.InvestmentTransactions}" var="ivt">
+                <!--  <apex:column style="width:15%;" headervalue="{!$Label.Effective_Date}">
+                    <apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!ivt.TransactionDate}" />
+                    </apex:outputtext>
+					<apex:outputtext value="{!ivt.ConvertedTransactionDate}" />
+                </apex:column> -->
+                <apex:column style="width:15%;" headervalue="{!$Label.Settlement_Date}">
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!ivt.SettlementDate}" />
+                    </apex:outputtext>-->
+                    <apex:outputtext value="{!ivt.ConvertedSettlementDate}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Trn_Type}">
+                    <apex:outputtext value="{!ivt.TransactionType}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Interact_Channel}">
+                    <apex:outputtext value="{!ivt.InteractChannel}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Unit_Movement}">
+                    <!--<apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:outputtext value="{!ivt.UnitMovement}" />
+                    </apex:outputtext>-->
+                    <apex:outputtext value="{!ivt.UnitMovement}" />
+                </apex:column>
+                <!-- [2018-06-18] Comment this out due to data from MF will not contain this field. -->
+                <!-- <apex:column style="width:15%;" headervalue="{!$Label.Unit_O_S}"> -->
+                    <!--<apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!ivt.UnitOutstanding}" />
+                    </apex:outputtext>-->
+                    <!-- <apex:outputtext value="{!ivt.UnitOutstanding}" /> -->
+                <!-- </apex:column> -->
+                <apex:column style="width:15%;" headervalue="{!$Label.Trn_Value}">
+                    <!--<apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!ivt.TransactionValue}" />
+                    </apex:outputtext>-->
+                    <apex:outputtext value="{!ivt.TransactionValue}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Value_Per_Unit}">
+                    <apex:outputtext style="padding-right:5px;" value="{!ivt.ValuePerUnit}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Status}">
+                    <apex:outputtext value="{!ivt.Statue}" />
+                </apex:column>
+            </apex:pageblocktable>
+        </apex:pageblock>
+        
+    </apex:form>
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+    <script>
+        function startLoading(text){
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading(){
+            $('.loadingBox').hide();
+        }
+        $(document).ready(function () {
+            startLoading("SendingRequest ...");
+            // On Pageload send ajax request
+         if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+                $('.sf1_bk').show();
+
+            }
+            doRest();
+        });
+    </script>
+</apex:page>

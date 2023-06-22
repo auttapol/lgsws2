@@ -1,0 +1,258 @@
+<aura:component controller="LeadScoringController"
+    implements="force:appHostable,flexipage:availableForAllPageTypes,force:lightningQuickAction,flexipage:availableForRecordHome,force:hasRecordId,lightning:actionOverride,lightning:isUrlAddressable,lightning:hasPageReference"
+    access="global">
+    <aura:handler name="init" value="{!this}" action="{!c.doInit}" />
+    <aura:attribute name="LeadList" type="Object[]" />
+    <aura:handler name="InquiryDeleteRowEvt" event="c:InquiryDeleteRowEvt" action="{!c.removeDeletedRow}" />
+    <aura:handler name="LeadScoringAddNewRowEvt" event="c:LeadScoringAddNewRowEvt" action="{!c.addNewRow}" />
+    <aura:attribute name="isActive" type="Boolean" default="false" />
+    <lightning:workspaceAPI aura:id="workspace" />
+    <lightning:navigation aura:id="navService" />
+    <aura:attribute name="recordId" type="id" />
+    <aura:attribute name="showModal" type="boolean" />
+    <aura:attribute name="mapfieldList" type="Object" />
+    <aura:attribute name="mapfieldtype" type="Object" />
+    <aura:attribute name="mapfieldLength" type="Object" />
+    <aura:attribute name="mapfieldLabel" type="Object" />
+    <aura:attribute name="mapfieldAPI" type="Object" />
+    <aura:attribute name="mapWrapperLabel" type="Object" />
+    <aura:attribute name="sumWeight" type="integer" />
+    <aura:attribute name="totalWeight" type="integer" />
+    <aura:attribute name="Description" type="string" />
+    <aura:attribute name="Name" type="string" />
+    <aura:attribute name="level1Rec" type="Object" />
+    <aura:attribute name="level2Rec" type="List" />
+    <aura:attribute name="isActiveShowed" type="boolean" default="false" />
+    <aura:attribute name="loaded" type="Boolean" default="false" />
+    <aura:attribute name="isEdit" type="Boolean" default="false" />
+    <aura:handler event="lightning:tabRefreshed" action="{! c.doInit }" />
+    <aura:html tag="style">
+        .slds-input {
+        text-align: center;
+        }
+        .slds-button_success, .slds-button--success{
+        --slds-c-button-text-color: var(--slds-c-button-brand-text-color, var(--sds-c-button-brand-text-color,
+        var(--slds-g-color-neutral-base-100, var(--lwc-colorTextBrandPrimary,rgb(255, 255, 255)))));
+        }
+    </aura:html>
+    <lightning:card title="Lead Scoring Condition Detail">
+        <aura:if isTrue="{! v.loaded }">
+            <lightning:spinner alternativeText="Loading" />
+        </aura:if>
+        <!-- section 1 -->
+        <div class="slds-grid slds-wrap" style="display: flex;
+    flex-direction: column;
+    align-content: flex-start;">
+            <div class="" style="display:flex;width:100%; align-items: center;">
+                <aura:if isTrue="{!v.recordId != null}">
+                    <div class="slds-size_1-of-6 outputStyle">
+                        <div class="">Scoring List Name</div>
+                    </div>
+                    <div class="slds-size_1-of-6 " >
+                        <div class="inputStyle">
+                            <lightning:input disabled="{!v.isEdit}" value="{!v.level1Rec.Name}" class="textCenter"
+                                variant="label-hidden" />
+                        </div>
+                    </div>
+                    <aura:set attribute="else">
+                        <div class="slds-size_1-of-6 outputStyle">
+                            <div class="">Scoring List Name</div>
+                        </div>
+                        <div class="slds-size_1-of-6 " >
+                            <div class="inputStyle">
+                                <lightning:input disabled="{!v.isEdit}" value="{!v.Name}" class="textCenter"
+                                    variant="label-hidden" />
+                            </div>
+                        </div>
+                    </aura:set>
+                </aura:if>
+                <div class="slds-size_1-of-6 outputStyle">
+                    <div class="">{!$Label.c.LGS_Total_Weight}</div>
+
+                </div>
+                <div class="slds-size_1-of-6 ">
+                    <div class="inputStyle">
+                        <aura:if isTrue="{!v.recordId != null}">
+                            <lightning:input type="number" disabled="true" class="textCenter"
+                                value="{!v.level1Rec.Total_Weight__c}" variant="label-hidden"/>
+                            <aura:set attribute="else">
+                                <lightning:input type="number" disabled="true" class="textCenter"
+                                    value="{!v.totalWeight}" variant="label-hidden"/>
+                            </aura:set>
+                        </aura:if>
+                        <div style="padding-left: 1%;">%</div>
+                    </div>
+                </div>
+                <div class="slds-size_1-of-6 outputStyle">
+                    <div class="">{!$Label.c.LGS_Summary_Weight}</div>
+
+                </div>
+                <div class="slds-size_1-of-6 ">
+                    <div class="inputStyle">
+                        <lightning:input type="number" disabled="true" class="textCenter"
+                            value="{!v.level1Rec.Summary_weight__c}" variant="label-hidden" />
+                        <div style="padding-left: 1%;">%</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="" style="display:flex;width:100%; align-items: center;padding-top: 1%;">
+                <aura:if isTrue="{!v.recordId != null}">
+                    <div class="slds-size_1-of-6 outputStyle">
+                        <div class="">Description</div>
+                    </div>
+                    <div class="slds-size_1-of-6 " >
+                        <div class="inputStyle">
+                            <lightning:input class="" disabled="{!v.isEdit}" value="{!v.level1Rec.Description__c}"
+                                variant="label-hidden" />
+                        </div>
+                    </div>
+                    <aura:set attribute="else">
+                        <div class="slds-size_1-of-6 outputStyle">
+                            <div class="">Description</div>
+                        </div>
+                        <div class="slds-size_1-of-6 " >
+                            <div class="inputStyle">
+                                <lightning:input class="" disabled="{!v.isEdit}" value="{!v.Description}"
+                                    variant="label-hidden" />
+                            </div>
+                        </div>
+                    </aura:set>
+                </aura:if>
+
+                <aura:if isTrue="{!v.recordId != null}">
+                    <div class="slds-size_1-of-6 outputStyle">
+                        <div class="">Active</div>
+                    </div>
+                    <div class="slds-size_1-of-6 " >
+                        <div class="slds-checkbox" style="padding: 0px 0% 0px 33%  ;">
+                            <div class="checkbox_center" style="min-height: calc(var(--lwc-heightInput,1.875rem) + (var(--lwc-borderWidthThin,1px) * 2));
+                                line-height: var(--lwc-heightInput,1.875rem);">
+                                <input type="checkbox" name="options" id="checkbox-unique-id-84"
+                                    value="{!v.level1Rec.IsActive__c}" checked="{!v.level1Rec.IsActive__c}"
+                                    disabled="true" />
+                                <label class="slds-checkbox__label" for="checkbox-unique-id-84">
+                                    <span class="slds-checkbox_faux"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <aura:set attribute="else">
+                        <div class="slds-size_1-of-6 outputStyle">
+                            <div class="">Active</div>
+                            
+                        </div>
+                        <div class="slds-size_1-of-6 " >
+                            <div class="slds-checkbox" style="padding: 0px 0% 0px 33% ;">
+                                <div class="checkbox_center" style="min-height: calc(var(--lwc-heightInput,1.875rem) + (var(--lwc-borderWidthThin,1px) * 2));
+                                line-height: var(--lwc-heightInput,1.875rem);">
+                                    <input type="checkbox" name="options" id="checkbox-unique-id-84"
+                                        value="{!v.isActive}" checked="{!v.isActive}" disabled="true" />
+                                    <label class="slds-checkbox__label" for="checkbox-unique-id-84">
+                                        <span class="slds-checkbox_faux"></span>
+                                    </label>
+                                </div>
+                                <!-- <div style="padding-left: 1%;opacity:0;">%</div> -->
+                            </div>
+                        </div>
+                    </aura:set>
+                </aura:if>
+
+                <aura:if isTrue="{!v.recordId != null}">
+                    <div class="slds-size_1-of-6 outputStyle">
+                        <div class="">ID</div>
+                    </div>
+                    <div class="slds-size_1-of-6 ">
+                        <div class="inputStyle" style="padding-right: 21%;">
+                            <lightning:input class="" disabled="true" value="{!v.recordId}" variant="label-hidden" />
+                        </div>
+                    </div>
+                    <aura:set attribute="else">
+                        <div class="slds-size_1-of-6 outputStyle">
+                            <div class="">ID</div>
+                        </div>
+                        <div class="slds-size_1-of-6 ">
+                            <div class="inputStyle" style="padding-right: 21%;">
+                                <lightning:input class="" disabled="true" value="{!v.recordId}" variant="label-hidden" />
+                            </div>
+                        </div>
+                    </aura:set>
+                </aura:if>
+            </div>
+        </div>
+        <br />
+        <div class="slds-border_bottom" />
+        <br />
+        <!-- section 2 -->
+        <table class="slds-table slds-table_bordered slds-table_cell-buffer">
+            <thead>
+                <tr class="slds-text-title_caps">
+                    <th scope="col">
+                        <div class="slds-truncate">No.</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" style="width: 100px;" title="Object">Object</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" style="width: 100px;" title="Field Name">Field Name</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" style="width: 150px;" title="Field API Name">Field API Name</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" style="width: 100px;" title="Field Type">Field Type</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" style="width: 100px;" title="Length">Length</div>
+                    </th>
+                    <th scope="col">
+                        <div class="slds-truncate" style="width: 150px;" title="Weight">Weight</div>
+                    </th>
+                    <th scope="col"></th>
+                    <th scope="col"></th>
+                </tr>
+            </thead>
+            <tbody>
+                <aura:iteration items="{!v.LeadList}" var="item" indexVar="index">
+                    <c:LeadScoringItem rowIndex="{!index}" LeadScoringList="{!item}" mapfieldList="{!v.mapfieldList}"
+                        isEdit="{!v.isEdit}" mapfieldtype="{!v.mapfieldtype}" mapfieldLength="{!v.mapfieldLength}"
+                        mapfieldLabel="{!v.mapfieldLabel}" mapWrapperLabel="{!v.mapWrapperLabel}" />
+                </aura:iteration>
+            </tbody>
+        </table>
+        <div class="slds-align_absolute-center" style="height:5rem">
+            <button class="slds-button slds-button_brand slds-m-vertical_medium" onclick='{!c.onSave}'>Save</button>
+            <aura:if isTrue="{!v.isActiveShowed}">             
+                <aura:if isTrue="{!v.level1Rec.IsActive__c}">
+                    <button class="slds-button slds-button_brand slds-button_destructive"
+                        onclick='{!c.onConfirm}'>Inactive</button>
+                    <aura:set attribute="else">
+                        <button class="slds-button slds-button_brand slds-button_success"
+                            onclick='{!c.onActive}'>Active</button>
+                    </aura:set>
+                </aura:if>   
+            </aura:if>
+        </div>
+
+        <aura:if isTrue="{!v.showModal}">
+            <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true"
+            aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                <div class="slds-modal__container">
+                    <div class="slds-modal__header">
+                        <h1 id="modal-heading-01" class="slds-modal__title slds-hyphenate">Confirmation</h1>
+                    </div>
+                    <div style="text-align: center;font-size: medium;" class="slds-modal__content slds-p-around_medium" id="modal-content-id-1">
+                        {!$Label.c.LGS_Inactive_Message}
+                    </div>
+                    <div class="slds-modal__footer"> 
+                        <button class="slds-button slds-button_neutral"
+                        onclick='{!c.onCancel}'>Cancel</button>
+                        <button class="slds-button slds-button_brand"
+                        onclick='{!c.onDeactive}'>Ok</button>
+                    </div>
+                </div>    
+            </section>
+            <div class="slds-backdrop slds-backdrop_open" role="presentation"></div>
+        </aura:if>
+    </lightning:card>
+</aura:component>

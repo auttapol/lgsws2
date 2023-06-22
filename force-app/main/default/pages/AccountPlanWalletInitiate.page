@@ -1,0 +1,473 @@
+<apex:page standardController="AcctPlanWallet__c" extensions="AccountPlanWalletDomainIExV2"
+    docType="html-5.0" showChat="false" showHeader="{! !isConsoleMode}" sidebar="false"
+    applyBodyTag="false" applyHtmlTag="true" standardStylesheets="true">
+    <head>
+        <title></title>
+        <meta charset="utf-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="description" content="" />
+        <meta name="keywords" content="" />
+        <meta name="author" content="Keattisak Chinburarat" />
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+
+        <!-- Static Resource -->
+        <!--<apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap.min.css')}"/>  -->
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+        
+        <!--[if lt IE 9]><script src="../dist/js/ie8-responsive-file-warning.js"></script><![endif]-->
+
+        <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+        <!--[if lt IE 9]>
+          <apex:includeScript value="{!$Resource.AccountPlan_HTML5shiv}"/>
+          <apex:includeScript value="{!$Resource.AccountPlan_Respond}"/>
+        <![endif]-->
+		<style>
+              .messageText {
+                  text-align:left !important;
+                  }
+              </style>
+       <apex:stylesheet value="{!$Resource.AccountPlanMaster}" />
+    </head>
+
+    <body>
+         <c:AccountPlanHeader activetab="3" activesubtab="0"
+        Groupid="{!GroupID}"
+        CompanyID="{!CompanyID}"
+        
+        />
+        <div class="bootstrap-sf1 ">
+            <div id="responseErrors"></div>
+            <apex:form styleClass="form-horizontal">
+
+                <apex:pageBlock id="pgBlock">
+                        <apex:outputPanel id="result"> 
+                         <apex:pageMessages escape="false" id="errorMessage"   /> 
+                        </apex:outputPanel>
+                  <apex:actionstatus id="status">
+                                                    <apex:facet name="start">
+                                                        <div class='overlay' style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; opacity: 0.75; z-index: 1000; background-color: #ededed;">
+                                                            &nbsp;
+                                                        </div>
+                                                        <div style="position: fixed; left: 0; top: 0; bottom: 0; right: 0; z-index: 1001; margin: 15% 50%">
+                                                            <img src="/img/loading32.gif" />
+                                                        </div>
+                                                    </apex:facet>
+                          </apex:actionstatus>
+                <fieldset>
+                    <legend>Initiate Account Plan Wallet by Domain</legend>
+                </fieldset>
+                <div class="form-group">
+                    <div style="text-align: center;">
+                       <apex:pageBlockButtons location="both" style="float:left;margin-left:200px;"  rendered="{! 
+                         isHasPermission
+                         && if(companyProfile.OwnerID == $User.id || isSystemAdmin
+                               ||companyProfile.Account__r.OwnerID == $User.id,true,
+                               if(isAccountTeamReadWrite,true,false) 
+                         )}"  >
+                <apex:commandButton value="Save" action="{!insertWallet}" styleclass="btn btn-success" rerender="result" status="status" />
+                
+            </apex:pageBlockButtons>
+               
+                                                  
+                    </div>
+                </div>
+                
+                        <fieldset>
+                           
+                            <div>
+
+                                <div class="col-sm-12 col-md-6 col-lg-6">
+                                    <div class="form-group">
+
+                                            <div>
+                                         
+                                                <table class="table">
+                                                    
+                                                    <tr>
+                                                        <td class="text-left" style="border: none;"><label
+                                                            class="control-label">Unit: THB</label></td>
+                                                        <td class="text-right forceBackground" style="border: none;">
+                                                            <label class="control-label">Sale Portion (%)</label>
+                                                        </td>
+                                                        <td class="text-right forceBackground" style="border: none;">
+                                                            <label class="control-label">Amount per Year</label>
+                                                        </td>
+                                                    </tr>                                          
+                                                    <tr>
+                                                        <td class="text-left forceBackground" style="border: none;width:250px;">
+                                                            <label  class="control-label">Estimated
+                                                                Sales (Year of account plan ) :</label>
+                                                        </td>
+                                                        <td class="text-right" style="border: none;">
+                                                            <apex:outputpanel id="walletpanel">
+                                                                <apex:outputText value="{0,number,0.00}%">
+                                                                        <apex:param value="{!tempEstimatedSalesPercent}" />
+                                                                    </apex:outputtext>
+                                                                </apex:outputpanel>
+                                                                       <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.EstimatedSalesPercent__c.inlineHelpText}" />       
+  
+                                                                </td>
+                                                        <td style="border: none;">
+                                                            
+                                                            <apex:inputtext value="{!tempEstimatedSalesAmtPerYearStr}"  styleClass="danger form-control text-right"
+                                                                 style="width:90%;float:left;"  > <apex:actionSupport event="onchange"
+                                                                 action="{!CalculateWallet}"  oncomplete="checkIshasValue(this,'tempEstimatedSalesAmtPerYearStr');"
+                                										rerender="walletpanel,walletpanel2,walletpanel3,walletpanel4"/>
+                                                                </apex:inputtext>
+                                                                
+                                                                 <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                                            style="float: left;margin-left: 7px;margin-top: 10px;"
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.EstimatedSalesAmtPerYear__c.inlineHelpText}" />
+                                                                  
+                                                                </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-left forceBackground" style="border: none;">
+                                                            <label 
+                                                            class="control-label">Total Sales Domestic :</label>
+                                                        </td>
+                                                        <td style="border: none;">
+                                                            <apex:inputtext value="{!tempTotalDomesticPercentStr}"  styleClass="danger form-control text-right" 
+                                                               style="width:85%;float:left;" >
+                                                                <apex:actionSupport event="onchange" 
+                                                                 action="{!CalculateWallet}" oncomplete="checkIshasValue(this,'');"
+                                										rerender="walletpanel2,walletpanel3,walletpanel4"/>
+                                                                
+                                                                </apex:inputtext>
+                                                                         <span style="float: left;margin-top:7px;margin-left:3px;"> %</span>
+                                                                       
+                                                                      <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                                    style="float: left;margin-left: 4px;margin-top: 10px;"
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalDomesticPercent__c.inlineHelpText}" />   
+                                                         
+                                                            </td>
+                                                        <td class="text-right" style="border: none;">
+                                                            <apex:outputpanel id="walletpanel2">
+                                                                <apex:outputtext value="{0, number, ###,###}">
+                                                                        <apex:param value="{!tempTotalDomesticAmtPerYear}" />
+                                                                    </apex:outputtext>
+                                                                </apex:outputpanel>
+                                                                        
+                                                                          <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                                     data-toggle="tooltip"
+                                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                                     data-animation="false"
+                                                                     data-placement="bottom" 
+                                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalDomesticAmtPerYear__c.inlineHelpText}" />       
+
+                                                       </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td class="text-left forceBackground" style="border: none;">
+                                                            <label 
+                                                            class="control-label">Total Sales Export :</label>
+                                                        </td>
+                                                        <td class="text-right" style="border: none;">
+                                                            <apex:outputpanel id="walletpanel3">
+                                                             <apex:outputText value="{0,number,0.00}%">
+                                                                        <apex:param value="{!tempTotalExportPercent}" />
+                                                                    </apex:outputtext>
+                                                              </apex:outputpanel>          
+                                                                           <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalExportPercent__c.inlineHelpText}" />       
+
+                                                                </td>
+                                                        <td class="text-right" style="border: none;">
+                                                            <apex:outputpanel id="walletpanel4">
+                                                            <apex:outputtext value="{0, number, ###,###}">
+                                                                        <apex:param value="{!tempTotalExportAmtPerYear}" />
+                                                                    </apex:outputtext>
+                                                                </apex:outputpanel>
+                                                                  <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalExportAmtPerYear__c.inlineHelpText}" />       
+
+                                                                        
+                                                                        
+                                                                </td>
+                                                    </tr>
+                                                </table> 
+                                                          
+                                            </div>
+
+                                    </div>
+                                </div>
+                            </div>
+                              
+                            
+                        </fieldset>
+ 
+                        <!--  Section 1 -->
+                        
+                        <fieldset>
+                            
+                             <div>
+
+                                <div class="col-sm-12 col-md-12 col-lg-5">
+                                    <div class="form-group">
+
+                                        <div>
+                                        
+                                            <table class="table table-striped">
+                                                <tr>
+                                                        <td class="text-left" style="border: none;"><label
+                                                            class="control-label">Unit: THB</label></td>
+                                                        <td class="text-right forceBackground" style="border: none;">
+                                                            <label class="control-label">Sale Portion (%)</label>
+                                                        </td>
+                                                        <td class="text-right forceBackground" style="border: none;">
+                                                            <label class="control-label">Amount per Year</label>
+                                                        </td>
+                                                    </tr> 
+                                                <tr>
+                                                    <td class="text-left forceBackground" style="border: none;">
+                                                        % COGS (From estimated sales)
+                                                    </td>
+                                                    <td class="text-right" style="border: none;">
+                                                       <apex:inputtext value="{!tempCOGSPercentStr}"  styleClass="danger form-control text-right" 
+                                                       style="width:84%;float:left;"
+                                                      >
+                                                          <apex:actionSupport event="onchange"
+                                                                 action="{!CalculateWallet}" oncomplete="checkIshasValue(this,'');"
+                                										rerender="cogspanel1,cogspanel2,cogspanel3,cogspanel4,cogspanel5,cogspanel6"/>
+                                                         </apex:inputtext>
+                                                                       <span style="float: left;margin-top:7px;margin-left:3px;"> %</span>
+                                                        <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                         style="float: left;margin-left: 4px;margin-top: 10px;"
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.COGSPercent__c.inlineHelpText}" />
+                                                         
+                                                    </td>
+                                                   <td class="text-right" style="border: none;">
+                                                       <apex:outputpanel id="cogspanel1">
+                                                         <apex:outputtext value="{0, number, ###,###}">
+                                                                        <apex:param value="{!tempCOGSAmount}" />
+                                                                    </apex:outputtext>
+                                                            </apex:outputpanel>
+                                                                         <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.COGSAmount__c.inlineHelpText}" />
+                                                    </td>
+                                                </tr>
+                                               
+                                                <tr>
+                                                    <td class="text-left forceBackground" style="border: none;">
+                                                        Operating Expense (Amount: THB)
+                                                        
+                                                    </td>
+                                                    <td class="text-right forceBackground" style="border: none;">
+                                                        
+                                                        
+                                                    </td>
+                                                    <td class="text-right" style="border: none;">
+                                                        <apex:inputtext value="{!tempOperatingExpAmountStr}" styleClass="danger form-control text-right" 
+                                                       style="width:90%;float:left;"  >
+                                                           <apex:actionSupport event="onchange"
+                                                                 action="{!CalculateWallet}" oncomplete="checkIshasValue(this,'');"
+                                										rerender="cogspanel1,cogspanel2,cogspanel3,cogspanel4,cogspanel5,cogspanel6"/>
+                                                         </apex:inputtext>
+                                                                        <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                                         style="float: left;margin-left: 6px;margin-top: 10px;"
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.OperatingExpAmount__c.inlineHelpText}" />
+
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-left forceBackground" style="border: none;">
+                                                        Total Payment (Amount: THB)        
+                                                        
+                                                    </td>
+                                                    <td class="text-right" style="border: none;">
+                                                         <apex:outputpanel id="cogspanel2">
+                                                             <apex:outputtext value="{0, number, ###,##0.00}%" style="margin-right:18px;">
+                                                                        <apex:param value="{!tempTotalPaymentPercent}" />
+                                                                    </apex:outputtext>
+                                                            </apex:outputpanel>
+                                                   		  
+                                                    </td>
+                                                    <td class="text-right" style="border: none;">
+                                                         <apex:outputpanel id="cogspanel3" >
+                                                            <apex:outputtext value="{0, number, ###,###}">
+                                                                        <apex:param value="{!tempTotalPaymentAmount}" />
+                                                                    </apex:outputtext>
+                                                            </apex:outputpanel>
+                                                          <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalPayment__c.inlineHelpText}" />
+                                                                      
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="text-left forceBackground" style="border: none;">
+                                                        Total Payment Domestic      
+                                                        
+                                                    </td>
+                                                    <td class="text-right" style="border: none;">
+                                                        <apex:inputtext value="{!tempTotalPaymentDomesticPercentStr}"  styleClass="danger form-control text-right" 
+                                                        id="totaldomestic"   style="width:84%;float:left;" 
+                                                        >
+                                                             <apex:actionSupport event="onkeyup"
+                                                                 action="{!CalculateWallet}" oncomplete="checkIshasValue(this,'');"
+                                										rerender="cogspanel1,cogspanel2,cogspanel3,cogspanel4,cogspanel5,cogspanel6"/>
+                                                         </apex:inputtext>
+                                                                         <span style="float: left;margin-top:7px;margin-left:3px;"> %</span>
+                                                                        <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                             style="float:left;margin-top:11px;margin-left:4px;"
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalPaymentDomesticPercent__c.inlineHelpText}" />
+                                                    </td>
+                                                    <td class="text-right" style="border: none;">
+                                                         <apex:outputpanel id="cogspanel4">
+                                                             <apex:outputtext value="{0, number, ###,###}">
+                                                                        <apex:param value="{!tempTotalPaymentDomesticAmtPerYear}" />
+                                                                    </apex:outputtext>
+                                                         </apex:outputpanel>
+                                                                        <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalPaymentDomesticAmtPerYear__c.inlineHelpText}" />
+                                                    </td>
+                                                </tr>
+                                                                                                                                                <tr>
+                                                    <td class="text-left forceBackground" style="border: none;">
+                                                        Total Payment Import        
+                                                        
+                                                    </td>
+                                                    <td class="text-right" style="border: none;">
+                                                       <apex:outputpanel id="cogspanel5">
+                                                           
+                                                             <apex:outputtext value="{0, number, ###,##0.00}%">
+                                                                        <apex:param value="{!tempTotalPaymentImportPercent}" />
+                                                                    </apex:outputtext>
+                                                                        </apex:outputpanel>
+                                                                        <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalPaymentImportPercent__c.inlineHelpText}" />
+                                                    </td>
+                                                    <td class="text-right" style="border: none;">
+                                                        <apex:outputpanel id="cogspanel6">
+                                                     <apex:outputtext value="{0, number, ###,###}">
+                                                                        <apex:param value="{!tempTotalPaymentImportAmtPerYear}" />
+                                                                    </apex:outputtext>
+                                                          
+                                                          </apex:outputpanel>
+                                                                         <span class="glyphicon glyphicon-question-sign" id="bootstrap-tooltip" 
+                                                     data-toggle="tooltip"
+                                                     data-delay='{"show":"0", "hide":"100"}'
+                                                     data-animation="false"
+                                                     data-placement="bottom" 
+                                                     title="{!$ObjectType.AcctPlanWallet__c.Fields.TotalPaymentImportAmtPerYear__c.inlineHelpText}" />
+                                                    </td>
+                                                </tr>
+                                            </table> 
+                                                     
+                                        </div>    
+                                     </div>
+                                </div>
+                            </div>                                                
+                            
+                                                
+                                              
+                                              
+                            
+                        
+                        
+                        
+                        
+                        
+                        </fieldset>
+              
+              </apex:pageBlock>                              
+            </apex:form>
+        </div>
+            
+
+                    
+                    
+
+        <apex:includescript value="{!$Resource.AccountPlan_JqueryScript}" />
+        <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+
+        <apex:includeScript value="{!$Resource.AccountPlan_Mustache}"/>
+            
+        <script type="text/javascript">
+            var $j = jQuery.noConflict();
+            $j(document).ready(function(){ 
+                      $j('[data-toggle="tooltip"]').tooltip(); 
+                         
+                    });
+
+            function checkIshasValue(item,id) {
+                    var msg = item.value;                  
+                    $j(item).removeClass('info');
+                    $j(item).removeClass('danger');
+                    $j(item).removeClass('success');
+                    if(id == 'tempEstimatedSalesAmtPerYearStr' ){
+                        if(msg !='' && msg != null && msg !='0' && msg !=0){
+                            $j(item).addClass('success');
+                        }else{
+                            $j(item).addClass('danger'); 
+                        }  
+                    }else{
+                        if(msg !='' && msg != null ){
+                            $j(item).addClass('success');
+                        }else{
+                            $j(item).addClass('danger');
+                        }     
+                    }
+                }  
+
+		//Sets the title of the current tab to "Case Transactions Detail"
+        window.onload = function setTitleConsole(){
+            setTitle();
+        }
+        //Sets the title of the current tab to "Case Transactions Detail"
+        function setTitle() {
+            sforce.console.setTabTitle('Wallet by Domain');
+        }
+        </script>
+    </body>
+
+</apex:page>

@@ -1,0 +1,131 @@
+<aura:component controller="ActivityTimelineController"
+    implements="flexipage:availableForAllPageTypes,force:hasRecordId,lightning:isUrlAddressable,force:lightningQuickActionWithoutHeader,force:appHostable">
+
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="loadmoreTimes" type="Integer" default="1" />
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <!-- <aura:attribute name="iconName" type="String" default="utility:chevronright" /> -->
+    <aura:attribute name="activitiesCount" type="Map" default="{}" />
+    <aura:attribute name="totalActivitiesCount" type="Integer" default="0" />
+    <aura:attribute name="activities" type="Map" default="{}" />
+    <aura:attribute name="oneAppTempData" type="Map" default="{}" />
+    <aura:attribute name="oneAppData" type="Map" default="{}" />
+    <aura:attribute name="filters" type="Map" default="{}" />
+    <aura:attribute name="selectedFilters" type="Object" />
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+    <aura:attribute name="profileName" type="String" />
+    <aura:attribute name="accessType" type="String" />
+    <aura:attribute name="permission" type="Boolean" />
+    <aura:attribute name="noPermissionMsg" type="String" />
+    <aura:attribute name="warningMsg" type="String" />
+    <aura:attribute name="warningMsgObj" type="Map" default="{}" />
+    <aura:attribute name="oneAppErrMsg" type="String" default="" />
+    <aura:attribute name="filterValue" type="List" />
+    <lightning:workspaceAPI aura:id="workspace" />
+
+    <div class="w-full flex">
+        <aura:if isTrue="{! v.isLoading }">
+            <lightning:spinner alternativeText="Loading" size="medium" variant="brand" />
+        </aura:if>
+        <aura:if isTrue="{!v.permission == false}">
+            <!-- <div class="w-full flex justify-center">
+                <h1 class="warning">User is not authorized to access information (ขออภัย
+                    คุณไม่ได้รับอนุญาตในการเข้าถึงข้อมูลนี้)</h1>
+            </div> -->
+            <div class="slds-notify slds-notify_alert slds-alert_warning" role="alert">
+                <lightning:icon class="some-indicator" variant="warning" iconName="utility:warning"
+                    alternativeText="warning" title="warning" size="x-small" />
+                <h2>
+                    {!v.noPermissionMsg}
+                </h2>
+            </div>
+
+            <aura:set attribute="else">
+                <aura:if isTrue="{! v.oneAppErrMsg.length > 0 }">
+                    <div
+                        class="slds-m-top_xxx-small slds-p-around_x-small slds-border_top slds-border_bottom slds-theme_shade slds-theme_alert-texture">
+                        <div class="warning-text p-5">
+                            Warning!
+                        </div>
+                        <div class="warning-content p-5">
+                            <p class="white-space-pre">
+                                {!v.warningMsgObj.beforeLink}
+                                <a onclick="{!c.retryGetDataFromOneApp}">{!v.warningMsgObj.clickHere}</a>
+                                {!v.warningMsgObj.afterLink}
+                            </p>
+                        </div>
+                    </div>
+                </aura:if>
+                <div class="w-full flex justify-end p-5">
+                    <span class="filter-text">Filter Data</span>
+                    <lightning:buttonMenu alternativeText="Show menu" onselect="{! c.handleSelect }">
+                        <!-- <aura:iteration items="{!v.filters}" var="filter" indexVar="index">
+                            <lightning:menuItem aura:id="filterItems" value="{!filter.value}" label="{!filter.label}"
+                                checked="{!filter.checked}" />
+                        </aura:iteration> -->
+                        <lightning:checkboxGroup class="slds-dropdown_small" name="Checkbox Group"
+                            aura:id="checkboxGroup" options="{! v.filters }" value="{! v.filterValue }"
+                            onchange="{! c.handleChange }" />
+                    </lightning:buttonMenu>
+
+                </div>
+                <div class="flex timeline-days">
+                    ข้อมูลที่แสดงย้อนหลัง {!v.loadmoreTimes * v.activitiesCount.timelineDays} วัน
+                </div>
+                <aura:if isTrue="{! v.activities.length > 0 }">
+                    <ul class="slds-timeline">
+                        <li>
+                            <aura:iteration items="{!v.activities}" var="activity" indexVar="index">
+                                <aura:if isTrue="{!and(v.selectedFilters.CASE, activity.type == 'CASE')}">
+                                    <c:Personalize_Timeline_Case activity="{!activity}" />
+                                </aura:if>
+                                <aura:if isTrue="{!and(v.selectedFilters.OPPORTUNITY, activity.type == 'OPPORTUNITY')}">
+                                    <c:Personalize_Timeline_Opportunity activity="{!activity}" />
+                                </aura:if>
+                                <aura:if
+                                    isTrue="{!and(v.selectedFilters.CAMPAIGN_MEMBER, activity.type == 'CAMPAIGN_MEMBER')}">
+                                    <c:Personalize_Timeline_CampaignMember activity="{!activity}" />
+                                </aura:if>
+                                <aura:if
+                                    isTrue="{!and(v.selectedFilters.REMINDER, activity.salesforceType == 'Reminder')}">
+                                    <c:Personalize_Timeline_Card activity="{!activity}" />
+                                </aura:if>
+                                <aura:if
+                                    isTrue="{!and(v.selectedFilters.INFORMING, activity.salesforceType == 'Informing')}">
+                                    <c:Personalize_Timeline_Card activity="{!activity}" />
+                                </aura:if>
+                                <aura:if
+                                    isTrue="{!and(v.selectedFilters.OFFERING, activity.salesforceType == 'Offering')}">
+                                    <c:Personalize_Timeline_Card activity="{!activity}" />
+                                </aura:if>
+                                <aura:if
+                                    isTrue="{!and(v.selectedFilters.INSIGHT, activity.salesforceType == 'Insight')}">
+                                    <c:Personalize_Timeline_Card activity="{!activity}" />
+                                </aura:if>
+                            </aura:iteration>
+                        </li>
+                    </ul>
+                </aura:if>
+                <aura:if isTrue="{!and(v.activities.length == 0, v.oneAppErrMsg.length == 0)}">
+                    <div class="slds-notify slds-notify_alert slds-alert_warning" role="alert">
+                        <lightning:icon class="some-indicator" variant="warning" iconName="utility:warning"
+                            alternativeText="warning" title="warning" size="x-small" />
+                        <h2>
+                            &nbsp; No Data Found.
+                        </h2>
+                    </div>
+                </aura:if>
+                <div class="flex timeline-days pb-10">
+                    ข้อมูลที่แสดงย้อนหลัง {!v.loadmoreTimes * v.activitiesCount.timelineDays} วัน
+                </div>
+                <aura:if isTrue="{!v.activities.length != v.totalActivitiesCount}">
+                    <div class="w-full flex justify-center section-loadmore">
+                        <lightning:button class="loadmore-btn" aura:id="toggleBtn" onclick="{!c.loadmore}">
+                            More loading
+                        </lightning:button>
+                    </div>
+                </aura:if>
+            </aura:set>
+        </aura:if>
+    </div>
+</aura:component>

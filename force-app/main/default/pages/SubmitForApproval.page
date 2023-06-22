@@ -1,0 +1,105 @@
+<apex:page standardController="Opportunity" extensions="SubmitForApprovalExtension" action="{!checkSubmitForApproval}">
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>    
+    <script src="/soap/ajax/9.0/connection.js" type="text/javascript"></script>
+    <script src="/soap/ajax/15.0/apex.js" type="text/javascript"></script>
+    <apex:includeScript value="/support/console/48.0/integration.js"/>
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+    .loader {
+        background: url('/img/loading32.gif') scroll no-repeat 0 0;
+        width: 32px;
+        height: 32px;
+        position: absolute;
+        left: 50%;
+    }
+    .red-label {
+        list-style: none;
+        color: #f00;
+    }
+    
+    div.tooltip {
+        width: 195px;
+        float: left;
+    }
+    div.tooltip:hover {
+        background: #ffffff;
+        text-decoration: none;
+    } /*BG color is a must for IE6*/
+    div.tooltip span {
+        display: none;
+        padding: 2px 3px;
+        margin-left: 8px;
+        width: 195px;
+    }
+    div.tooltip:hover span {
+        display: inline;
+        position: absolute;
+        border: 1px solid #cccccc;
+        background: #FFC;;
+        color: #000000;
+    }
+    
+    </style>
+    
+    
+    <script type="text/javascript">
+        sforce.connection.sessionId = '{!$Api.Session_ID}';
+    function checkResult(strResult,redirect) {
+        // startLoading('Loading...');
+        
+        try { 
+            if('{!$User.UITheme}' == 'Theme4u'||'{!$User.UITheme}' == 'Theme4d'){
+                refreshTab('{!Opportunity.Id}');
+            }else if('{!$User.UITheme}' == 'Theme4t'){
+                sforce.one.navigateToSObject('{!Opportunity.Id}' );
+            }else{
+                sforce.one.navigateToURL('/{!Opportunity.Id}');
+            }
+        } catch(e) { 
+            window.location = "/{!Opportunity.Id}";
+        }
+        
+        alert(strResult);            
+    }   
+    // function startLoading(text){
+    //     $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+    //     $('.loadingBox').show();
+    // }
+    // function endLoading(){
+    //     $('.loadingBox').hide();
+    // }
+
+    function refreshTab(recordId) {
+        sforce.one.navigateToURL('/one/one.app#' + btoa(JSON.stringify({
+            "componentDef": "c:workspaceAPIforVF",
+            "attributes": {
+                "action": 'closeAndRefresh',
+                "recordId": recordId,
+                "force": true,
+                "uuid": 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                    var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+                    return v.toString(16);
+                }),
+            }
+        })), true);
+    }
+    </script>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div> 
+    <div class="loadingBox overlay"></div>
+    <apex:pageMessages ></apex:pageMessages>
+    <apex:outputText value="{!strCallAlert}" escape="false"></apex:outputText>
+</apex:page>

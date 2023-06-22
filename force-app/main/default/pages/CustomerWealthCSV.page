@@ -1,0 +1,448 @@
+<apex:page standardController="Account" extensions="CustomerWeathCSV_Ctrl" tabStyle="Account" docType="html-5.0" lightningStylesheets="true">
+    
+    <apex:includeLightning />
+    <head>
+        <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+        <apex:includescript value="{!URLFOR($Resource.ApexCharts, '/apexchart_resource/apexcharts.js')}" />
+        <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}"/>
+        <apex:includeScript value="/support/console/46.0/integration.js"/>
+        
+        <style>
+            #chart {
+                max-width: 200px;
+                max-height: 100px;
+                margin: 35px auto;
+            }
+
+            #col1,#col2 { 
+                width: 49%;
+                display: inline-block;
+            }
+
+            #col11,#col12 { 
+                width: 7%;
+                display: inline-block;
+            }
+
+            .sf1label {
+                font-family: 'ProximaNovaSoft-Regular', 'Helvetica Neue';
+                font-size: 14px;
+                color: #696e71;
+                margin: 0;
+                padding-bottom: 3px 0;
+                display: block;
+                min-width: 100px;
+            }
+
+            .sf1value {
+                font-family: 'ProximaNovaSoft-Regular', 'Helvetica Neue';
+                font-size: 16px;
+                color: #3b5998;
+                margin: 0;
+                padding-bottom: 6px;
+                display: block;
+                min-width: 100px;
+                min-height: 25px;
+            }
+        </style>
+    </head>
+
+    <!-- <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" /> -->
+    
+    <apex:form id="NewCsvOsc07">
+        <apex:actionFunction name="Call_OSC07" action="{!startRequest}"  oncomplete="callDataPartition()" />
+        <!-- <apex:actionFunction name="Call_OSC07" action="{!startRequest}"  oncomplete="renderGraph({!$Label.OTC_ATM_ADM_IB_MIB},{!acct.RTL_OTC_ATM_ADM_IB_MIB__c})" /> -->
+        <!-- <apex:actionFunction name="gengraph" action="renderGraph({!$Component.display_charts})" /> -->
+        <apex:actionFunction name="loadDataSaleSupport" action="{!loadData}" oncomplete="renderGraph1()" 
+            rerender="NewCsvOsc07,lightningComponent">
+            <apex:param name="sectionName" assignTo="{!sectionName}" value="RtlCust:Sales Support Information" />
+        </apex:actionFunction>
+
+        <apex:pageBlock mode="maindetail" rendered="{!isFirstPage}">
+            <div id="col1">
+                <apex:pageblockSection columns="1">
+                    <!-- <apex:pageBlockSectionItem > -->
+                        <!-- <apex:outputLabel value="{!$ObjectType.Account.Fields.RTL_Customer_Name_TH__c.label}"></apex:outputLabel> -->
+                        <!-- <apex:outputField value="{!Account.Account_Photo_del__c}"></apex:outputField> -->
+                        <apex:outputText styleClass="sf1value" label="" value="{!acct.RTL_Customer_Name_TH__c}"></apex:outputText>
+                    <!-- </apex:pageBlockSectionItem>
+                    <apex:pageBlockSectionItem> -->
+                        <!-- <apex:outputLabel value="{!$ObjectType.Account.Fields.Account_Photo_del__c.label}"></apex:outputLabel> -->
+                        <!-- <apex:outputField value="{!Account.Account_Photo_del__c}"></apex:outputField> -->
+                        <apex:image id="theImage" value="{!accImage}" width="200" height="270" alt=""/>
+                    <!-- </apex:pageBlockSectionItem> -->
+                    <apex:outputPanel >
+                        <br />
+                    </apex:outputPanel>
+                    <apex:outputPanel > 
+                        <div id="col11">
+                            <p class="sf1value">
+                                <img src="/auraFW/resources/aura/images/smallcheck{!IF(acct.RTL_Do_Not_Contact__c, '-checked', '')}.png" alt="False"/>
+                            </p>
+                        </div>
+                        <div id="col12">
+                            <p class="sf1label">{!$ObjectType.Account.Fields.RTL_Do_Not_Contact__c.label}</p>
+                        </div>
+                    </apex:outputPanel>
+                    <apex:outputPanel >
+                        <br />
+                    </apex:outputPanel>
+                    <apex:outputPanel >
+                        <br />
+                    </apex:outputPanel>
+                </apex:pageblockSection>
+            </div>
+
+            <apex:pageBlockButtons >
+                <div style="width:100%;text-align:right">
+                    <apex:commandLink reRender="NewCsvOsc07" value="More Detail" action="{!NextPage}"/>
+                    &nbsp;&nbsp;
+                </div>
+            </apex:pageBlockButtons>
+
+            <div id="col2">
+                <apex:outputPanel id="CSVOSC07" rendered="{!isFirstPage}">
+                    <apex:pageblockSection columns="1">
+                            <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.TMB_Customer_ID_PE__c.label}"></apex:outputLabel>
+                            <apex:outputText styleClass="sf1value" label="" value="{!acct.TMB_Customer_ID_PE__c}"></apex:outputText>
+
+                            <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_Age__c.label}"></apex:outputLabel>
+                            <apex:outputText styleClass="sf1value" label="" value="{!acct.RTL_Age__c}"></apex:outputText>
+                        <!-- <apex:pageBlockSectionItem> -->
+                            <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_MIB_Status__c.label}"></apex:outputLabel>
+                            <apex:outputText styleClass="sf1value" label="" value="{!rtl_MibStatus}" rendered="{!isVisible}" />
+                            <apex:outputText styleClass="sf1value" label="" value="{!hiddenText}" rendered="{!!isVisible}" />
+                        <!-- </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem> -->
+                            <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.FATCA__c.label}"></apex:outputLabel>
+                            <apex:outputText styleClass="sf1value" label="" value="{!acct.FATCA__c}"></apex:outputText>
+                        <!-- </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem> -->
+                            <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_Risk_Level_Details__c.label}"></apex:outputLabel>
+                            <apex:outputText styleClass="sf1value" label="" value="{!acct.RTL_Risk_Level_Details__c}"></apex:outputText>
+                        <!-- </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem> -->
+                            <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_Fund_Risk_Mismatch__c.label}"></apex:outputLabel>
+                            <apex:outputText styleClass="sf1value" label="" value="{!acct.RTL_Fund_Risk_Mismatch__c}"></apex:outputText>
+                        <!-- </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem> -->
+                            <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_Fund_High_Concentration_Risk__c.label}"></apex:outputLabel>
+                            <apex:outputText styleClass="sf1value" label="" value="{!acct.RTL_Fund_High_Concentration_Risk__c}"></apex:outputText>
+                        <!-- </apex:pageBlockSectionItem>
+                        <apex:pageBlockSectionItem> -->
+                            <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_Suitability__c.label}"></apex:outputLabel>
+                            <apex:outputText styleClass="sf1value" label="" value="{!rtl_Suitability}" rendered="{!isVisible}" />
+                            <apex:outputText styleClass="sf1value" label="" value="{!hiddenText}" rendered="{!!isVisible}" />
+                        <!-- </apex:pageBlockSectionItem> -->
+                    </apex:pageblockSection>
+                </apex:outputPanel>
+            </div>
+
+        </apex:pageBlock>
+
+        <apex:pageBlock mode="maindetail" rendered="{!!isFirstPage}">
+            <div id="col1">           
+                <apex:pageblockSection columns="1">
+
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.Customer_Name_PE_Eng__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!acct.Customer_Name_PE_Eng__c}"></apex:outputText>
+
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.NID__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!acct.NID__c}"></apex:outputText>
+
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_Date_Of_Birth__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!birthday}"></apex:outputText>
+                
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.Mobile_Number_PE__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!acct.Mobile_Number_PE__c}"></apex:outputText>
+                
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.Email_Address_PE__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!acct.Email_Address_PE__c}"></apex:outputText>
+                
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_Marital_Details__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!acct.RTL_Marital_Details__c}"></apex:outputText>
+
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_No_of_Children__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!acct.RTL_No_of_Children__c}"></apex:outputText>
+                    
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_Education_Details__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!acct.RTL_Education_Details__c}"></apex:outputText>    
+                </apex:pageblockSection>
+            </div>
+
+            <apex:pageBlockButtons >
+                <div style="width:100%;text-align:right">
+                    <apex:commandLink reRender="NewCsvOsc07" value="Back" oncomplete="renderGraph1()" action="{!PreviousPage}"/>
+                    &nbsp;&nbsp;
+                </div>
+            </apex:pageBlockButtons>
+
+            <div id="col2">
+                <apex:pageblockSection rendered="{!!isFirstPage}" columns="1">
+
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_Occupation__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!acct.RTL_Occupation__c}"></apex:outputText>
+
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_Income__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!acct.RTL_Income__c}"></apex:outputText>
+
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.RTL_Special_Pref__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!acct.RTL_Special_Pref__c}"></apex:outputText>
+
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.Hobbies__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!acct.Hobbies__c}"></apex:outputText>
+
+                    <apex:outputLabel styleClass="sf1label" value="{!$ObjectType.Account.Fields.Favorite_Sport__c.label}"></apex:outputLabel>
+                    <apex:outputText styleClass="sf1value" label="" value="{!acct.Favorite_Sport__c}"></apex:outputText>
+
+                </apex:pageblockSection>
+            </div>
+        </apex:pageBlock>
+
+        <apex:outputPanel rendered="{!isVisible}">
+            <div id="display_charts1" />
+        </apex:outputPanel>
+        <apex:outputPanel rendered="{!!isVisible}">
+            <div class="alert alert-dismissible alert-danger">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <h4>Warning!</h4>
+                <apex:outputText styleClass="sf1value" label="" value="{!$Label.Data_Condition_NotAuthorizedMsg}" />
+            </div>
+        </apex:outputPanel>
+
+    </apex:form>
+    
+    <apex:form >
+        <apex:outputPanel id="lightningComponent" rendered="{!isLightningVisible}">
+            <div class="slds-scope" id="Com" />
+            <apex:outputPanel rendered="{!!isVisible}">
+                <div class="alert alert-dismissible alert-danger">
+                    <button type="button" class="close" data-dismiss="alert">&times;</button>
+                    <h4>Warning!</h4>
+                    <apex:outputText styleClass="sf1value" label="" value="{!$Label.Data_Condition_NotAuthorizedMsg}" />
+                </div>
+            </apex:outputPanel>
+        </apex:outputPanel>
+
+        <apex:pageBlock id="Oppty">   
+	        <!-- <h3 class="mainTitle" style="float:left;padding-right:12%;">&nbsp;UW Collateral Data</h3> -->
+	        <apex:pageblockTable value="{!listOppty}" var="opp">
+	        	<apex:column headerValue="Opportunity Name">
+	                <apex:outputPanel onclick="go_detail('{!opp.Id}','{!opp.Name}')" style="cursor:pointer;text-decoration:underline;">
+	                    <apex:outputText >{!opp.Name}</apex:outputText>
+	                </apex:outputPanel>
+	            </apex:column>
+	            <apex:column headerValue="Stage">
+	                <apex:outputField value="{!opp.StageName}"/>
+	            </apex:column>
+	            <apex:column headerValue="Amount">
+	                <apex:outputField value="{!opp.Amount}"/>
+	            </apex:column>
+	            <apex:column headerValue="Close Date">
+	                <apex:outputField value="{!opp.CloseDate}"/>
+	            </apex:column>
+	            <apex:column headerValue="Status">
+	                <apex:outputField value="{!opp.RTL_Status__c}"/>
+	            </apex:column>
+	        </apex:pageblockTable>
+	        
+	        <div style="height:10px"></div>
+	    
+        </apex:pageBlock>
+        
+        <apex:pageBlock id="Case">   
+	        <!-- <h3 class="mainTitle" style="float:left;padding-right:12%;">&nbsp;UW Collateral Data</h3> -->
+	        <apex:pageblockTable value="{!listCase}" var="ca">
+	        	<apex:column headerValue="Case">
+	                <apex:outputPanel onclick="go_detail('{!ca.Id}','{!ca.CaseNumber}')" style="cursor:pointer;text-decoration:underline;">
+	                    <apex:outputText >{!ca.CaseNumber}</apex:outputText>
+	                </apex:outputPanel>
+	            </apex:column>
+	            <!-- <apex:column headerValue="Contact Name">
+	                <apex:outputField value="{!ca.Contact.Name}"/>
+	            </apex:column> -->
+	            <apex:column headerValue="Subject">
+	                <apex:outputField value="{!ca.Subject}"/>
+	            </apex:column>
+	            <apex:column headerValue="Priority">
+	                <apex:outputField value="{!ca.Priority}"/>
+	            </apex:column>
+	            <apex:column headerValue="Date Opened">
+	                <apex:outputField value="{!ca.CreatedDate}"/>
+                </apex:column>
+                <apex:column headerValue="Status">
+	                <apex:outputField value="{!ca.Status}"/>
+                </apex:column>
+                <apex:column headerValue="Owner">
+	                <apex:outputField value="{!ca.Owner_Name__c}"/>
+	            </apex:column>
+	        </apex:pageblockTable>
+	        
+	        <div style="height:10px"></div>
+	        
+	    </apex:pageBlock>
+    </apex:form>
+
+    <script>
+        function go_detail(a,b)
+	    {
+            if ((typeof sforce.one != 'undefined') && (sforce.one != null) ) {
+                sforce.one.navigateToSObject(a, "RELATED");
+            }
+            else{
+                //window.parent.location.href='../'+a;
+                window.open('../'+a);
+            }
+	    }
+
+        function setOption(categories, data){
+            var categoryList = categories.split(":");
+            if (!data){
+                data = "0:0:0:0:0:0"
+            }
+            var dataListStr = data.split(":");
+            var dataList = new Array();
+            for (var dat in dataListStr){
+                dataList.push(parseFloat(dataListStr[dat]));
+            }
+            var options = {
+                chart: {
+                    height: 180,
+                    type: 'bar',
+                    toolbar: {
+                        show: false,
+                        tools: {
+                            download: false,
+                            selection: false,
+                            zoom: true,
+                            zoomin: true,
+                            zoomout: true,
+                            pan: true,
+                            reset: true | '<img src="/static/icons/reset.png" width="20">',
+                            customIcons: []
+                        }
+                    }
+                },
+                plotOptions: {
+                    bar: {
+                            barHeight: '100%',
+                            distributed: true,
+                            horizontal: true,
+                            dataLabels: {
+                                position: 'bottom'
+                            },
+                    }
+                },
+                colors: ['#33b2df', '#546E7A', '#d4526e', '#13d8aa', '#A5978B', '#2b908f', '#f9a3a4', '#90ee7e', '#f48024', '#69d2e7'],
+                dataLabels: {
+                    enabled: true,
+                    textAnchor: 'start',
+                    style: {
+                        colors: ['#fff']
+                    },
+                    formatter: function(val, opt) {
+                        return val;
+                        // return opt.w.globals.labels[opt.dataPointIndex] + ":  " + val
+                    },
+                    offsetX: 0,
+                    dropShadow: {
+                        enabled: true
+                    }
+                },
+                series: [{
+                    data: dataList
+                }],
+                stroke: {
+                    width: 1,
+                colors: ['#fff']
+                },
+                xaxis: {
+                    categories: categoryList,
+                },
+                yaxis: {
+                    labels: {
+                        show: true
+                    }
+                },
+                title: {
+                    text: '% Usage (Last Month) ',
+                    align: 'left',
+                    floating: true
+                },
+                /*subtitle: {
+                    text: 'Category Names as DataLabels inside bars',
+                    align: 'center',
+                },*/
+                tooltip: {
+                    theme: 'dark',
+                    x: {
+                        show: false
+                    },
+                    y: {
+                        title: {
+                            formatter: function() {
+                                return ''
+                            }
+                        }
+                    }
+                }
+            }
+
+            return options;
+        }
+
+        function renderGraph1()
+        {
+            // var categories = "Branch:ATM:ADM:IB:Touch:Others";
+            // var data = "0:10:20:20:25:25";
+            var categories = '{!$Label.OTC_ATM_ADM_IB_MIB}';
+            var data = '{!rtl_OtcAtmAdmIbMib}';
+            var option = setOption(categories, data);
+            var chart = new ApexCharts(
+                    document.querySelector("#display_charts1"),
+                    option
+                );
+
+            chart.render();
+            // var chartId = document.getElementById('{!$Component.display_charts}');
+            // ApexCharts.exec('{!$Component.display_charts}', '', options);
+        }
+
+        $(document).ready(function () {
+            Call_OSC07();
+
+        });
+
+        function recallOsc07(){
+            Call_OSC07();
+        }
+
+        function startLoading(text) {
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading() {
+            $('.loadingBox').hide();
+        }
+
+        //Call Data partition after success call OSC07
+        function callDataPartition()
+        {
+            loadDataSaleSupport();
+            // renderGraph1();
+        }
+
+        $Lightning.use("c:CustomerWealthCsvApp", function() {
+            $Lightning.createComponent(
+                "c:CustomerWealthCsvComponent",
+                {"recordId" : "{!acct.ID}"},
+                "Com",
+                function(cmp) {
+                    console.log("Component is created!");
+                    console.log(cmp);
+                }
+            );
+        });
+
+    </script>
+</apex:page>

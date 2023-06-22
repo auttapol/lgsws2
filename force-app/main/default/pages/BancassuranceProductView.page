@@ -1,0 +1,387 @@
+<apex:page controller="BancassuranceProductCtrl" showchat="false" sidebar="false" showheader="true" standardstylesheets="true" tabstyle="Account">
+    <!-- Includes Js -->
+    <apex:includescript value="{!URLFOR($Resource.TMBjquery, '/TMBassets/jquery/jquery-1.11.2.min.js')}" />
+    <apex:actionstatus onstart="startLoading('Loading External Data ...');" id="status" onstop="endLoading();" />
+    <apex:stylesheet value="{!URLFOR($Resource.bootstrapsf1, 'dist/css/bootstrap-namespaced.css')}" />
+    <!-- Style for Ajax Request -->
+    <style>
+        .overlay {
+            display: none;
+            height: 100%;
+            left: 0;
+            position: fixed;
+            top: 0;
+            opacity: 0.3;
+            -moz-opacity: 0.3;
+            width: 100%;
+            -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=30)";
+            filter: alpha(opacity=30);
+            background: #000;
+            -khtml-opacity: 0.3;
+            z-index: 1000;
+        }
+
+        .loader {
+            background: url('/img/loading32.gif') scroll no-repeat 50% 0;
+            /* width: 32px;*/
+            height: 32px;
+            position: absolute;
+            left: 48%;
+        }
+
+        .red-label {
+            list-style: none;
+            color: #f00;
+        }
+
+        .bootstrap-sf1 {
+            overflow: hidden;
+        }
+
+            .bootstrap-sf1 .container {
+                padding-left: 0px;
+                padding-right: 0px;
+            }
+
+        .bootstrap-sf1 {
+            background-color: #FFF;
+        }
+
+            .bootstrap-sf1 .btn-block {
+                display: block;
+                width: 100%;
+                text-align: center;
+            }
+    </style>
+    <div id="load_scrl" class="loadingBox loader" style="display:none"></div>
+    <div class="loadingBox overlay"></div>
+    <div class="bootstrap-sf1 sf1_bk" style="display:none;">
+        <div class="container">
+            <a href="javascript:sforce.one.back();" class="btn-lg btn-default btn-block">Back</a>
+        </div>
+    </div>
+
+    <apex:sectionheader title="Bancassurance Product" subtitle="{!$Label.Details_of_Bancassurance_Product}" />
+    <apex:form onkeypress="return noenter(event)">
+        <apex:actionfunction action="{!startRequest}" rerender="section1,section2,section3,section4,section5,section6,section7,section8,alertbox" status="status" name="doRest" />
+        
+        <!-- Alert Box -->
+        <apex:outputPanel id="alertbox">
+        <div class="bootstrap-sf1" style="{!IF(PageMessage == '','display:none','')}" >
+            <div class="alert alert-dismissible alert-danger">
+                <button type="button" class="close" data-dismiss="alert">&times;</button>
+                <h4>Warning!</h4>
+                <p>{!PageMessage}</p>
+            </div>
+        </div>
+        </apex:outputPanel>
+        
+        <!-- Bancassurance Information -->
+        <apex:pageblock id="section1" mode="maindetail">
+            <apex:pageblocksection title="{!$Label.Bancassurance_Info}" columns="2">
+                <!-- Row 1 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Policy_No}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.PolicyNo}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Product_Name}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.ProductName}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 2 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.BA_Plan}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.BA_Plan}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Product_Type}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.ProductType}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 3 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Effective_Date}" />
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!ViewState.BancassuranceInformation.EffectiveDate}" />
+                    </apex:outputtext>-->
+                    <apex:outputText value="{!ViewState.BancassuranceInformation.ConvertedEffectiveDate}"/>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Sum_Insure}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!ViewState.BancassuranceInformation.SumInsured}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!-- Row 4 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Expiry_Date}" />
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!ViewState.BancassuranceInformation.ExpiryDate}" />
+                    </apex:outputtext>-->
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.ConvertedExpiryDate}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.AFYP}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!ViewState.BancassuranceInformation.AFYP}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!-- Row 5 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Status}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.PolicyStatus}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Sales}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.Sales}" />
+                </apex:pageblocksectionitem>
+            </apex:pageblocksection>
+        </apex:pageblock>
+        <!-- Bancassurance Detail -->
+        <apex:pageblock id="section2" mode="maindetail">
+            <apex:pageblocksection title="{!$Label.Bancassurance_Details}" columns="2">
+                <!-- Row 1 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Insurance_Company}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.BancassuranceDetail.InsuranceCompany}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Address}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.BancassuranceDetail.Address}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 2 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Insurer_contact_number_1}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.BancassuranceDetail.ContactNumber1}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="" />
+                    <apex:outputtext value="" />
+                </apex:pageblocksectionitem>
+                <!-- Row 3 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Insurer_contact_number_2}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.BancassuranceDetail.ContactNumber2}"></apex:outputtext>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value=" " />
+                    <apex:outputtext value=" " />
+                </apex:pageblocksectionitem>
+            </apex:pageblocksection>
+        </apex:pageblock>
+        <!-- Payment Information -->
+        <apex:pageblock id="section3" mode="maindetail">
+            <apex:pageblocksection title="{!$Label.Payment_Info}" columns="2">
+                <!-- Row 1 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Payment_Mode}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.PaymentInformation.PaymentMode}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Premium_Amount}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!ViewState.BancassuranceInformation.PaymentInformation.PremiumAmount}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!-- Row 2 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Payment_Method_BA}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.PaymentInformation.PaymentMethod}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Total_Premium_Paid}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!ViewState.BancassuranceInformation.PaymentInformation.TotalPremiumPaid}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!-- Row 3 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Last_Payment_Date}" />
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!ViewState.BancassuranceInformation.PaymentInformation.LastPaymentDate}" />
+                    </apex:outputtext>-->
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.PaymentInformation.ConvertedLastPaymentDate}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Year_of_payment}" />
+                    <apex:outputtext style="padding-right:5px;" value="{!ViewState.BancassuranceInformation.PaymentInformation.YearOfPayment}">
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!-- Row 4 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Next_due_date}" />
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!ViewState.BancassuranceInformation.PaymentInformation.NextDueDate}" />
+                    </apex:outputtext>-->
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.PaymentInformation.ConvertedNextDueDate}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+
+                    <apex:outputlabel value="{!$Label.No_of_Time_Premium_Paid_This_Year}" />
+                    <apex:outputtext style="padding-right:5px;" value="{!ViewState.BancassuranceInformation.PaymentInformation.NumberOfTimePremiumPaid}">
+                    </apex:outputtext>
+
+                </apex:pageblocksectionitem>
+            </apex:pageblocksection>
+        </apex:pageblock>
+        <!-- Next Cash Back Information -->
+        <apex:pageblock id="section4" mode="maindetail">
+            <apex:pageblocksection title="{!$Label.Next_Cash_Back_Info}" columns="2">
+                <!-- Row 1 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Next_Cash_Back_Payment_Date}" />
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!ViewState.BancassuranceInformation.NextCashBackInformationzmation.PaymentDate}" />
+                    </apex:outputtext>-->
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.NextCashBackInformationzmation.ConvertedPaymentDate}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="" />
+                    <apex:outputtext style="padding-right:5px;" value="">
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!-- Row 2 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Amount_of_Next_Cash_Back}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!ViewState.BancassuranceInformation.NextCashBackInformationzmation.Amount}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <!-- Row 3 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Total_Cash_Back_Paid}" />
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!ViewState.BancassuranceInformation.NextCashBackInformationzmation.TotalPaid}" />
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="" />
+                    <apex:outputtext style="padding-right:5px;" value="">
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+            </apex:pageblocksection>
+        </apex:pageblock>
+        <!--Property Detail -->
+        <apex:pageblock id="section5" mode="maindetail">
+            <apex:pageblocksection title="{!$Label.Property_Detail}" columns="2">
+                <!-- Row 1 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Address}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.InsuredPropertyAsset.Address}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="" />
+                    <apex:outputtext style="padding-right:5px;" value="">
+                    </apex:outputtext>
+                </apex:pageblocksectionitem>
+            </apex:pageblocksection>
+        </apex:pageblock>
+        <!-- Automobile Detail -->
+        <apex:pageblock id="section6" mode="maindetail">
+            <apex:pageblocksection title="{!$Label.Automobile_Detail}" columns="2">
+                <!-- Row 1 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Brand}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.InsuredAutomobileAsset.Brand}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Yr_of_Manufacture}" />
+                    <apex:outputtext style="padding-right:5px;" value="{!ViewState.BancassuranceInformation.InsuredAutomobileAsset.YearOfManufactured}" />
+                </apex:pageblocksectionitem>
+                <!-- Row 2 -->
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Model}" />
+                    <apex:outputtext value="{!ViewState.BancassuranceInformation.InsuredAutomobileAsset.Model}" />
+                </apex:pageblocksectionitem>
+                <apex:pageblocksectionitem >
+                    <apex:outputlabel value="{!$Label.Plate_Number}" />
+                    <apex:outputtext style="padding-right:5px;" value="{!ViewState.BancassuranceInformation.InsuredAutomobileAsset.PlateNumber}" />
+                </apex:pageblocksectionitem>
+
+            </apex:pageblocksection>
+        </apex:pageblock>
+        <!-- Beneficiary Information  -->
+        <apex:pageblock id="section7" mode="maindetail">
+            <div class="pbSubheader brandTertiaryBgr first tertiaryPalette">
+                <img src="/s.gif" alt="Hide Section - Beneficiary Information" class="hideListButton"
+                     id="img_j_id0:j_id4:section7:j_id63" name="Beneficiary Information" onclick="twistSection(this);" onkeypress="if (event.keyCode=='13')twistSection(this);" style="cursor:pointer;" tabindex="0" title="Hide Section - Beneficiary Information" />
+                <h3>{!$Label.Beneficiary_Info}</h3>
+            </div>
+            <div class="pbSubsection">
+                <table class="detailList" border="0" cellpadding="0" cellspacing="0">
+                    <apex:variable var="loop" value="{!1}" />
+                    <apex:repeat id="rpben" var="ben" value="{!ViewState.BancassuranceInformation.BeneficiaryInformations}">
+                        <!-- Data 1 -->
+                        <tr>
+                            <th class="labelCol vfLabelColTextWrap first" scope="row"><label>{!$Label.Beneficiary_Name} {!loop}</label></th>
+                            <td class="dataCol first"><span style="padding-right:5px;">{!ben.BeneficiaryName}</span></td>
+                            <th class="labelCol vfLabelColTextWrap first" scope="row"><label></label></th>
+                            <td class="dataCol first"><span style="padding-right:5px;"></span></td>
+                            <!--<th class="labelCol vfLabelColTextWrap first" scope="row"><label>{!$Label.Benefit}</label></th>
+                            <td class="dataCol first"><span style="padding-right:5px;">{!ben.BenefitPercent}</span></td>-->
+                        </tr>
+                        <tr>
+                            <th class="labelCol vfLabelColTextWrap first" scope="row"><label>{!$Label.Relationship} {!loop}</label></th>
+                            <td class="dataCol first"><span style="padding-right:5px;">{!ben.Relationship}</span></td>
+                            <th class="labelCol vfLabelColTextWrap first" scope="row"><label></label></th>
+                            <td class="dataCol first"><span style="padding-right:5px;"></span></td>
+                        </tr>
+                        <apex:variable var="loop" value="{!loop + 1}" />
+                    </apex:repeat>
+                </table>
+            </div>
+        </apex:pageblock>
+        <!-- Insurance Claimed Record Order  -->
+        <apex:pageblock id="section8" title="{!$Label.Insured_Claimed_Record}" mode="view">
+            <apex:pageblocktable value="{!ViewState.BancassuranceInformation.InsuranceClaimRecords}" var="item">
+                <apex:column style="width:15%;" headervalue="{!$Label.Date}">
+                    <!--<apex:outputtext value="{0,date,dd/MM/yyyy}">
+                        <apex:param value="{!item.Date_x}" />
+                    </apex:outputtext>-->
+                     <apex:outputtext value="{!item.ConvertedDate_x}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Claim_Type}">
+                    <apex:outputtext value="{!item.Type_x}" />
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Description}">
+                    <apex:outputtext value="{!item.Description}">
+                    </apex:outputtext>
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Request_Amount}">
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!item.RequestAmount}" />
+                    </apex:outputtext>
+                </apex:column>
+                <apex:column style="width:15%;" headervalue="{!$Label.Approved_Amount}">
+                    <apex:outputtext style="padding-right:5px;" value="{0, number, ###,###}">
+                        <apex:param value="{!item.ApprovedAmount}" />
+                    </apex:outputtext>
+                </apex:column>
+            </apex:pageblocktable>
+        </apex:pageblock>
+
+    </apex:form>
+    <apex:includescript value="{!$Resource.AccountPlan_Bootstrap}" />
+    <script>
+        function startLoading(text){
+            $('#load_scrl').css('top', $(document).scrollTop() + 200).html(text);
+            $('.loadingBox').show();
+        }
+        function endLoading(){
+            $('.loadingBox').hide();
+        }
+        $(document).ready(function () {
+            startLoading("SendingRequest ...");
+            // On Pageload send ajax request
+          if( (typeof sforce != 'undefined') && sforce && (!!sforce.one) ) {
+            $('.sf1_bk').show();
+        }
+            doRest();
+        });
+    </script>
+</apex:page>

@@ -1,0 +1,78 @@
+<aura:component controller="RTL_AL_SubmitHPAPCtrl" implements="lightning:actionOverride,force:lightningQuickActionWithoutHeader,force:hasRecordId"
+    access="global">
+    <aura:html tag="style">
+        <!-- .modal-container.slds-modal__container{
+        background: transparent;
+        box-shadow: none !important;
+        }
+        .modal-container.slds-modal__container .modal-header.slds-modal__header{
+        display:none;
+        }
+        .modal-container.slds-modal__container .modal-body{
+        background: transparent;
+        box-shadow: none !important;;
+        }
+        .modal-container.slds-modal__container .modal-footer.slds-modal__footer{
+        display:none;
+        } -->
+        .slds-button.slds-modal__close{
+        display:none;
+        }
+    </aura:html>
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:handler name="change" value="{!v.hostHPAP.RTL_Is_Send_To_HPAP__c}" action="{!c.handleCheckAppHPAPStatus}" />
+    <aura:attribute name="recordId" type="Id" />
+    <aura:attribute name="hostHPAP" type="Map" default="{'RTL_AL_Refer_No__c':'&nbsp;','RTL_Is_Send_To_HPAP__c':false}" />
+
+    <aura:attribute name="isLoading" type="Boolean" default="false" />
+    <aura:attribute name="isSubmitted" type="Boolean" default="false" />
+    <aura:attribute name="isInitial" type="Boolean" default="false" />
+    <aura:attribute name="isError" type="Boolean" default="false" />
+    <aura:attribute name="errorMessage" type="String" default="" />
+    <aura:attribute name="iconName" type="String" default="action:preview" />
+
+    <lightning:card iconName="{! v.iconName }" class="slds-is-relative">
+        <aura:set attribute="title">
+            Submit to HPAP
+        </aura:set>
+        <aura:if isTrue="{! v.isLoading }">
+            <lightning:spinner alternativeText="Loading" variant="brand" />
+        </aura:if>
+        <div class="slds-box slds-text-align_center">
+            <aura:if isTrue="{! v.isError }">
+                <p class="slds-text-title_caps slds-text-heading_medium slds-truncate" style="white-space: normal;">
+                    {! v.errorMessage ? v.errorMessage : '&nbsp;'}
+                </p>
+                <p>ขออภัยค่ะ เกิดข้อผิดพลาดในการส่งข้อมูล</p>
+                <!-- <p>&nbsp;</p> -->
+
+                <aura:set attribute="else">
+                    <p class="RTL_AL_Refer_No__c slds-text-title_caps slds-text-heading_medium">
+                        {! v.hostHPAP.RTL_AL_Refer_No__c ? v.hostHPAP.RTL_AL_Refer_No__c : '&nbsp;' }
+                    </p>
+                    <aura:if isTrue="{! v.isInitial }">
+                        <aura:if isTrue="{! v.hostHPAP.RTL_Is_Send_To_HPAP__c }">
+                            <p>Please use this ID to update information on HPAP</p>
+                            <p>โปรดใช้หมายเลขอ้างอิงนี้ในการค้นหา CA บนระบบ HPAP</p>
+
+                            <aura:set attribute="else">
+                                <p>Do you want to submit data to HPAP ?</p>
+                                <p>คุณต้องการส่งข้อมูลไปยังระบบ HPAP ใช่หรือไม่</p>
+                            </aura:set>
+                        </aura:if>
+                    </aura:if>
+                </aura:set>
+            </aura:if>
+        </div>
+
+        <aura:set attribute="footer">
+            <div class="slds-modal__footer slds-modal__footer_directional">
+                <lightning:button label="Close" title="Close" onclick="{! c.onClose }" />
+                <aura:if isTrue="{! and(v.hostHPAP.RTL_Is_Send_To_HPAP__c == false, v.isInitial) }">
+                    <lightning:button variant="brand" label="Submit" disabled="{!v.isLoading}" onclick="{! c.onSubmit }" />
+                </aura:if>
+            </div>
+        </aura:set>
+    </lightning:card>
+
+</aura:component>

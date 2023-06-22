@@ -1,0 +1,146 @@
+<aura:component controller="RTL_HouseHoldUtils" access="global">
+    <lightning:workspaceAPI aura:id="workspace" />
+    <lightning:navigation aura:id="navService" />
+
+    <aura:handler name="init" value="{!this}" action="{!c.onInit}" />
+    <aura:attribute name="householdId" type="Id" description="require to create new household member" />
+    <aura:attribute name="householdMemberId" type="Id" description="This value exists be edit mode" />
+    <aura:attribute name="householdMemberInfoes" type="Map" default="{}" access="private" />
+    
+    <aura:attribute name="tabId" type="String" />
+    <aura:attribute name="theme" type="String" default="{!$Browser.formFactor == 'PHONE' ? 'Theme4t' : 'Theme4u'}" />
+
+    <aura:attribute name="isModify" type="Boolean" default="false" access="private" />
+    <aura:attribute name="showSpinnerLoading" type="Boolean" default="false" access="private" />
+    <aura:attribute name="activeSections" type="List" default="['A']" access="private" />
+    <aura:attribute name="deviceSize" type="Map" default="{
+        'size': '12',
+        'smallDeviceSize': '12',
+        'mediumDeviceSize': '12',
+        'largeDeviceSize': '12',
+    }" access="private" />
+
+    <ui:scrollerWrapper>
+        <lightning:recordEditForm aura:id="recordEditForm" density="{! v.theme == 'Theme4t' ? 'comfy' : 'compact'}" objectApiName="RTL_Household_Member__c"
+            recordId="{!v.householdMemberId}" onload="{!c.onLoad}" onsubmit="{!c.onSubmit}" onsuccess="{!c.onSuccess}" onerror="{!c.onError}">
+
+            <lightning:layout class="slds-page-header slds-page-header_object-home slds-m-bottom_x-small">
+                <lightning:layoutItem>
+                    <lightning:icon size="medium" iconName="custom:custom1" alternativeText="House hold" />
+                </lightning:layoutItem>
+                <lightning:layoutItem class="slds-form__item" padding="horizontal-small">
+                    <div class="page-section page-header">
+                        <h1 class="slds-text-heading_label">
+                        </h1>
+                        <h2 class="slds-text-heading_medium">
+                            {!$Label.c.RTL_Household_Member}
+                        </h2>
+                    </div>
+                </lightning:layoutItem>
+            </lightning:layout>
+
+            <lightning:card>
+                <aura:set attribute="title"></aura:set>
+
+                <aura:set attribute="actions">
+                    <lightning:button label="{!$Label.c.Save}" type="submit" disabled="{!v.isModify}" />
+                    <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.handleClose}" />
+                </aura:set>
+                <aura:set attribute="footer">
+                    <lightning:button label="{!$Label.c.Save}" type="submit" disabled="{!v.isModify}" />
+                    <lightning:button label="{!$Label.c.Cancel}" onclick="{!c.handleClose}" />
+                </aura:set>
+
+                <aura:if isTrue="{! v.showSpinnerLoading }">
+                    <lightning:spinner alternativeText="Loading" size="medium" />
+                </aura:if>
+
+                <lightning:messages />
+
+                <lightning:accordion aura:id="accordion" allowMultipleSectionsOpen="true" onsectiontoggle="{! c.handleSectionToggle }"
+                    activeSectionName="{! v.activeSections }">
+
+                    <lightning:accordionSection name="A" label="{!$Label.c.RTL_Household_Member_Information}">
+                        <div class="slds-form">
+                            <lightning:layout class="slds-form__row" verticalAlign="stretch" multipleRows="true">
+
+                                <lightning:layoutItem class="slds-form__item" padding="horizontal-small" size="{!v.deviceSize.size}"
+                                    smallDeviceSize="{!v.deviceSize.smallDeviceSize}" mediumDeviceSize="{!v.deviceSize.mediumDeviceSize}"
+                                    largeDeviceSize="{!v.deviceSize.largeDeviceSize}">
+                                    <aura:if isTrue="{!v.householdMemberId}">
+                                        <lightning:outputField fieldName="RTL_Household__c" />
+
+                                        <aura:set attribute="else">
+
+                                            <aura:if isTrue="{!v.theme == 'Theme4t'}">
+                                                <lightning:inputField fieldName="RTL_Household__c" value="{!v.householdId}" disabled="true" class="slds-hide" />
+                                                <div class="slds-form-element slds-form-element_stacked">
+                                                    <label class="slds-form-element__label">{!v.householdMemberInfoes.RTL_Household__c.label}</label>
+                                                    <div class="slds-form-element__control">
+                                                        <aura:if isTrue="{!v.householdMemberInfoes.RTL_Household__c.label}">
+                                                            <c:pillOutput value="{!v.householdMemberInfoes.RTL_Household__c.value}"
+                                                                type="{!v.householdMemberInfoes.RTL_Household__c.type}" />
+                                                        </aura:if>
+                                                    </div>
+                                                </div>
+
+                                                <aura:set attribute="else">
+                                                    <lightning:inputField fieldName="RTL_Household__c" value="{!v.householdId}" disabled="true" />
+                                                </aura:set>
+                                            </aura:if>
+
+                                        </aura:set>
+                                    </aura:if>
+
+                                </lightning:layoutItem>
+
+                                <lightning:layoutItem class="slds-form__item" padding="horizontal-small" size="{!v.deviceSize.size}"
+                                    smallDeviceSize="{!v.deviceSize.smallDeviceSize}" mediumDeviceSize="{!v.deviceSize.mediumDeviceSize}"
+                                    largeDeviceSize="{!v.deviceSize.largeDeviceSize}">
+
+                                    <aura:if isTrue="{!v.householdMemberId}">
+                                        <lightning:outputField fieldName="RTL_Household_Member_Name__c" />
+
+                                        <aura:set attribute="else">
+
+                                            <!-- <aura:if isTrue="{!v.theme == 'Theme4t'}">
+                                                <div class="slds-form-element slds-form-element_stacked">
+                                                    <div class="slds-form-element__control">
+                                                        <c:dropdownLookup aura:id="lookupCmpAccount"
+                                                            label="{!v.householdMemberInfoes.RTL_Household_Member_Name__c.label}" fieldName="Name" keyField="Id"
+                                                            objectName="Account" iconName="standard:account" required="true" />
+                                                    </div>
+                                                </div>
+
+                                                <aura:set attribute="else">
+                                                </aura:set>
+                                            </aura:if> -->
+                                            <lightning:inputField fieldName="RTL_Household_Member_Name__c" required="true" />
+
+                                        </aura:set>
+                                    </aura:if>
+
+                                </lightning:layoutItem>
+
+                                <lightning:layoutItem class="slds-form__item" padding="horizontal-small" size="{!v.deviceSize.size}"
+                                    smallDeviceSize="{!v.deviceSize.smallDeviceSize}" mediumDeviceSize="{!v.deviceSize.mediumDeviceSize}"
+                                    largeDeviceSize="{!v.deviceSize.largeDeviceSize}">
+                                    <lightning:inputField fieldName="RTL_Benefit__c" />
+                                </lightning:layoutItem>
+
+                                <lightning:layoutItem class="slds-form__item" padding="horizontal-small" size="{!v.deviceSize.size}"
+                                    smallDeviceSize="{!v.deviceSize.smallDeviceSize}" mediumDeviceSize="{!v.deviceSize.mediumDeviceSize}"
+                                    largeDeviceSize="{!v.deviceSize.largeDeviceSize}">
+                                    <lightning:inputField fieldName="RTL_Relationship__c" required="true" />
+                                </lightning:layoutItem>
+                            </lightning:layout>
+                        </div>
+                    </lightning:accordionSection>
+
+                </lightning:accordion>
+
+
+            </lightning:card>
+        </lightning:recordEditForm>
+    </ui:scrollerWrapper>
+</aura:component>
