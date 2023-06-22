@@ -195,9 +195,6 @@ public with sharing class InquiryManager {
                 // }
                 objValue = extractValue(sobj, fieldName, inquiryFieldMap);
                 System.debug(fieldName + ' value -->' + objValue);
-                // if (objValue == null) {
-                //     objValue = '';
-                // }
 
                 /* Conversion value
                     1. Fixed value
