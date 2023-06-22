@@ -186,12 +186,6 @@ public with sharing class InquiryManager {
 
             for (Inquiry_Data__c inquiryData : inquiryFieldMap.values()) {
                 String fieldName = inquiryData.Salesforce_Field__c;
-                // Map<String, Object> fieldsMap = sobj.getPopulatedFieldsAsMap();
-                // if (fieldsMap.containsKey(fieldName)) {
-                //     objValue = sobj.get((fieldName));
-                // }else{
-                //     objValue ='';
-                // }
                 objValue = extractValue(sobj, fieldName, inquiryFieldMap);
                 System.debug(fieldName + ' value -->' + objValue);
 
