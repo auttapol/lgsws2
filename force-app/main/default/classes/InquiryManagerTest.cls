@@ -3,7 +3,12 @@ public with sharing class InquiryManagerTest {
     @testSetup static void setupTestData(){
         AppConfig__c app2 = new AppConfig__c(Name='runtrigger',Value__c='true');
         insert app2;
-        Account acc = new Account (Name='TestAcc',Last_name_PE__c = 'Longdoo', First_name_PE__c = 'Somchai', Mobile_Number_PE__c ='0987654321', TMB_Customer_ID_PE__c = '001100000000000000000025173376');
+        Account acc = new Account (Name='TestAcc',Last_name_PE__c = 'Longdoo', 
+                                    First_name_PE__c = 'Somchai', 
+                                    Mobile_Number_PE__c ='0987654321', 
+                                    TMB_Customer_ID_PE__c = '001100000000000000000025173376',
+                                    Customer_Type__c  = 'Individual',
+                                    RTL_Occupation__c = 'Student');
         insert acc;
     }   
 
@@ -37,7 +42,7 @@ public with sharing class InquiryManagerTest {
         Map<String, Object> inquiryKeyMap = new Map<String, Object>();
         inquiryKeyMap.put('Test', 'Test');
         
-        InquiryManager inqMgr = new InquiryManager('Test Inquiry', new Map<String, Object>());
+        InquiryManager inqMgr = new InquiryManager('Test Inquiry', inquiryKeyMap);
         List<Map<String, Object>> jsonResult = inqMgr.getResult();
     }
 
@@ -94,7 +99,7 @@ public with sharing class InquiryManagerTest {
         inquiryKeyMap.put('firstName', 'Somchai');
         inquiryKeyMap.put('lastName', 'Longdoo');
         
-        InquiryManager inqMgr = new InquiryManager('Test Inquiry', new Map<String, Object>());
+        InquiryManager inqMgr = new InquiryManager('Test Inquiry', inquiryKeyMap);
         List<Map<String, Object>> jsonResult = inqMgr.getResult();
 
         System.assertEquals('Somchai', jsonResult[0].get('Firstname') , 'Invalid firstname result');
@@ -155,7 +160,7 @@ public with sharing class InquiryManagerTest {
         inquiryKeyMap.put('firstName', 'Somchai');
         inquiryKeyMap.put('lastName', 'tester');
         
-        InquiryManager inqMgr = new InquiryManager('Test Inquiry', new Map<String, Object>());
+        InquiryManager inqMgr = new InquiryManager('Test Inquiry', inquiryKeyMap);
         List<Map<String, Object>> jsonResult = inqMgr.getResult();
 
         System.assertEquals('Somchai', jsonResult[0].get('Firstname') , 'Invalid firstname result');
@@ -166,7 +171,7 @@ public with sharing class InquiryManagerTest {
     static void testInquiryNotFound() {
 
         Inquiry_List__c inquiryList = new Inquiry_List__c(
-            Inquiry_Name__c = 'Test Inquiry',
+            Inquiry_Name__c = 'Test Inquiry Not Found',
             Salesforce_Object__c = 'Account',
             Message_Type__c ='Test'
         );
@@ -180,35 +185,37 @@ public with sharing class InquiryManagerTest {
         );
         insert inquiryKey;
 
-        Inquiry_Data__c inquiryData = new Inquiry_Data__c(
+        Inquiry_Key__c test1 = [select id, Key_Field__c, Key_Parameter__c from Inquiry_Key__c limit 1];
+        System.debug('Inquiry_Key__c' + test1);
+
+        List<Inquiry_Data__c> inquiryDataList = new List<Inquiry_Data__c>();
+        inquiryDataList.add(new Inquiry_Data__c(
             Parent_Id__c = inquiryList.Id,
             Salesforce_Field__c = 'First_name_PE__c',
             JSON_Mapping_Name__c = 'Firstname',
             Field_Order__c = 1,
             IsActive__c = true
-        );
-        insert inquiryData;
-        inquiryData = new Inquiry_Data__c(
+        ));
+        inquiryDataList.add(new Inquiry_Data__c(
             Parent_Id__c = inquiryList.Id,
             Salesforce_Field__c = 'Last_name_PE__c',
             JSON_Mapping_Name__c = 'Lastname',
             Field_Order__c = 2,
             IsActive__c = true
-        );
-        insert inquiryData;
-        inquiryData = new Inquiry_Data__c(
+        ));
+        inquiryDataList.add(new Inquiry_Data__c(
             Parent_Id__c = inquiryList.Id,
             Salesforce_Field__c = 'Mobile_Number_PE__c',
             JSON_Mapping_Name__c = 'Mobile',
             Field_Order__c = 3,
             IsActive__c = true
-        );
-        insert inquiryData;
+        ));
+        insert inquiryDataList;
 
         Map<String, Object> inquiryKeyMap = new Map<String, Object>();
         inquiryKeyMap.put('firstName', 'invalid');
         
-        InquiryManager inqMgr = new InquiryManager('Test Inquiry', new Map<String, Object>());
+        InquiryManager inqMgr = new InquiryManager('Test Inquiry Not Found',inquiryKeyMap);
         List<Map<String, Object>> jsonResult = inqMgr.getResult();
 
         System.assertEquals(0, jsonResult.size() , 'Invalid firstname result');

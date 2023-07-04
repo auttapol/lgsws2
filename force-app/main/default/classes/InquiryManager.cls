@@ -157,6 +157,8 @@ public with sharing class InquiryManager {
             strQuery += ' where ' + pattern ;
         
             System.debug('strQuery->' + strQuery);
+        } else {
+            System.debug('inquiryKeyMap is empty');
         }
         
         if (String.isNotEmpty(inquiryList.Condition__c)) {
