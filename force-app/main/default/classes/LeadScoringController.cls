@@ -64,6 +64,9 @@ public with sharing class LeadScoringController{
         List<String> fieldListCM = new List<String>();
         List<String> fieldListLead = new List<String>();
 
+        List<String> fieldAPIListCM = new List<String>();
+        List<String> fieldAPIListLead = new List<String>();
+
         List<String> fieldLabelListCM = new List<String>();
         List<String> fieldLabelListLead = new List<String>();
 
@@ -110,6 +113,8 @@ public with sharing class LeadScoringController{
                 String fieldLabel = String.valueOf(fieldMapCM.get(fieldName).getDescribe().getLabel());
                 fieldLabelListCM.add(fieldLabel);
                 fieldListCM.add(fieldNamestr);
+                fieldAPIListCM.add(fieldNameAPI);
+
                 String fieldLength = String.valueOf(fieldMapCM.get(fieldName).getDescribe().getLength());
                 if (fieldTypeName == 'DOUBLE'){
                     fieldTypeName = 'Number';
@@ -120,6 +125,7 @@ public with sharing class LeadScoringController{
                 }
                 if (fieldTypeName == 'BOOLEAN'){
                     fieldLength = '-';
+                    fieldTypeName = 'Boolean';
                 }
                 if (fieldTypeName == 'STRING'){
                     fieldTypeName = 'Text';
@@ -127,8 +133,8 @@ public with sharing class LeadScoringController{
                 if (fieldTypeName == 'PICKLIST'){
                     fieldTypeName = 'Picklist';
                 }
-                mapfieldwithTypeCM.put(fieldNamestr, fieldTypeName);
-                mapfieldwithLengthCM.put(fieldNamestr, fieldLength);
+                mapfieldwithTypeCM.put(fieldNameAPI, fieldTypeName);
+                mapfieldwithLengthCM.put(fieldNameAPI, fieldLength);
                 mapfieldwithAPICM.put(fieldNamestr, fieldNameAPI);
                 mapAPICMwithFieldName.put(fieldNameAPI, fieldNamestr);
             }
@@ -140,7 +146,7 @@ public with sharing class LeadScoringController{
         mapobjectwithApiLabel.put('CampaignMember', mapfieldwithAPICM);
         mapobjectwithAPI.put('CampaignMember', mapAPICMwithFieldName);
         newCMwrapper.Label = fieldLabelListCM;
-        newCMwrapper.API = fieldListCM;
+        newCMwrapper.API = fieldAPIListCM;
         mapAPIwrapper.put('CampaignMember', newCMwrapper);
         for (String fieldName : fieldMapLead.keyset()){
             String fieldNamestr = String.valueOf(fieldMapLead.get(fieldName).getDescribe().getLabel());
@@ -149,6 +155,7 @@ public with sharing class LeadScoringController{
             if (availableTypeList.contains(fieldTypeName.toupperCase())){
                 String fieldLabel = String.valueOf(fieldMapLead.get(fieldName).getDescribe().getLabel());
                 fieldListLead.add(fieldNamestr);
+                fieldAPIListLead.add(fieldNameAPI);
                 fieldLabelListLead.add(fieldLabel);
                 String fieldLength = String.valueOf(fieldMapLead.get(fieldName).getDescribe().getLength());
                 if (fieldTypeName == 'DOUBLE'){
@@ -160,15 +167,16 @@ public with sharing class LeadScoringController{
                 }
                 if (fieldTypeName == 'BOOLEAN'){
                     fieldLength = '-';
-                }
+                    fieldTypeName = 'Boolean';
+                } 
                 if (fieldTypeName == 'STRING'){
                     fieldTypeName = 'Text';
                 }
                 if (fieldTypeName == 'PICKLIST'){
                     fieldTypeName = 'Picklist';
                 }
-                mapfieldwithTypeLead.put(fieldNamestr, fieldTypeName);
-                mapfieldwithLengthLead.put(fieldNamestr, fieldLength);
+                mapfieldwithTypeLead.put(fieldNameAPI, fieldTypeName);
+                mapfieldwithLengthLead.put(fieldNameAPI, fieldLength);
                 mapfieldwithAPILead.put(fieldNamestr, fieldNameAPI);
                 mapAPILeadwithFieldName.put(fieldNameAPI, fieldNamestr);
             }
@@ -180,7 +188,7 @@ public with sharing class LeadScoringController{
         mapobjectwithApiLabel.put('Lead', mapfieldwithAPILead);
         mapobjectwithAPI.put('Lead', mapAPILeadwithFieldName);
         newLeadwrapper.Label = fieldLabelListLead;
-        newLeadwrapper.API = fieldListLead;
+        newLeadwrapper.API = fieldAPIListLead;
         mapAPIwrapper.put('Lead', newLeadwrapper);
 
         // FieldDescribeWrapper.newMapAPiNameLabel = mapAPIwrapper;

@@ -12,6 +12,7 @@
 				RowItemList.push({
 					'LObject': '--None--',
 					'FieldName':'--None--',
+					'Label':'',
 					'FieldType':'',
 					'Length': '',
 					'APIName': '',
@@ -176,19 +177,24 @@
 		var mapfieldlengthlist = component.get("v.mapfieldLength");
 		// console.log(JSON.stringify(mapfieldlengthlist))
 		var mapfieldLabellist = component.get("v.mapfieldAPI");
+		var newMapAPiNameLabel = component.get("v.mapWrapperLabel");
+		
+		
 		// console.log(JSON.stringify(mapfieldLabellist))
 		var mapLabel = component.get("v.mapfieldList");
 		for(var i=0; i < scoringCon.length;i++){
 			// console.log(('Field name'+mapfieldLabellist[scoringCon[i].Object__c])[scoringCon[i].Field_Mapping__c])
-			// console.log('API ' + scoringCon[i].Field_Mapping__c)
+			var FIELDAPINAME = newMapAPiNameLabel[scoringCon[i].Object__c];
+			console.log('API ' + scoringCon[i].Field_Mapping__c)
 			var mapObjWithAPI = mapfieldLabellist[scoringCon[i].Object__c];
-			// console.log('mapObjWithAPI ' + mapObjWithAPI)
-			// console.log(mapObjWithAPI[scoringCon[i].Field_Mapping__c])
+			console.log('mapObjWithAPI ' + JSON.stringify(mapObjWithAPI))
+			console.log(mapObjWithAPI[scoringCon[i].Field_Mapping__c])
 			result.push({
 				'LObject': scoringCon[i].Object__c,
-				'FieldName': mapObjWithAPI[scoringCon[i].Field_Mapping__c],
-				'FieldType':(mapfieldtypelist[scoringCon[i].Object__c])[mapObjWithAPI[scoringCon[i].Field_Mapping__c]],
-				'Length': (mapfieldlengthlist[scoringCon[i].Object__c])[mapObjWithAPI[scoringCon[i].Field_Mapping__c]],
+				'FieldName': (FIELDAPINAME.API.indexOf(scoringCon[i].Field_Mapping__c)) ,
+				'Label': FIELDAPINAME.Label[(FIELDAPINAME.API.indexOf(scoringCon[i].Field_Mapping__c))],
+				'FieldType':(mapfieldtypelist[scoringCon[i].Object__c])[scoringCon[i].Field_Mapping__c],
+				'Length': (mapfieldlengthlist[scoringCon[i].Object__c])[scoringCon[i].Field_Mapping__c],
 				'APIName': scoringCon[i].Field_Mapping__c,
 				'Weight':scoringCon[i].Weight__c,
 				'FieldList': mapLabel[scoringCon[i].Object__c],
@@ -203,6 +209,7 @@
             FirstRowItemList.push({
                 'LObject': '--None--',
                 'FieldName':'--None--',
+				'Label':'',
                 'FieldType':'',
                 'Length':'',
                 'APIName': '',
@@ -210,7 +217,7 @@
             });
             component.set("v.LeadList",FirstRowItemList);
         }
-		// console.log('Lead List : '+ JSON.stringify(component.get("v.LeadList")));
+		console.log('Lead List : '+ JSON.stringify(component.get("v.LeadList")));
 		component.set("v.loaded",false);
 	},
 })

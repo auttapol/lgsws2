@@ -303,7 +303,9 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
 
                 }
             }
-            opportunityHPAP.Submit_Date__c = requestBodyMap.containsKey('RTL_Request_Date__c') ? Date.valueOf((String)requestBodyMap.get('RTL_Request_Date__c')) : null;
+            opportunityHPAP.RTL_Ws_Reason__c = requestBodyMap.containsKey('RTL_Reason__c') ? (String)requestBodyMap.get('RTL_Reason__c') : '';
+            opportunityHPAP.Submit_Date__c = requestBodyMap.containsKey('RTL_Request_Date__c') && requestBodyMap.get('RTL_Request_Date__c') != null ? Date.valueOf((String)requestBodyMap.get('RTL_Request_Date__c')) : null;
+            opportunityHPAP.Corebank_Approved_Date_Time__c = requestBodyMap.containsKey('RTL_Approved_Date_Time__c') && requestBodyMap.get('RTL_Approved_Date_Time__c') != null ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Approved_Date_Time__c')+'"', DateTime.class) : null;
 
             insert opportunityHPAP;
             //Check update campaign Member
@@ -327,6 +329,10 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
             if(external_ref_Id != null && external_ref_Id != ''){
                 CampaignMember CMToUpdate = new CampaignMember();
                 CMToUpdate.Id = external_ref_Id;
+                List<CampaignMember> validatecm = [SELECT Id,RTL_Contact_Status__c FROM CampaignMember WHERE Id=:external_ref_Id ORDER BY LASTMODIFIEDDATE DESC LIMIT 1];
+                if(validatecm.size() > 0){
+                    CMToUpdate.RTL_Contact_Status__c = validatecm.get(0).RTL_Contact_Status__c;
+                }
                 updateCampaignMember(CMToUpdate,requestBodyMap);
             }
 
@@ -464,12 +470,14 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
                         else if(value == null || new List<String>{'STRING', 'PICKLIST', 'TEXTAREA', 'REFERENCE'}.contains(dfrType)) opportunityObj.put(fieldNameAPI, value);
                         else if(new List<String>{'DOUBLE', 'CURRENCY', 'PERCENT'}.contains(dfrType)) opportunityObj.put(fieldNameAPI, Decimal.valueOf(value));
                         else if(new List<String>{'INTEGER'}.contains(dfrType)) opportunityObj.put(fieldNameAPI, Integer.valueOf(value));
-                        else if(new List<String>{'DATE'}.contains(dfrType)) opportunityObj.put(fieldNameAPI, Date.valueOf(value));
-                        else if(new List<String>{'DATETIME'}.contains(dfrType)) opportunityObj.put(fieldNameAPI, (DateTime)JSON.deserialize('"'+value+'"', DateTime.class));
+                        else if(new List<String>{'DATE'}.contains(dfrType)){
+                            if(value != null && value != '') opportunityObj.put(fieldNameAPI, Date.valueOf(value));
+                        }
+                        else if(new List<String>{'DATETIME'}.contains(dfrType)){
+                            if(value != null && value != '') opportunityObj.put(fieldNameAPI, (DateTime)JSON.deserialize('"'+value+'"', DateTime.class));
+                        }
                         else opportunityObj.put(fieldNameAPI, value);
-                        // if(field.toLowerCase() == 'rtl_stage_name_date_time__c' || field.toLowerCase()  == 'rtl_refer_date__c'){
-                        //     opportunityObj.put(fieldNameAPI,  (DateTime)JSON.deserialize('"'+value+'"', DateTime.class) );
-                        // }
+    
                         if(field == 'rtl_external_ref_id__c' && value != null){
                             if(value.startsWith('a2S')){
                                 System.debug('rtl_external_ref_id__c : ' + value);
@@ -610,7 +618,7 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
                     referUpdate.RTL_Contact_Status__c = requestBodyMap.containsKey('RTL_Contact_Status__c') ? (String)requestBodyMap.get('RTL_Contact_Status__c') : '';
                     referUpdate.RTL_Ws_Reason__c = requestBodyMap.containsKey('RTL_Reason__c') ? (String)requestBodyMap.get('RTL_Reason__c') : '';
 
-                    referUpdate.RTL_Refer_Date__c = requestBodyMap.containsKey('RTL_Refer_Date__c') ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Refer_Date__c')+'"', DateTime.class) : null;
+                    referUpdate.RTL_Refer_Date__c = requestBodyMap.containsKey('RTL_Refer_Date__c') && requestBodyMap.get('RTL_Refer_Date__c') != null ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Refer_Date__c')+'"', DateTime.class) : null;
                     referUpdate.Corebank_Branch_Code__c = requestBodyMap.containsKey('Corebank_Branch_Code__c') ? (String)requestBodyMap.get('Corebank_Branch_Code__c') : '';
                     referUpdate.Corebank_Branch_Name__c = requestBodyMap.containsKey('Corebank_Branch_Name__c') ? (String)requestBodyMap.get('Corebank_Branch_Name__c') : '';
                     referUpdate.Corebank_Sales_Manager_Head_Id__c = requestBodyMap.containsKey('Corebank_Sales_Manager_Head_Id__c') ? (String)requestBodyMap.get('Corebank_Sales_Manager_Head_Id__c') : '';
@@ -619,108 +627,120 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
                     referUpdate.RTL_Product_Campaign_Name__c = requestBodyMap.containsKey('RTL_Product_Campaign_Name__c') ? (String)requestBodyMap.get('RTL_Product_Campaign_Name__c') : '';
                     referUpdate.RTL_Dealer_Code__c = requestBodyMap.containsKey('RTL_Dealer_Code__c') ? (String)requestBodyMap.get('RTL_Dealer_Code__c') : '';
                     referUpdate.RTL_Dealer_Name__c = requestBodyMap.containsKey('RTL_Dealer_Name__c') ? (String)requestBodyMap.get('RTL_Dealer_Name__c') : '';
-                    referUpdate.RTL_Stage_Name_Date_Time__c = requestBodyMap.containsKey('RTL_Stage_Name_Date_Time__c') ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Stage_Name_Date_Time__c')+'"', DateTime.class) : null;
+                    referUpdate.RTL_Stage_Name_Date_Time__c = requestBodyMap.containsKey('RTL_Stage_Name_Date_Time__c') && requestBodyMap.get('RTL_Stage_Name_Date_Time__c') != null ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Stage_Name_Date_Time__c')+'"', DateTime.class) : null;
                     
                     stampReferToCampaignMember(referUpdate.Id);
                     update referUpdate;
                 }
                 else if(((String)requestBodyMap.get('Id')).startsWith('00v')){
                     campaignMemberUpdate.Id = (String)requestBodyMap.get('Id');
+                    List<CampaignMember> validatecm = [SELECT Id,RTL_Contact_Status__c,RTL_Marketing_Code__c,RTL_Web_Unique_ID__c FROM CampaignMember WHERE Id =:campaignMemberUpdate.Id ORDER BY LASTMODIFIEDDATE DESC];
+                    if(validatecm.size() >0){
+                        campaignMemberUpdate.RTL_Contact_Status__c = validatecm.get(0).RTL_Contact_Status__c;
+                    }
                     updateCampaignMember(campaignMemberUpdate,requestBodyMap);
                 }
                 else if(((String)requestBodyMap.get('Id')).startsWith('006')){
                     System.debug('Update by Oppty Id');
-                    accountObj = requestBodyMap.containsKey('Account') ? 
-                    (Account)JSON.deserialize(JSON.serialize(requestBodyMap.get('Account')), Account.class) : null;
-
-                    List<String> fieldsQuery = new List<String>{ 'Name', 'TMB_Customer_ID_PE__c', 'Core_Banking_Suggested_Segment__c' };
-                    fieldsQuery.addAll(accountFields);
-                    String accountFieldsMerge = String.join(fieldsQuery, ',');
-                    String queryRMID = String.format('SELECT {0} FROM Account WHERE {1}', new List<Object>{
-                        accountFieldsMerge,
-                        passValueCondition('TMB_Customer_ID_PE__c', accountObj.get('TMB_Customer_ID_PE__c'))
-                    });
-
-                    String searchKey =  String.join(new List<Object>{
-                        assignDoubleQuote(setSearch((String)accountObj.get('First_name_PE__c'))),
-                        assignDoubleQuote(setSearch((String)accountObj.get('Last_name_PE__c'))),
-                        assignDoubleQuote(setSearch((String)accountObj.get('ID_Type_PE__c'))),
-                        assignDoubleQuote(setSearch((String)accountObj.get('ID_Number_PE__c'))),
-                        assignDoubleQuote(setSearch((String)accountObj.get('Mobile_Number_PE__c')))
-                    }, ' OR ');
-                    searchKey = '{' + searchKey + '}';
-                    String queryPersonInfo = String.format('FIND {0} IN ALL FIELDS RETURNING Account({1})', new List<String>{
-                        searchKey,
-                        accountFieldsMerge
-                    });
-                    
-                    // find customer existing 
-                    List<SObject> sObjectList;
-                    if(!checkIsEmpty(accountObj.get('TMB_Customer_ID_PE__c'))) {
-                        sObjectList = (List<SObject>)Database.query(queryRMID);
-                        accountCheckInDatabase = !sObjectList.isEmpty() ? (Account)sObjectList.get(0) : null;
-                    }
-                    if (accountCheckInDatabase == null || checkIsEmpty(accountObj.get('TMB_Customer_ID_PE__c'))) {
-                        List<String> temp = new List<String>();
-                        for (String fieldName : accountFields) {
-                            temp.add(String.format('{0}: {1}', new List<Object>{
-                                fieldName, accountObj.get(fieldName)
-                            }));
+                    if(requestBodyMap.containsKey('Account')){
+                        accountObj = requestBodyMap.containsKey('Account') ? 
+                        (Account)JSON.deserialize(JSON.serialize(requestBodyMap.get('Account')), Account.class) : null;
+    
+                        List<String> fieldsQuery = new List<String>{ 'Name', 'TMB_Customer_ID_PE__c', 'Core_Banking_Suggested_Segment__c' };
+                        fieldsQuery.addAll(accountFields);
+                        String accountFieldsMerge = String.join(fieldsQuery, ',');
+                        String queryRMID = String.format('SELECT {0} FROM Account WHERE {1}', new List<Object>{
+                            accountFieldsMerge,
+                            passValueCondition('TMB_Customer_ID_PE__c', accountObj.get('TMB_Customer_ID_PE__c'))
+                        });
+    
+                        String searchKey =  String.join(new List<Object>{
+                            assignDoubleQuote(setSearch((String)accountObj.get('First_name_PE__c'))),
+                            assignDoubleQuote(setSearch((String)accountObj.get('Last_name_PE__c'))),
+                            assignDoubleQuote(setSearch((String)accountObj.get('ID_Type_PE__c'))),
+                            assignDoubleQuote(setSearch((String)accountObj.get('ID_Number_PE__c'))),
+                            assignDoubleQuote(setSearch((String)accountObj.get('Mobile_Number_PE__c')))
+                        }, ' OR ');
+                        searchKey = '{' + searchKey + '}';
+                        String queryPersonInfo = String.format('FIND {0} IN ALL FIELDS RETURNING Account({1})', new List<String>{
+                            searchKey,
+                            accountFieldsMerge
+                        });
+                        
+                        // find customer existing 
+                        List<SObject> sObjectList;
+                        if(!checkIsEmpty(accountObj.get('TMB_Customer_ID_PE__c'))) {
+                            sObjectList = (List<SObject>)Database.query(queryRMID);
+                            accountCheckInDatabase = !sObjectList.isEmpty() ? (Account)sObjectList.get(0) : null;
                         }
-                        sObjectList = ((List<List<SObject>>)Search.query(queryPersonInfo)).get(0);
-                        for (Account account : (List<Account>)sObjectList) {
-                            // account.get('Email_Address_PE__c') == accountObj.get('Email_Address_PE__c') &&
-                            // account.get('First_name_PE__c') == accountObj.get('First_name_PE__c') &&
-                            // account.get('Last_name_PE__c') == accountObj.get('Last_name_PE__c') &&
-                            // account.get('Mobile_Number_PE__c') == accountObj.get('Mobile_Number_PE__c')  &&
-                            if(account.get('ID_Type_PE__c') == accountObj.get('ID_Type_PE__c') &&
-                                String.valueOf(account.get('ID_Number_PE__c')).contains((String)accountObj.get('ID_Number_PE__c'))) {
-                                accountCheckInDatabase = account;
-                                break;
+                        if (accountCheckInDatabase == null || checkIsEmpty(accountObj.get('TMB_Customer_ID_PE__c'))) {
+                            List<String> temp = new List<String>();
+                            for (String fieldName : accountFields) {
+                                temp.add(String.format('{0}: {1}', new List<Object>{
+                                    fieldName, accountObj.get(fieldName)
+                                }));
+                            }
+                            sObjectList = ((List<List<SObject>>)Search.query(queryPersonInfo)).get(0);
+                            for (Account account : (List<Account>)sObjectList) {
+                                // account.get('Email_Address_PE__c') == accountObj.get('Email_Address_PE__c') &&
+                                // account.get('First_name_PE__c') == accountObj.get('First_name_PE__c') &&
+                                // account.get('Last_name_PE__c') == accountObj.get('Last_name_PE__c') &&
+                                // account.get('Mobile_Number_PE__c') == accountObj.get('Mobile_Number_PE__c')  &&
+                                if(account.get('ID_Type_PE__c') == accountObj.get('ID_Type_PE__c') &&
+                                    String.valueOf(account.get('ID_Number_PE__c')).contains((String)accountObj.get('ID_Number_PE__c'))) {
+                                    accountCheckInDatabase = account;
+                                    break;
+                                }
                             }
                         }
+                        
+                        // TODO: Create customer prospect 
+                        if(accountCheckInDatabase == null) {
+                            System.debug('New Customer');
+                            accountCheckInDatabase = new Account(
+                                Name = accountObj.get('First_name_PE__c') + ' ' + accountObj.get('Last_name_PE__c'),
+                                Email_Address_PE__c = (String)accountObj.get('Email_Address_PE__c'),
+                                First_name_PE__c = (String)accountObj.get('First_name_PE__c'),
+                                Last_name_PE__c = (String)accountObj.get('Last_name_PE__c'),
+                                ID_Type_PE__c = (String)accountObj.get('ID_Type_PE__c'),
+                                ID_Number_PE__c = (String)accountObj.get('ID_Number_PE__c'),
+                                Mobile_Number_PE__c = (String)accountObj.get('Mobile_Number_PE__c'),
+                                // TMB_Customer_ID_PE__c = (String)accountObj.get('TMB_Customer_ID_PE__c'),
+                                Primary_Address_Line_2_PE__c = (String)accountObj.get('Primary_Address_Line_2_PE__c'),
+                                Primary_Address_Line_3_PE__c = (String)accountObj.get('Primary_Address_Line_3_PE__c'),
+                                Zip_Code_Primary_PE__c = (String)accountObj.get('Zip_Code_Primary_PE__c'),
+                                Province_Primary_PE__c = (String)accountObj.get('Province_Primary_PE__c'),
+                                RecordTypeId = retailProspectRecordTypeId
+                            );
+                            insert accountCheckInDatabase;
+                        }
                     }
-                    
-                    // TODO: Create customer prospect 
-                    if(accountCheckInDatabase == null) {
-                        System.debug('New Customer');
-                        accountCheckInDatabase = new Account(
-                            Name = accountObj.get('First_name_PE__c') + ' ' + accountObj.get('Last_name_PE__c'),
-                            Email_Address_PE__c = (String)accountObj.get('Email_Address_PE__c'),
-                            First_name_PE__c = (String)accountObj.get('First_name_PE__c'),
-                            Last_name_PE__c = (String)accountObj.get('Last_name_PE__c'),
-                            ID_Type_PE__c = (String)accountObj.get('ID_Type_PE__c'),
-                            ID_Number_PE__c = (String)accountObj.get('ID_Number_PE__c'),
-                            Mobile_Number_PE__c = (String)accountObj.get('Mobile_Number_PE__c'),
-                            // TMB_Customer_ID_PE__c = (String)accountObj.get('TMB_Customer_ID_PE__c'),
-                            Primary_Address_Line_2_PE__c = (String)accountObj.get('Primary_Address_Line_2_PE__c'),
-                            Primary_Address_Line_3_PE__c = (String)accountObj.get('Primary_Address_Line_3_PE__c'),
-                            Zip_Code_Primary_PE__c = (String)accountObj.get('Zip_Code_Primary_PE__c'),
-                            Province_Primary_PE__c = (String)accountObj.get('Province_Primary_PE__c'),
-                            RecordTypeId = retailProspectRecordTypeId
-                        );
-                        insert accountCheckInDatabase;
-                    }
+                   
                     // opportunityHPAP.AccountId = accountCheckInDatabase.Id;
                     opportunityReferUpdate = mappingOpportunityFields(requestBodyMap);
                     System.debug('Customer : ' + accountCheckInDatabase);
-                    opportunityReferUpdate.AccountId = accountCheckInDatabase.Id;
+                    if(accountCheckInDatabase != null && accountCheckInDatabase.Id != null){
+                        opportunityReferUpdate.AccountId = accountCheckInDatabase.Id;
+                    }
 
                     System.debug('Prod Name : ' + opportunityReferUpdate.RTL_Product_Name__c);
                     stampOpptyToCampaignMember(opportunityReferUpdate.Id,null);
-                    opportunityReferUpdate.RTL_Contact_Status__c = requestBodyMap.containsKey('RTL_Contact_Status__c') ? (String)requestBodyMap.get('RTL_Contact_Status__c') : '';
+                    // opportunityReferUpdate.RTL_Contact_Status__c = requestBodyMap.containsKey('RTL_Contact_Status__c') ? (String)requestBodyMap.get('RTL_Contact_Status__c') : '';
                     opportunityReferUpdate.RTL_Ws_Reason__c = requestBodyMap.containsKey('RTL_Reason__c') ? (String)requestBodyMap.get('RTL_Reason__c') : '';
-
+                    opportunityReferUpdate.Submit_Date__c = requestBodyMap.containsKey('RTL_Request_Date__c') && requestBodyMap.get('RTL_Request_Date__c') != null? Date.valueOf((String)requestBodyMap.get('RTL_Request_Date__c')) : null;
+                    opportunityReferUpdate.Corebank_Approved_Date_Time__c = requestBodyMap.containsKey('RTL_Approved_Date_Time__c') && requestBodyMap.get('RTL_Approved_Date_Time__c') != null ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Approved_Date_Time__c')+'"', DateTime.class) : null;
+        
                     update opportunityReferUpdate;
                 }else{
                     String mktcodeOrWebunique = ((String)requestBodyMap.get('Id'));
                     System.debug('mktcodeOrWebunique Id : ' + mktcodeOrWebunique );
 
-                    List<CampaignMember> validatecm = [SELECT Id,RTL_Marketing_Code__c,RTL_Web_Unique_ID__c FROM CampaignMember WHERE RTL_Marketing_Code__c =: mktcodeOrWebunique OR RTL_Web_Unique_ID__c =: mktcodeOrWebunique ORDER BY LASTMODIFIEDDATE DESC];
+                    List<CampaignMember> validatecm = [SELECT Id,RTL_Contact_Status__c,RTL_Marketing_Code__c,RTL_Web_Unique_ID__c FROM CampaignMember WHERE RTL_Marketing_Code__c =: mktcodeOrWebunique OR RTL_Web_Unique_ID__c =: mktcodeOrWebunique ORDER BY LASTMODIFIEDDATE DESC];
                     //Update CampaignMember when Id is Marketing Code, Web Unique Id
                     if(validatecm.size() > 0){
                         System.debug('CampaignMember Id : ' + validatecm.get(0).Id );
                         campaignMemberUpdate.Id = validatecm.get(0).Id;
+                        campaignMemberUpdate.RTL_Contact_Status__c = validatecm.get(0).RTL_Contact_Status__c;
                         updateCampaignMember(campaignMemberUpdate,requestBodyMap);                      
                     }else{
                         System.debug('Invalid Id : ' + ((String)requestBodyMap.get('Id')));
@@ -844,26 +864,26 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
             campaignMemberUpdate.RTL_AL_Req_No2_1__c = requestBodyMap.containsKey('RTL_AL_Req_No2__c') ? (String)requestBodyMap.get('RTL_AL_Req_No2__c') : '';
             campaignMemberUpdate.RTL_AL_Refer_No_1__c = requestBodyMap.containsKey('RTL_AL_Refer_No__c') ? (String)requestBodyMap.get('RTL_AL_Refer_No__c') : '';
             //Update From LGS
-            if((String)requestBodyMap.get('RTL_Contact_Status__c') == 'New' || (String)requestBodyMap.get('RTL_Contact_Status__c') == 'Uncontact'){
+            if(campaignMemberUpdate.RTL_Contact_Status__c == 'New' || campaignMemberUpdate.RTL_Contact_Status__c == 'Uncontact'){
                 campaignMemberUpdate.RTL_Contact_Status__c = requestBodyMap.containsKey('RTL_Contact_Status__c') ? (String)requestBodyMap.get('RTL_Contact_Status__c') : '';
                 campaignMemberUpdate.RTL_Reason__c = requestBodyMap.containsKey('RTL_Reason__c') ? (String)requestBodyMap.get('RTL_Reason__c') : '';
             }
             campaignMemberUpdate.RTL_Status_Approve_1__c = requestBodyMap.containsKey('RTL_Status_Approve__c') ? (String)requestBodyMap.get('RTL_Status_Approve__c') : '';
 
-            campaignMemberUpdate.RTL_Refer_Date_1__c = requestBodyMap.containsKey('RTL_Refer_Date__c') ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Refer_Date__c')+'"', DateTime.class) : null;
+            campaignMemberUpdate.RTL_Refer_Date_1__c = requestBodyMap.containsKey('RTL_Refer_Date__c') && requestBodyMap.get('RTL_Refer_Date__c') != null ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Refer_Date__c')+'"', DateTime.class) : null;
             campaignMemberUpdate.Corebank_Branch_Code_1__c = requestBodyMap.containsKey('RTL_AO_Group_Code__c') ? (String)requestBodyMap.get('RTL_AO_Group_Code__c') : '';
             campaignMemberUpdate.Corebank_Branch_Name_1__c = requestBodyMap.containsKey('RTL_AO_Group_Name__c') ? (String)requestBodyMap.get('RTL_AO_Group_Name__c') : '';
             campaignMemberUpdate.Corebank_Sales_Manager_Head_Id_1__c = requestBodyMap.containsKey('RTL_Group_Head_Emp_Id__c') ? (String)requestBodyMap.get('RTL_Group_Head_Emp_Id__c') : '';
             campaignMemberUpdate.Corebank_Sales_Manager_Head_1__c = requestBodyMap.containsKey('RTL_Group_Head_Name__c') ? (String)requestBodyMap.get('RTL_Group_Head_Name__c') : '';
             campaignMemberUpdate.RTL_Request_Hub_Code_1__c = requestBodyMap.containsKey('RTL_Request_Hub_Code__c') ? (String)requestBodyMap.get('RTL_Request_Hub_Code__c') : '';
             campaignMemberUpdate.RTL_Request_Hub_Name_1__c = requestBodyMap.containsKey('RTL_Request_Hub_Name__c') ? (String)requestBodyMap.get('RTL_Request_Hub_Name__c') : '';
-            campaignMemberUpdate.Corebank_Approved_Date_Time_1__c = requestBodyMap.containsKey('RTL_Approved_Date_Time__c') ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Approved_Date_Time__c')+'"', DateTime.class) : null;
+            campaignMemberUpdate.Corebank_Approved_Date_Time_1__c = requestBodyMap.containsKey('RTL_Approved_Date_Time__c') && requestBodyMap.get('RTL_Approved_Date_Time__c') != null ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Approved_Date_Time__c')+'"', DateTime.class) : null;
             campaignMemberUpdate.RTL_Product_Campaign_Code_1__c = requestBodyMap.containsKey('RTL_Product_Campaign_Code__c') ? (String)requestBodyMap.get('RTL_Product_Campaign_Code__c') : '';
             campaignMemberUpdate.RTL_Product_Campaign_Name_1__c = requestBodyMap.containsKey('RTL_Product_Campaign_Name__c') ? (String)requestBodyMap.get('RTL_Product_Campaign_Name__c') : '';
             campaignMemberUpdate.RTL_Dealer_Code_1__c = requestBodyMap.containsKey('RTL_Dealer_Code__c') ? (String)requestBodyMap.get('RTL_Dealer_Code__c') : '';
             campaignMemberUpdate.RTL_Dealer_Name_1__c = requestBodyMap.containsKey('RTL_Dealer_Name__c') ? (String)requestBodyMap.get('RTL_Dealer_Name__c') : '';
-            campaignMemberUpdate.RTL_Stage_Name_Date_Time_1__c = requestBodyMap.containsKey('RTL_Stage_Name_Date_Time__c') ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Stage_Name_Date_Time__c')+'"', DateTime.class) : null;
-            campaignMemberUpdate.RTL_Submit_Date_1__c = requestBodyMap.containsKey('RTL_Request_Date__c') ? Date.valueOf((String)requestBodyMap.get('RTL_Request_Date__c')) : null;
+            campaignMemberUpdate.RTL_Stage_Name_Date_Time_1__c = requestBodyMap.containsKey('RTL_Stage_Name_Date_Time__c') && requestBodyMap.get('RTL_Stage_Name_Date_Time__c') != null ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Stage_Name_Date_Time__c')+'"', DateTime.class) : null;
+            campaignMemberUpdate.RTL_Submit_Date_1__c = requestBodyMap.containsKey('RTL_Request_Date__c') && requestBodyMap.get('RTL_Request_Date__c') != null ? Date.valueOf((String)requestBodyMap.get('RTL_Request_Date__c')) : null;
             // Datetime.valueof((String.valueOf(requestBodyMap.get('RTL_Stage_Name_Date_Time__c'))).replace('T', ' ')).addYears(543);
             // (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Refer_Date__c')+'"'
             campaignMemberUpdate.RTL_isBatchUpdateCampaignMember__c = true;
@@ -948,15 +968,15 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
                                                 RTL_OfferResult_Product_1__c,RTL_OfferResult_Product_2__c,RTL_OfferResult_Product_3__c,RTL_OfferResult_Product_4__c,RTL_OfferResult_Product_5__c,
                                                 RTL_RelatedOpportunity_1__c,RTL_RelatedOpportunity_2__c,RTL_RelatedOpportunity_3__c,RTL_RelatedOpportunity_4__c,RTL_RelatedOpportunity_5__c 
                                                 FROM CampaignMember WHERE Id =: cmId LIMIT 1];
-            List<Cross_Sell_Product__c> crossSell = [SELECT Id,CampaignMemberId__c,Campaign_Product__c,RTL_OfferResult_Product__c,OpportunityId__c FROM Cross_Sell_Product__c WHERE CampaignMemberId__c =: cmId];
-            Map<Id,Cross_Sell_Product__c> csMap = new Map<Id,Cross_Sell_Product__c>();
-            if(crossSell.size() > 0)
-            {
-                for(Cross_Sell_Product__c cs :crossSell)
-                {
-                    csMap.put(cs.Campaign_Product__c,cs);
-                }
-            }
+            // List<Cross_Sell_Product__c> crossSell = [SELECT Id,CampaignMemberId__c,Campaign_Product__c,RTL_OfferResult_Product__c,OpportunityId__c FROM Cross_Sell_Product__c WHERE CampaignMemberId__c =: cmId];
+            // Map<Id,Cross_Sell_Product__c> csMap = new Map<Id,Cross_Sell_Product__c>();
+            // if(crossSell.size() > 0)
+            // {
+            //     for(Cross_Sell_Product__c cs :crossSell)
+            //     {
+            //         csMap.put(cs.Campaign_Product__c,cs);
+            //     }
+            // }
             if(campaignMem.size() > 0){
                 for(Integer i = 1; i <= 5; i++)
                 {

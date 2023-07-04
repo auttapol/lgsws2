@@ -291,35 +291,35 @@
                 field_name : 'RTL_Hub_Name_'+productNum+'__c',
                 read_only : true         
             },{
-                field_name : 'HPAP_Status_Code_'+productNum+'__c',
+                field_name : 'HPAP_Status_Code_1__c',
                 read_only : true         
             },
             {
-                field_name : 'RTL_Status_'+productNum+'__c',
+                field_name : 'RTL_Status_1__c',
                 read_only : true         
             },
             {
-                field_name : 'Details_of_Status_'+productNum+'__c',
+                field_name : 'Details_of_Status_1__c',
                 read_only : true         
             },
             {
-                field_name : 'HPAP_Reason_Code_'+productNum+'__c',
+                field_name : 'HPAP_Reason_Code_1__c',
                 read_only : true         
             },
             {
-                field_name : 'HPAP_Reason_Description_'+productNum+'__c',
+                field_name : 'HPAP_Reason_Description_1__c',
                 read_only : true         
             },
             {
-                field_name : 'HPAP_Status_Approve_'+productNum+'__c',
+                field_name : 'RTL_Status_Approve_1__c',
                 read_only : true         
             },
             {
-                field_name : 'HPAP_Refer_Date_'+productNum+'__c',
+                field_name : 'RTL_Refer_Date_1__c',
                 read_only : true         
             },
             {
-                field_name : 'HPAP_Request_date_'+productNum+'__c',
+                field_name : 'RTL_Submit_Date_1__c',
                 read_only : true         
             }
         ];

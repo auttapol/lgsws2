@@ -1006,7 +1006,7 @@ public without sharing class RTL_CampaignMemberExtension {
                 newOpp.LGS_BrandCode__c = currentObject.LGS_BrandCode__c;
                 newOpp.LGS_BrandShowroomCode__c = currentObject.LGS_BrandShowroomCode__c;
                 newOpp.LGS_PartnerCode__c = currentObject.LGS_PartnerCode__c;
-                newOpp.RTL_Campaign_Name__c = currentObject.RTL_W2L_Campaign_Name__c;
+                // newOpp.RTL_Campaign_Name__c = currentObject.RTL_W2L_Campaign_Name__c;
                 newOpp.Lead_Score__c = currentObject.Lead_Score__c;
                 newOpp.Lead_Score_level__c = currentObject.Lead_Score_level__c;
                 newOpp.LGS_VIN_No__c = currentObject.LGS_VIN_No__c;
@@ -1015,7 +1015,8 @@ public without sharing class RTL_CampaignMemberExtension {
                 newOpp.LGS_Campaign_End_Date__c = currentObject.LGS_Campaign_End_Date__c;
                 newOpp.LGS_Child_Campaign_ID__c = currentObject.LGS_Child_Campaign_ID__c;
                 newOpp.Car_Reference_No__c = currentObject.Car_Reference_No__c;
-                
+                newOpp.RTL_W2L_Campaign_Name__c = currentObject.RTL_W2L_Campaign_Name__c;
+
                 Integer numberOfProduct =  each.numberOfProduct;
                 productNoOpptyMap.put( numberOfProduct, newOpp );
 

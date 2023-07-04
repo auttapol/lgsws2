@@ -21,6 +21,7 @@ public with sharing class InquiryManager {
     public InquiryManager(String inquiryName, Map<String, Object> inquiryKeyMap) {
         this.inquiryName = inquiryName;
         this.inquiryKeyMap = inquiryKeyMap;
+        // isObject = true;
     }
 
 
@@ -132,10 +133,12 @@ public with sharing class InquiryManager {
             if (String.isNotEmpty(pattern)) {
                 integer keyIndex = 1;
                 for (Inquiry_Key__c eachkey : inquiryKey) {
-                    String target = '{' + keyIndex +'}';
-                    String replacement = eachkey.Key_Field__c + '= :' + eachkey.Key_Parameter__c;
-                    pattern = pattern.replace(target, replacement);
-                    keyIndex++;
+                    if(this.inquiryKeyMap.containsKey(eachkey.Key_Field__c )){
+                        String target = '{' + keyIndex +'}';
+                        String replacement = eachkey.Key_Field__c + '= :' + eachkey.Key_Parameter__c;
+                        pattern = pattern.replace(target, replacement);
+                        keyIndex++;
+                    }
                 }
             } else {
                 String andConcat = ' and ';
@@ -186,8 +189,17 @@ public with sharing class InquiryManager {
 
             for (Inquiry_Data__c inquiryData : inquiryFieldMap.values()) {
                 String fieldName = inquiryData.Salesforce_Field__c;
+                // Map<String, Object> fieldsMap = sobj.getPopulatedFieldsAsMap();
+                // if (fieldsMap.containsKey(fieldName)) {
+                //     objValue = sobj.get((fieldName));
+                // }else{
+                //     objValue ='';
+                // }
                 objValue = extractValue(sobj, fieldName, inquiryFieldMap);
                 System.debug(fieldName + ' value -->' + objValue);
+                // if (objValue == null) {
+                //     objValue = '';
+                // }
 
                 /* Conversion value
                     1. Fixed value
@@ -242,7 +254,7 @@ public with sharing class InquiryManager {
             SObject innerSObject = sobj;
             Integer listSize = relateFieldList.size();
             Integer pointer = 0;
-            String val = '';
+            Object val = '';
             for (String relateField : relateFieldList) {
                 System.debug('relateField -->' +relateField);
                 if (pointer == 0) {
@@ -250,7 +262,7 @@ public with sharing class InquiryManager {
                 } else if (pointer == listSize-1) {
                     system.debug('innerSObject --> ' + innerSObject);
                     if (innerSObject != null) {
-                        val = String.valueOf(innerSObject.get(relateField));
+                        val = innerSObject.get(relateField);
                     }
                     
                 } else {
@@ -284,11 +296,42 @@ public with sharing class InquiryManager {
     */
     private String formatDate(Object objValue, String fieldDateFormat) {
         try {
-            DateTime dt = (DateTime) objValue;
-            return dt.format(fieldDateFormat);
+            System.debug('getType :: ' + getType(objValue));
+            if (objValue instanceof Datetime) {
+                System.debug('Format datetime ' + fieldDateFormat);
+                DateTime dt = (DateTime) objValue;
+                return dt.format(fieldDateFormat);
+            } else  if (objValue instanceof Date) {
+                System.debug('Format date ' + fieldDateFormat);
+                Date dt = (Date) objValue;
+                return dt.format();
+            } else {
+                System.debug('Format date Not date/time object');
+                return String.valueOf(objValue);
+            }
+            
         } catch (Exception e) {
             System.debug('ERROR :: ' + e.getMessage());
             return String.valueOf(objValue);
         }
+    }
+
+    private static string getType(Object o) {
+        if(o==null) return '';              // we can't say much about null with our current techniques
+        if(o instanceof SObject)            return ((SObject)o).getSObjectType().getDescribe().getName()+''; 
+        if(o instanceof Boolean)            return 'Boolean';
+        if(o instanceof Id)                 return 'Id';
+        if(o instanceof String)             return 'String';
+        if(o instanceof Blob)               return 'Blob';
+        if(o instanceof Date)               return 'Date';
+        if(o instanceof Datetime)           return 'Datetime';
+        if(o instanceof Time)               return 'Time';
+        if(o instanceof String)             return 'String';
+        if(o instanceof Integer)            return 'Integer';
+        if(o instanceof Long)               return 'Long';
+        if(o instanceof Decimal)            return 'Decimal';  // we can't distinguish between decimal and double
+        if(o instanceof Double)             return 'Double';   // we can't distinguish between decimal and double
+        if(o instanceof List<object>)       return 'List';
+        return 'Object';                    // actually we can't detect maps and sets and maps
     }
 }

@@ -409,7 +409,12 @@ public without sharing class CampaignMemberInfoController {
         }
         set;
     }
-    
+    public class moreDetailProductwrapper{
+        @AuraEnabled
+        public String ALProductSet;
+        @AuraEnabled
+        public String HLProductSet;
+    }
     @AuraEnabled
     public static List<CM_OB_Sell_Permission__mdt> getCampaignMemberOBSellPermission(){
         return [SELECT Id,MasterLabel,Allow_To_Sell__c,Profile__c FROM CM_OB_Sell_Permission__mdt WHERE Profile__c =: 'Campaign Member OB'];
@@ -1574,7 +1579,8 @@ public without sharing class CampaignMemberInfoController {
                         newOpp.LGS_Campaign_End_Date__c = campaignMemObj.LGS_Campaign_End_Date__c;
                         newOpp.LGS_Child_Campaign_ID__c = campaignMemObj.LGS_Child_Campaign_ID__c;
                         newOpp.Car_Reference_No__c = campaignMemObj.Car_Reference_No__c;
-
+                        newOpp.RTL_W2L_Campaign_Name__c = campaignMemObj.RTL_W2L_Campaign_Name__c;
+                        
                         Integer numberOfProduct =  product.numberOfProduct;
                         productNoOpptyMap.put( numberOfProduct, newOpp );
                     }
@@ -1836,6 +1842,7 @@ public without sharing class CampaignMemberInfoController {
                     newOpp.LGS_Campaign_End_Date__c = campaignMemObj.LGS_Campaign_End_Date__c;
                     newOpp.LGS_Child_Campaign_ID__c = campaignMemObj.LGS_Child_Campaign_ID__c;
                     newOpp.Car_Reference_No__c = campaignMemObj.Car_Reference_No__c;
+                    newOpp.RTL_W2L_Campaign_Name__c = campaignMemObj.RTL_W2L_Campaign_Name__c;
 
                     Integer numberOfProduct =  product.numberOfProduct;
                     productNoOpptyMap.put( numberOfProduct, newOpp );
@@ -2078,6 +2085,7 @@ public without sharing class CampaignMemberInfoController {
                     newOpp.LGS_Campaign_End_Date__c = campaignMemObj.LGS_Campaign_End_Date__c;
                     newOpp.LGS_Child_Campaign_ID__c = campaignMemObj.LGS_Child_Campaign_ID__c;
                     newOpp.Car_Reference_No__c = campaignMemObj.Car_Reference_No__c;
+                    newOpp.RTL_W2L_Campaign_Name__c = campaignMemObj.RTL_W2L_Campaign_Name__c;
 
                     Integer numberOfProduct =  product.numberOfProduct;
                     productNoOpptyMap.put( numberOfProduct, newOpp );
@@ -2959,6 +2967,14 @@ public without sharing class CampaignMemberInfoController {
         }
         else    prodctName = false;
         return prodctName;
-    }            
+    }         
+    @AuraEnabled   
+    public static moreDetailProductwrapper getMoreDetailAvailableProduct(){
+        moreDetailProductwrapper productwrapper = new moreDetailProductwrapper();
+        productwrapper.ALProductSet = '(\''+String.join(new List<String>(ALPrdNameSet), '\',\'')+'\')';
+        productwrapper.HLProductSet = '(\''+String.join(new List<String>(HLCALPrdNameSet), '\',\'')+'\')';
 
+        System.debug('productwrapper ' + productwrapper);
+        return productwrapper;
+    }            
 }

@@ -24,7 +24,7 @@
                 component.set("v.mapfieldList", result.fieldList);
                 // console.log('mapfieldList '+ JSON.stringify( result.fieldList));
                 component.set("v.mapfieldtype", result.mapfieldNamewithtype);
-                // console.log('mapfieldtype '+ JSON.stringify( result.mapfieldNamewithtype));
+                console.log('mapfieldtype '+ JSON.stringify( result.mapfieldNamewithtype));
                 component.set("v.mapfieldLength", result.mapfieldNamewithLength);
                 component.set("v.mapfieldLabel", result.mapfieldAPIwithLabel);
                 component.set("v.mapWrapperLabel",result.newMapAPiNameLabel);
@@ -32,7 +32,7 @@
                 //  console.log("API/Label "+ JSON.stringify(result.newMapAPiNameLabel) )
                 // component.set("v.loaded",false);
                 helper.getScoringList(component, event, helper)
-                
+                console.log("LeadList "+ JSON.stringify(component.get("v.LeadList")))
             }else{
         
                 console.log('err ' + response.getError());

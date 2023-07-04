@@ -14,6 +14,7 @@ global with sharing class RTL_LGS_InquiryLeadScoringList extends RTL_AL_Webservi
         String rmId = '';
         String serviceName = '/LeadScore/getScoringList';
         String requestBody = String.valueOf(request.requestBody);
+        String requestBodyDecrypt = '';
         String responseBody = '';
         String reqId = requestHeader.containsKey('ReqId') ? requestHeader.get('ReqId') : '';
         Account acc = new Account();
@@ -22,6 +23,9 @@ global with sharing class RTL_LGS_InquiryLeadScoringList extends RTL_AL_Webservi
         
         try{
             encryptKey = getKeyFromSystem(request);
+            String integrationSystem = requestHeader.get('Integration-System');
+            requestBodyDecrypt = (String) SCSMessageAPIUtil.decryptMessageWithKey(request.requestBody.toString(), encryptKey);
+            requestBody = '"Integration System": ' + integrationSystem  + '\n\n' + (requestBodyDecrypt!=null?requestBodyDecrypt:'');
         } catch (WebserviceAbstract.MissingHeaderException e){
             System.debug('ERROR : ' + e.getMessage());
             // Handle error
@@ -32,15 +36,14 @@ global with sharing class RTL_LGS_InquiryLeadScoringList extends RTL_AL_Webservi
             Boolean isSuccess = true;
             String statusCode = '0';
             status = 'Success.';
-
             InquiryManager inqMgr = new InquiryManager('LGS_InquiryLeadScoringList',  new Map<String, Object>());
             //InquiryManager inqMgr = new InquiryManager('LGS_InquiryLeadScoringList', '');
             List<Map<String, Object>> jsonResult = inqMgr.getResult();
             Map<String, Object> returnValue = new Map<String, Object>{ 'data' => jsonResult, 'status_desc' => status, 'status_code' => statusCode };
             endTime = DateTime.Now();
             responseBody = JSON.serializePretty(returnValue);
-            OnlineServiceLogUtils.saveToOnlineLog(isSuccess ,customerName, errorMessage, reqId , userName, 
-		    rmId , serviceName ,requestBody ,responseBody , acc , startTime , endTime, null );
+            RTL_CampaignUtil.saveToOnlineLog(isSuccess ,customerName, errorMessage, reqId , userName, 
+		    rmId , serviceName , requestBody,responseBody , acc , startTime , endTime, null );
             return (SCSReqRes)returnResponse(SCSMessageAPIUtil.encryptMessageWithKey(JSON.serialize(returnValue), encryptKey));
         } catch (Exception e){
             String errorMsg = getErrorMessageException(e);
@@ -49,7 +52,7 @@ global with sharing class RTL_LGS_InquiryLeadScoringList extends RTL_AL_Webservi
             Boolean isSuccess = false;
             Map<String, String> returnValue = new Map<String, String>{ 'status_desc' => errorMsg, 'status_code' => statusCode };
             endTime = DateTime.Now();
-            OnlineServiceLogUtils.saveToOnlineLog(isSuccess ,customerName, errorMsg, reqId , userName, 
+            RTL_CampaignUtil.saveToOnlineLog(isSuccess ,customerName, errorMsg, reqId , userName, 
 		    rmId , serviceName ,requestBody ,responseBody , acc , startTime , endTime, null );
             return (SCSReqRes)returnResponse(SCSMessageAPIUtil.encryptMessageWithKey(JSON.serialize(returnValue), encryptKey));
         }

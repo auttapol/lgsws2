@@ -124,8 +124,12 @@ global without sharing  class RTL_Distribute_CM_Batch extends RTL_AL_WebserviceA
     
                         }
     
-                        NamedCredential myNamedCredential = [SELECT Id, DeveloperName, Endpoint FROM NamedCredential WHERE DeveloperName =: mapEndpoint];        
-        RTL_CampaignUtil.saveToOnlineLog(lstLogDetail, null, null ,cmlogId, UserInfo.getName() ,true,myNamedCredential.Endpoint, null, RefstartDate, DateTime.now());
+        List<NamedCredential> myNamedCredential = [SELECT Id, DeveloperName, Endpoint FROM NamedCredential WHERE DeveloperName =: mapEndpoint Limit 1];   
+        String nameCredentialValue = '';    
+        if (myNamedCredential.size()>0) {
+            nameCredentialValue = myNamedCredential[0].endpoint;
+        }
+        RTL_CampaignUtil.saveToOnlineLog(lstLogDetail, null, null ,cmlogId, UserInfo.getName() ,true,nameCredentialValue, null, RefstartDate, DateTime.now());
            System.debug('Mapsize ' + MapRefwithResult.size());
         updateField(MapRefwithResult);
             for(CampaignMember each : campaignmemberlist){
@@ -365,7 +369,7 @@ global without sharing  class RTL_Distribute_CM_Batch extends RTL_AL_WebserviceA
                 // 'LGS_Campaign_Name' => cmb.Campaign.Name,
                 // 'LGS_Source_Group' => cmb.LeadSource != null ? cmb.LeadSource : '',
                 'LGS_Partner'=> cmb.LGS_Partner__c != null ? cmb.LGS_Partner__c : '',
-                'LGS_Lead_Received_Time'=> cmb.LGS_Lead_Received_Time__c != null ? cmb.LGS_Lead_Received_Time__c : null,
+                'LGS_Lead_Received_Time'=> cmb.LGS_Lead_Received_Time__c != null ? cmb.LGS_Lead_Received_Time__c.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', 'GMT+07:00') : null,
                 'LGS_Campaign_Start_Date' => cmb.LGS_Campaign_Start_Date__c  != null ? cmb.LGS_Campaign_Start_Date__c  : null,
                 'LGS_Campaign_End_Date' => cmb.LGS_Campaign_End_Date__c  != null ? cmb.LGS_Campaign_End_Date__c  : null,
                 'LGS_Interest' => cmb.RTL_AL_Interested_Rate__c != null ? cmb.RTL_AL_Interested_Rate__c : null,
@@ -390,8 +394,8 @@ global without sharing  class RTL_Distribute_CM_Batch extends RTL_AL_WebserviceA
                 'LGS_016'=> cmb.LGS_016__c != null ? cmb.LGS_016__c : null,
                 'LGS_017'=> cmb.LGS_017__c != null ? cmb.LGS_017__c : null,
                 'LGS_018'=> cmb.LGS_018__c != null ? cmb.LGS_018__c : null,
-                'LGS_019'=> cmb.LGS_019__c != null ? cmb.LGS_019__c : null,
-                'LGS_020'=> cmb.LGS_020__c != null ? cmb.LGS_020__c : null,
+                'LGS_019'=> cmb.LGS_019__c != null ? cmb.LGS_019__c.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', 'GMT+07:00') : null,
+                'LGS_020'=> cmb.LGS_020__c != null ? cmb.LGS_020__c.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', 'GMT+07:00') : null,
                 'LGS_Assignment_Code'=> cmb.LGS_Assignment_Code__c != null ? cmb.LGS_Assignment_Code__c : '',
                 'LGS_LinkInfo'=> cmb.LGS_LinkInfo__c != null ? cmb.LGS_LinkInfo__c : '',
                 'LGS_BrandCode'=> cmb.LGS_BrandCode__c != null ? cmb.LGS_BrandCode__c : '',
