@@ -1566,6 +1566,8 @@ History
                 campaignMemb.Scoring_Condition_Id__c = leadObj.Scoring_Condition_Id__c;
                 campaignMemb.RTL_Partner_Branch_Code__c = leadObj.RTL_Partner_Branch_Code__c;
                 campaignMemb.RTL_Partner_Employee_Code__c = leadObj.RTL_Partner_Employee_Code__c;
+                campaignMemb.RTL_AL_Showroom__c = leadObj.RTL_AL_Showroom__c;
+                campaignMemb.RTL_AL_TentName__c = leadObj.RTL_AL_TentName__c;
 
                 campaignMemberToInsert.add(campaignMemb);
             } 

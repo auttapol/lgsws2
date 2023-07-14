@@ -35,7 +35,7 @@
                 console.log("LeadList "+ JSON.stringify(component.get("v.LeadList")))
             }else{
         
-                console.log('err ' + response.getError());
+                console.log('err ' + JSON.stringify(response.getError()));
                 component.set("v.loaded",false);
             }
         });

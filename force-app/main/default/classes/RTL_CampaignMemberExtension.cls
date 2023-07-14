@@ -227,6 +227,20 @@ public without sharing class RTL_CampaignMemberExtension {
         }
         set;
     }
+    public List<String> HCALPrdNameSet {
+        get{
+            if(HCALPrdNameSet == null){
+                HCALPrdNameSet = new List<String>();
+                List<Droplead_HLCAL_screen_Product_Name__mdt> prdHLCALlst = Droplead_HLCAL_screen_Product_Name__mdt.getAll().values();
+
+                for (Droplead_HLCAL_screen_Product_Name__mdt prd : prdHLCALlst) {
+                    HCALPrdNameSet.add(prd.Product_Name__c);
+                }
+            }
+            return HCALPrdNameSet;
+        }
+        set;
+    }
     public RTL_CampaignMemberExtension(ApexPages.StandardController stdController) {
         myMap = getLeadScoreData();
         // -- Custom Lookup --
@@ -527,6 +541,8 @@ public without sharing class RTL_CampaignMemberExtension {
                 if( currentobject.RTL_Contact_Status__c == 'Contact' ){
                     objLead.Status = 'Contacted';
                 }
+                objLead.Lead_Score__c = currentObject.Lead_Score__c;
+                objLead.Lead_Score_Level__c = currentObject.Lead_Score_Level__c;
                 update objLead;
             }
 
@@ -1306,6 +1322,31 @@ public without sharing class RTL_CampaignMemberExtension {
         Integer count = 1;
         for( Integer i = 1 ; i <= 5 ; i++ ){
             Boolean readOnly = (currentObject.get('RTL_RelatedOpportunity_'+i+'__c') == null) ? false : true;
+            String prodName;
+            if(i == 1)
+            {
+                prodName = String.valueOf(currentObject.RTL_Campaign_Product_1__r.Name);
+
+            }
+            else if(i == 2)
+            {
+                prodName = String.valueOf(currentObject.RTL_Campaign_Product_2__r.Name);
+            }
+            else if(i == 3)
+            {
+                prodName = String.valueOf(currentObject.RTL_Campaign_Product_3__r.Name);
+            }
+            else if(i == 4)
+            {
+                prodName = String.valueOf(currentObject.RTL_Campaign_Product_4__r.Name);
+            }
+            else if(i == 5)
+            {
+                prodName = String.valueOf(currentObject.RTL_Campaign_Product_5__r.Name);
+            }
+            Boolean isMoreDetail = (ALPrdNameSet.contains(prodName)) || (HCALPrdNameSet.contains(prodName)) ? true : false;
+            Boolean isALProd = (ALPrdNameSet.contains(prodName)) ? true : false;
+
             if( currentObject.get('RTL_Product_Group_'+i+'__c') != null
             || currentObject.get('RTL_Sub_Group_'+i+'__c') != null
             || currentObject.get('RTL_Campaign_Product_'+i+'__c') != null ){
@@ -1317,7 +1358,9 @@ public without sharing class RTL_CampaignMemberExtension {
                 'RTL_OfferResult_Product_'+i+'__c',
                 'RTL_Reason_'+i+'__c',
                 'RTL_RelatedOpportunity_'+i+'__c',
-                readOnly
+                readOnly,
+                isMoreDetail,
+                isALProd
                 ) );
             }
         }
@@ -1633,8 +1676,11 @@ public without sharing class RTL_CampaignMemberExtension {
         public String apiReason {get;set;}
         public String apiOpportunity {get;set;}
         public Boolean readOnly {get;set;}
+        public Boolean isMoreDetailProduct {get;set;}
+        public Boolean isALProd {get;set;}
+        
         public CampaignProductWrapper(Integer rowNum,String apiProductGroup,String apiProductSubGroup,String apiProductId,String apiProductName,
-            String apiOfferResult,String apiReason,String apiOpportunity,Boolean readOnly){
+            String apiOfferResult,String apiReason,String apiOpportunity,Boolean readOnly, Boolean isMoreDetailProduct, Boolean isALProd){
             this.rowNum = rowNum;
             this.apiProductGroup = apiProductGroup;
             this.apiProductSubGroup = apiProductSubGroup;
@@ -1645,6 +1691,8 @@ public without sharing class RTL_CampaignMemberExtension {
             this.apiOpportunity = apiOpportunity;
             // this.apiReason = apiReason;
             this.readOnly = readOnly;
+            this.isMoreDetailProduct = isMoreDetailProduct;
+            this.isALProd = isALProd;
         }
     }
 

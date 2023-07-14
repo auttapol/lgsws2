@@ -319,6 +319,7 @@
         
         public static void handleAfterInsert(List<RTL_Referral__c> newList){
             List<CampaignMember> listcmtoUpdateLeadScore = new List<CampaignMember>();
+            List<Lead> Leadupdatedlist = new List<Lead>();
             manualShareCreatorRecord(newList);
             sendToCallMeNowService(newList);
             String RetailCrossChannel_RecordTypeId = Schema.SObjectType.RTL_Referral__c.getRecordTypeInfosByName().get('Retail Cross Channel Referral').getRecordTypeId();
@@ -331,18 +332,36 @@
                 if((ref.RecordTypeId == RetailCrossChannel_RecordTypeId || ref.RecordTypeId == ReferToRetail_RecordTypeId) && ref.RTL_Stage__c == 'New'){
                     emailSendRefId.add(ref);
                 }
+                
+
                 if(ref.RTL_Campaign_Member__c != null && ref.RTL_Lead_Score_Flag__c != null){
                     CampaignMember cm = new CampaignMember();
                     cm.Id = ref.RTL_Campaign_Member__c;
                     cm.Lead_Score__c = ref.Lead_Score__c;
                     cm.Lead_Score_Level__c = ref.Lead_Score_LeveL__c;
                     cm.RTL_Lead_Score_Flag__c = true;
+                    CampaignMember cmWithLead = [SELECT Id,Lead_Score__c,Lead_Score_Level__c,LeadId FROM CampaignMember WHERE Id =: cm.Id LIMIT 1];
+                    if(cmWithLead.LeadId != null){
+                        Lead updateLead = new Lead();
+                        updateLead.Id = cmWithLead.leadId;
+                        updateLead.Lead_Score__c = ref.Lead_Score__c;
+                        updateLead.Lead_Score_Level__c =ref.Lead_Score_Level__c;
+                        System.debug('Update Lead when insert ref: '+ updateLead);
+                        Leadupdatedlist.add(updateLead);
+                    }
                     listcmtoUpdateLeadScore.add(cm);
                 }
             }
             createdReferralEmailNotification(emailSendRefId);  
             if(listcmtoUpdateLeadScore.size() > 0){
-                update listcmtoUpdateLeadScore;
+                update listcmtoUpdateLeadScore;  
+            }
+            if(Leadupdatedlist.size() > 0){
+                try{
+                    update Leadupdatedlist;
+                }catch(Exception e){
+                    System.debug(e.getMessage());
+                }
             }
         }
         
@@ -644,7 +663,7 @@
         System.debug('refid '+newMap.keySet());
         for(CampaignMember each : cmlistr){
             if(each.RTL_Referral_ID_1__c != null && newMap.containsKey(each.RTL_Referral_ID_1__c)){
-                each.RTL_Stage_1__c = String.valueOf(newMap.get(each.RTL_Referral_ID_1__c).get('RTL_Stage__c'));
+                each.RTL_Stage_1__c = String.valueOf(newMap.get(each.RTL_Referral_ID_1__c).get('RTL_Ws_Stage__c'));
                 each.RTL_Status_1__c = String.valueOf(newMap.get(each.RTL_Referral_ID_1__c).get('RTL_Status__c'));
                 each.Details_of_Status_1__c = String.valueOf(newMap.get(each.RTL_Referral_ID_1__c).get('Details_of_Status__c'));
                 each.RTL_AL_Refer_No_1__c = String.valueOf(newMap.get(each.RTL_Referral_ID_1__c).get('RTL_AL_Refer_No__c'));
@@ -678,7 +697,7 @@
                 refCampaignId.add(each.RTL_Referral_ID_1__c);
             }
             if(each.RTL_Referral_ID_2__c != null && newMap.containsKey(each.RTL_Referral_ID_2__c)){
-                each.RTL_Stage_2__c = String.valueOf(newMap.get(each.RTL_Referral_ID_2__c).get('RTL_Stage__c'));
+                each.RTL_Stage_2__c = String.valueOf(newMap.get(each.RTL_Referral_ID_2__c).get('RTL_Ws_Stage__c'));
                 each.RTL_Status_2__c = String.valueOf(newMap.get(each.RTL_Referral_ID_2__c).get('RTL_Status__c'));
                 each.Details_of_Status_2__c = String.valueOf(newMap.get(each.RTL_Referral_ID_2__c).get('Details_of_Status__c'));
                 each.RTL_AL_Refer_No_2__c = String.valueOf(newMap.get(each.RTL_Referral_ID_2__c).get('RTL_AL_Refer_No__c'));
@@ -697,7 +716,7 @@
             
             }
             if(each.RTL_Referral_ID_3__c != null && newMap.containsKey(each.RTL_Referral_ID_3__c)){
-                each.RTL_Stage_3__c = String.valueOf(newMap.get(each.RTL_Referral_ID_3__c).get('RTL_Stage__c'));
+                each.RTL_Stage_3__c = String.valueOf(newMap.get(each.RTL_Referral_ID_3__c).get('RTL_Ws_Stage__c'));
                 each.RTL_Status_3__c = String.valueOf(newMap.get(each.RTL_Referral_ID_3__c).get('RTL_Status__c'));
                 each.Details_of_Status_3__c = String.valueOf(newMap.get(each.RTL_Referral_ID_3__c).get('Details_of_Status__c'));
                 each.RTL_AL_Refer_No_3__c = String.valueOf(newMap.get(each.RTL_Referral_ID_3__c).get('RTL_AL_Refer_No__c'));
@@ -715,7 +734,7 @@
                 refCampaignId.add(each.RTL_RelatedOpportunity_3__c);
             }
             if(each.RTL_Referral_ID_4__c != null && newMap.containsKey(each.RTL_Referral_ID_4__c)){
-                each.RTL_Stage_4__c = String.valueOf(newMap.get(each.RTL_Referral_ID_4__c).get('RTL_Stage__c'));
+                each.RTL_Stage_4__c = String.valueOf(newMap.get(each.RTL_Referral_ID_4__c).get('RTL_Ws_Stage__c'));
                 each.RTL_Status_4__c = String.valueOf(newMap.get(each.RTL_Referral_ID_4__c).get('RTL_Status__c'));
                 each.Details_of_Status_4__c = String.valueOf(newMap.get(each.RTL_Referral_ID_4__c).get('Details_of_Status__c'));
                 each.RTL_AL_Refer_No_4__c = String.valueOf(newMap.get(each.RTL_Referral_ID_4__c).get('RTL_AL_Refer_No__c'));
@@ -733,7 +752,7 @@
                 refCampaignId.add(each.RTL_RelatedOpportunity_4__c);
             }
             if(each.RTL_Referral_ID_5__c != null && newMap.containsKey(each.RTL_Referral_ID_5__c)){
-                each.RTL_Stage_5__c = String.valueOf(newMap.get(each.RTL_Referral_ID_5__c).get('RTL_Stage__c'));
+                each.RTL_Stage_5__c = String.valueOf(newMap.get(each.RTL_Referral_ID_5__c).get('RTL_Ws_Stage__c'));
                 each.RTL_Status_5__c = String.valueOf(newMap.get(each.RTL_Referral_ID_5__c).get('RTL_Status__c'));
                 each.Details_of_Status_5__c = String.valueOf(newMap.get(each.RTL_Referral_ID_5__c).get('Details_of_Status__c'));
                 each.RTL_AL_Refer_No_5__c = String.valueOf(newMap.get(each.RTL_Referral_ID_5__c).get('RTL_AL_Refer_No__c'));
@@ -1455,12 +1474,14 @@
                         updateLead.Id = cm.leadId;
                         updateLead.Lead_Score__c = refupdate.Lead_Score__c;
                         updateLead.Lead_Score_Level__c =refupdate.Lead_Score_Level__c;
+                        System.debug('Update Lead : '+ updateLead);
                         Leadupdatedlist.add(updateLead);
                     }
                 }
             }
             if(cmlist.size() > 0){
                 try{
+                    System.debug('Is Lead Updated');
                     update cmlist;
                 }catch(Exception e){
                     System.debug(e.getMessage());

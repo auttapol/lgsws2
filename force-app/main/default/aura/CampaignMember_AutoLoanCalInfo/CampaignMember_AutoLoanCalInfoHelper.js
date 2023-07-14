@@ -143,7 +143,7 @@
                 read_only : false         
             },
             {
-                field_name : 'RTL_Partner_Branch_Code__c',
+                field_name : 'LGS_BrandShowroomCode__c',
                 read_only : false         
             },
             {
@@ -151,7 +151,7 @@
                 read_only : false         
             },  
             {
-                field_name : 'RTL_Partner_Employee_Code__c',
+                field_name : 'RTL_Partner_Branch_Code__c',
                 read_only : false         
             },
             {
@@ -159,68 +159,9 @@
                 read_only : false         
             },            
             {
-                field_name : 'RTL_Request_Hub_Code_'+productNum+'__c',
-                read_only : true         
-            },            
-            {
-                field_name : 'LGS_BrandShowroomCode__c',
+                field_name : 'RTL_Partner_Employee_Code__c',
                 read_only : false         
-            },
-            {
-                field_name : 'RTL_Request_Hub_Name_'+productNum+'__c',
-                read_only : true         
-            },
-
-            // {
-            //     field_name : 'RTL_Contact_Status__c',
-            //     read_only : false         
-            // },
-            {
-                field_name : 'Corebank_Approved_Date_Time_'+productNum+'__c',
-                read_only : true         
-            },
-            {
-                field_name : 'RTL_Product_Campaign_Code_'+productNum+'__c',
-                read_only : true         
-            },
-            {
-                field_name : 'Corebank_Branch_Code_'+productNum+'__c',
-                read_only : true         
-            },
-            {
-                field_name : 'RTL_Product_Campaign_Name_'+productNum+'__c',
-                read_only : true         
-            },
-            {
-                field_name : 'Corebank_Branch_Name_'+productNum+'__c',
-                read_only : true         
-            },
-            // {
-                //     field_name : 'RTL_Reason__c', 
-                //     read_only : false         
-                // },
-            {
-                field_name : 'RTL_Dealer_Code_'+productNum+'__c',
-                read_only : true         
-            },
-            {
-                field_name : 'Corebank_Sales_Manager_Head_Id_'+productNum+'__c',
-                read_only : true         
-            },
-            
-            {
-                field_name : 'RTL_Dealer_Name_'+productNum+'__c',
-                read_only : true         
-            },
-            {
-                field_name : 'Corebank_Sales_Manager_Head_'+productNum+'__c',
-                read_only : true         
-            },
-            {
-                field_name : 'RTL_Stage_Name_Date_Time_'+productNum+'__c',
-                read_only : true         
-            },
-
+            }
             
         ];
 
@@ -290,7 +231,9 @@
             {
                 field_name : 'RTL_Hub_Name_'+productNum+'__c',
                 read_only : true         
-            },{
+            },
+            //LGSWS2
+            {
                 field_name : 'HPAP_Status_Code_1__c',
                 read_only : true         
             },
@@ -321,11 +264,62 @@
             {
                 field_name : 'RTL_Submit_Date_1__c',
                 read_only : true         
+            },
+            {
+                field_name : 'Corebank_Approved_Date_Time_1__c',
+                read_only : true         
+            },
+            {
+                field_name : 'RTL_Request_Hub_Code_1__c',
+                read_only : true         
+            },
+            {
+                field_name : 'RTL_Stage_Name_Date_Time_1__c',
+                read_only : true         
+            },
+            {
+                field_name : 'RTL_Request_Hub_Name_1__c',
+                read_only : true         
+            },
+            {
+                field_name : 'Corebank_Branch_Code_1__c',
+                read_only : true         
+            },
+            {
+                field_name : 'RTL_Product_Campaign_Code_1__c',
+                read_only : true         
+            },
+            {
+                field_name : 'Corebank_Branch_Name_1__c',
+                read_only : true         
+            },
+            {
+                field_name : 'RTL_Product_Campaign_Name_1__c',
+                read_only : true         
+            },
+            {
+                field_name : 'Corebank_Sales_Manager_Head_Id_1__c',
+                read_only : true         
+            },
+            {
+                field_name : 'RTL_Dealer_Code_1__c',
+                read_only : true         
+            },
+            {
+                field_name : 'Corebank_Sales_Manager_Head_1__c',
+                read_only : true         
+            },
+            {
+                field_name : 'RTL_Dealer_Name_1__c',
+                read_only : true         
             }
         ];
         component.set('v.firstSectionFields',firstSectionFields);
         component.set('v.secondSectionFields',secondSectionFields);
         component.set('v.thirdSectionFields',thirdSectionFields);
+        console.log('v.firstSectionFields',firstSectionFields);
+        console.log('v.secondSectionFields',secondSectionFields);
+        console.log('v.thirdSectionFields',thirdSectionFields);
         component.set('v.isLoading', false);
     },
 

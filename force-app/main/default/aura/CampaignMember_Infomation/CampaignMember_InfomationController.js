@@ -87,7 +87,7 @@
             listMin.forEach(element => {
                 if (element.label == campaignMemObj.Lead_Score_Level__c) {
                     campaignMemObj.Lead_Score__c = element.value;
-                    campaignMemObj.RTL_Lead_Score_Flag__c = true;                  
+                    campaignMemObj.RTL_Lead_Score_Flag__c = true;
                     return null
                 }
             });

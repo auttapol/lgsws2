@@ -113,7 +113,7 @@ global without sharing class RTL_AL_WsCreateLead extends RTL_AL_WebserviceAbstra
                         System.debug('testdrop' + dropLeadO2O);
                         
                         List<CampaignMember> listcm = [SELECT Id, RTL_Marketing_Code__c, Name, Customer__c, RTL_TMB_Cust_ID__c,
-                        Campaign.Name, LeadOrContactOwner.Name, RTL_AL_response__c,
+                        Campaign.Name, LeadOrContactOwner.Name, RTL_AL_response__c,RTL_Contact_Method__c,
                         RTL_CampHis_Phone__c, RTL_Register_Date__c, 
                         RTL_AL_car_brand__c, RTL_AL_car_subtype__c, RTL_AL_car_year__c, RTL_AL_car_plate_no__c, 
                         RTL_AL_max_set_up_amount__c, RTL_AL_CAMP_EXP_DTE__c, RTL_AL_wanted_amount__c, 
@@ -235,8 +235,10 @@ global without sharing class RTL_AL_WsCreateLead extends RTL_AL_WebserviceAbstra
             
                     campaignMemberTouch.RTL_AL_comment__c = dropLeadO2O.RTL_AL_comment__c;
                     campaignMemberTouch.RTL_AL_oa_ref_code__c = dropLeadO2O.RTL_AL_oa_ref_code__c;
-                    campaignMemberTouch.RTL_AL_Showroom__c = String.valueOf(jsonMap.get('RTL_AL_Showroom__c'));
-                    campaignMemberTouch.RTL_AL_TentName__c = String.valueOf(jsonMap.get('RTL_AL_TentName__c'));
+                    // campaignMemberTouch.RTL_AL_Showroom__c = String.valueOf(jsonMap.get('RTL_AL_Showroom__c'));
+                    // campaignMemberTouch.RTL_AL_TentName__c = String.valueOf(jsonMap.get('RTL_AL_TentName__c'));
+                    campaignMemberTouch.RTL_AL_Showroom__c = dropLeadO2O.RTL_AL_Showroom__c;
+                    campaignMemberTouch.RTL_AL_TentName__c = dropLeadO2O.RTL_AL_TentName__c;
                     campaignMemberTouch.RTL_AL_car_bought_from__c = dropLeadO2O.RTL_AL_car_bought_from__c;
                     campaignMemberTouch.RTL_AL_available_time__c = dropLeadO2O.RTL_AL_available_time__c;
                     //LGS

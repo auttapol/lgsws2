@@ -1442,6 +1442,8 @@ public without sharing class CampaignMemberInfoController {
         Id accId;
         // List<Opportunity> opptyList = new List<Opportunity>();   
         Lead leadObj = new Lead();
+        Lead leadObjToUpdateScore = new Lead();
+
         Account accountObj = new Account();
         if(accDupId != null)
         {
@@ -1451,6 +1453,7 @@ public without sharing class CampaignMemberInfoController {
         if(campaignMemObj.LeadId != null)
         {
             leadObj = [SELECT Id,FirstName,LastName,RTL_ID_Type__c,RTL_Citizen_Id__c,RTL_Mobile_Number__c,OwnerId,Status,IsConverted,RTL_Allow_Convert_Lead__c FROM Lead Where Id =: campaignMemObj.LeadId];
+            leadObjToUpdateScore.Id = leadObj.Id;
         }
 
         // System.debug('leadObj before:'+leadObj);
@@ -1471,6 +1474,11 @@ public without sharing class CampaignMemberInfoController {
 
         try{          
             updateCampaignMember(campaignMemObj); 
+            if(leadObjToUpdateScore.Id != null){
+                leadObjToUpdateScore.Lead_Score__c = campaignMemObj.Lead_Score__c;
+                leadObjToUpdateScore.Lead_Score_Level__c = campaignMemObj.Lead_Score_Level__c;
+                update leadObjToUpdateScore;
+            }
             if(crossSellReferredObj.size() > 0)
             {
                 saveCrossSell(crossSellReferredObj, campaignMemObj, new List<String>());

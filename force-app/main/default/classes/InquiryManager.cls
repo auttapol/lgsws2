@@ -38,15 +38,6 @@ public with sharing class InquiryManager {
         List<Map<String, Object>> jsonResult = null;
         try {
             jsonResult = getJSONResult();
-
-
-            for (Map<String, Object> resMap: jsonResult) {
-                System.debug('resMap-->' + resMap); 
-                for (Object obj : resMap.values()) {
-                    System.debug('obj-->' + obj);  
-                }
-            }
-
             System.debug(jsonResult);
         } catch (Exception e) {
             System.debug('ERROR :: ' + e.getMessage() + ' || ' + e.getLineNumber());
@@ -69,15 +60,17 @@ public with sharing class InquiryManager {
         List<String> fieldList = new List<String>();
         Map<String, Inquiry_Data__c> inquiryFieldMap = new Map<String, Inquiry_Data__c>();
         
-        Inquiry_List__c inquiryList = [SELECT Id, Condition__c, Salesforce_Object__c, Order_By__c, Operation_Format__c  FROM Inquiry_List__c WHERE Inquiry_Name__c =: inquiryName LIMIT 1];
-        String objectName = '';
+        
+        Inquiry_List__c inquiryList = null;
 
-        if (inquiryList != null) {
-            objectName = inquiryList.Salesforce_Object__c;
-        } else {
-            // If inquiryName not found throw Exception
+        try {
+            inquiryList = [SELECT Id, Condition__c, Salesforce_Object__c, Order_By__c, Operation_Format__c  FROM Inquiry_List__c WHERE Inquiry_Name__c =: inquiryName LIMIT 1];
+        } catch (Exception e) {
+            System.debug('Invalid inquiry name :: ' + e.getMessage() + ' || ' + e.getLineNumber());
             throw new InquiryNameNotFoundException('Invalid inquiry name');
         }
+
+        String objectName = inquiryList.Salesforce_Object__c;
         
         List<Inquiry_Key__c> inquiryKey = [SELECT Id, Name, Parent_Id__c, Key_Field__c,Key_Parameter__c FROM Inquiry_Key__c WHERE Parent_Id__c =: inquiryList.Id order by Operation_Order__c];
 
@@ -133,9 +126,10 @@ public with sharing class InquiryManager {
             if (String.isNotEmpty(pattern)) {
                 integer keyIndex = 1;
                 for (Inquiry_Key__c eachkey : inquiryKey) {
-                    if(this.inquiryKeyMap.containsKey(eachkey.Key_Field__c )){
+                    if(this.inquiryKeyMap.containsKey(eachkey.Key_Parameter__c )){
                         String target = '{' + keyIndex +'}';
                         String replacement = eachkey.Key_Field__c + '= :' + eachkey.Key_Parameter__c;
+                        System.debug('Target ' + target + ' replace with ' + replacement);
                         pattern = pattern.replace(target, replacement);
                         keyIndex++;
                     }
@@ -298,7 +292,7 @@ public with sharing class InquiryManager {
     */
     private String formatDate(Object objValue, String fieldDateFormat) {
         try {
-            System.debug('getType :: ' + getType(objValue));
+            //System.debug('getType :: ' + getType(objValue));
             if (objValue instanceof Datetime) {
                 System.debug('Format datetime ' + fieldDateFormat);
                 DateTime dt = (DateTime) objValue;
@@ -318,22 +312,22 @@ public with sharing class InquiryManager {
         }
     }
 
-    private static string getType(Object o) {
-        if(o==null) return '';              // we can't say much about null with our current techniques
-        if(o instanceof SObject)            return ((SObject)o).getSObjectType().getDescribe().getName()+''; 
-        if(o instanceof Boolean)            return 'Boolean';
-        if(o instanceof Id)                 return 'Id';
-        if(o instanceof String)             return 'String';
-        if(o instanceof Blob)               return 'Blob';
-        if(o instanceof Date)               return 'Date';
-        if(o instanceof Datetime)           return 'Datetime';
-        if(o instanceof Time)               return 'Time';
-        if(o instanceof String)             return 'String';
-        if(o instanceof Integer)            return 'Integer';
-        if(o instanceof Long)               return 'Long';
-        if(o instanceof Decimal)            return 'Decimal';  // we can't distinguish between decimal and double
-        if(o instanceof Double)             return 'Double';   // we can't distinguish between decimal and double
-        if(o instanceof List<object>)       return 'List';
-        return 'Object';                    // actually we can't detect maps and sets and maps
-    }
+    // private static string getType(Object o) {
+    //     if(o==null) return '';              // we can't say much about null with our current techniques
+    //     if(o instanceof SObject)            return ((SObject)o).getSObjectType().getDescribe().getName()+''; 
+    //     if(o instanceof Boolean)            return 'Boolean';
+    //     if(o instanceof Id)                 return 'Id';
+    //     if(o instanceof String)             return 'String';
+    //     if(o instanceof Blob)               return 'Blob';
+    //     if(o instanceof Date)               return 'Date';
+    //     if(o instanceof Datetime)           return 'Datetime';
+    //     if(o instanceof Time)               return 'Time';
+    //     if(o instanceof String)             return 'String';
+    //     if(o instanceof Integer)            return 'Integer';
+    //     if(o instanceof Long)               return 'Long';
+    //     if(o instanceof Decimal)            return 'Decimal';  // we can't distinguish between decimal and double
+    //     if(o instanceof Double)             return 'Double';   // we can't distinguish between decimal and double
+    //     if(o instanceof List<object>)       return 'List';
+    //     return 'Object';                    // actually we can't detect maps and sets and maps
+    // }
 }

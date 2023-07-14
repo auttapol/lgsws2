@@ -4,7 +4,7 @@ trigger RTL_OpportunityTrigger on Opportunity (before insert, after insert,
     
 	Boolean RunTrigger = AppConfig__c.getValues('runtrigger').Value__c == 'true' ; 	
     Boolean runRetailTrigger = false;
-    
+    System.debug('RunTrigger Executed --- ' + RunTrigger);
     if(Trigger.New != null){
     	for(Opportunity opty: Trigger.New){
     		if(opty.RecordTypeId != null) {
@@ -22,6 +22,7 @@ trigger RTL_OpportunityTrigger on Opportunity (before insert, after insert,
 
     if(runRetailTrigger && RunTrigger) {
     	System.debug('RTL_OpporutnityTrigger Executed --- ' + runRetailTrigger);
+		
         new RTL_OpportunityTriggerHandler().run();
 
 		if(Trigger.isAfter && Trigger.isUpdate){ 

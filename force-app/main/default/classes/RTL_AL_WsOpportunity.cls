@@ -303,9 +303,15 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
 
                 }
             }
+            //update oppty field ws name not match with api name
             opportunityHPAP.RTL_Ws_Reason__c = requestBodyMap.containsKey('RTL_Reason__c') ? (String)requestBodyMap.get('RTL_Reason__c') : '';
             opportunityHPAP.Submit_Date__c = requestBodyMap.containsKey('RTL_Request_Date__c') && requestBodyMap.get('RTL_Request_Date__c') != null ? Date.valueOf((String)requestBodyMap.get('RTL_Request_Date__c')) : null;
             opportunityHPAP.Corebank_Approved_Date_Time__c = requestBodyMap.containsKey('RTL_Approved_Date_Time__c') && requestBodyMap.get('RTL_Approved_Date_Time__c') != null ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Approved_Date_Time__c')+'"', DateTime.class) : null;
+            opportunityHPAP.Corebank_Branch_Code__c = requestBodyMap.containsKey('RTL_AO_Group_Code__c') ? (String)requestBodyMap.get('RTL_AO_Group_Code__c') : '';
+            opportunityHPAP.Corebank_Branch_Name__c = requestBodyMap.containsKey('RTL_AO_Group_Name__c') ? (String)requestBodyMap.get('RTL_AO_Group_Name__c') : '';
+            opportunityHPAP.Corebank_Sales_Manager_Head_Id__c = requestBodyMap.containsKey('RTL_Group_Head_Emp_Id__c') ? (String)requestBodyMap.get('RTL_Group_Head_Emp_Id__c') : '';
+            opportunityHPAP.Corebank_Sales_Manager_Head__c = requestBodyMap.containsKey('RTL_Group_Head_Name__c') ? (String)requestBodyMap.get('RTL_Group_Head_Name__c') : '';
+            opportunityHPAP.LGS_Ao_Branch__c = requestBodyMap.containsKey('LGS_Ao_Branch') ? (String)requestBodyMap.get('LGS_Ao_Branch') : '';
 
             insert opportunityHPAP;
             //Check update campaign Member
@@ -435,7 +441,9 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
     private static Opportunity mappingOpportunityFields(Map<String, Object> obj) {
         Map<String, Object> objTemp = new Map<String, Object>();
         for (String field : obj.keySet()) {
-            objTemp.put(field.toLowerCase(), obj.get(field));
+            if(field.toLowerCase() != 'rtl_reason__c'){
+                objTemp.put(field.toLowerCase(), obj.get(field));
+            }
         }
         obj = objTemp;
         Opportunity opportunityObj = new Opportunity();
@@ -598,7 +606,7 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
                 if(((String)requestBodyMap.get('Id')).startsWith('a2S'))
                 {
                     referUpdate.Id = (String)requestBodyMap.get('Id');
-                    // referUpdate.RTL_Stage__c = requestBodyMap.containsKey('StageName') ? (String)requestBodyMap.get('StageName') : '';
+                    referUpdate.RTL_Ws_Stage__c = requestBodyMap.containsKey('StageName') ? (String)requestBodyMap.get('StageName') : '';
                     referUpdate.RTL_Status__c = requestBodyMap.containsKey('RTL_Status__c') ? (String)requestBodyMap.get('RTL_Status__c') : '';
                     referUpdate.Details_of_Status__c = requestBodyMap.containsKey('Details_of_Status__c') ? (String)requestBodyMap.get('Details_of_Status__c') : '';
                     referUpdate.RTL_AL_Refer_No__c = requestBodyMap.containsKey('RTL_AL_Refer_No__c') ? (String)requestBodyMap.get('RTL_AL_Refer_No__c') : '';
@@ -619,10 +627,10 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
                     referUpdate.RTL_Ws_Reason__c = requestBodyMap.containsKey('RTL_Reason__c') ? (String)requestBodyMap.get('RTL_Reason__c') : '';
 
                     referUpdate.RTL_Refer_Date__c = requestBodyMap.containsKey('RTL_Refer_Date__c') && requestBodyMap.get('RTL_Refer_Date__c') != null ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Refer_Date__c')+'"', DateTime.class) : null;
-                    referUpdate.Corebank_Branch_Code__c = requestBodyMap.containsKey('Corebank_Branch_Code__c') ? (String)requestBodyMap.get('Corebank_Branch_Code__c') : '';
-                    referUpdate.Corebank_Branch_Name__c = requestBodyMap.containsKey('Corebank_Branch_Name__c') ? (String)requestBodyMap.get('Corebank_Branch_Name__c') : '';
-                    referUpdate.Corebank_Sales_Manager_Head_Id__c = requestBodyMap.containsKey('Corebank_Sales_Manager_Head_Id__c') ? (String)requestBodyMap.get('Corebank_Sales_Manager_Head_Id__c') : '';
-                    referUpdate.Corebank_Sales_Manager_Head__c = requestBodyMap.containsKey('Corebank_Sales_Manager_Head__c') ? (String)requestBodyMap.get('Corebank_Sales_Manager_Head__c') : '';
+                    referUpdate.Corebank_Branch_Code__c = requestBodyMap.containsKey('RTL_AO_Group_Code__c') ? (String)requestBodyMap.get('RTL_AO_Group_Code__c') : '';
+                    referUpdate.Corebank_Branch_Name__c = requestBodyMap.containsKey('RTL_AO_Group_Name__c') ? (String)requestBodyMap.get('RTL_AO_Group_Name__c') : '';
+                    referUpdate.Corebank_Sales_Manager_Head_Id__c = requestBodyMap.containsKey('RTL_Group_Head_Emp_Id__c') ? (String)requestBodyMap.get('RTL_Group_Head_Emp_Id__c') : '';
+                    referUpdate.Corebank_Sales_Manager_Head__c = requestBodyMap.containsKey('RTL_Group_Head_Name__c') ? (String)requestBodyMap.get('RTL_Group_Head_Name__c') : '';
                     referUpdate.RTL_Product_Campaign_Code__c = requestBodyMap.containsKey('RTL_Product_Campaign_Code__c') ? (String)requestBodyMap.get('RTL_Product_Campaign_Code__c') : '';
                     referUpdate.RTL_Product_Campaign_Name__c = requestBodyMap.containsKey('RTL_Product_Campaign_Name__c') ? (String)requestBodyMap.get('RTL_Product_Campaign_Name__c') : '';
                     referUpdate.RTL_Dealer_Code__c = requestBodyMap.containsKey('RTL_Dealer_Code__c') ? (String)requestBodyMap.get('RTL_Dealer_Code__c') : '';
@@ -729,7 +737,12 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
                     opportunityReferUpdate.RTL_Ws_Reason__c = requestBodyMap.containsKey('RTL_Reason__c') ? (String)requestBodyMap.get('RTL_Reason__c') : '';
                     opportunityReferUpdate.Submit_Date__c = requestBodyMap.containsKey('RTL_Request_Date__c') && requestBodyMap.get('RTL_Request_Date__c') != null? Date.valueOf((String)requestBodyMap.get('RTL_Request_Date__c')) : null;
                     opportunityReferUpdate.Corebank_Approved_Date_Time__c = requestBodyMap.containsKey('RTL_Approved_Date_Time__c') && requestBodyMap.get('RTL_Approved_Date_Time__c') != null ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Approved_Date_Time__c')+'"', DateTime.class) : null;
-        
+                    opportunityReferUpdate.Corebank_Approved_Date_Time__c = requestBodyMap.containsKey('RTL_Approved_Date_Time__c') && requestBodyMap.get('RTL_Approved_Date_Time__c') != null ? (DateTime)JSON.deserialize('"'+requestBodyMap.get('RTL_Approved_Date_Time__c')+'"', DateTime.class) : null;
+                    opportunityReferUpdate.Corebank_Branch_Code__c = requestBodyMap.containsKey('RTL_AO_Group_Code__c') ? (String)requestBodyMap.get('RTL_AO_Group_Code__c') : '';
+                    opportunityReferUpdate.Corebank_Branch_Name__c = requestBodyMap.containsKey('RTL_AO_Group_Name__c') ? (String)requestBodyMap.get('RTL_AO_Group_Name__c') : '';
+                    opportunityReferUpdate.Corebank_Sales_Manager_Head_Id__c = requestBodyMap.containsKey('RTL_Group_Head_Emp_Id__c') ? (String)requestBodyMap.get('RTL_Group_Head_Emp_Id__c') : '';
+                    opportunityReferUpdate.Corebank_Sales_Manager_Head__c = requestBodyMap.containsKey('RTL_Group_Head_Name__c') ? (String)requestBodyMap.get('RTL_Group_Head_Name__c') : '';
+
                     update opportunityReferUpdate;
                 }else{
                     String mktcodeOrWebunique = ((String)requestBodyMap.get('Id'));
@@ -898,7 +911,7 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
         System.debug('opportunityHPAP ID : ' + opportunityHPAP.Id);
         System.debug('opportunityHPAP RTL_Product_Name__c : ' + opportunityHPAP.RTL_Product_Name__c);
         System.debug('opportunityHPAP RTL_Referral__c : ' + opportunityHPAP.RTL_Referral__c);
-
+        Set<String> existprodList = new Set<String>();
         if(!checkIsEmpty(opportunityHPAP.RTL_Product_Name__c) && !checkIsEmpty(opportunityHPAP.RTL_Referral__c) && cmId == null)
         {
             System.debug('Check campaignMember!');
@@ -909,16 +922,24 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
                                                 RTL_RelatedOpportunity_1__c,RTL_RelatedOpportunity_2__c,RTL_RelatedOpportunity_3__c,RTL_RelatedOpportunity_4__c,RTL_RelatedOpportunity_5__c ,
                                                 RTL_Referral_ID_1__c,RTL_Referral_ID_2__c,RTL_Referral_ID_3__c,RTL_Referral_ID_4__c,RTL_Referral_ID_5__c 
                                                 FROM CampaignMember WHERE Id =: ref.get(0).RTL_Campaign_Member__c LIMIT 1];
-            List<Cross_Sell_Product__c> crossSell = [SELECT Id,CampaignMemberId__c,Campaign_Product__c,RTL_OfferResult_Product__c,OpportunityId__c FROM Cross_Sell_Product__c WHERE CampaignMemberId__c =: ref.get(0).RTL_Campaign_Member__c];
+            List<Cross_Sell_Product__c> crossSell = [SELECT Id,CampaignMemberId__c,Campaign_Product__c,RTL_OfferResult_Product__c,OpportunityId__c FROM Cross_Sell_Product__c WHERE CampaignMemberId__c =: ref.get(0).RTL_Campaign_Member__c ORDER BY CreatedDate DESC];
             Map<Id,Cross_Sell_Product__c> csMap = new Map<Id,Cross_Sell_Product__c>();
-            if(crossSell.size() > 0)
+            for(Integer i = 1; i <= 5; i++)
+            {
+                if(campaignMem.get(0).get('RTL_RelatedOpportunity_'+i+'__c') != null){
+                    existprodList.add(String.valueOf(campaignMem.get(0).get('RTL_RelatedOpportunity_'+i+'__c')));
+                }
+            }
+            if(crossSell.size() > 0 && !existprodList.contains(String.valueOf(opportunityHPAP.Id)))
             {
                 for(Cross_Sell_Product__c cs :crossSell)
                 {
+                    existprodList.add(String.valueOf(cs.OpportunityId__c));
                     csMap.put(cs.Campaign_Product__c,cs);
                 }
             }
-            if(campaignMem.size() > 0){
+            if(campaignMem.size() > 0 && !existprodList.contains(String.valueOf(opportunityHPAP.Id))){
+
                 for(Integer i = 1; i <= 5; i++)
                 {
                     System.debug('Campaign Product Name : ' + campaignMem.get(0).get('RTL_Campaign_Product_'+i+'__c'));
@@ -926,13 +947,13 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
                     System.debug('Campaign Check Related oppty ' + i + ' : '+ campaignMem.get(0).get('RTL_RelatedOpportunity_'+i+'__c'));
 
                     if(opportunityHPAP.RTL_Product_Name__c == campaignMem.get(0).get('RTL_Campaign_Product_'+i+'__c') && campaignMem.get(0).get('RTL_OfferResult_Product_'+i+'__c') == 'Referred' 
-                        && campaignMem.get(0).get('RTL_RelatedOpportunity_'+i+'__c') == null)
+                        && campaignMem.get(0).get('RTL_RelatedOpportunity_'+i+'__c') == null )
                     {
                         System.debug('Update : ' + 'RTL_RelatedOpportunity_'+i+'__c || ' + opportunityHPAP.Id);
                         campaignMem.get(0).put('RTL_RelatedOpportunity_'+i+'__c',opportunityHPAP.Id);
                         campaignMem.get(0).put('RTL_Referral_ID_'+i+'__c',opportunityHPAP.RTL_External_Ref_ID__c);
                         isUpdateCM = true;
-
+                        break;
                     }
                 }
             }
@@ -946,7 +967,7 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
             }   
             else 
             {     
-                if(csMap.containsKey(opportunityHPAP.RTL_Product_Name__c))
+                if(csMap.containsKey(opportunityHPAP.RTL_Product_Name__c) && !existprodList.contains(String.valueOf(opportunityHPAP.Id)))
                 {
                     if(csMap.get(opportunityHPAP.RTL_Product_Name__c).RTL_OfferResult_Product__c == 'Referred' && csMap.get(opportunityHPAP.RTL_Product_Name__c).OpportunityId__c == null )
                     {
@@ -960,14 +981,13 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
                     }               
                 }  
             } 
-                
         }
         else if(cmId != null){
             Boolean isUpdateCM = false;
             List<CampaignMember> campaignMem = [SELECT Id,RTL_Marketing_Code__c,RTL_Campaign_Product_1__c,RTL_Campaign_Product_2__c,RTL_Campaign_Product_3__c,RTL_Campaign_Product_4__c,RTL_Campaign_Product_5__c,
                                                 RTL_OfferResult_Product_1__c,RTL_OfferResult_Product_2__c,RTL_OfferResult_Product_3__c,RTL_OfferResult_Product_4__c,RTL_OfferResult_Product_5__c,
                                                 RTL_RelatedOpportunity_1__c,RTL_RelatedOpportunity_2__c,RTL_RelatedOpportunity_3__c,RTL_RelatedOpportunity_4__c,RTL_RelatedOpportunity_5__c 
-                                                FROM CampaignMember WHERE Id =: cmId LIMIT 1];
+                                                FROM CampaignMember WHERE Id =: cmId AND RTL_RelatedOpportunity_1__c != : opportunityHPAP.Id AND RTL_RelatedOpportunity_2__c != : opportunityHPAP.Id AND RTL_RelatedOpportunity_3__c != : opportunityHPAP.Id AND RTL_RelatedOpportunity_4__c != : opportunityHPAP.Id AND RTL_RelatedOpportunity_5__c != : opportunityHPAP.Id LIMIT 1];
             // List<Cross_Sell_Product__c> crossSell = [SELECT Id,CampaignMemberId__c,Campaign_Product__c,RTL_OfferResult_Product__c,OpportunityId__c FROM Cross_Sell_Product__c WHERE CampaignMemberId__c =: cmId];
             // Map<Id,Cross_Sell_Product__c> csMap = new Map<Id,Cross_Sell_Product__c>();
             // if(crossSell.size() > 0)
@@ -977,6 +997,7 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
             //         csMap.put(cs.Campaign_Product__c,cs);
             //     }
             // }
+
             if(campaignMem.size() > 0){
                 for(Integer i = 1; i <= 5; i++)
                 {
@@ -990,7 +1011,7 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
                         System.debug('Update : ' + 'RTL_RelatedOpportunity_'+i+'__c || ' + opportunityHPAP.Id);
                         campaignMem.get(0).put('RTL_RelatedOpportunity_'+i+'__c',opportunityHPAP.Id);
                         isUpdateCM = true;
-
+                        break;
                     }
                 }
             }
@@ -1000,6 +1021,7 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
                 campaignMem[0].RTL_isBatchUpdateCampaignMember__c = true;
                 update campaignMem;
             }   
+            
         }
     }
     public static void stampReferToCampaignMember (Id refId)
@@ -1010,28 +1032,36 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
             Boolean isUpdateCM = false;
             RTL_Referral__c ref = [SELECT Id,RTL_Product_Name__c,RTL_Campaign_Member__c FROM RTL_Referral__c WHERE Id =: refId LIMIT 1];
             System.debug('ref product name : ' + ref.RTL_Product_Name__c);
-            
+            Set<String> existprodList = new Set<String>();
+
             if(!checkIsEmpty(ref.RTL_Product_Name__c)){
 
             List<CampaignMember> campaignMem = [SELECT Id,RTL_Marketing_Code__c,RTL_Campaign_Product_1__c,RTL_Campaign_Product_2__c,RTL_Campaign_Product_3__c,RTL_Campaign_Product_4__c,RTL_Campaign_Product_5__c,
                                                 RTL_OfferResult_Product_1__c,RTL_OfferResult_Product_2__c,RTL_OfferResult_Product_3__c,RTL_OfferResult_Product_4__c,RTL_OfferResult_Product_5__c,
                                                 RTL_Referral_ID_1__c,RTL_Referral_ID_2__c,RTL_Referral_ID_3__c,RTL_Referral_ID_4__c,RTL_Referral_ID_5__c 
                                                 FROM CampaignMember WHERE Id =: ref.RTL_Campaign_Member__c LIMIT 1];
-            List<Cross_Sell_Product__c> crossSell = [SELECT Id,CampaignMemberId__c,Campaign_Product__c,RTL_OfferResult_Product__c,OpportunityId__c FROM Cross_Sell_Product__c WHERE CampaignMemberId__c =: ref.RTL_Campaign_Member__c];
+            List<Cross_Sell_Product__c> crossSell = [SELECT Id,CampaignMemberId__c,Campaign_Product__c,RTL_OfferResult_Product__c,OpportunityId__c,ReferralId__c FROM Cross_Sell_Product__c WHERE CampaignMemberId__c =: ref.RTL_Campaign_Member__c ORDER BY CreatedDate DESC];
             Map<Id,Cross_Sell_Product__c> csMap = new Map<Id,Cross_Sell_Product__c>();
             System.debug('Size CM : ' + campaignMem.size());
-            if(crossSell.size() > 0)
+            for(Integer i = 1; i <= 5; i++)
+            {   
+                if(campaignMem.get(0).get('RTL_Referral_ID_'+i+'__c') != null){
+                    existprodList.add(String.valueOf(campaignMem.get(0).get('RTL_Referral_ID_'+i+'__c')));
+                }
+            }
+            if(crossSell.size() > 0 && !existprodList.contains(String.valueOf(ref.Id)))
             {
                 for(Cross_Sell_Product__c cs :crossSell)
                 {
+                    existprodList.add(String.valueOf(cs.ReferralId__c));
                     csMap.put(cs.Campaign_Product__c,cs);
                 }
             }
-            if(campaignMem.size() > 0){            
+            if(campaignMem.size() > 0 && !existprodList.contains(String.valueOf(ref.Id))){            
                 for(Integer i = 1; i <= 5; i++)
                 {   
                     if(ref.RTL_Product_Name__c == campaignMem.get(0).get('RTL_Campaign_Product_'+i+'__c') && campaignMem.get(0).get('RTL_OfferResult_Product_'+i+'__c') == 'Referred' 
-                        && campaignMem.get(0).get('RTL_Referral_ID_'+i+'__c') == null)
+                        && campaignMem.get(0).get('RTL_Referral_ID_'+i+'__c') == null )
                     {
                         campaignMem.get(0).put('RTL_Referral_ID_'+i+'__c',ref.Id);
                         isUpdateCM = true;
@@ -1050,7 +1080,7 @@ global without sharing class RTL_AL_WsOpportunity extends RTL_AL_WebserviceAbstr
             }   
             else 
             {     
-                if(csMap.containsKey(ref.RTL_Product_Name__c))
+                if(csMap.containsKey(ref.RTL_Product_Name__c) && !existprodList.contains(String.valueOf(ref.Id)))
                 {
                     if(csMap.get(ref.RTL_Product_Name__c).RTL_OfferResult_Product__c == 'Referred' && csMap.get(ref.RTL_Product_Name__c).ReferralId__c == null )
                     {
