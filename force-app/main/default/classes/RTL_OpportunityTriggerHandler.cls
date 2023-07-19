@@ -705,12 +705,16 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
                                                                                 FROM Recordtype 
                                                                                 WHERE sObjectType = 'Campaign'
                                                                                 AND DeveloperName LIKE '%Mass%']);
-    
+                System.debug('campaignIdSet --> '+ campaignIdSet);
+                System.debug('campaignRecordType --> '+ campaignRecordType.values());
+                System.debug('Campaign --> '+[SELECT Id,name,isActive,RecordType.Name
+                FROM Campaign ]);
                 //Get Mass campaign in Primary Campaign Source
                 for(Campaign c :[SELECT Id,name
                         FROM Campaign 
-                        where IsActive = true 
-                        and id in: campaignIdSet
+                        where 
+                        IsActive = true and 
+                        id in: campaignIdSet
                         and RecordTypeid in:campaignRecordType.values()]){
                     mapCampaign.put(c.id, c);
                 }
@@ -830,6 +834,7 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
                                                                                 AND DeveloperName LIKE '%Mass%']);
     
                 //Get Mass campaign in Primary Campaign Source
+                
                 for(Campaign c :[SELECT Id,name
                         FROM Campaign 
                         where IsActive = true 
@@ -1187,7 +1192,7 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
                 }
             }
             if(opptyExternalCM.size()>0){
-                List<CampaignMember> listcm = [SELECT Id,RTL_Marketing_Code__c FROM CampaignMember WHERE Id IN: opptyExternalCM OR RTL_Marketing_Code__c IN: opptyExternalCM OR RTL_Web_Unique_Id__c IN: opptyExternalCM];
+                List<CampaignMember> listcm = [SELECT Id,RTL_Marketing_Code__c,RTL_Web_Unique_ID__c FROM CampaignMember WHERE Id IN: opptyExternalCM OR RTL_Marketing_Code__c IN: opptyExternalCM OR RTL_Web_Unique_Id__c IN: opptyExternalCM];
                 if(listcm.size()>0){
                     for(CampaignMember cm : listcm){
                         if(cm.RTL_Marketing_Code__c != null){

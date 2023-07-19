@@ -679,7 +679,7 @@
                 each.HPAP_Reason_Code_1__c = String.valueOf(newMap.get(each.RTL_Referral_ID_1__c).get('HPAP_Reason_Code__c'));
                 each.HPAP_Reason_Description_1__c = String.valueOf(newMap.get(each.RTL_Referral_ID_1__c).get('HPAP_Reason_Description__c'));
 
-                each.RTL_Refer_Date_1__c = Date.valueOf(newMap.get(each.RTL_Referral_ID_1__c).get('RTL_Refer_Date__c'));
+                each.RTL_Refer_Date_1__c = Datetime.valueOf(newMap.get(each.RTL_Referral_ID_1__c).get('RTL_Refer_Date__c'));
                 if(each.RTL_Contact_Status__c == 'New' || each.RTL_Contact_Status__c == 'Uncontact'){
                     each.RTL_Contact_Status__c = String.valueOf(newMap.get(each.RTL_Referral_ID_1__c).get('RTL_Contact_Status__c'));
                     each.RTL_Reason__c = String.valueOf(newMap.get(each.RTL_Referral_ID_1__c).get('RTL_Ws_Reason__c'));

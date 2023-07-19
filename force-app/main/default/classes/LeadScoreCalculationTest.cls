@@ -11,19 +11,36 @@ public with sharing class LeadScoreCalculationTest {
         LSL.isActive__c = true;
         insert LSL;
 
+        List<Lead_Scoring_Condition__c> LSCList = new List<Lead_Scoring_Condition__c>();
         Lead_Scoring_Condition__c LSC = new Lead_Scoring_Condition__c();
-        LSC.Field_Mapping__c = 'LGS_Partner__c';
+        LSC.Field_Mapping__c = 'LGS_001__c';
         LSC.Object__c = 'Lead';
         LSC.Lead_Scoring_List__c = LSL.id;
         LSC.Weight__c = 25;
-        insert LSC;
+        LSCList.add(LSC);
 
         Lead_Scoring_Condition__c LSC1 = new Lead_Scoring_Condition__c();
-        LSC1.Field_Mapping__c = 'LGS_Partner__c';
+        LSC1.Field_Mapping__c = 'LGS_002__c';
         LSC1.Object__c = 'CampaignMember';
         LSC1.Lead_Scoring_List__c = LSL.id;
         LSC1.Weight__c = 25;
-        insert LSC1;
+        LSCList.add(LSC1);
+
+        Lead_Scoring_Condition__c LSC2 = new Lead_Scoring_Condition__c();
+        LSC2.Field_Mapping__c = 'LGS_003__c';
+        LSC2.Object__c = 'CampaignMember';
+        LSC2.Lead_Scoring_List__c = LSL.id;
+        LSC2.Weight__c = 25;
+        LSCList.add(LSC2);
+
+        Lead_Scoring_Condition__c LSC3 = new Lead_Scoring_Condition__c();
+        LSC3.Field_Mapping__c = 'LGS_004__c';
+        LSC3.Object__c = 'CampaignMember';
+        LSC3.Lead_Scoring_List__c = LSL.id;
+        LSC3.Weight__c = 25;
+        LSCList.add(LSC3);
+
+        insert LSCList;
 
         Id recordTypeId  = [select Id from RecordType where SobjectType = 'Campaign' and DeveloperName=: 'Dummy_Campaign' and IsActive=true ].Id;
         Campaign camp = new Campaign();
@@ -33,14 +50,16 @@ public with sharing class LeadScoreCalculationTest {
         camp.RecordTypeId = Recordtypeid;
         insert camp;
 
-        Lead l = new Lead(Company = 'JohnMiller', LastName = 'Mike', Status = 'Open');
-        l.RTL_Branch_Code_Rpt__c = '611';
-        insert l;
         
         
-
-        Lead_Scoring_Condition__c LeadConListQuery = [SELECT id FROM Lead_Scoring_Condition__c WHERE Lead_Scoring_List__c = :LSL.id LIMIT 1];
+        Lead_Scoring_Condition__c LeadConListQuery = [SELECT id FROM Lead_Scoring_Condition__c WHERE id = :LSC.id LIMIT 1];
+        Lead_Scoring_Condition__c LeadConListQuery1 = [SELECT id FROM Lead_Scoring_Condition__c WHERE id = :LSC1.id LIMIT 1];
+        Lead_Scoring_Condition__c LeadConListQuery2 = [SELECT id FROM Lead_Scoring_Condition__c WHERE id = :LSC2.id LIMIT 1];
+        Lead_Scoring_Condition__c LeadConListQuery3 = [SELECT id FROM Lead_Scoring_Condition__c WHERE id = :LSC3.id LIMIT 1];
         List<LeadScoringController.conditionDetailObject> leadConDetailList = new List<LeadScoringController.conditionDetailObject>();
+        List<LeadScoringController.conditionDetailObject> leadConDetail1List = new List<LeadScoringController.conditionDetailObject>();
+        List<LeadScoringController.conditionDetailObject> leadConDetail2List = new List<LeadScoringController.conditionDetailObject>();
+        List<LeadScoringController.conditionDetailObject> leadConDetail3List = new List<LeadScoringController.conditionDetailObject>();
         LeadScoringController.conditionDetailObject leadConDetail = new LeadScoringController.conditionDetailObject();
         leadConDetail.Operator = '=';
         leadConDetail.Value1 = '10';
@@ -49,7 +68,39 @@ public with sharing class LeadScoreCalculationTest {
         leadConDetail.Id = '';
         leadConDetail.inputrowIndex = '1';
         leadConDetailList.add(leadConDetail);
+        LeadScoringController.conditionDetailObject leadConDetail1 = new LeadScoringController.conditionDetailObject();
+        leadConDetail1.Operator = 'Contain';
+        leadConDetail1.Value1 = '10';
+        leadConDetail1.Value2 = '';
+        leadConDetail1.Score = 10;
+        leadConDetail1.Id = '';
+        leadConDetail1.inputrowIndex = '1';
+        leadConDetail1List.add(leadConDetail1);
+        LeadScoringController.conditionDetailObject leadConDetail2 = new LeadScoringController.conditionDetailObject();
+        leadConDetail2.Operator = '<';
+        leadConDetail2.Value1 = '11';
+        leadConDetail2.Value2 = '';
+        leadConDetail2.Score = 10;
+        leadConDetail2.Id = '';
+        leadConDetail2.inputrowIndex = '1';
+        leadConDetail2List.add(leadConDetail2);
+        LeadScoringController.conditionDetailObject leadConDetail3 = new LeadScoringController.conditionDetailObject();
+        leadConDetail3.Operator = '<';
+        leadConDetail3.Value1 = '1';
+        leadConDetail3.Value2 = '';
+        leadConDetail3.Score = 10;
+        leadConDetail3.Id = '';
+        leadConDetail3.inputrowIndex = '1';
+        leadConDetail3List.add(leadConDetail3);
         LeadScoringController.insertScoringConDetail(LeadConListQuery.id, leadConDetailList);
+        LeadScoringController.insertScoringConDetail(LeadConListQuery1.id, leadConDetail1List);
+        LeadScoringController.insertScoringConDetail(LeadConListQuery2.id, leadConDetail2List);
+        LeadScoringController.insertScoringConDetail(LeadConListQuery3.id, leadConDetail3List);
+
+        Lead l = new Lead(Company = 'JohnMiller', LastName = 'Mike', Status = 'Open');
+        l.RTL_Branch_Code_Rpt__c = '611';
+        l.LGS_001__c = '10';
+        insert l;
 
         Campaignmember cm = new Campaignmember();
         cm.RTL_Marketing_Code__c = 'DOUTBOUND1HN00001023';
@@ -62,7 +113,10 @@ public with sharing class LeadScoreCalculationTest {
         cm.LeadId = l.Id;
         cm.Scoring_Condition_Id__c = LSL.id;
         cm.RTL_Lead_Score_Flag__c = false;
-        cm.LGS_Partner__c = '10';
+        cm.LGS_001__c = '10';
+        cm.LGS_002__c = '10';
+        cm.LGS_003__c = '10';
+        cm.LGS_004__c = '10';
         insert cm;
     }
 

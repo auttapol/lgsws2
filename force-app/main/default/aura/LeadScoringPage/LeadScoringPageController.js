@@ -63,7 +63,8 @@
 	addNewRow: function (component, event, helper) {
 		helper.createfirst(component, event, helper);
 	},
-    onSave: function (component, event, helper) { 
+    onSave: function (component, event, helper) {
+        component.set("v.loaded", true);
         var result = component.get("v.LeadList")
         var recordId = component.get("v.recordId");
         var totalWeight;

@@ -85,7 +85,6 @@ global class SCSMessageAPIUtil {
     
     private static String encryptMessage(String request, Blob secretKey) {
         Blob initializationVector = Crypto.generateAesKey(128);
-        system.debug('encryptMessage request --> ' + request);
         Blob clearData = Blob.valueOf(request);
         Blob encText = Crypto.encrypt(ALGORITHYM, secretKey, initializationVector, clearData);
         
@@ -96,7 +95,7 @@ global class SCSMessageAPIUtil {
         SCSRequest SCSRequest = new SCSRequest(initialVector, encryptedData);
         
         // Create json message
-        return JSON.serialize(SCSRequest, false);
+        return JSON.serialize(SCSRequest);
     }
     
     public static String decryptMessage(String response, String sessionId) {
