@@ -41,6 +41,7 @@ global class SCSMessageAPIUtil {
         } 
     }
 
+    // Not use
     public static String getEncryptKey(String sessionId, INTEGRATE_SYSTEM integrationSys) {
         switch on integrationSys {
             when SCS {
