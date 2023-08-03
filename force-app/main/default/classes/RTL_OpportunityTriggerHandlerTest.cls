@@ -377,110 +377,129 @@ public class RTL_OpportunityTriggerHandlerTest {
     TEST.stopTest();
 }
     public static testmethod void testbeforeInsertOpportunitytoCampaignMember(){       
-        List<User> retailUsers = RTL_TestUtility.createRetailTestUserOppt(true);
+        List<User> retailUsers = RTL_TestUtility.createRetailTestUserOppt(false);
         User firstUser = retailUsers[0];//outbound channel
         firstUser.Employee_ID__c = 'RTL02';
-        update firstUser;
+        insert firstUser;
+
         RTL_Branch_Manager_Title__c BMconfig = new RTL_Branch_Manager_Title__c();
         BMconfig.Name = 'Branch Manager';
         // BMconfig.Value__c = 'Branch Manager';
         BMconfig.RTL_Value__c = 'Branch Manager';        
         insert BMconfig;
+
         TestInit.createUser(false);
         User adminUser = TestInit.us;  
         List<Account> accountList = null;
+        Account acct = null;
         String opptId = null;
         Id retailAutoloan = Schema.Sobjecttype.Opportunity.getRecordTypeInfosByName().get('Retail Auto Loan').getRecordTypeId();
 
         TEST.startTest();    
-
+        System.runAs(adminUser) {
+            AppConfig__c Aconfig = AppConfig__c.getValues('runtrigger');
+            Aconfig.Value__c = 'false';    
+            update Aconfig;    
+            accountList = RTL_TestUtility.createAccounts(1,false);
+            acct = accountList[0];
+            acct.OwnerId = firstUser.Id;
+            insert acct;
+        }
         System.runAs(firstUser){
         
-        /*opportunityList = RTL_TestUtility.createOpportunity(accountList,true);
-        opptId = opportunityList.get(0).Id;
-        system.debug('Test_opptId1 : '+opptId);*/
-        accountList = RTL_TestUtility.createAccounts(1,true);
+            Id recordTypeId  = [select Id from RecordType where SobjectType = 'Campaign' and DeveloperName=: 'Dummy_Campaign' and IsActive=true ].Id;
+            Campaign camp = new Campaign();
+            camp.Name = 'Campaign_';
+            camp.Segment__c = 'MB';
+            camp.OwnerId  = UserInfo.getUserId();
+            camp.RecordTypeId = Recordtypeid;
+            insert camp;
             
-        Account acct = accountList[0];
-        acct.OwnerId = firstUser.Id;
-        update acct;
+            Contact ct = RTL_TestUtility.createContacts(accountList.get(0));
+            ct.OwnerId = firstUser.id;
+            insert ct;
+            RTL_product_master__c prod = new RTL_product_master__c();
+            prod.Name = 'CYC';
+            prod.Product_Group__c = 'Auto Loan';
+            prod.Product_Sub_group__c = 'HIRE PURCHASE';
+            prod.Active__c = true;
+            insert prod;
 
-        //branchAndZoneList = RTL_TestUtility.createBranchZone(9,true); 
-        Id recordTypeId  = [select Id from RecordType where SobjectType = 'Campaign' and DeveloperName=: 'Dummy_Campaign' and IsActive=true ].Id;
-        Campaign camp = new Campaign();
-        camp.Name = 'Campaign_';
-        camp.Segment__c = 'MB';
-        camp.OwnerId  = UserInfo.getUserId();
-        camp.RecordTypeId = Recordtypeid;
-        insert camp;
-        
-        Contact ct = RTL_TestUtility.createContacts(accountList.get(0));
-        ct.OwnerId = firstUser.id;
-        insert ct;
-        RTL_product_master__c prod = new RTL_product_master__c();
-        prod.Name = 'CYC';
-        prod.Product_Group__c = 'Auto Loan';
-        prod.Product_Sub_group__c = 'HIRE PURCHASE';
-        prod.Active__c = true;
-        insert prod;
+            branchAndZoneList = RTL_TestUtility.createBranchZone(9,true); 
 
-        branchAndZoneList = RTL_TestUtility.createBranchZone(9,true); 
+            CampaignMember cm = new CampaignMember();
+            cm.CampaignId = camp.id; 
+            cm.ContactId = ct.id;                
+            cm.RTL_Hub_Name_1__c = 'test hub';
+            cm.RTL_Product_Group_1__c = 'Auto Loan';
+            cm.RTL_Sub_Group_1__c = 'HIRE PURCHASE';
+            cm.RTL_Campaign_Product_1__c = prod.Id;
+            cm.RTL_OfferResult_Product_1__c = 'Referred';
+            cm.RTL_Marketing_Code__c = 'DTX123456';
+            cm.RTL_Web_Unique_ID__c = 'WEB123456';
+            insert cm;
 
-        CampaignMember cm = new CampaignMember();
-        cm.CampaignId = camp.id; 
-        cm.ContactId = ct.id;
-        // cm.RTL_RelatedOpportunity_1__c = oppt.id;
-        // cm.RTL_RelatedOpportunity_2__c = oppt.id;
-        // cm.RTL_RelatedOpportunity_3__c = oppt.id;
-        // cm.RTL_RelatedOpportunity_4__c = oppt.id;
-        // cm.RTL_RelatedOpportunity_5__c = oppt.id;
-        // cm.RTL_Referral_ID_1__c = referral.id;
-        // cm.RTL_Referral_ID_2__c = referral.id; 
-        // cm.RTL_Referral_ID_3__c = referral.id; 
-        // cm.RTL_Referral_ID_4__c = referral.id; 
-        // cm.RTL_Referral_ID_5__c = referral.id;                
-        cm.RTL_Hub_Name_1__c = 'test hub';
-        cm.RTL_Product_Group_1__c = 'Auto Loan';
-        cm.RTL_Sub_Group_1__c = 'HIRE PURCHASE';
-        cm.RTL_Campaign_Product_1__c = prod.Id;
-        cm.RTL_OfferResult_Product_1__c = 'Referred';
-        insert cm;
+            RTL_Referral__c referral = new RTL_Referral__c();
+            //referral.RTL_Account_Name__c = accountList[0].id;
+            referral.RTL_Mobile1__c ='0884129128';
+            referral.RTL_Stage__c = 'New';
+            referral.RTL_License_No__c = '4325325426';
+            referral.RTL_Preferred_Branch__c = branchAndZoneList[0].id;   
+            referral.RTL_Account_Name__c = acct.Id;
+            referral.RTL_Campaign_Member__c = cm.Id;
+            insert referral;
 
-        RTL_Referral__c referral = new RTL_Referral__c();
-        //referral.RTL_Account_Name__c = accountList[0].id;
-        referral.RTL_Mobile1__c ='0884129128';
-        referral.RTL_Stage__c = 'New';
-        referral.RTL_License_No__c = '4325325426';
-        referral.RTL_Preferred_Branch__c = branchAndZoneList[0].id;   
-        referral.RTL_Account_Name__c = acct.Id;
-        referral.RTL_Campaign_Member__c = cm.Id;
-        insert referral;
+            // AppConfig__c Aconfig1 = AppConfig__c.getValues('runtrigger');
+            // Aconfig1.Value__c = 'true';    
+            // update Aconfig1;    
+            
+            Opportunity oppt2 = new Opportunity(); 
+            oppt2.Name = 'Test Opp2';
+            oppt2.CloseDate = Date.today().addDays(30);
+            oppt2.StageName = 'Sales (Investment)';
+            oppt2.recordtypeId = retailAutoloan;
+            oppt2.RTL_Product_Group__c = 'Auto Loan';
+            oppt2.RTL_Product_Name__c = prod.Id;
+            oppt2.RTL_Referral__c = referral.id;
+            oppt2.RTL_External_Ref_ID__c = cm.Id;
+            oppt2.AccountId = acct.Id;
+            insert oppt2;
+            List<Opportunity> listopp = new List<Opportunity>();
+            List<Opportunity> listopp2 = new List<Opportunity>();
+            List<Opportunity> listopp3 = new List<Opportunity>();
 
-       
+            listopp.add(oppt2);
+            RTL_OpportunityTriggerHandler.updateOpptyByReferral(listopp);
+            RTL_OpportunityTriggerHandler.updateOpptyByCampaignMember(listopp);
 
-        AppConfig__c Aconfig1 = AppConfig__c.getValues('runtrigger');
-        Aconfig1.Value__c = 'true';    
-        update Aconfig1;    
-        
-        Opportunity oppt2 = new Opportunity(); 
-        oppt2.Name = 'Test Opp2';
-        oppt2.CloseDate = Date.today().addDays(30);
-        oppt2.StageName = 'Sales (Investment)';
-        oppt2.recordtypeId = retailAutoloan;
-        oppt2.RTL_Product_Group__c = 'Auto Loan';
-        oppt2.RTL_Product_Name__c = prod.Id;
-        oppt2.RTL_Referral__c = referral.id;
-        oppt2.AccountId = acct.Id;
-        insert oppt2;
+            oppt2.RTL_External_Ref_ID__c = 'DTX123456';
+            listopp2.add(oppt2);
+            RTL_OpportunityTriggerHandler.updateOpptyByCampaignMember(listopp2);
 
+            oppt2.RTL_External_Ref_ID__c = 'WEB123456';
+            listopp3.add(oppt2);
+            RTL_OpportunityTriggerHandler.updateOpptyByCampaignMember(listopp3);
 
-    }
+        }
     TEST.stopTest();
     }
     public static testmethod void testAfterUpdateOpportunitytoMassCampaignMember(){       
-        TEST.startTest();    
-        List<User> retailUsers = RTL_TestUtility.createRetailTestUserOppt(true);
+        TestInit.createUser(false);
+        List<User> retailUsers = RTL_TestUtility.createRetailTestUserOppt(false);
         User firstUser = retailUsers[0];//outbound channel
+        firstUser.Employee_ID__c = 'RTL02';
+        insert firstUser;
+        List<RTL_product_master__c> pmList = new List<RTL_product_master__c>();
+        RTL_product_master__c pm = new RTL_product_master__c();
+        pm.Active__c = true;
+        pm.Name = 'Loan Product';
+        pm.Product_Code__c = '0001';
+        pm.Product_Group__c = 'Loan';
+        pm.Product_Sub_group__c = 'Loan TestSubgroup';
+        pmlist.add(pm);
+        insert pmList;
+        TEST.startTest();    
+       
         System.runAs(firstUser){
 
         // TestInit.createUser(false);
@@ -488,8 +507,6 @@ public class RTL_OpportunityTriggerHandlerTest {
         List<Account> accountList = null;
         String opptId = null;
         Id retailAutoloan = Schema.Sobjecttype.Opportunity.getRecordTypeInfosByName().get('Retail Auto Loan').getRecordTypeId();
-
-
 
         /*opportunityList = RTL_TestUtility.createOpportunity(accountList,true);
         opptId = opportunityList.get(0).Id;
@@ -501,8 +518,8 @@ public class RTL_OpportunityTriggerHandlerTest {
         acct.TMB_Customer_ID_PE__c  = '11111110000000';
         update acct;
 
-        //branchAndZoneList = RTL_TestUtility.createBranchZone(9,true); 
-        Id MasterrecordTypeId  = [select Id from RecordType where SobjectType = 'Campaign' and DeveloperName=: 'Master_Campaign' and IsActive=true ].Id;
+        branchAndZoneList = RTL_TestUtility.createBranchZone(9,true); 
+        Id MasterrecordTypeId  = [select Id from RecordType where SobjectType = 'Campaign' and DeveloperName=: 'Dummy_Campaign' and IsActive=true ].Id;
         Campaign Mastercamp = new Campaign();
         Mastercamp.Name = 'Master_Campaign_';
         Mastercamp.Segment__c = 'MB';
@@ -523,50 +540,72 @@ public class RTL_OpportunityTriggerHandlerTest {
         ct.OwnerId = firstUser.id;
         ct.TMB_Customer_ID__c = '11111110000000';
         insert ct;
+        List<RTL_product_master__c> rpm = [select id,name,Product_Sub_group__c,Product_Group__c from RTL_product_master__c LIMIT 1];
+        Retail_Campaign_Products__c rcp = new Retail_Campaign_Products__c();
+        rcp.RTL_Campaign__c = Mastercamp.id;
+        rcp.RTL_Product_Group__c = rpm.get(0).Product_Group__c;
 
-        Id MassrecordTypeId  = [select Id from RecordType where SobjectType = 'Campaign' and DeveloperName=: 'Mass_Campaign' and IsActive=true ].Id;
-        Campaign Masscamp = new Campaign();
-        Masscamp.Name = 'Child_Mass_Campaign_';
-        Masscamp.Segment__c = 'MB';
-        Masscamp.OwnerId  = UserInfo.getUserId();
-        Masscamp.ParentId = Mastercamp.Id;
-        Masscamp.RecordTypeId = MassrecordTypeId;
-        Masscamp.RTL_Campaign_Type__c = 'Mass';
-        Masscamp.RTL_Campaign_Code_10_digits__c = 'MTX1234589';
-        Masscamp.StartDate = Date.today();
-        Masscamp.EndDate = Date.today().addDays(6);
-        Masscamp.IsActive = true;
-        Masscamp.Approvedflag__c = true;
-        Masscamp.Status = 'In Progress';
-        Masscamp.RTL_Call_Start_Date__c = Date.today();
-        Masscamp.RTL_Call_End_Date__c = Date.today().addDays(6);
-        // Masscamp.ContactId = ct.id;
-        // Masscamp.RTL_Last_Contact_Status__c = 'New';
-        // Masscamp.RTL_Contact_Status__c = 'Contact';
-        // Masscamp.RTL_Product_Group_1__c = 'Deposit';
-        insert Masscamp;
+        insert rcp;
+        // Id MassrecordTypeId  = [select Id from RecordType where SobjectType = 'Campaign' and DeveloperName=: 'Mass_Campaign' and IsActive=true ].Id;
+        // Campaign Masscamp = new Campaign();
+        // Masscamp.Name = 'Child_Mass_Campaign_';
+        // Masscamp.Segment__c = 'MB';
+        // Masscamp.OwnerId  = UserInfo.getUserId();
+        // Masscamp.ParentId = Mastercamp.Id;
+        // Masscamp.RecordTypeId = MassrecordTypeId;
+        // Masscamp.RTL_Campaign_Type__c = 'Mass';
+        // Masscamp.RTL_Campaign_Code_10_digits__c = 'MTX1234589';
+        // Masscamp.StartDate = Date.today();
+        // Masscamp.EndDate = Date.today().addDays(6);
+        
+        // Masscamp.Approvedflag__c = true;
+        // Masscamp.Status = 'In Progress';
+        // Masscamp.IsActive = true;
+        // Masscamp.RTL_Call_Start_Date__c = Date.today();
+        // Masscamp.RTL_Call_End_Date__c = Date.today().addDays(6);
+        // insert Masscamp;
+        // AppConfig__c Aconfig2 = AppConfig__c.getValues('runRetailCampaignMemberTrigger');
+        // Aconfig2.Value__c = 'false';    
+        // update Aconfig2;
+        // Approval.ProcessSubmitRequest req = new Approval.ProcessSubmitRequest();
+        // req.setObjectId(Masscamp.Id);
+        // Approval.ProcessResult result = Approval.process(req);
+        // Masscamp.IsActive = true;
+        // update Masscamp;
+
+        // Id retailOrderRecType = Schema.Sobjecttype.RTL_Referral__c.getRecordTypeInfosByName().get('Retail Cross Channel Referral').getRecordTypeId();
+        // RTL_Referral__c referral = new RTL_Referral__c();
+        // referral.RecordTypeId = retailOrderRecType;
+        // System.debug('RecordTypeId: ' +referral.RecordTypeId);
+        // referral.RTL_Account_Name__c = accountList[0].id;
+        // referral.RTL_Stage__c = 'New';
+        // referral.RTL_License_No__c = '4325325426';
+        // referral.RTL_Preferred_Branch__c = branchAndZoneList[0].id;   
+        // insert referral;
 
         RTL_product_master__c prod = new RTL_product_master__c();
-        prod.Name = 'CYC';
-        prod.Product_Group__c = 'Auto Loan';
-        prod.Product_Sub_group__c = 'AL PERSONAL LOAN';
+        prod.Name = 'Flash PLUS';
+        prod.Product_Group__c = 'Loan';
+        prod.Product_Sub_group__c = 'UNSECURED REVOLVING';
         prod.Active__c = true;
         insert prod;
 
         AppConfig__c Aconfig1 = AppConfig__c.getValues('runtrigger');
         Aconfig1.Value__c = 'true';    
         update Aconfig1;    
-        System.debug('Masscamp.IsActive : ' + Masscamp.IsActive);
+        // System.debug('Masscamp.IsActive : ' + Masscamp.IsActive);
 
         Opportunity oppt = new Opportunity(); 
         oppt.Name = 'Test Opp';
         oppt.CloseDate = Date.today().addDays(30);
         oppt.StageName = 'Sales (Investment)';
         oppt.recordtypeId = retailAutoloan;
-        oppt.CampaignId = Masscamp.id;
+        oppt.CampaignId = Mastercamp.id;
         oppt.AccountId = accountList[0].id;
         oppt.RTL_Is_Create_From_Campaign_Member__c  = true;
+        oppt.RTL_Product_Group__c = rpm.get(0).Product_Group__c;
         oppt.RTL_Product_Name__c = prod.Id;
+        // oppt.RTL_Referral__c = referral.id;
         insert oppt;
 
     }

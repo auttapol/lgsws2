@@ -51,6 +51,16 @@ global without sharing class CampaignMemberToALBatch extends RTL_AL_WebserviceAb
         }
         set;
     }
+    private static final String CMLGSPartner {
+        get {
+            if(CMLGSPartner == null){
+                List<App_Config__mdt> tempMetatdata = [SELECT Value__c FROM App_Config__mdt WHERE MasterLabel = 'Campaign Member LGS Partner Default'];
+                CMLGSPartner = tempMetatdata != null && tempMetatdata.size() > 0 ? String.valueOf(tempMetatdata.get(0).Value__c) : 'ttb';
+            }
+            return CMLGSPartner;
+        }
+        set;
+    }
     private static Integer CALLOUTLIMIT{
         get{
             Integer DEFAULT_LIMIT = 99;
@@ -429,8 +439,8 @@ global without sharing class CampaignMemberToALBatch extends RTL_AL_WebserviceAb
                 // 'LGS_Campaign_ID' => cmb.CampaignId,
                 // 'LGS_Campaign_Name' => cmb.Campaign.Name,
                 // 'LGS_Source_Group' => cmb.LeadSource != null ? cmb.LeadSource : '',
-                'LGS_Partner'=> cmb.LGS_Partner__c != null ? cmb.LGS_Partner__c : '',
-                'LGS_Lead_Received_Time'=> cmb.LGS_Lead_Received_Time__c != null ? cmb.LGS_Lead_Received_Time__c : null,
+                'LGS_Partner'=> cmb.LGS_Partner__c != null ? cmb.LGS_Partner__c : CMLGSPartner,
+                'LGS_Lead_Received_Time'=> cmb.LGS_Lead_Received_Time__c != null ? cmb.LGS_Lead_Received_Time__c.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', 'GMT+07:00') : null,
                 'LGS_Campaign_Start_Date' => cmb.LGS_Campaign_Start_Date__c  != null ? cmb.LGS_Campaign_Start_Date__c  : null,
                 'LGS_Campaign_End_Date' => cmb.LGS_Campaign_End_Date__c  != null ? cmb.LGS_Campaign_End_Date__c  : null,
                 'LGS_Interest' => cmb.RTL_AL_Interested_Rate__c != null ? cmb.RTL_AL_Interested_Rate__c : null,
@@ -455,8 +465,8 @@ global without sharing class CampaignMemberToALBatch extends RTL_AL_WebserviceAb
                 'LGS_016'=> cmb.LGS_016__c != null ? cmb.LGS_016__c : null,
                 'LGS_017'=> cmb.LGS_017__c != null ? cmb.LGS_017__c : null,
                 'LGS_018'=> cmb.LGS_018__c != null ? cmb.LGS_018__c : null,
-                'LGS_019'=> cmb.LGS_019__c != null ? cmb.LGS_019__c : null,
-                'LGS_020'=> cmb.LGS_020__c != null ? cmb.LGS_020__c : null,
+                'LGS_019'=> cmb.LGS_019__c != null ? cmb.LGS_019__c.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', 'GMT+07:00') : null,
+                'LGS_020'=> cmb.LGS_020__c != null ? cmb.LGS_020__c.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', 'GMT+07:00') : null,
                 'LGS_Assignment_Code'=> cmb.LGS_Assignment_Code__c != null ? cmb.LGS_Assignment_Code__c : '',
                 'LGS_LinkInfo'=> cmb.LGS_LinkInfo__c != null ? cmb.LGS_LinkInfo__c : '',
                 'LGS_BrandCode'=> cmb.LGS_BrandCode__c != null ? cmb.LGS_BrandCode__c : '',

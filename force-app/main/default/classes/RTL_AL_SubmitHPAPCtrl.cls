@@ -26,7 +26,16 @@ public with sharing class RTL_AL_SubmitHPAPCtrl extends RTL_AL_WebserviceAbstrac
         }
         set;
     }
-
+    private static final String OpptyLGSPartner {
+        get {
+            if(OpptyLGSPartner == null){
+                List<App_Config__mdt> tempMetatdata = [SELECT Value__c FROM App_Config__mdt WHERE MasterLabel = 'Opportunity LGS Partner Default'];
+                OpptyLGSPartner = tempMetatdata != null && tempMetatdata.size() > 0 ? String.valueOf(tempMetatdata.get(0).Value__c) : 'Branch';
+            }
+            return OpptyLGSPartner;
+        }
+        set;
+    }
     private static List<String> opptyFields {
         get {
             return new List<String>{
@@ -81,7 +90,9 @@ public with sharing class RTL_AL_SubmitHPAPCtrl extends RTL_AL_WebserviceAbstrac
                 'LGS_Campaign_Start_Date__c',
                 'LGS_Campaign_End_Date__c',
                 'LGS_Child_Campaign_ID__c',
-                'RTL_Web_Unique_ID__c'
+                'RTL_Web_Unique_ID__c',
+                'RTL_W2L_Campaign_Name__c',
+                'LGS_Partner__c'
             };
         }
     }
@@ -90,9 +101,9 @@ public with sharing class RTL_AL_SubmitHPAPCtrl extends RTL_AL_WebserviceAbstrac
         //code LGS
 
         String oppID = oppty.id  ;
-        List<CampaignMember> cmb = [SELECT RTL_Web_Unique_ID__c,LGS_Partner__c,LGS_Lead_Received_Time__c,RTL_AL_Interested_Rate__c,LGS_001__c,LGS_002__c,LGS_003__c,LGS_004__c,
+        List<CampaignMember> cmb = [SELECT RTL_Web_Unique_ID__c,LGS_Lead_Received_Time__c,RTL_AL_Interested_Rate__c,LGS_001__c,LGS_002__c,LGS_003__c,LGS_004__c,
                                 LGS_005__c,LGS_006__c,LGS_007__c,LGS_008__c,LGS_009__c,LGS_010__c,LGS_011__c,LGS_012__c,LGS_013__c,LGS_014__c,LGS_015__c,
-                                LGS_016__c,LGS_017__c,LGS_018__c,LGS_019__c,LGS_020__c,RTL_W2L_Campaign_Name__c
+                                LGS_016__c,LGS_017__c,LGS_018__c,LGS_019__c,LGS_020__c
                                 FROM CampaignMember 
                                 WHERE RTL_RelatedOpportunity_1__c =:oppID OR RTL_RelatedOpportunity_2__c =:oppID OR RTL_RelatedOpportunity_3__c =:oppID OR RTL_RelatedOpportunity_4__c =:oppID OR RTL_RelatedOpportunity_5__c =:oppID limit 1];
         return new Map<String, Object> {
@@ -142,8 +153,8 @@ public with sharing class RTL_AL_SubmitHPAPCtrl extends RTL_AL_WebserviceAbstrac
             // 'ECNo' => '',
             'RMNo' => acct.TMB_Customer_ID_PE__c,
             //Add from LGS
-            'LGS_Partner'=> cmb.size() > 0 ? cmb[0].LGS_Partner__c != null ? cmb[0].LGS_Partner__c : '' : '',
-            'LGS_Lead_Received_Time'=> cmb.size() > 0 ? cmb[0].LGS_Lead_Received_Time__c != null ? cmb[0].LGS_Lead_Received_Time__c : null : null,
+            'LGS_Partner'=>  oppty.LGS_Partner__c != null ? oppty.LGS_Partner__c : OpptyLGSPartner,
+            'LGS_Lead_Received_Time'=> cmb.size() > 0 ? cmb[0].LGS_Lead_Received_Time__c != null ? cmb[0].LGS_Lead_Received_Time__c.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', 'GMT+07:00') : null : null,
             'LGS_Campaign_Start_Date' => oppty.LGS_Campaign_Start_Date__c != null ? oppty.LGS_Campaign_Start_Date__c : null ,
             'LGS_Campaign_End_Date' => oppty.LGS_Campaign_End_Date__c != null ? oppty.LGS_Campaign_End_Date__c : null,
             'LGS_Interest' => cmb.size() > 0 ? cmb[0].RTL_AL_Interested_Rate__c != null ? cmb[0].RTL_AL_Interested_Rate__c : null : null,
@@ -165,8 +176,8 @@ public with sharing class RTL_AL_SubmitHPAPCtrl extends RTL_AL_WebserviceAbstrac
             'LGS_016'=> cmb.size() > 0 ? cmb[0].LGS_016__c != null ? cmb[0].LGS_016__c : null : null,
             'LGS_017'=> cmb.size() > 0 ? cmb[0].LGS_017__c != null ? cmb[0].LGS_017__c : null : null,
             'LGS_018'=> cmb.size() > 0 ? cmb[0].LGS_018__c != null ? cmb[0].LGS_018__c : null : null,
-            'LGS_019'=> cmb.size() > 0 ? cmb[0].LGS_019__c != null ? cmb[0].LGS_019__c : null : null,
-            'LGS_020'=> cmb.size() > 0 ? cmb[0].LGS_020__c != null ? cmb[0].LGS_020__c : null : null,
+            'LGS_019'=> cmb.size() > 0 ? cmb[0].LGS_019__c != null ? cmb[0].LGS_019__c.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', 'GMT+07:00') : null : null,
+            'LGS_020'=> cmb.size() > 0 ? cmb[0].LGS_020__c != null ? cmb[0].LGS_020__c.format('yyyy-MM-dd\'T\'HH:mm:ss.SSSXXX', 'GMT+07:00') : null : null,
             
             'LGS_Assignment_Code'=> oppty.LGS_Assignment_Code__c != null ? oppty.LGS_Assignment_Code__c : '',
             'LGS_LinkInfo'=> oppty.LGS_LinkInfo__c != null ? oppty.LGS_LinkInfo__c : '',
@@ -174,7 +185,7 @@ public with sharing class RTL_AL_SubmitHPAPCtrl extends RTL_AL_WebserviceAbstrac
             'LGS_BrandShowroomCode'=> oppty.LGS_BrandShowroomCode__c != null ? oppty.LGS_BrandShowroomCode__c : '',
             'LGS_PartnerCode'=> oppty.LGS_PartnerCode__c != null ? oppty.LGS_PartnerCode__c : '',
             'LGS_ChildCampaignID'=> oppty.LGS_Child_Campaign_ID__c != null ? oppty.LGS_Child_Campaign_ID__c : '',
-            'LGS_Campaign_Name'=> cmb.size() > 0 ? cmb[0].RTL_W2L_Campaign_Name__c != null ? cmb[0].RTL_W2L_Campaign_Name__c : '' : '',
+            'LGS_Campaign_Name'=> oppty.RTL_W2L_Campaign_Name__c != null ? oppty.RTL_W2L_Campaign_Name__c : '',
             'LeadScore'=> oppty.Lead_Score__c != null ? oppty.Lead_Score__c : null,
             'LeadScorelevel'=> oppty.Lead_Score_level__c != null ? oppty.Lead_Score_level__c : '',
             'LGS_VIN_No'=> oppty.LGS_VIN_No__c != null ? oppty.LGS_VIN_No__c : '',

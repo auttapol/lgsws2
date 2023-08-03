@@ -46,23 +46,36 @@
 	},
 	onchangeFieldName : function (component, event, helper) {
 		// console.log(component.get("v.LeadScoringList").FieldName);
+		
+		// console.log('fieldlength' + fieldlength);
+		var newMapAPiNameLabel = component.get("v.mapWrapperLabel");
+		
+		var FIELDAPINAME = newMapAPiNameLabel[component.get("v.LeadScoringList").LObject];
+		// console.log('FIELDAPINAME '+ JSON.stringify(FIELDAPINAME))
+		// console.log('hahah' + FIELDAPINAME.API[component.get("v.LeadScoringList").FieldName]);
+		var index = component.get("v.LeadScoringList").FieldName;
+		// var mapfieldLabellist = component.get("v.mapfieldLabel");
+		// var fieldLabellist = mapfieldLabellist[component.get("v.LeadScoringList").LObject];
+		// console.log('FieldName' + component.get("v.LeadScoringList").FieldName);
+		// console.log('hehe' + JSON.stringify(fieldLabellist));
+		// var fieldlabel = fieldLabellist[component.get("v.LeadScoringList").FieldName];
+		var LeadList = component.get("v.LeadScoringList");
+		console.log('index -- > '+index)
+		var LabelList = component.get("v.LeadScoringList").FieldList;
+		var label = LabelList[index];
 		var mapfieldtypelist = component.get("v.mapfieldtype");
 		var fieldtypelist = mapfieldtypelist[component.get("v.LeadScoringList").LObject];
-		var fieldtype = fieldtypelist[component.get("v.LeadScoringList").FieldName];
-
+		var fieldtype = fieldtypelist[FIELDAPINAME.API[index]];
+		// var clickedIndex = event.getSource().getElement().dataset.index;
+    	console.log('fieldname label:', label);
 		var mapfieldlengthlist = component.get("v.mapfieldLength");
 		var fieldlengthlist = mapfieldlengthlist[component.get("v.LeadScoringList").LObject];
-		var fieldlength = fieldlengthlist[component.get("v.LeadScoringList").FieldName];
-		// console.log('fieldlength' + fieldlength);
+		var fieldlength = fieldlengthlist[FIELDAPINAME.API[index]];
 
-		var mapfieldLabellist = component.get("v.mapfieldLabel");
-		var fieldLabellist = mapfieldLabellist[component.get("v.LeadScoringList").LObject];
-		var fieldlabel = fieldLabellist[component.get("v.LeadScoringList").FieldName];
-		var LeadList = component.get("v.LeadScoringList");
+		LeadList.Label = label;
 		LeadList.FieldType = fieldtype;
 		LeadList.Length = fieldlength;
-		LeadList.APIName = fieldlabel;
-
+		LeadList.APIName = FIELDAPINAME.API[index];
 		component.set("v.LeadScoringList",LeadList);
 	},
 
@@ -81,5 +94,21 @@
     },
     closeModal: function (component, event, helper){
         component.set("v.showModal",false);
-    }
+    },
+
+	handleItemClick: function(component, event, helper) {
+		var selectedValue = component.get("v.LeadScoringList.FieldName");
+        // var selectedIndex = event.target["data-index"];
+        // var selectedIndex1 = event.getSource().get("v.id");
+		// var selectedIndex2 = event.getSource().get("v.data-index");
+        console.log("Selected Value: " + selectedValue);
+		// console.log("Selected Index1: " + selectedIndex1);
+        // console.log("Selected Index2: " + selectedIndex2);
+		
+
+		// var selectedIndex123 = event.getSource().get("v.value");
+		// var selectedOption = event.getSource().find("option[value='" + selectedIndex123 + "']");
+		// var index = selectedOption.get("v.data-index");
+		// console.log("Index value: " + index);
+	  }
 })

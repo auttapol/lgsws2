@@ -18,8 +18,7 @@ trigger RTL_CampaignMemberTrigger on CampaignMember (before insert,before update
                 oldMap.put(campaignRecord.id,campaignRecord);
             }
         } 
-    }
-    
+    }   
     if( newList.size() > 0 )
     {
         if(Trigger.isBefore && Trigger.isInsert){

@@ -22,6 +22,9 @@ global with sharing class RTL_LGS_InquiryScoringConDetail extends RTL_AL_Webserv
         String requestBodyDecrypt = '';
         try{
             encryptKey = getKeyFromSystem(request);
+            String integrationSystem = requestHeader.get('Integration-System');
+            requestBodyDecrypt = (String) SCSMessageAPIUtil.decryptMessageWithKey(request.requestBody.toString(), encryptKey);
+            requestBody = '"Integration System": ' + integrationSystem  + '\n\n' + requestBodyDecrypt;
         } catch (WebserviceAbstract.MissingHeaderException e){
             System.debug('ERROR : ' + e.getMessage());
             // Handle error
@@ -31,7 +34,7 @@ global with sharing class RTL_LGS_InquiryScoringConDetail extends RTL_AL_Webserv
         try{
             String statusCode = '0';
             status = 'Success.';
-            requestBodyDecrypt = (String) SCSMessageAPIUtil.decryptMessageWithKey(request.requestBody.toString(), encryptKey);
+            
             String scoringCriteriaId = (String) AbstractCoreClass.getResult('Scoring_Criteria_Id', JSON.deserializeUntyped(requestBodyDecrypt));
             Boolean isSuccess = true;
 
@@ -41,20 +44,27 @@ global with sharing class RTL_LGS_InquiryScoringConDetail extends RTL_AL_Webserv
             InquiryManager inqMgr = new InquiryManager('LGS_InquiryScoringConDetail', inquiryKeyMap);
             //InquiryManager inqMgr = new InquiryManager('LGS_InquiryScoringConDetail', scoringCriteriaId);
             List<Map<String, Object>> jsonResult = inqMgr.getResult();
+            if(jsonResult.isEmpty()){
+                statusCode = '1';
+                status = 'Record Not Found';
+            }
             Map<String, Object> returnValue = new Map<String, Object>{ 'data' => jsonResult, 'status_desc' => status, 'status_code' => statusCode };
+            
             endTime = DateTime.Now();
             responseBody = JSON.serializePretty(returnValue);
-            OnlineServiceLogUtils.saveToOnlineLog(isSuccess ,customerName, errorMessage, reqId , userName, 
+            RTL_CampaignUtil.saveToOnlineLog(isSuccess ,customerName, errorMessage, reqId , userName, 
 		    rmId , serviceName ,requestBody ,responseBody , acc , startTime , endTime, null );
+            
             return (SCSReqRes)returnResponse(SCSMessageAPIUtil.encryptMessageWithKey(JSON.serialize(returnValue), encryptKey));
         } catch (Exception e){
+            
             String errorMsg = getErrorMessageException(e);
             status = errorMsg;
             String statusCode = '99';
             Boolean isSuccess = false;
             Map<String, String> returnValue = new Map<String, String>{ 'status_desc' => status, 'status_code' => statusCode };
             endTime = DateTime.Now();
-            OnlineServiceLogUtils.saveToOnlineLog(isSuccess ,customerName, errorMsg, reqId , userName, 
+            RTL_CampaignUtil.saveToOnlineLog(isSuccess ,customerName, errorMsg, reqId , userName, 
 		    rmId , serviceName ,requestBody ,responseBody , acc , startTime , endTime, null );
             return (SCSReqRes)returnResponse(SCSMessageAPIUtil.encryptMessageWithKey(JSON.serialize(returnValue), encryptKey));
         }

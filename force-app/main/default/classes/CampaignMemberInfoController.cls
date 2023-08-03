@@ -409,7 +409,12 @@ public without sharing class CampaignMemberInfoController {
         }
         set;
     }
-    
+    public class moreDetailProductwrapper{
+        @AuraEnabled
+        public String ALProductSet;
+        @AuraEnabled
+        public String HLProductSet;
+    }
     @AuraEnabled
     public static List<CM_OB_Sell_Permission__mdt> getCampaignMemberOBSellPermission(){
         return [SELECT Id,MasterLabel,Allow_To_Sell__c,Profile__c FROM CM_OB_Sell_Permission__mdt WHERE Profile__c =: 'Campaign Member OB'];
@@ -439,7 +444,7 @@ public without sharing class CampaignMemberInfoController {
             Completion_Code_5__c,Avaya_Completion_Code__c,RTL_Web_Unique_ID__c,RTL_AL_car_brand__c,RTL_AL_car_bought_from__c,RTL_AL_car_gear__c,RTL_AL_car_group__c,RTL_AL_car_subtype__c,RTL_AL_car_type__c,RTL_AL_car_year__c,RTL_AL_comment__c,RTL_AL_contact_channel__c,RTL_AL_installment_amount__c,RTL_AL_installment_periods__c,RTL_AL_normal_price__c,RTL_AL_wanted_amount__c,RTL_AL_oa_ref_code__c,RTL_AL_car_plate_no__c,RTL_AL_Interested_Rate__c,RTL_AL_ContactDistrict__c,
             RTL_AL_ContactSubDistrict__c,RTL_AL_ContactZipcode__c,RTL_AL_ContactProvince__c,RTL_AL_max_set_up_amount__c,RTL_AL_ILA_AMT__c,RTL_AL_REMN_MTH__c,RTL_AL_OFFR_ILA_AMT__c,RTL_AL_OFFR_ILA_MTH__c,RTL_AL_BlueBook__c,
             LeadSource,RTL_TMB_Campaign_Source__c,RTL_TMB_Campaign_Reference__c,RTL_Lead_Group__c,Lead.RTL_Media_Source__c,Lead.RTL_Medium__c,Lead.RTL_W2L_Campaign_Name__c,Lead.RTL_W2L_Content__c,Lead.RTL_W2L_Term__c,RTL_Channel_Subsidiary__c,RTL_Product_name__c,
-            RTL_OfferResult_Product_1__c, RTL_OfferResult_Product_2__c, RTL_OfferResult_Product_3__c, RTL_OfferResult_Product_4__c, RTL_OfferResult_Product_5__c, Lead_Score_Level__c, Lead_Score__c,Partner_Lead_ID__c,RTL_Lead_Score_Flag__c,LGS_Child_Campaign_ID__c,RTL_W2L_Campaign_Name__c,LGS_Assignment_Code__c,
+            RTL_OfferResult_Product_1__c, RTL_OfferResult_Product_2__c, RTL_OfferResult_Product_3__c, RTL_OfferResult_Product_4__c, RTL_OfferResult_Product_5__c, Lead_Score_Level__c, Lead_Score__c,LGS_Partner__c,RTL_Lead_Score_Flag__c,LGS_Child_Campaign_ID__c,RTL_W2L_Campaign_Name__c,LGS_Assignment_Code__c,
             LGS_LinkInfo__c,LGS_BrandCode__c,LGS_BrandShowroomCode__c,LGS_PartnerCode__c,LGS_VIN_No__c,LGS_File_Upload__c,LGS_Campaign_Start_Date__c,LGS_Campaign_End_Date__c,Car_Reference_No__c
             FROM CampaignMember Where Id =: recordId LIMIT 1];
             // System.debug(cmObj);
@@ -1437,6 +1442,8 @@ public without sharing class CampaignMemberInfoController {
         Id accId;
         // List<Opportunity> opptyList = new List<Opportunity>();   
         Lead leadObj = new Lead();
+        Lead leadObjToUpdateScore = new Lead();
+
         Account accountObj = new Account();
         if(accDupId != null)
         {
@@ -1446,6 +1453,7 @@ public without sharing class CampaignMemberInfoController {
         if(campaignMemObj.LeadId != null)
         {
             leadObj = [SELECT Id,FirstName,LastName,RTL_ID_Type__c,RTL_Citizen_Id__c,RTL_Mobile_Number__c,OwnerId,Status,IsConverted,RTL_Allow_Convert_Lead__c FROM Lead Where Id =: campaignMemObj.LeadId];
+            leadObjToUpdateScore.Id = leadObj.Id;
         }
 
         // System.debug('leadObj before:'+leadObj);
@@ -1466,6 +1474,11 @@ public without sharing class CampaignMemberInfoController {
 
         try{          
             updateCampaignMember(campaignMemObj); 
+            if(leadObjToUpdateScore.Id != null){
+                leadObjToUpdateScore.Lead_Score__c = campaignMemObj.Lead_Score__c;
+                leadObjToUpdateScore.Lead_Score_Level__c = campaignMemObj.Lead_Score_Level__c;
+                update leadObjToUpdateScore;
+            }
             if(crossSellReferredObj.size() > 0)
             {
                 saveCrossSell(crossSellReferredObj, campaignMemObj, new List<String>());
@@ -1574,6 +1587,8 @@ public without sharing class CampaignMemberInfoController {
                         newOpp.LGS_Campaign_End_Date__c = campaignMemObj.LGS_Campaign_End_Date__c;
                         newOpp.LGS_Child_Campaign_ID__c = campaignMemObj.LGS_Child_Campaign_ID__c;
                         newOpp.Car_Reference_No__c = campaignMemObj.Car_Reference_No__c;
+                        newOpp.RTL_W2L_Campaign_Name__c = campaignMemObj.RTL_W2L_Campaign_Name__c;
+                        newOpp.LGS_Partner__c = campaignMemObj.LGS_Partner__c;
 
                         Integer numberOfProduct =  product.numberOfProduct;
                         productNoOpptyMap.put( numberOfProduct, newOpp );
@@ -1836,6 +1851,8 @@ public without sharing class CampaignMemberInfoController {
                     newOpp.LGS_Campaign_End_Date__c = campaignMemObj.LGS_Campaign_End_Date__c;
                     newOpp.LGS_Child_Campaign_ID__c = campaignMemObj.LGS_Child_Campaign_ID__c;
                     newOpp.Car_Reference_No__c = campaignMemObj.Car_Reference_No__c;
+                    newOpp.RTL_W2L_Campaign_Name__c = campaignMemObj.RTL_W2L_Campaign_Name__c;
+                    newOpp.LGS_Partner__c = campaignMemObj.LGS_Partner__c;
 
                     Integer numberOfProduct =  product.numberOfProduct;
                     productNoOpptyMap.put( numberOfProduct, newOpp );
@@ -2078,6 +2095,8 @@ public without sharing class CampaignMemberInfoController {
                     newOpp.LGS_Campaign_End_Date__c = campaignMemObj.LGS_Campaign_End_Date__c;
                     newOpp.LGS_Child_Campaign_ID__c = campaignMemObj.LGS_Child_Campaign_ID__c;
                     newOpp.Car_Reference_No__c = campaignMemObj.Car_Reference_No__c;
+                    newOpp.RTL_W2L_Campaign_Name__c = campaignMemObj.RTL_W2L_Campaign_Name__c;
+                    newOpp.LGS_Partner__c = campaignMemObj.LGS_Partner__c;
 
                     Integer numberOfProduct =  product.numberOfProduct;
                     productNoOpptyMap.put( numberOfProduct, newOpp );
@@ -2607,6 +2626,7 @@ public without sharing class CampaignMemberInfoController {
         opportunityObj.LGS_Campaign_End_Date__c = campaignMemObj.LGS_Campaign_End_Date__c;
         opportunityObj.LGS_Child_Campaign_ID__c = campaignMemObj.LGS_Child_Campaign_ID__c;
         opportunityObj.Car_Reference_No__c = campaignMemObj.Car_Reference_No__c;
+        opportunityObj.LGS_Partner__c = campaignMemObj.LGS_Partner__c;
 
         return opportunityObj;
     }
@@ -2959,6 +2979,14 @@ public without sharing class CampaignMemberInfoController {
         }
         else    prodctName = false;
         return prodctName;
-    }            
+    }         
+    @AuraEnabled   
+    public static moreDetailProductwrapper getMoreDetailAvailableProduct(){
+        moreDetailProductwrapper productwrapper = new moreDetailProductwrapper();
+        productwrapper.ALProductSet = '(\''+String.join(new List<String>(ALPrdNameSet), '\',\'')+'\')';
+        productwrapper.HLProductSet = '(\''+String.join(new List<String>(HLCALPrdNameSet), '\',\'')+'\')';
 
+        System.debug('productwrapper ' + productwrapper);
+        return productwrapper;
+    }            
 }

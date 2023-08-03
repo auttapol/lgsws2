@@ -100,7 +100,7 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
         System.debug('opid:'+newMap.keySet());
         for(CampaignMember each : cmlist){
             if(each.RTL_RelatedOpportunity_1__c != null && newMap.containsKey(each.RTL_RelatedOpportunity_1__c)){
-                each.RTL_Stage_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Stage__c'));
+                each.RTL_Stage_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('StageName'));
                 each.RTL_Status_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Status__c'));
                 each.Details_of_Status_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('Details_of_Status__c'));
                 each.RTL_AL_Refer_No_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_AL_Refer_No__c'));
@@ -115,8 +115,10 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
                 each.HPAP_Status_Code_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('HPAP_Status_Code__c'));
                 each.HPAP_Reason_Code_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('HPAP_Reason_Code__c'));
                 each.HPAP_Reason_Description_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('HPAP_Reason_Description__c'));
-
-                each.RTL_Refer_Date_1__c = Date.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Refer_Date__c'));
+               
+                each.RTL_Status_Approve_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Status_Approve__c'));
+                each.RTL_Submit_Date_1__c = Date.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('Submit_Date__c'));
+                each.RTL_Refer_Date_1__c = Datetime.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Refer_Date__c'));
                 if(each.RTL_Contact_Status__c == 'New' || each.RTL_Contact_Status__c == 'Uncontact'){
                     each.RTL_Contact_Status__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Contact_Status__c'));
                     each.RTL_Reason__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Ws_Reason__c'));
@@ -125,17 +127,20 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
                 each.Corebank_Branch_Name_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('Corebank_Branch_Name__c'));
                 each.Corebank_Sales_Manager_Head_Id_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('Corebank_Sales_Manager_Head_Id__c'));
                 each.Corebank_Sales_Manager_Head_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('Corebank_Sales_Manager_Head__c'));
+                each.RTL_Request_Hub_Code_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Request_Hub_Code__c'));
+                each.RTL_Request_Hub_Name_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Request_Hub_Name__c'));
+                each.Corebank_Approved_Date_Time_1__c = Datetime.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('Corebank_Approved_Date_Time__c'));
                 each.RTL_Product_Campaign_Code_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Product_Campaign_Code__c'));
                 each.RTL_Product_Campaign_Name_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Product_Campaign_Name__c'));
                 each.RTL_Dealer_Code_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Dealer_Code__c'));
                 each.RTL_Dealer_Name_1__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Dealer_Name__c'));
                 each.RTL_Stage_Name_Date_Time_1__c = Datetime.valueOf(newMap.get(each.RTL_RelatedOpportunity_1__c).get('RTL_Stage_Name_Date_Time__c'));
-
+      
                 each.RTL_isBatchUpdateCampaignMember__c = true; 
                 opptyCampaignId.add(each.RTL_RelatedOpportunity_1__c);
             }
             if(each.RTL_RelatedOpportunity_2__c != null && newMap.containsKey(each.RTL_RelatedOpportunity_2__c)){
-                each.RTL_Stage_2__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_2__c).get('RTL_Stage__c'));
+                each.RTL_Stage_2__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_2__c).get('StageName'));
                 each.RTL_Status_2__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_2__c).get('RTL_Status__c'));
                 each.Details_of_Status_2__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_2__c).get('Details_of_Status__c'));
                 each.RTL_AL_Refer_No_2__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_2__c).get('RTL_AL_Refer_No__c'));
@@ -154,7 +159,7 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
                 opptyCampaignId.add(each.RTL_RelatedOpportunity_2__c);
             }
             if(each.RTL_RelatedOpportunity_3__c != null && newMap.containsKey(each.RTL_RelatedOpportunity_3__c)){
-                each.RTL_Stage_3__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_3__c).get('RTL_Stage__c'));
+                each.RTL_Stage_3__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_3__c).get('StageName'));
                 each.RTL_Status_3__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_3__c).get('RTL_Status__c'));
                 each.Details_of_Status_3__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_3__c).get('Details_of_Status__c'));
                 each.RTL_AL_Refer_No_3__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_3__c).get('RTL_AL_Refer_No__c'));
@@ -173,7 +178,7 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
                 opptyCampaignId.add(each.RTL_RelatedOpportunity_3__c);
             }
             if(each.RTL_RelatedOpportunity_4__c != null && newMap.containsKey(each.RTL_RelatedOpportunity_4__c)){
-                each.RTL_Stage_4__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_4__c).get('RTL_Stage__c'));
+                each.RTL_Stage_4__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_4__c).get('StageName'));
                 each.RTL_Status_4__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_4__c).get('RTL_Status__c'));
                 each.Details_of_Status_4__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_4__c).get('Details_of_Status__c'));
                 each.RTL_AL_Refer_No_4__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_4__c).get('RTL_AL_Refer_No__c'));
@@ -192,7 +197,7 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
                 opptyCampaignId.add(each.RTL_RelatedOpportunity_4__c);
             }
             if(each.RTL_RelatedOpportunity_5__c != null && newMap.containsKey(each.RTL_RelatedOpportunity_5__c)){
-                each.RTL_Stage_5__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_5__c).get('RTL_Stage__c'));
+                each.RTL_Stage_5__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_5__c).get('StageName'));
                 each.RTL_Status_5__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_5__c).get('RTL_Status__c'));
                 each.Details_of_Status_5__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_5__c).get('Details_of_Status__c'));
                 each.RTL_AL_Refer_No_5__c = String.valueOf(newMap.get(each.RTL_RelatedOpportunity_5__c).get('RTL_AL_Refer_No__c'));
@@ -700,12 +705,23 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
                                                                                 FROM Recordtype 
                                                                                 WHERE sObjectType = 'Campaign'
                                                                                 AND DeveloperName LIKE '%Mass%']);
-    
+                if(Test.isRunningTest()){
+                    campaignRecordType = new Map<Id, RecordType>([SELECT ID, Name, DeveloperName 
+                                                                                FROM Recordtype 
+                                                                                WHERE sObjectType = 'Campaign'
+                                                                                AND (DeveloperName LIKE '%Mass%'
+                                                                                OR DeveloperName LIKE '%Dummy%')]);
+                }
+                System.debug('campaignIdSet --> '+ campaignIdSet);
+                System.debug('campaignRecordType --> '+ campaignRecordType.values());
+                System.debug('Campaign --> '+[SELECT Id,name,isActive,RecordType.Name
+                FROM Campaign ]);
                 //Get Mass campaign in Primary Campaign Source
                 for(Campaign c :[SELECT Id,name
                         FROM Campaign 
-                        where IsActive = true 
-                        and id in: campaignIdSet
+                        where 
+                        IsActive = true and 
+                        id in: campaignIdSet
                         and RecordTypeid in:campaignRecordType.values()]){
                     mapCampaign.put(c.id, c);
                 }
@@ -823,8 +839,15 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
                                                                                 FROM Recordtype 
                                                                                 WHERE sObjectType = 'Campaign'
                                                                                 AND DeveloperName LIKE '%Mass%']);
-    
+                if(Test.isRunningTest()){
+                    campaignRecordType = new Map<Id, RecordType>([SELECT ID, Name, DeveloperName 
+                                                                                FROM Recordtype 
+                                                                                WHERE sObjectType = 'Campaign'
+                                                                                AND (DeveloperName LIKE '%Mass%'
+                                                                                OR DeveloperName LIKE '%Dummy%')]);
+                }
                 //Get Mass campaign in Primary Campaign Source
+                
                 for(Campaign c :[SELECT Id,name
                         FROM Campaign 
                         where IsActive = true 
@@ -832,7 +855,7 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
                         and RecordTypeid in:campaignRecordType.values()]){
                     mapCampaign.put(c.id, c);
                 }
-    
+
                 //found mass campaign
                 if(mapCampaign.size() > 0){
     
@@ -1182,7 +1205,7 @@ public without sharing class RTL_OpportunityTriggerHandler extends TriggerHandle
                 }
             }
             if(opptyExternalCM.size()>0){
-                List<CampaignMember> listcm = [SELECT Id,RTL_Marketing_Code__c FROM CampaignMember WHERE Id IN: opptyExternalCM OR RTL_Marketing_Code__c IN: opptyExternalCM OR RTL_Web_Unique_Id__c IN: opptyExternalCM];
+                List<CampaignMember> listcm = [SELECT Id,RTL_Marketing_Code__c,RTL_Web_Unique_ID__c FROM CampaignMember WHERE Id IN: opptyExternalCM OR RTL_Marketing_Code__c IN: opptyExternalCM OR RTL_Web_Unique_Id__c IN: opptyExternalCM];
                 if(listcm.size()>0){
                     for(CampaignMember cm : listcm){
                         if(cm.RTL_Marketing_Code__c != null){

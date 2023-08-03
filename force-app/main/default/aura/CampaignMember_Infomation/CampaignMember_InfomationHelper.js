@@ -391,7 +391,7 @@
                 var items = [];
                 if(result)
                 {
-                    console.log('getUncontactReasonPickList',result);
+                    // console.log('getUncontactReasonPickList',result);
                     result.forEach(value => {
                         var item = {
                             "label": value.split(',')[0],
@@ -438,7 +438,7 @@
                         };
                         mins.push(min);
                     });
-                    console.log('Result items',items);
+                    // console.log('Result items',items);
                     // console.log('Result lead Score Level List',result);
                     
                 }
@@ -1010,7 +1010,7 @@
                     {                            
                         if(product.offerResult)
                         {
-                			console.log('product.offerResult------>' + product.offerResult);
+                			// console.log('product.offerResult------>' + product.offerResult);
                             if(product.offerResult == 'Interested')
                             {
                 				console.log('Step ---------> productGroup');
@@ -1064,13 +1064,13 @@
                                         $A.util.addClass(productName[index+index_Input], "slds-has-error");
                                     }                          
                                 }
-console.log('Step product.offerResult ---------> ' + product.offerResult);
+// console.log('Step product.offerResult ---------> ' + product.offerResult);
                                 if(product.offerResult == null || product.offerResult == "" )
                                 {                         
                                     isValidate = false;
                                     $A.util.addClass(offerResult, "slds-has-error");
                                 }            
-        console.log('product.objOpp.StageName ---------> ' + product.objOpp.StageName);
+        // console.log('product.objOpp.StageName ---------> ' + product.objOpp.StageName);
                                 if(product.objOpp.StageName)
                                 {
                                     if(product.objOpp.StageName == null || product.objOpp.StageName == "" )
@@ -1936,5 +1936,28 @@ console.log('Step product.offerResult ---------> ' + product.offerResult);
         // });
         // $A.enqueueAction(action);
     },
-    
+    getMoreDetailAvailableProduct: function (component, event, helper) {
+        var action = component.get('c.getMoreDetailAvailableProduct');
+        action.setParams({});
+        action.setCallback(this, function(response) {
+            var state = response.getState();
+            if(state === 'SUCCESS')
+            {
+                var result = response.getReturnValue()
+                component.set('v.ALPrdNameSet',result.ALProductSet)
+                component.set('v.HLCALPrdNameSet',result.HLProductSet)
+            }
+            else{
+                var errors = response.getError();
+                var message = 'Unknown error'; // Default error message
+                // Retrieve the error message sent by the server
+                if (errors && Array.isArray(errors) && errors.length > 0) {
+                    message = errors[0].message;
+                }
+                console.log('message : ' + message);
+                component.set('v.loaded', false);
+            }
+        });
+        $A.enqueueAction(action);
+    }
 })

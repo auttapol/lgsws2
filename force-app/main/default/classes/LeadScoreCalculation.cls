@@ -26,12 +26,16 @@ public with sharing class LeadScoreCalculation {
 
                 }
             }
+            List<Lead> leadData = new List<Lead>();
             System.debug('LeadID : ' + cm.LeadId);
             String leadId = cm.LeadID;
-            List<Lead> leadData = Database.query(String.format('SELECT {0} FROM Lead WHERE Id =:leadId LIMIT 1', 
-            new List<String>{
-                String.join(LeadFieldName, ',')
-            }));
+            if(LeadFieldName.size() > 0){
+                leadData = Database.query(String.format('SELECT {0} FROM Lead WHERE Id =:leadId LIMIT 1', 
+                new List<String>{
+                    String.join(LeadFieldName, ',')
+                }));
+            }
+            
             List<CampaignMember> cmData = new List<CampaignMember>();
             cmData.add(cm);
             List<Lead_Scoring_Condition_Detail__c> lscoreConDetailList = [SELECT ID,Name,Operation__c,Value1__c,Value2__c,Score__c,Priority__c,Lead_Scoring_Condition__c FROM Lead_Scoring_Condition_Detail__c WHERE Lead_Scoring_Condition__c IN: leadScoreListconId ORDER BY Priority__c];
@@ -68,6 +72,7 @@ public with sharing class LeadScoreCalculation {
                 System.debug('Weight : ' + Weight);
                 if(strfieldName.contains('Lead.')){
                     String filterfieldName = strfieldName.remove('Lead.');
+
                     value = String.valueOf(leadData[0].get(filterfieldName));
 
                 }else{
