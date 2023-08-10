@@ -1,6 +1,6 @@
 ({
     doInit : function(component, event, helper) {
-        console.log('Start!');
+        // console.log('Start!');
         component.set("v.totalWeight", 100)
         component.set("v.LeadList",[]);
 		var recordId = component.get("v.recordId");
@@ -24,7 +24,7 @@
                 component.set("v.mapfieldList", result.fieldList);
                 // console.log('mapfieldList '+ JSON.stringify( result.fieldList));
                 component.set("v.mapfieldtype", result.mapfieldNamewithtype);
-                console.log('mapfieldtype '+ JSON.stringify( result.mapfieldNamewithtype));
+                // console.log('mapfieldtype '+ JSON.stringify( result.mapfieldNamewithtype));
                 component.set("v.mapfieldLength", result.mapfieldNamewithLength);
                 component.set("v.mapfieldLabel", result.mapfieldAPIwithLabel);
                 component.set("v.mapWrapperLabel",result.newMapAPiNameLabel);
@@ -32,7 +32,7 @@
                 //  console.log("API/Label "+ JSON.stringify(result.newMapAPiNameLabel) )
                 // component.set("v.loaded",false);
                 helper.getScoringList(component, event, helper)
-                console.log("LeadList "+ JSON.stringify(component.get("v.LeadList")))
+                // console.log("LeadList "+ JSON.stringify(component.get("v.LeadList")))
             }else{
         
                 console.log('err ' + JSON.stringify(response.getError()));
@@ -73,7 +73,7 @@
         }else{
             totalWeight = component.get("v.totalWeight");
         }
-        console.log('Before filter : '+ JSON.stringify(result));
+        // console.log('Before filter : '+ JSON.stringify(result));
         result = result.filter(x => x.APIName != '');
         // result = result.filter(elements => {
         //     return elements !== null;
@@ -101,8 +101,8 @@
                         }
                     }
                 }
-                console.log('Total weight : '+ totalWeight);
-                console.log('Summary Weight : '+ sumWeight);
+                // console.log('Total weight : '+ totalWeight);
+                // console.log('Summary Weight : '+ sumWeight);
                 if(totalWeight == sumWeight){
                     component.set("v.isActiveShowed", true); 
                 }else{
@@ -141,7 +141,7 @@
             for(var i=0;i<=(myObjectKeys.length - 1) ; i++){
                 if(result.length > 0 ){
                     if(result[i].hasOwnProperty("APIName")){
-                        console.log(result[i].APIName)
+                        // console.log(result[i].APIName)
                         if(!result[i].APIName){
                             // console.log(parseInt(result[i].Weight));
                             helper.displayToast(component, 'Error', 'Field Name is required.');
@@ -153,7 +153,7 @@
                                 sumWeight = parseInt(sumWeight) + parseInt(result[i].Weight);
                                 // console.log('sumWeight = '+sumWeight);
                             }else{
-                                console.log(parseInt(result[i].Weight));
+                                // console.log(parseInt(result[i].Weight));
                                 helper.displayToast(component, 'Error', 'Weight value is required.');
                                 return null;
                             } 
@@ -191,13 +191,13 @@
         }
         helper.parseRecord(component, helper)
         // component.set("v.isActive",false);
-        console.log(JSON.stringify(component.get("v.level1Rec")));
+        // console.log(JSON.stringify(component.get("v.level1Rec")));
         helper.displayToast(component, 'Success', 'Inactive.');
 	},
 
     handleRefresh: function(component, event, helper) {
         // handle the refresh event
-        console.log('Tab has been refreshed.');
+        // console.log('Tab has been refreshed.');
         
         // refresh the tab manually
         var workspaceAPI = component.find("workspace");

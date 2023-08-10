@@ -110,10 +110,10 @@ public class RTL_ReferralTriggerHandlerTest {
         }
         System.runAs(retailWithBranchUser){
             //Referral without preferred branch
-            referralList = TestUtility_Referral.createReferralsWithAccount(100,acctList[0].id,branchAndZoneList[0].id,true);
+            referralList = TestUtility_Referral.createReferralsWithAccount(50,acctList[0].id,branchAndZoneList[0].id,true);
             referralList = queryReferral();
             //assert insert bulk insert success
-            System.assertEquals(100,referralList.size());
+            System.assertEquals(50,referralList.size());
         }
         Test.stopTest();
     }

@@ -839,7 +839,7 @@ public without sharing class RTL_CampaignMemberTriggerHandler{
       }
 
       cm.RTL_isBatchUpdateCampaignMember__c = false;
-      if(cm.Scoring_Condition_Id__c != null && cm.RTL_Lead_Score_Flag__c == false && cm.RTL_Is_Send_To_HPAP__c == false && cm.LeadId != null){
+      if(cm.Scoring_Condition_Id__c != null && cm.RTL_Lead_Score_Flag__c == false && cm.RTL_Is_Send_To_HPAP__c == false){
         campaignMemIdSet.add(cm);
       }
       

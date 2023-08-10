@@ -60,14 +60,14 @@
 		// console.log('hehe' + JSON.stringify(fieldLabellist));
 		// var fieldlabel = fieldLabellist[component.get("v.LeadScoringList").FieldName];
 		var LeadList = component.get("v.LeadScoringList");
-		console.log('index -- > '+index)
+		// console.log('index -- > '+index)
 		var LabelList = component.get("v.LeadScoringList").FieldList;
 		var label = LabelList[index];
 		var mapfieldtypelist = component.get("v.mapfieldtype");
 		var fieldtypelist = mapfieldtypelist[component.get("v.LeadScoringList").LObject];
 		var fieldtype = fieldtypelist[FIELDAPINAME.API[index]];
 		// var clickedIndex = event.getSource().getElement().dataset.index;
-    	console.log('fieldname label:', label);
+    	// console.log('fieldname label:', label);
 		var mapfieldlengthlist = component.get("v.mapfieldLength");
 		var fieldlengthlist = mapfieldlengthlist[component.get("v.LeadScoringList").LObject];
 		var fieldlength = fieldlengthlist[FIELDAPINAME.API[index]];
@@ -96,19 +96,4 @@
         component.set("v.showModal",false);
     },
 
-	handleItemClick: function(component, event, helper) {
-		var selectedValue = component.get("v.LeadScoringList.FieldName");
-        // var selectedIndex = event.target["data-index"];
-        // var selectedIndex1 = event.getSource().get("v.id");
-		// var selectedIndex2 = event.getSource().get("v.data-index");
-        console.log("Selected Value: " + selectedValue);
-		// console.log("Selected Index1: " + selectedIndex1);
-        // console.log("Selected Index2: " + selectedIndex2);
-		
-
-		// var selectedIndex123 = event.getSource().get("v.value");
-		// var selectedOption = event.getSource().find("option[value='" + selectedIndex123 + "']");
-		// var index = selectedOption.get("v.data-index");
-		// console.log("Index value: " + index);
-	  }
 })

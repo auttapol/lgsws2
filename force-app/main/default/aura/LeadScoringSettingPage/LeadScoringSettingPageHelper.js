@@ -2,7 +2,7 @@
 	createfirst: function (component, event, helper) {
 		// get the caseList from component and add(push) New Object to List
 		var RowItemList = component.get("v.OrderList");
-		console.log('RowItemList: ',RowItemList);
+		// console.log('RowItemList: ',RowItemList);
 		var size = RowItemList.length;
 		if (RowItemList != undefined){
 			if (size < 10){
@@ -80,7 +80,7 @@
 					}
 					
 					component.set("v.OrderList", OrderList);
-					console.log('state ' + state);
+					// console.log('state ' + state);
 					component.set("v.loaded",false);
 				}else{
 					console.log('err ' + JSON.stringify(response.getError()));

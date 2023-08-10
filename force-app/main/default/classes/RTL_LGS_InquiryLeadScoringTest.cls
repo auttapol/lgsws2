@@ -3,7 +3,7 @@ public with sharing class RTL_LGS_InquiryLeadScoringTest {
 
     private static String encryptKey {
         get {
-            return 'c3018e70d8b7df129e502b2e12b8e4069e5c4cbae48ed9041a1454f069233265';
+            return '645cd9c4fb491a9ea4fe5589d291fe3bbddf8ef04f22df0cea7277460fb9a0e1';
             // return (String)SCSMessageAPIUtil.getEncryptKey(SCSMessageAPIUtil.fetchUserSessionId(), 'get_lgs_key');
         }
     }
@@ -58,15 +58,47 @@ public with sharing class RTL_LGS_InquiryLeadScoringTest {
             RestRequest request = new RestRequest();
             request.resourcePath = '0';
             request.addHeader('Integration-System', 'LGS');
-            request.requestUri = URL.getSalesforceBaseUrl().toExternalForm() + '/data/V1.0/CampaignMember/getInfoByMarketingCode/*';
+            request.requestUri = URL.getSalesforceBaseUrl().toExternalForm() + '/data/V1.0/LeadScore/getScoringList/*';
             request.httpMethod = 'POST';
-            // request.requestBody = Blob.valueOf(String.valueOf(SCSMessageAPIUtil.encryptMessageWithKey(JSON.serialize(
-            //     new Map<String, Object>{}
-            // ), encryptKey)));
+            request.requestBody = Blob.valueOf(String.valueOf(SCSMessageAPIUtil.encryptMessageWithKey(JSON.serialize(
+                new Map<String, Object>{
+                    'webUniqueId' => 'DOUTBOUND1HN00001023'
+                }
+            ), encryptKey)));
             RestContext.request = request;
             Test.setMock(HttpCalloutMock.class, new MockHttpResponseCallMeNow(200, encryptKey));
             System.debug('request -->'+request);
             RTL_AL_WebserviceAbstract.SCSReqRes responseEncrypt = RTL_LGS_InquiryLeadScoringList.getLeadScoringListInfo();
+        }
+        Test.stopTest();
+    }
+
+    @IsTest
+    static void testGetLeadScoringException(){
+        Test.startTest();
+        User sfextapi = [SELECT Id FROM user WHERE name = 'sfextapi'];
+        System.runAs(sfextapi){
+            RTL_AL_WsCampaignMemberInfo webserviceClass = new RTL_AL_WsCampaignMemberInfo();
+            System.debug(encryptKey);
+            RestRequest request = new RestRequest();
+            request.resourcePath = '0';
+            // request.addHeader('Integration-System', 'LGS');
+            request.requestUri = URL.getSalesforceBaseUrl().toExternalForm() + '/data/V1.0/LeadScore/getScoringList/*';
+            request.httpMethod = 'POST';
+            request.requestBody = Blob.valueOf(String.valueOf(SCSMessageAPIUtil.encryptMessageWithKey(JSON.serialize(
+                new Map<String, Object>{
+                    'webUniqueId' => 'DOUTBOUND1HN00001023'
+                }
+            ), encryptKey)));
+            RestContext.request = request;
+            Test.setMock(HttpCalloutMock.class, new MockHttpResponseCallMeNow(200, encryptKey));
+            System.debug('request -->'+request);
+            try {
+                RTL_AL_WebserviceAbstract.SCSReqRes responseEncrypt = RTL_LGS_InquiryLeadScoringList.getLeadScoringListInfo();
+            } catch (Exception e) {
+                
+            }
+            
         }
         Test.stopTest();
     }

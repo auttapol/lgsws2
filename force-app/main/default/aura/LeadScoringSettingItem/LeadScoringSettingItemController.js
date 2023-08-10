@@ -1,6 +1,6 @@
 ({	
 	doInit : function(component, event, helper) {
-		console.log(component.get("v.fieldType"));
+		// console.log(component.get("v.fieldType"));
 		var fieldType = component.get("v.fieldType");
 		var operation = [];
 		operation.push('=')
@@ -19,10 +19,10 @@
 		}
 		if(!list.hasOwnProperty("rowIndex")){
 			list.rowIndex = component.get("v.rowIndex") - 1;
-			console.log('list.rowIndex ' +list.rowIndex )
+			// console.log('list.rowIndex ' +list.rowIndex )
 		}
 
-		console.log('list ' + JSON.stringify(list));
+		// console.log('list ' + JSON.stringify(list));
     },
 	AddNewRow: function (component, event, helper) {
 		// fire the AddNewRowEvt Lightning Event

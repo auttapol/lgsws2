@@ -176,9 +176,6 @@ global without sharing class RTL_AL_WsCreateLead extends RTL_AL_WebserviceAbstra
                     campaignMemberTouch.RTL_TC__c = dropLeadO2O.RTL_TC__c;
                     campaignMemberTouch.LGS_Partner__c = dropLeadO2O.LGS_Partner__c;
                     campaignMemberTouch.LGS_Lead_Received_Time__c = dropLeadO2O.LGS_Lead_Received_Time__c;
-                    campaignMemberTouch.LGS_Assign_Rule__c = dropLeadO2O.LGS_Assign_Rule__c;
-                    campaignMemberTouch.LGS_Car_Brand_Showroom_ID__c = dropLeadO2O.LGS_Car_Brand_Showroom_ID__c;
-                    campaignMemberTouch.LGS_Dealer_Showroom_ID__c = dropLeadO2O.LGS_Dealer_Showroom_ID__c;
                     campaignMemberTouch.LGS_001__c = dropLeadO2O.LGS_001__c;
                     campaignMemberTouch.LGS_002__c = dropLeadO2O.LGS_002__c;
                     campaignMemberTouch.LGS_003__c = dropLeadO2O.LGS_003__c;

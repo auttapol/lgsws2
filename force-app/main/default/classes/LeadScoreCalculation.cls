@@ -14,13 +14,15 @@ public with sharing class LeadScoreCalculation {
         if(lslist.size() > 0 && lslist[0].isActive__c){
             List<Lead_Scoring_Condition__c> lsclist = [SELECT Id,Name,Object__c,Field_Mapping__c, Weight__c FROM Lead_Scoring_Condition__c WHERE Lead_Scoring_List__c =: lslist[0].Id];
             for(Lead_Scoring_Condition__c eachCon : lsclist){
-                leadScoreListconId.add(eachCon.Id);
-                mapLScoreConIdwithWeight.put(eachCon.Id,eachCon.Weight__c);
-                if(eachCon.Object__c != 'CampaignMember'){
+                if(eachCon.Object__c != 'CampaignMember' && cm.LeadId != null){
+                    leadScoreListconId.add(eachCon.Id);
+                    mapLScoreConIdwithWeight.put(eachCon.Id,eachCon.Weight__c);
                     LeadFieldName.add(eachCon.Field_Mapping__c);
                     FieldName.add(eachCon.Object__c+'.'+eachCon.Field_Mapping__c);
                     mapIdwithFieldName.put(eachCon.Id,eachCon.Object__c+'.'+eachCon.Field_Mapping__c);
                 }else{
+                    leadScoreListconId.add(eachCon.Id);
+                    mapLScoreConIdwithWeight.put(eachCon.Id,eachCon.Weight__c);
                     FieldName.add(eachCon.Field_Mapping__c);
                     mapIdwithFieldName.put(eachCon.Id,eachCon.Field_Mapping__c);
 
@@ -28,6 +30,9 @@ public with sharing class LeadScoreCalculation {
             }
             List<Lead> leadData = new List<Lead>();
             System.debug('LeadID : ' + cm.LeadId);
+            System.debug('leadScoreListconId : ' + leadScoreListconId.size());
+            System.debug('LeadFieldName : ' + LeadFieldName.size());
+
             String leadId = cm.LeadID;
             if(LeadFieldName.size() > 0){
                 leadData = Database.query(String.format('SELECT {0} FROM Lead WHERE Id =:leadId LIMIT 1', 

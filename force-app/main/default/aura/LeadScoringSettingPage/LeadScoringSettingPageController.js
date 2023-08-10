@@ -1,8 +1,8 @@
 ({
     doInit : function(component, event, helper) {
-		console.log(component.get("v.scoringConId"));
-        console.log(component.get("v.fieldName"));
-        console.log(component.get("v.fieldType"));
+		// console.log(component.get("v.scoringConId"));
+        // console.log(component.get("v.fieldName"));
+        // console.log(component.get("v.fieldType"));
         
         // var FirstRowItemList = [];
         // FirstRowItemList.push({
@@ -48,12 +48,13 @@
         var result = result.filter(function(obj) {
             return obj.hasOwnProperty('inputrowIndex');
         });
-        console.log(JSON.stringify(result))
+        // console.log(JSON.stringify(result))
         var recordId = component.get("v.scoringConId");
         var isInsert = true;
-        for(var i=0;i<=result.Length;i++){
-            // console.log(result[i].Score)
-            if(result[i].Score <0 && result[i].Score > 100){
+        // console.log(result.length)
+        for(var i=0;i<result.length;i++){
+            // console.log(parseInt(result[i]["Score"]));
+            if( parseInt(result[i]["Score"]) < 0 || parseInt(result[i]["Score"]) > 100){
                 isInsert = false;
             }
         }
@@ -69,7 +70,7 @@
                 {	
                     // var result = response.getReturnValue();
                     helper.displayToast(component, 'Success', 'Save Success.');
-                    console.log('state ' + state);
+                    // console.log('state ' + state);
                     component.set("v.showModal", false)
                 }else{
                     console.log('err ' + JSON.stringify(response.getError()));

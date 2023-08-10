@@ -64,21 +64,15 @@ public with sharing class RTL_CampaignMemberExtensionTest {
         System.runAs(firstUser) {
             oppList = RTL_TestUtility.createOpportunity(accList,true);
         }
-
-        Account acc1 = TestUtils.createAccounts(1,'TESTACCOUNT','Individual', true).get(0);
+        
         
         Campaign camp = new Campaign();
         camp.Name = 'Campaign_';
         camp.Segment__c = 'MB';
         camp.OwnerId  = UserInfo.getUserId();
         camp.RecordTypeId = Recordtypeid;
-        camp.RTL_Campaign_Code_10_digits__c = 'DSWS2QA36C';
         insert camp;
-
-        Contact cont = TestUtils.createContacts(1, acc1.id, false).get(0);
-		cont.TMB_Customer_ID__c = '0817161233';
-		insert cont;
-
+        
         CampaignMember cm1 = new CampaignMember();
         cm1.LeadId = leads.get(0).id;
         cm1.CampaignId = camp.id;
@@ -86,8 +80,7 @@ public with sharing class RTL_CampaignMemberExtensionTest {
         cm1.RTL_Contact_Status__c = 'Contact';
         cm1.RTL_Product_Group_1__c = 'Bancassurance';
         cm1.RTL_OfferResult_Product_1__c = 'Interested';
-        cm1.ContactId = cont.id;
-        //cm1.RTL_RelatedOpportunity_1__c = oppList.get(0).Id;
+        cm1.RTL_RelatedOpportunity_1__c = oppList.get(0).Id;
         insert cm1;
         
         Test.startTest();
@@ -115,12 +108,13 @@ public with sharing class RTL_CampaignMemberExtensionTest {
         camPage.apexSave();
         camPage.redirectAfterSave();
         camPage.apexCreateOpportunity();
-
+        camPage.requestCampaignData();
+        camPage.processResponse();
         cm1.RTL_RelatedOpportunity_1__c = null;
         update cm1;
         camPage.nextPageCreateOpportunity();
         camPage.getCampaignProductInterested();
-        
+        camPage.runQuery();
         cm1.RTL_OfferResult_Product_1__c = 'Not Interested';
         // cm1.RTL_Reason_1__c = 'Others';
         cm1.RTL_Contact_Status__c = 'New';

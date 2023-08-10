@@ -24,6 +24,7 @@ global with sharing class RTL_LGS_InquiryLeadScoringList extends RTL_AL_Webservi
         try{
             encryptKey = getKeyFromSystem(request);
             String integrationSystem = requestHeader.get('Integration-System');
+            System.debug('encryptKey' + encryptKey);
             requestBodyDecrypt = (String) SCSMessageAPIUtil.decryptMessageWithKey(request.requestBody.toString(), encryptKey);
             requestBody = '"Integration System": ' + integrationSystem  + '\n\n' + (requestBodyDecrypt!=null?requestBodyDecrypt:'');
         } catch (WebserviceAbstract.MissingHeaderException e){

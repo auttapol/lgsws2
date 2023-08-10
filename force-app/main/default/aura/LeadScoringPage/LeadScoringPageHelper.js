@@ -2,11 +2,11 @@
 	createfirst: function (component, event, helper) {
 		// get the caseList from component and add(push) New Object to List
 		var RowItemList = component.get("v.LeadList");
-		console.log('RowItemList: ',RowItemList);
+		// console.log('RowItemList: ',RowItemList);
         // console.log('RowItemList: ',JSON.stringify(RowItemList));
 
 		var size = RowItemList.length;
-        console.log('Size ' + size);
+        // console.log('Size ' + size);
 		if (RowItemList != undefined){
 			if (size < 10){
 				RowItemList.push({
@@ -26,7 +26,7 @@
 		}
 		// set the updated list to attribute (contactList) again   
 		component.set("v.LeadList", RowItemList);
-		console.log('RowItemList: ',RowItemList[9]);
+		// console.log('RowItemList: ',RowItemList[9]);
 		// console.log('v.caseList: ',component.get('v.caseList'));
 	}, 
     displayToast: function (component, type, message) {
@@ -57,7 +57,7 @@
 			isActive = component.get("v.level1Rec.IsActive__c");
 			name = component.get("v.level1Rec.Name");
 		}
-		console.log('isActive' + isActive);
+		// console.log('isActive' + isActive);
 		var action = component.get("c.insertLeadScoring");
         action.setParams({
 			recordId : recordId,
@@ -72,11 +72,11 @@
             {	
 				var result = response.getReturnValue();
 				helper.parseLevel2(component, helper, result)
-				console.log('Id return: '+result)
+				// console.log('Id return: '+result)
 				if(result){
 					helper.navigateToRecord(component, event, helper, result)
 				}
-                console.log('state ' + state);
+                // console.log('state ' + state);
             }else{
                 console.log('err ' + JSON.stringify(response.getError()));
                 // component.set("v.loaded",false);
@@ -103,16 +103,16 @@
 						component.set("v.isEdit", true);
 					}
 					component.set("v.level2Rec", result.LSC);
-					console.log(result.LSL)
+					// console.log(result.LSL)
 					if(result.LSL.Summary_weight__c == result.LSL.Total_Weight__c){
 						component.set("v.isActiveShowed", true);
 					}else{
 						component.set("v.isActiveShowed", false);
 					}
-					console.log(result.LSC)
-					console.log(component.get("v.isEdit"))
+					// console.log(result.LSC)
+					// console.log(component.get("v.isEdit"))
 					helper.pushLevel2(component, event, helper)
-					console.log('state ' + state);
+					// console.log('state ' + state);
 				}else{
 					console.log('err ' + JSON.stringify(response.getError()));
 					// component.set("v.loaded",false);
@@ -129,7 +129,7 @@
 	navigateToRecord : function(component, event, helper, recordId){
         // var recordId = event.target.getAttribute('id');
         // var recordId = component.get('v.recordId');
-		console.log('navigateToRecord '+recordId)
+		// console.log('navigateToRecord '+recordId)
         component.find("navService").navigate({
             'type': 'standard__recordPage',
             'attributes': {
@@ -159,7 +159,7 @@
             if(state === 'SUCCESS')
             {	
 				// var result = response.getReturnValue();
-                console.log('state ' + state);
+                // console.log('state ' + state);
             }else{
                 console.log('err ' + JSON.stringify(response.getError()));
                 // component.set("v.loaded",false);
@@ -185,10 +185,10 @@
 		for(var i=0; i < scoringCon.length;i++){
 			// console.log(('Field name'+mapfieldLabellist[scoringCon[i].Object__c])[scoringCon[i].Field_Mapping__c])
 			var FIELDAPINAME = newMapAPiNameLabel[scoringCon[i].Object__c];
-			console.log('API ' + scoringCon[i].Field_Mapping__c)
+			// console.log('API ' + scoringCon[i].Field_Mapping__c)
 			var mapObjWithAPI = mapfieldLabellist[scoringCon[i].Object__c];
-			console.log('mapObjWithAPI ' + JSON.stringify(mapObjWithAPI))
-			console.log(mapObjWithAPI[scoringCon[i].Field_Mapping__c])
+			// console.log('mapObjWithAPI ' + JSON.stringify(mapObjWithAPI))
+			// console.log(mapObjWithAPI[scoringCon[i].Field_Mapping__c])
 			result.push({
 				'LObject': scoringCon[i].Object__c,
 				'FieldName': (FIELDAPINAME.API.indexOf(scoringCon[i].Field_Mapping__c)) ,
@@ -217,7 +217,7 @@
             });
             component.set("v.LeadList",FirstRowItemList);
         }
-		console.log('Lead List : '+ JSON.stringify(component.get("v.LeadList")));
+		// console.log('Lead List : '+ JSON.stringify(component.get("v.LeadList")));
 		component.set("v.loaded",false);
 	},
 })
